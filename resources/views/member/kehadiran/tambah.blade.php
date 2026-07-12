@@ -1,0 +1,68 @@
+<div class="divider">
+  <div class="divider-text"><h4><i class="ri-calendar-todo-line"></i> {{ date("Y-m-d") }}</h4></div>
+</div>
+<span id="tanggal_error" class="text-danger d-flex justify-content-center"></span>
+<div class="d-flex justify-content-center">
+    <div class="row">
+        <div class="col ">
+            <form id="form-datang" method="post" action="{{ url('logkehadiran/insert') }}">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="mode" value="datang">
+                <button type="submit" id="btnSubmit_form-datang" @if($data && $data->waktu_masuk) disabled @endif class="btn btn-sm btn-primary"><i class="ri-time-line pe-1"></i> Datang</button>
+            </form>
+        </div>
+        <div class="col">
+            <form id="form-pulang"  method="post" action="{{ url('logkehadiran/insert') }}">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="mode" value="pulang">
+                <button type="submit" id="btnSubmit_form-pulang"  @if($data && $data->waktu_pulang) disabled @endif class="btn btn-sm btn-danger"> <i class="ri-time-line pe-1"></i> Pulang</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    $(function(){
+      $("[id^=form-]").on("submit",function(){       
+        var action = $(this).attr("action");
+        var id = $(this).attr("id");
+        var btnHtml = $("#btnSubmit_"+id+"").html();
+        var dString = $(this).serialize();
+        $("#tanggal_error").html('');
+
+        $.ajax({
+          dataType:'json',
+          type:'post',
+          url:action,
+          data:dString,
+          beforeSend:function(){
+            $("#btnSubmit_"+id+"").prop("disabled",true);
+            $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
+          },
+          complete:function(){
+            $("#btnSubmit_"+id+"").prop("disabled",false);
+            $("#btnSubmit_"+id+"").html(btnHtml);	
+          },
+          success:function(ret){
+            var table = $('#dataTable').DataTable(); // Menginisialisasi objek tabel
+            // Memuat ulang data tabel secara manual
+            table.ajax.reload();
+            if(ret.success == true){		
+              toastr.success(ret.message)		
+              $("#modalku").modal("hide");
+            }else{
+              $.each(ret.errors, function(key, value) {
+                        $("#" + key + "_error").html(value[0]); // Menampilkan pesan error di dalam field yang sesuai
+                });
+                toastr.warning(ret.message)	
+            }
+          },
+          error:function(xhr,ajaxOptions,thrownError){
+            alert(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
+          }			
+        })
+        return false;
+      })
+    })
+  </script>
