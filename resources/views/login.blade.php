@@ -283,7 +283,7 @@
         <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-5 px-4 px-sm-5">
           <div class="w-100 mx-auto" style="max-width: 400px;">
             <div class="mb-4 text-center">
-              <h4 class="mb-2 fw-bold">LOGIN</h4>
+              <h4 class="mb-2 fw-bold">MASUK</h4>
               <p class="mb-0 text-muted">Silakan login untuk masuk ke Dashboard</p>
             </div>
 
@@ -320,14 +320,14 @@
               <div class="mb-4 d-flex justify-content-between align-items-center">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="remember-me" />
-                  <label class="form-check-label" for="remember-me">Remember Me</label>
+                  <label class="form-check-label" for="remember-me">Ingat Saya</label>
                 </div>
                 <a href="#" class="text-primary">
                   <small>Lupa Kata Sandi?</small>
                 </a>
               </div>
               <button class="btn btn-primary" id="btnSubmit_formAuthentication">
-                <i class="ri-lock-fill me-2"></i>Sign In
+                <i class="ri-lock-fill me-2"></i>Masuk
               </button>
             </form>
 
