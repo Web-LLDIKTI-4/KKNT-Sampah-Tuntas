@@ -67,13 +67,7 @@
     <script src="../../assets/vendor/js/dropdown-hover.js"></script>
     <script src="../../assets/vendor/js/mega-dropdown.js"></script>
 
-    @if(Auth::user()->role == 'admin')
-      @include("layouts.menu")
-    @elseif(Auth::user()->role == 'dpl')
-      @include("layouts.menu_dpl")
-    @else
-      @include("layouts.menu_mahasiswa")
-    @endif
+    @include("layouts.menu")
     <!-- Sections:Start -->
 
     <section class="section-py bg-body first-section-pt">
@@ -100,6 +94,7 @@
         </div>
       </div>
     </div>
+
     <!-- Footer: Start -->
     <footer class="landing-footer">
       <div class="footer-top position-relative overflow-hidden">
@@ -115,16 +110,23 @@
                 </span>
               </a>
               <p class="footer-text footer-logo-description mb-6">
-              PROGRAM PERGURUAN TINGGI MEMBANGUN DESA DI NUSANTARA LLDIKTI WILAYAH IV TAHUN 2024 
-              <span class="text-warning">“Serentak Bergerak Mewujudkan MBKM Mandiri”</span>
+                KKN Mahasiswa {{ date('Y') }} adalah program untuk memberikan kesempatan kepada mahasiswa untuk memperoleh pengalaman kerja dan meningkatkan kompetensi sesuai bidang keilmuan.
+              <span class="text-warning"></span>
               </p>
             </div>
             <div class="col-lg-3 col-md-6 col-sm-6">
               <h6 class="footer-title mb-4 mb-lg-6">Link Terkait</h6>
               <ul class="list-unstyled mb-0">
                 <li class="mb-4">
-                  <a href="https://lldikti4.kemdikbud.go.id" target="_blank" class="footer-link">LLDIKTI IV</a>
+                  <a href="https://lldikti4.kemdikbud.go.id" target="_blank" class="footer-link">Laman LLDIKTI IV</a>
                 </li>
+                <li class="mb-4">
+                  <a href="https://majalah.lldikti4.id" target="_blank" class="footer-link">Majalah</a>
+                </li>
+                <li class="mb-4">
+                  <a href="https://jurnal.lldikti4.or.id" target="_blank" class="footer-link">Jurnal</a>
+                </li>
+                <!--
                 <li class="mb-4">
                   <a href="https://mbkm.lldikti4.id" target="_blank" class="footer-link">MBKM LLDIKTI IV 2023</a>
                 </li>
@@ -134,17 +136,20 @@
                 <li class="mb-4">
                   <a href="https://kampusmerdeka.kemdikbud.go.id/" target="_blank" class="footer-link">Kampus Merdeka</a>
                 </li>
-               
+-->
               </ul>
             </div>
-            <div class="col-lg-2 col-md-6 col-sm-6">
-              <h6 class="footer-title mb-4 mb-lg-6">Laman</h6>
+            <div class="col">
+              <h6 class="footer-title mb-4 mb-lg-6">Kontak Kami</h6>
               <ul class="list-unstyled mb-0">
                 <li class="mb-4">
-                  <a href="{{ url('faq') }}" class="footer-link">FAQ</a>
+                  <span class="footer-link">Jalan Penghulu H. Hasan Mustofa No. 38 Bandung 40124</span>
                 </li>
-                <li>
-                  <a href="{{ url('logout') }}"  class="footer-link">Logout</a>
+                <li class="mb-4">
+                  <a href="mailto:informasi@lldikti4.id" class="footer-link">informasi@lldikti4.id</a>
+                </li>
+                <li class="mb-4">
+                  <span class="footer-link">Telepon: +022 7275630, +022 7274377</span>
                 </li>
               </ul>
             </div>
@@ -156,12 +161,13 @@
         <div
           class="container d-flex flex-wrap justify-content-between flex-md-row flex-column text-center text-md-start">
           <div class="mb-2 mb-md-0">
-            <span class="footer-text">© 2024, Data Informasi & Pembiayaan Pendidikan LLDIKTI Wilayah IV
+            <span class="footer-text">© {{ date('Y') }}, Data Informasi & Pembiayaan Pendidikan LLDIKTI Wilayah IV</span>
           </div>
           <div>
-            <a href="https://m.facebook.com/LLDIKTIWILAYAH4/?tsid=0.24115179413463506&source=result" class="footer-link me-4" target="_blank"><i class="ri-facebook-circle-fill"></i></a>
-            <a href="https://twitter.com/lldiktiwilayah4?s=09" class="footer-link me-4" target="_blank"><i class="ri-twitter-fill"></i></a>
-            <a href="https://instagram.com/lldiktiwilayah4?utm_medium=copy_link" class="footer-link" target="_blank"><i class="ri-instagram-line"></i></a>
+            <a href="https://www.facebook.com/lldiktiwilayah4/?tsid=0.24115179413463506&source=result" class="footer-link me-4" target="_blank"><i class="ri-facebook-circle-fill"></i></a>
+            <a href="https://x.com/lldiktiwilayah4?s=09" class="footer-link me-4" target="_blank"><i class="ri-twitter-fill"></i></a>
+            <a href="https://www.youtube.com/c/LLDIKTIWILAYAH4" class="footer-link me-4" target="_blank"><i class="ri-youtube-fill"></i></a>
+            <a href="https://www.instagram.com/lldiktiwilayah4?utm_medium=copy_link" class="footer-link" target="_blank"><i class="ri-instagram-line"></i></a>
           </div>
         </div>
       </div>

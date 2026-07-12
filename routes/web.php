@@ -37,6 +37,7 @@ use App\Http\Controllers\KecamatanController;
 use App\Http\Controllers\DesaController;
 use App\Http\Controllers\PjdesaController;
 use App\Http\Controllers\DesaprofileController;
+use App\Http\Controllers\LokasiprogramController;
 
 use App\Http\Controllers\LogbulananController;
 use App\Http\Controllers\MhsprofileController;
@@ -165,6 +166,15 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('desaprofile/edit/{id_profile}', [DesaprofileController::class, 'edit']);
     Route::put('desaprofile/update', [DesaprofileController::class, 'update']);
     Route::put('desaprofile/destroy', [DesaprofileController::class, 'destroy']);
+
+    Route::get('lokasiprogram', [LokasiprogramController::class, 'index']);
+    Route::get('lokasiprogram/listdata', [LokasiprogramController::class, 'listdata'])->name('lokasiprogram.listdata');
+    Route::get('lokasiprogram/listdataserver', [LokasiprogramController::class, 'listdataserver'])->name('lokasiprogram.listdataserver');
+    Route::get('lokasiprogram/tambah', [LokasiprogramController::class, 'tambah']);
+    Route::put('lokasiprogram/insert', [LokasiprogramController::class, 'insert']);
+    Route::get('lokasiprogram/edit/{id}', [LokasiprogramController::class, 'edit']);
+    Route::put('lokasiprogram/update', [LokasiprogramController::class, 'update']);
+    Route::put('lokasiprogram/destroy', [LokasiprogramController::class, 'destroy']);
 
     Route::get('laptugasakhir', [LaptugasakhirController::class, 'index']);
     Route::get('laptugasakhir/listdata', [LaptugasakhirController::class, 'listdata'])->name('laptugasakhir.listdata');
