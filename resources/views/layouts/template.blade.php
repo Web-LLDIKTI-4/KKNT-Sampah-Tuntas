@@ -61,6 +61,21 @@
     <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
 
     <link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
+
+    <style>
+      /* Keep footer pinned to the bottom when page content is short */
+      body {
+        display: flex;
+        min-height: 100vh;
+        flex-direction: column;
+      }
+      .first-section-pt {
+        flex: 1 0 auto;
+      }
+      .landing-footer {
+        flex-shrink: 0;
+      }
+    </style>
   </head>
 
   <body>
@@ -198,6 +213,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.js"></script>
   </body>
 </html>
+
 <script type="text/javascript">  
 	$(function(){
 		$('body').on("click","a.modalButton,button.modalButton",function(){
