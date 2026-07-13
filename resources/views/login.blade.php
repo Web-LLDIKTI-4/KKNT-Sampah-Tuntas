@@ -73,7 +73,7 @@
           left: 0;
           right: 0;
           bottom: 0;
-          background: url('../../assets/images/6907397.jpg') no-repeat center center;
+          background: url('../../assets/images/bg-image.jpg') no-repeat center center;
           background-size: cover;
           opacity: 0.1;
       }
@@ -82,12 +82,12 @@
         .lokasi-panel {
           width: 100%;
           height: 100%;
-          background: rgba(102, 126, 234, 0.92);
-          border-radius: 20px;
-          box-shadow: 0 20px 60px rgba(102, 126, 234, 0.35);
+          background: transparent;
+          border-radius: 0;
+          box-shadow: none;
           display: flex;
           flex-direction: column;
-          overflow: hidden;
+          overflow: auto;
         }
 
         .lokasi-panel-header {
@@ -312,7 +312,7 @@
       <!-- /Logo -->
       <div class="authentication-inner row m-0">
         <!-- Left Section -->
-        <div class="d-none d-lg-flex col-lg-7 col-xl-8 p-4">
+        <div class="d-none d-lg-flex col-lg-7 col-xl-8 p-0">
           <div class="lokasi-panel">
             <div class="lokasi-panel-header">
               {{-- Logo Header --}}
