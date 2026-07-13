@@ -29,7 +29,7 @@ class NilaifreeformController extends Controller
         $data=[
             'mahasiswa'=>$mahasiswa,
         ];
-        return view('member.nilaifreeform.index',$data);
+        return view('nilaifreeform.index',$data);
     }
    
     public function nilaikonversi(){
@@ -41,7 +41,7 @@ class NilaifreeformController extends Controller
             'mahasiswa'=>$mahasiswa,
             'nilai'=>$nilai,
         ];
-        return view('member.nilaifreeform.nilaikonversi',$data);
+        return view('nilaifreeform.nilaikonversi',$data);
     }
     public function freeform(){
         $user = User::where("email",Auth::user()->email)->first();
@@ -52,7 +52,7 @@ class NilaifreeformController extends Controller
             'mahasiswa'=>$mahasiswa,
             'nilai'=>$nilai,
         ];
-        return view('member.nilaifreeform.freeform',$data);
+        return view('nilaifreeform.freeform',$data);
     }
 
 }

@@ -19,11 +19,11 @@ class DplmentoringController extends Controller
 {    
     public function index()
     {  
-        return view('dpl.mentoring.index');
+        return view('mentoring.index');
     }
     public function listdata()
     {
-        return view('dpl.mentoring.listdata');
+        return view('mentoring.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -69,7 +69,7 @@ class DplmentoringController extends Controller
     }
     public function tambah(){
         $data = Mahasiswa::whereDoesntHave('dplmentoring')->get();
-        return view('dpl.mentoring.tambah',compact('data'));
+        return view('mentoring.tambah',compact('data'));
     }
    
     public function insert(Request $request)
@@ -139,7 +139,7 @@ class DplmentoringController extends Controller
         // Mengelompokkan data berdasarkan bulan
         $groupedData = $data->groupBy('bulan');
     
-        return view('dpl.mentoring.rekapnilai', compact('groupedData', 'bulan'));
+        return view('mentoring.rekapnilai', compact('groupedData', 'bulan'));
     }
     public function nilaifreeform($id_mahasiswa){
         $mahasiswa = Mahasiswa::where("id_mahasiswa",$id_mahasiswa)->first();
@@ -156,7 +156,7 @@ class DplmentoringController extends Controller
             'mahasiswa'=>$mahasiswa,
             'id_mahasiswa'=>$id_mahasiswa,
         ];
-        return view('dpl.mentoring.nilaifreeform',$data);
+        return view('mentoring.nilaifreeform',$data);
     }
     public function nilaikonversi($id_mahasiswa){
         $mahasiswa = Mahasiswa::where("id_mahasiswa",$id_mahasiswa)->first();
@@ -165,7 +165,7 @@ class DplmentoringController extends Controller
             'mahasiswa'=>$mahasiswa,
             'nilai'=>$nilai,
         ];
-        return view('dpl.mentoring.nilaifreeform_nilaikonversi',$data);
+        return view('mentoring.nilaifreeform_nilaikonversi',$data);
     }
     public function freeform($id_mahasiswa){
         $mahasiswa = Mahasiswa::where("id_mahasiswa",$id_mahasiswa)->first();
@@ -174,7 +174,7 @@ class DplmentoringController extends Controller
             'mahasiswa'=>$mahasiswa,
             'nilai'=>$nilai,
         ];
-        return view('dpl.mentoring.nilaifreeform_freeform',$data);
+        return view('mentoring.nilaifreeform_freeform',$data);
     }
 
 }

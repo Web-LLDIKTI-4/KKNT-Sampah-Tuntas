@@ -18,11 +18,11 @@ class AdmfreeformController extends Controller
 {    
     public function index()
     {  
-        return view('admin.freeform.index');
+        return view('freeform.index');
     }
     public function listdata()
     {
-        return view('admin.freeform.listdata');
+        return view('freeform.listdata');
     }
     public function listdataserver(Request $request)
     {

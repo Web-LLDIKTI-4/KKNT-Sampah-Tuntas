@@ -15,11 +15,11 @@ class LogkehadiranController extends Controller
 {    
     public function index()
     {  
-        return view('member.kehadiran.index');
+        return view('kehadiran.index');
     }
     public function listdata()
     {
-        return view('member.kehadiran.listdata');
+        return view('kehadiran.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -39,7 +39,7 @@ class LogkehadiranController extends Controller
     }
     public function tambah(){
         $data = Kehadiran::where("email",Auth::user()->email)->where("tanggal",date("Y-m-d"))->first();
-        return view('member.kehadiran.tambah',compact('data'));
+        return view('kehadiran.tambah',compact('data'));
     }
     public function insert(Request $request)
     {
@@ -115,7 +115,7 @@ class LogkehadiranController extends Controller
         $data = [
             'status_kehadiran'=>$status_kehadiran
         ];
-        return view('member.kehadiran.tambahizin',$data);  
+        return view('kehadiran.tambahizin',$data);  
     }
     public function insertizin(Request $request)
     {

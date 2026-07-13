@@ -19,11 +19,11 @@ class AdmstructureformController extends Controller
 {    
     public function index()
     {  
-        return view('admin.structureform.index');
+        return view('structureform.index');
     }
     public function listdata()
     {
-        return view('admin.structureform.listdata');
+        return view('structureform.listdata');
     }
     public function listdataserver(Request $request)
     {

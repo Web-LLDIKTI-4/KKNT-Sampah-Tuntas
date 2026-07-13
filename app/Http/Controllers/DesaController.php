@@ -14,11 +14,11 @@ class DesaController extends Controller
 {    
     public function index()
     {  
-        return view('admin.desa.index');
+        return view('desa.index');
     }
     public function listdata()
     {
-        return view('admin.desa.listdata');
+        return view('desa.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -41,7 +41,7 @@ class DesaController extends Controller
     }
     public function tambah(){
         $kecamatan = Kecamatan::get();
-        return view('admin.desa.tambah',compact('kecamatan'));
+        return view('desa.tambah',compact('kecamatan'));
     }
     public function insert(Request $request)
     {
@@ -88,7 +88,7 @@ class DesaController extends Controller
             'data'=>$desa,
             'kecamatan'=>$kecamatan,
         ];
-        return view('admin.desa.edit',$data);
+        return view('desa.edit',$data);
     }
     public function update(Request $request)
     {

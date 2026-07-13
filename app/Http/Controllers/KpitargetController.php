@@ -14,11 +14,11 @@ class KpitargetController extends Controller
 {    
     public function index()
     {  
-        return view('admin.kpitarget.index');
+        return view('kpitarget.index');
     }
     public function listdata()
     {
-        return view('admin.kpitarget.listdata');
+        return view('kpitarget.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -43,7 +43,7 @@ class KpitargetController extends Controller
         $data=[
             'kpi'=>Kpi::get(),
         ];
-        return view('admin.kpitarget.tambah',$data);
+        return view('kpitarget.tambah',$data);
     }
     public function insert(Request $request)
     {
@@ -87,7 +87,7 @@ class KpitargetController extends Controller
             'kpi'=>$kpi,
             'data'=>$kpitarget,
         ];
-        return view('admin.kpitarget.edit',$data);
+        return view('kpitarget.edit',$data);
     }
     public function update(Request $request)
     {

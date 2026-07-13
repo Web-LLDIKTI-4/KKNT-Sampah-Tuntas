@@ -26,7 +26,7 @@ class DpllaporanController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             $namaBulan[$i] = Carbon::create()->month($i)->format('F');
         }
-        return view('dpl.laporan.index',compact('namaBulan'));
+        return view('laporan.index',compact('namaBulan'));
     }
     public function tambah(Request $request)
     {
@@ -38,7 +38,7 @@ class DpllaporanController extends Controller
             'isi' => $isi
         ];
 
-        return view('dpl.laporan.tambah',$data);
+        return view('laporan.tambah',$data);
     }
     public function insert(Request $request){
         $validator = Validator::make($request->all(), [
@@ -100,6 +100,6 @@ class DpllaporanController extends Controller
     }
     public function listdata(){
         $laporan = Dpllaporan::where('email',Auth::user()->email)->get();
-        return view('dpl.laporan.listdata',compact('laporan'));
+        return view('laporan.listdata',compact('laporan'));
     }
 }

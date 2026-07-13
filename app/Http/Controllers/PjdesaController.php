@@ -18,11 +18,11 @@ class PjdesaController extends Controller
 {    
     public function index()
     {  
-        return view('admin.pjdesa.index');
+        return view('pjdesa.index');
     }
     public function listdata()
     {
-        return view('admin.pjdesa.listdata');
+        return view('pjdesa.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -39,7 +39,10 @@ class PjdesaController extends Controller
                     return $row->desa->desa ?? '';
                 })
                 ->addColumn('pjdesa', function($row){
-                    return $row->mahasiswa->nama.' | '.$row->mahasiswa->sp->nm_lemb ?? 'Data tidak tersedia';
+                    return $row->mahasiswa->nama ?? 'Data tidak tersedia';
+                })
+                ->addColumn('instansi', function($row){
+                    return $row->mahasiswa->sp->nm_lemb ?? 'Data tidak tersedia';
                 })
                 ->addColumn('action', function($row){
                     $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton p-0 m-0" data-src="'.url('pjdesa/edit/'.$row->id_pjdesa).'" title="Edit Data"><i class="ri-edit-box-line text-success"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_pjdesa.'"  class="p-0 m-0"><i class="ri-delete-bin-3-line text-danger"></i></a></div>';
@@ -56,7 +59,7 @@ class PjdesaController extends Controller
             'kecamatan'=>$kecamatan,
             'user'=>$user,
         ];
-        return view('admin.pjdesa.tambah',$data);
+        return view('pjdesa.tambah',$data);
     }
     public function insert(Request $request)
     {
@@ -97,7 +100,7 @@ class PjdesaController extends Controller
             'kecamatan'=>$kecamatan,
             'user'=>$user,
         ];
-        return view('admin.pjdesa.edit',$data);
+        return view('pjdesa.edit',$data);
     }
     public function update(Request $request)
     {

@@ -15,11 +15,11 @@ class AdmlogbulananController extends Controller
 {    
     public function index()
     {  
-        return view('admin.logbulanan.index');
+        return view('logbulanan.dpl.index');
     }
     public function listdata()
     {
-        return view('admin.logbulanan.listdata');
+        return view('logbulanan.dpl.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -72,7 +72,7 @@ class AdmlogbulananController extends Controller
             'logbulanan'=>$logbulanan,
             'anilai'=>$anilai,
         ];
-        return view('admin.logbulanan.penilaian',$data);
+        return view('logbulanan.dpl.penilaian',$data);
     }
     public function updatenilai(Request $request){
 

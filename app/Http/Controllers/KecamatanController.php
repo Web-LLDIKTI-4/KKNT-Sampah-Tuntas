@@ -14,11 +14,11 @@ class KecamatanController extends Controller
 {    
     public function index()
     {  
-        return view('admin.kecamatan.index');
+        return view('kecamatan.index');
     }
     public function listdata()
     {
-        return view('admin.kecamatan.listdata');
+        return view('kecamatan.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -37,7 +37,7 @@ class KecamatanController extends Controller
         }
     }
     public function tambah(){
-        return view('admin.kecamatan.tambah');
+        return view('kecamatan.tambah');
     }
     public function insert(Request $request)
     {
@@ -77,7 +77,7 @@ class KecamatanController extends Controller
         $data=[
             'data'=>$kecamatan,
         ];
-        return view('admin.kecamatan.edit',$data);
+        return view('kecamatan.edit',$data);
     }
     public function update(Request $request)
     {

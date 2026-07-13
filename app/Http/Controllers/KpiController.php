@@ -15,11 +15,11 @@ class KpiController extends Controller
 {    
     public function index()
     {  
-        return view('admin.kpi.index');
+        return view('kpi.index');
     }
     public function listdata()
     {
-        return view('admin.kpi.listdata');
+        return view('kpi.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -38,7 +38,7 @@ class KpiController extends Controller
         }
     }
     public function tambah(){
-        return view('admin.kpi.tambah');
+        return view('kpi.tambah');
     }
     public function insert(Request $request)
     {
@@ -69,7 +69,7 @@ class KpiController extends Controller
     }
     public function edit(Request $request){
         $data = Kpi::where("id_kpi",$request->id_kpi)->first();
-        return view('admin.kpi.edit',compact('data'));
+        return view('kpi.edit',compact('data'));
     }
     public function update(Request $request)
     {

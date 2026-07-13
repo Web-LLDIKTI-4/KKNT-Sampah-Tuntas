@@ -14,11 +14,11 @@ class LogkegiatanController extends Controller
 {    
     public function index()
     {  
-        return view('member.logkegiatan.index');
+        return view('logkegiatan.mahasiswa.index');
     }
     public function listdata()
     {
-        return view('member.logkegiatan.listdata');
+        return view('logkegiatan.mahasiswa.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -44,7 +44,7 @@ class LogkegiatanController extends Controller
     }
     public function tambah(){
         $kpi = Kpi::get();
-        return view('member.logkegiatan.tambah',compact('kpi'));
+        return view('logkegiatan.mahasiswa.tambah',compact('kpi'));
     }
     public function insert(Request $request)
     {
@@ -94,7 +94,7 @@ class LogkegiatanController extends Controller
         $data = Logkegiatan::where("id_log",$request->id_log)->first();
         $kpi = Kpi::get();
         $data=['data'=>$data,'kpi'=>$kpi];
-        return view('member.logkegiatan.edit',$data);
+        return view('logkegiatan.mahasiswa.edit',$data);
     }
     public function update(Request $request)
     {

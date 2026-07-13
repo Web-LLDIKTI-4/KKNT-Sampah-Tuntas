@@ -16,17 +16,17 @@ class ProfileController extends Controller
 {    
     public function index()
     {  
-        return view('admin.profile.index');
+        return view('profile.index');
     }
     public function data()
     {
         $sp = Satuanpendidikan::orderByRaw("TRIM(nm_lemb) DESC")->get();
         $profile = User::where('email',Auth::user()->email)->first();
         $dpl = Dpl::where("email",Auth::user()->email)->first();
-        return view('admin.profile.data',compact('profile','dpl','sp'));
+        return view('profile.data',compact('profile','dpl','sp'));
     }
     public function uploadpoto(){
-        return view('admin.profile.uploadpoto');
+        return view('profile.uploadpoto');
     }
     public function prosesuploadpoto(Request $request){
         $validator = Validator::make($request->all(), [

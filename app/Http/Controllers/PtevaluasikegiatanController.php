@@ -17,7 +17,7 @@ class PtevaluasikegiatanController extends Controller
 {    
     public function index()
     {  
-        return view('user.evaluasikegiatan.index');
+        return view('evaluasikegiatan.pt.index');
     }
     public function tambah(){
         // Retrieve all instances of Evaluasikegiatan
@@ -46,7 +46,7 @@ class PtevaluasikegiatanController extends Controller
             'evaluasi' => $result,
         ];
 
-        return view('user.evaluasikegiatan.tambah', $data);
+        return view('evaluasikegiatan.pt.tambah', $data);
     }
     public function insert(Request $request){
         $data = $request->jawaban; // This will be an array with evaluation IDs as keys

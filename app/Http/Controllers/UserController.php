@@ -23,15 +23,15 @@ class UserController extends Controller
 {    
     public function index()
     {  
-        return view('admin.user.index');
+        return view('user.index');
     } 
     public function listdata(){
         $data = User::whereIn('role', ['mahasiswa', 'dpl','pt'])->get();
-        return view('admin.user.list',compact('data'));
+        return view('user.list',compact('data'));
     } 
     public function getdatamember(){
         $data = Mahasiswa::whereDoesntHave('user')->get();
-        return view('admin.user.listmember',compact('data'));
+        return view('user.listmember',compact('data'));
     }
     public function insert(Request $request){
         if($request->createuser){
@@ -60,7 +60,7 @@ class UserController extends Controller
     }
     public function adduser(){
         $role=array('admin','dpl');
-        return view('admin.user.tambah',compact('role'));
+        return view('user.tambah',compact('role'));
     }
     public function insertuser(Request $request){
         $validator = Validator::make($request->all(), [
@@ -103,7 +103,7 @@ class UserController extends Controller
         $data = User::find($request->id);
         $role=array('mahasiswa','dpl');
         $akses=array('pjdesa'=>'Set PJ Desa','hapuspjdesa'=>'Hapus Akses PJ Desa');
-        return view('admin.user.edit',compact('data','role','akses'));
+        return view('user.edit',compact('data','role','akses'));
     }
     public function updateuser(Request $request){
         $validator = Validator::make($request->all(), [
@@ -185,7 +185,7 @@ class UserController extends Controller
     public function adduserpt(){
         $role=array('pt');
         $sp = Satuanpendidikan::get();
-        return view('admin.user.tambah_pt',compact('role','sp'));
+        return view('user.tambah_pt',compact('role','sp'));
     }
     public function insertuserpt(Request $request){
         $validator = Validator::make($request->all(), [
@@ -232,7 +232,7 @@ class UserController extends Controller
             'user'=>$user,
             'sp'=>$sp,
         ];
-        return view('admin.user.edit_pt',$data);
+        return view('user.edit_pt',$data);
     }
     public function updateuserpt(Request $request){
         $validator = Validator::make($request->all(), [

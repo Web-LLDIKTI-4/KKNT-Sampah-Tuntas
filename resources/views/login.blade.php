@@ -506,7 +506,8 @@
 
     <script src="../../assets/vendor/libs/toastr/toastr.js"></script>
   </body>
-</html><script>
+</html>
+<script>
 $(function(){
     $("#formAuthentication").on("submit",function(){      
       var action = $(this).attr("action");

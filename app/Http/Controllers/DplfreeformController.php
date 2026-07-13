@@ -16,11 +16,11 @@ class DplfreeformController extends Controller
 {    
     public function index()
     {  
-        return view('dpl.freeform.index');
+        return view('freeform.dpl.index');
     }
     public function listdata()
     {
-        return view('dpl.freeform.listdata');
+        return view('freeform.dpl.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -67,7 +67,7 @@ class DplfreeformController extends Controller
             'mahasiswa'=>$mahasiswa,
             'freeform'=>$freeform,
         ];
-        return view('dpl.freeform.tambah',$data);
+        return view('freeform.dpl.tambah',$data);
     }
    
     public function insert(Request $request)
@@ -149,7 +149,7 @@ class DplfreeformController extends Controller
             'data'=>$datanilai,
             'freeform'=>$freeform,
         ];
-        return view('dpl.freeform.edit',$data);
+        return view('freeform.dpl.edit',$data);
     }
    
     public function update(Request $request)

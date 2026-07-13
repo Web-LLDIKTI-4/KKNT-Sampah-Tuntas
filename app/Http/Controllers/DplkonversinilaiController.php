@@ -16,11 +16,11 @@ class DplkonversinilaiController extends Controller
 {    
     public function index()
     {  
-        return view('dpl.konversinilai.index');
+        return view('konversinilai.index');
     }
     public function listdata()
     {
-        return view('dpl.konversinilai.listdata');
+        return view('konversinilai.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -58,7 +58,7 @@ class DplkonversinilaiController extends Controller
         $data=[
             'mahasiswa'=>$mahasiswa
         ];
-        return view('dpl.konversinilai.tambah',$data);
+        return view('konversinilai.tambah',$data);
     }
    
     public function insert(Request $request)
@@ -133,7 +133,7 @@ class DplkonversinilaiController extends Controller
         $data=[
             'data'=>$datanilai
         ];
-        return view('dpl.konversinilai.edit',$data);
+        return view('konversinilai.edit',$data);
     }
     public function update(Request $request)
     {

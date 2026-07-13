@@ -12,11 +12,11 @@ class LokasiprogramController extends Controller
 {
     public function index()
     {
-        return view('admin.lokasiprogram.index');
+        return view('lokasiprogram.index');
     }
     public function listdata()
     {
-        return view('admin.lokasiprogram.listdata');
+        return view('lokasiprogram.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -34,7 +34,7 @@ class LokasiprogramController extends Controller
         }
     }
     public function tambah(){
-        return view('admin.lokasiprogram.tambah');
+        return view('lokasiprogram.tambah');
     }
     public function insert(Request $request)
     {
@@ -66,7 +66,7 @@ class LokasiprogramController extends Controller
         $data=[
             'data'=>$lokasiprogram,
         ];
-        return view('admin.lokasiprogram.edit',$data);
+        return view('lokasiprogram.edit',$data);
     }
     public function update(Request $request)
     {

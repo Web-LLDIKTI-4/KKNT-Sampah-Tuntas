@@ -13,11 +13,7 @@ class SettingController extends Controller
 {    
     public function index()
     {  
-        if(Auth::user()->role == 'mahasiswa'){
-            return view('member.setting');
-        }else{
-            return view('admin.setting');
-        }
+        return view('setting');
     } 
     
     public function update(Request $request){
