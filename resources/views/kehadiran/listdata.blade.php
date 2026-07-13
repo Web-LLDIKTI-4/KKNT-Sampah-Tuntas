@@ -12,13 +12,14 @@
                 </tr>
             </thead>
             <tbody>
+                {{-- T Body Here --}}
             </tbody>
         </table>
     </div>
 </div>
 <hr>
 
-<a href="{{ url('logkehadiran/export') }}"><i class="ri-file-excel-2-line"></i> Export data</a>
+<x-btn-export url="{{ url('logkehadiran/export') }}" />
 
 <script type="text/javascript">
   $(function () {

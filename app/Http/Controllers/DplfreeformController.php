@@ -11,6 +11,7 @@ use App\Models\Freeform;
 
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class DplfreeformController extends Controller
 {    
@@ -43,11 +44,13 @@ class DplfreeformController extends Controller
                     return $row->mahasiswa->prodi;
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx">';
-                    $actionBtn .= '<a href="#modalku" data-bs-toggle="modal" data-src="'.url('dplfreeform/edit/'.$row->id_freeform).'"  class="btn btn-sm modalButton p-0 m-0" title="Edit Nilai"><i class="fa fa-edit"></i></a>';
-                    $actionBtn .= ' <a href="javascript:void(0)" id="hapus_'.$row->id_freeform.'"  class="btn btn-sm p-0 m-0"><i class="fa fa-trash"></i></a>';
-                    $actionBtn .= '</div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(
+                        url('dplfreeform/edit/'.$row->id_freeform),
+                        $row->id_freeform,
+                        'btn-action-edit modalButton',
+                        'ri-edit-box-line',
+                        'Edit Nilai'
+                    );
                 })
                 ->rawColumns(['action','rekapnilai'])
                 ->make(true);

@@ -5,7 +5,7 @@
 
 <div class="card">
     <div class="card-header">
-        <a class="btn btn-sm btn-primary modalButton" href="#modalku" data-bs-toggle="modal" data-src="{{ url('tugasakhir/tambah') }}" title="Tambah Data">Tambah Data</a>
+        <x-btn-modal url="{{ url('tugasakhir/tambah') }}" title="Tambah Data">Tambah Data</x-btn-modal>
     </div>
     <div class="card-body">
         <p id="resultcontent">loding data</p>

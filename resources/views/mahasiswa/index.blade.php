@@ -5,7 +5,7 @@
 
 <div class="card">
     <div class="card-header">
-        <a class="btn btn-sm btn-primary modalButton" href="#modalku" data-bs-toggle="modal" data-src="{{ url('mahasiswa/import') }}" title="Import Data"><i class="ri-chat-upload-fill me-1"></i> Import Data</a>
+        <x-btn-modal url="{{ url('mahasiswa/import') }}" title="Import Data"><i class="ri-chat-upload-fill me-1"></i> Import Data</x-btn-modal>
     </div>
     <div class="card-body">
 
@@ -22,7 +22,7 @@
                 {{ session('error') }}
             </div>
         @endif
-        <p id="resultcontent">loding data</p>
+        <p id="resultcontent">loading data...</p>
     </div>
 </div>
 <script>

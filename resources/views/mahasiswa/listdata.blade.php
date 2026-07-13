@@ -1,8 +1,8 @@
 
 <div class="row">
     <div class="col-12 table-responsive">
-        <table class="table table-bordered table-sm" id="user_datatable">
-            <thead>
+        <x-datatable id="user_datatable" tableClass="table table-bordered table-sm">
+    <x-slot:thead>
                 <tr>
                     <th>No</th>
                     <th>Nim</th>
@@ -12,22 +12,8 @@
                     <th>Perguruan Tinggi</th>
                     <th>Aksi</th>
                 </tr>
-            </thead>
-            <tbody>
-
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th>No</th>
-                    <th>Nim</th>
-                    <th>Nama</th>
-                    <th>Email</th>
-                    <th>Hp</th>
-                    <th>Perguruan Tinggi</th>
-                    <th>Aksi</th>
-                </tr>
-            </tfoot>
-        </table>
+            </x-slot:thead>
+</x-datatable>
     </div>
 </div>
 <script type="text/javascript">
@@ -45,26 +31,6 @@
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'action', name: 'action', orderable: false, searchable: false},
         ],
-        initComplete: function () {
-            var table = this;
-            this.api()
-                .columns()
-                .every(function (index) {
-                    var column = this;
-                    var title = column.footer().textContent;
-    
-                    // Create input element and add event listener
-                    if (index !== 0 && index !== 6) { // Skip column "No" (index 0)
-                        $('<input type="text" class="form-control form-control-sm p-1" placeholder="Search ' + title + '" />')
-                            .appendTo($(column.footer()).empty())
-                            .on('keyup change clear', function () {
-                                if (column.search() !== this.value) {
-                                    column.search(this.value).draw();
-                                }
-                            });
-                    }
-                });
-        },
     });
     $("body").on("submit","[id^=hapusmhs-]",function(){       
         var action = $(this).attr("action");

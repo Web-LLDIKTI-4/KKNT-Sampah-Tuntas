@@ -27,6 +27,6 @@
         <label>Percen</label>
     </div>
     <hr>
-    <button type="submit" id="btnSubmit_form-tambah" class="btn btn-sm btn-primary">Simpan</button>
+    <x-btn-save formId="form-tambah">Simpan</x-btn-save>
 </form>
     

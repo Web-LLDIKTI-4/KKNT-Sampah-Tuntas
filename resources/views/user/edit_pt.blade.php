@@ -4,46 +4,46 @@
     <input type="hidden" name="id" value="{{$user->id}}">
     <div class="row">   
         <div class="form-group col form-floating form-floating-outline mb-6">
+            <input type="text" name="name" value="{{$user->name}}" class="form-control" placeholder="Nama">
             <label>Nama</label>
-            <input type="text" name="name" value="{{$user->name}}" class="form-control form-control-sm">
             <span id="name_error" class="text-danger"></span>
         </div>
         <div class="form-group col form-floating form-floating-outline mb-6">
-            <label>Perguruan Tinggi</label>
-            <select name="kodept" id="select2" class="form-control form-control-sm" readonly>
+            <select name="kodept" id="select2" class="form-control">
                 @foreach($sp as $item)
-                    <option value="{{$item->npsn}}">{{$item->nm_lemb}}</option>
+                    <option value="{{$item->npsn}}" @if($user->email == $item->npsn) selected @endif>{{$item->nm_lemb}}</option>
                 @endforeach
             </select>
+            <label>Perguruan Tinggi</label>
             <span id="kodept_error" class="text-danger"></span>
         </div>
     </div>
     <div class="row">   
         <div class="form-group col form-floating form-floating-outline mb-6">
+            <input type="text" name="password" class="form-control" placeholder="Password">
             <label>Password</label>
-            <input type="text" name="password" class="form-control form-control-sm">
             <span id="password_error" class="text-danger"></span>
         </div>
         <div class="form-group col form-floating form-floating-outline mb-6">
-            <label>Role</label>
-            <select name="role" class="form-control form-control-sm">
+            <select name="role" class="form-control">
                 @if($role)
                     @foreach($role as $val)
                         <option value="{{$val}}">{{$val}}</option>
                     @endforeach
                 @endif
             </select>
+            <label>Role</label>
             <span id="role_error" class="text-danger"></span>
         </div>
     </div>
     
-    <button type="submit" id="btnSubmit_form-tambah" class="btn btn-sm btn-primary">Simpan</button>
+    <x-btn-save formId="form-tambah">Simpan</x-btn-save>
 </form>
         
 <script>
 $(function(){
     $('#select2').select2({
-       // theme: "",
+       dropdownParent: $('#modalku')
     });
     $("#form-tambah").on("submit",function(){       
         var action = $(this).attr("action");

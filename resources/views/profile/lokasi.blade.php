@@ -26,7 +26,7 @@
         </div>
     </div>
     <hr>
-    <button type="submit" id="btnSubmit_form-lokasi" class="btn rounded-pill btn-primary btn-sm"><i class="ri-save-2-fill pe-1"></i> Simpan</button>
+    <x-btn-save formId="form-lokasi" class="btn rounded-pill btn-primary btn-sm"><i class="ri-save-2-fill pe-1"></i> Simpan</x-btn-save>
 </form>
 <script>
 $(function(){

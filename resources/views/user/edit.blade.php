@@ -43,7 +43,7 @@
         <span id="akses_error" class="text-danger"></span>
     </div>
     <hr>
-    <button type="submit" id="btnSubmit_form-update" class="btn btn-sm btn-primary">Update Data</button>
+    <x-btn-save formId="form-update">Update Data</x-btn-save>
 </form>
         
 <script>

@@ -36,7 +36,7 @@
         </table>
     </div>
     <hr>
-    <button type="submit" id="btnSubmit_form-create" class="btn btn-primary btn-sm">Proses Create User</button>
+    <x-btn-save formId="form-create" class="btn btn-primary btn-sm">Proses Create User</x-btn-save>
     </form>
 <script>
     
@@ -85,15 +85,6 @@ $(function () {
         columnDefs: [
             { targets: 'no-sort', orderable: false } // Tambahkan class 'no-sort' pada kolom 'Aksi'
         ],
-        initComplete: function () {
-            // Restore checked state on page load
-            $("input[name='createuser[]']").each(function () {
-                var nip = $(this).val();
-                if (checkedState[nip]) {
-                    $(this).prop('checked', true);
-                }
-            });
-        }
     });
 
     // Handle checkbox changes

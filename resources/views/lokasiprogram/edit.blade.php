@@ -7,5 +7,5 @@
         <label>Nama Lokasi</label>
     </div>
     <hr>
-    <button type="submit" id="btnSubmit_form-ubah" class="btn btn-sm btn-primary"><i class="tf-icons ri-save-3-fill ri-16px me-1"></i>Simpan</button>
+    <x-btn-save formId="form-ubah"><i class="tf-icons ri-save-3-fill ri-16px me-1"></i>Simpan</x-btn-save>
 </form>

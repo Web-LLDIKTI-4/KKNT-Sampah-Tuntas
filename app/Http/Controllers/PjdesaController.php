@@ -13,6 +13,7 @@ use App\Models\Kpicapaian;
 
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class PjdesaController extends Controller
 {    
@@ -45,8 +46,7 @@ class PjdesaController extends Controller
                     return $row->mahasiswa->sp->nm_lemb ?? 'Data tidak tersedia';
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton p-0 m-0" data-src="'.url('pjdesa/edit/'.$row->id_pjdesa).'" title="Edit Data"><i class="ri-edit-box-line text-success"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_pjdesa.'"  class="p-0 m-0"><i class="ri-delete-bin-3-line text-danger"></i></a></div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(url('pjdesa/edit/'.$row->id_pjdesa), $row->id_pjdesa);
                 })
                 ->rawColumns(['action','kecamatan'])
                 ->make(true);

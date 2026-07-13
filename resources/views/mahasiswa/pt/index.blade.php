@@ -14,7 +14,7 @@
 
 <div class="card">
     <div class="card-body">
-        <p id="resultcontent">loding data</p>
+        <p id="resultcontent">loading data...</p>
     </div>
 </div>
 <script>

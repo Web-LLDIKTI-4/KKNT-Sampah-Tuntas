@@ -44,7 +44,7 @@
         </tfoot>
     </table>
     <hr>
-    <button type="submit" id="btnSubmit_form-create" class="btn btn-primary btn-sm">Proses Create User</button>
+    <x-btn-save formId="form-create" class="btn btn-primary btn-sm">Proses Create User</x-btn-save>
     </form>
     <br>
 </div>
@@ -94,40 +94,6 @@ $(function () {
         columnDefs: [
             { targets: 'no-sort', orderable: false } // Tambahkan class 'no-sort' pada kolom 'Aksi'
         ],
-        initComplete: function () {
-            // Restore checked state on page load
-            $("input[name='createuser[]']").each(function () {
-                var nip = $(this).val();
-                if (checkedState[nip]) {
-                    $(this).prop('checked', true);
-                }
-            });
-
-            var table = this;
-            this.api()
-                .columns()
-                .every(function (index) {
-                    var column = this;
-                    // Periksa apakah footer ada sebelum mencoba mengakses propertinya
-                    var footer = column.footer(); // Dapatkan footer kolom
-
-                    // Periksa apakah footer ada sebelum mencoba mengakses propertinya
-                    if (footer) {
-                        var title = column.footer().textContent;
-        
-                        // Create input element and add event listener
-                        if (index !== 0 && index !== 4) { // Skip column "No" (index 0)
-                            $('<input type="text" class="form-control form-control-sm p-1" placeholder="Search ' + title + '" />')
-                                .appendTo($(column.footer()).empty())
-                                .on('keyup change clear', function () {
-                                    if (column.search() !== this.value) {
-                                        column.search(this.value).draw();
-                                    }
-                                });
-                        }
-                    }
-                });
-        }
     });
 
     // Handle checkbox changes

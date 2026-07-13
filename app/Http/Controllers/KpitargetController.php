@@ -9,6 +9,7 @@ use App\Models\Kpi;
 use App\Models\Kpitarget;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class KpitargetController extends Controller
 {    
@@ -32,8 +33,7 @@ class KpitargetController extends Controller
                     return $row->kpi->nama_kpi;
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton p-0 m-0 text-success" data-src="'.url('kpitarget/edit/'.$row->id_target).'" title="Edit Data"><i class="ri-edit-box-line"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_target.'"  class="p-0 m-0  text-danger"><i class="ri-delete-bin-3-line"></i></a></div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(url('kpitarget/edit/'.$row->id_target), $row->id_target);
                 })
                 ->rawColumns(['action','nama_kpi'])
                 ->make(true);

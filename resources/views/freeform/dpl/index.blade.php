@@ -5,7 +5,7 @@
 
 <div class="card">
     <div class="card-header">
-        <a href="#modalku" data-bs-toggle="modal" class="btn btn-primary btn-sm modalButton" data-src="{{ url('dplfreeform/tambah') }}" title="Tambah Data">Tambah Data</a>
+        <x-btn-modal url="{{ url('dplfreeform/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Data">Tambah Data</x-btn-modal>
     </div>
     <div class="card-body">
         <p id="resultcontent">List data...</p>

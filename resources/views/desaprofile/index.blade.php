@@ -4,7 +4,7 @@
 <x-page-header /> 
 <div class="card">
     <div class="card-header">
-        <a class="btn btn-sm btn-primary modalButton" href="#modalku" data-bs-toggle="modal" data-src="{{ url('desaprofile/tambah') }}" title="Tambah Data"><i class="ri-add-circle-line me-1"></i> Tambah Data</a>
+        <x-btn-modal url="{{ url('desaprofile/tambah') }}" title="Tambah Data"><i class="ri-add-circle-line me-1"></i> Tambah Data</x-btn-modal>
     </div>
     <div class="card-body">
         <p id="resultcontent">loding data</p>

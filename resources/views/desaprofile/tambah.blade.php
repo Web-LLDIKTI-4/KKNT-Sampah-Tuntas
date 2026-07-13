@@ -35,7 +35,7 @@
     </div>
 
     <hr>
-    <button type="submit" id="btnSubmit_form-tambah" class="btn btn-sm btn-primary"><i class="tf-icons ri-save-3-fill ri-16px me-1"></i> Simpan</button>
+    <x-btn-save formId="form-tambah"><i class="tf-icons ri-save-3-fill ri-16px me-1"></i> Simpan</x-btn-save>
 </form>
 <script>
     $(function(){

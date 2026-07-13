@@ -18,7 +18,7 @@
         </table>
     </div>
     <hr>
-    <a href="{{ url('admlogkegiatan/export') }}"><i class="ri-file-excel-2-line"></i> Export data</a>
+    <x-btn-export url="{{ url('admlogkegiatan/export') }}" />
 </div>
 <script type="text/javascript">
   $(function () {

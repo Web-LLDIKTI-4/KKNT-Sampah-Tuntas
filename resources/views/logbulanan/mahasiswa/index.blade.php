@@ -29,7 +29,7 @@
                     <label> Pilih Bulan </label>
                 </div>
                 <div class="col mt-1">
-                    <button type="submit" id="btnSubmit_form-bulan" class="btn btn-primary btn-lg"><i class="ri-filter-3-fill pe-1"></i> Filter Data</button>
+                    <x-btn-save formId="form-bulan" class="btn btn-primary btn-lg"><i class="ri-filter-3-fill pe-1"></i> Filter Data</x-btn-save>
                 </div>
             </div>
         </p> 

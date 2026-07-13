@@ -226,7 +226,7 @@ class UserController extends Controller
     public function edituserpt($id){
         $role=array('pt');
         $user = User::find($id);
-        $sp = Satuanpendidikan::where("npsn",$user->email)->get();
+        $sp = Satuanpendidikan::orderByRaw("TRIM(nm_lemb) DESC")->get();
         $data=[
             'role'=>$role,
             'user'=>$user,
@@ -244,6 +244,11 @@ class UserController extends Controller
         $validator->after(function($validator) use ($request) {
             if (!$request->kodept) {
                 $validator->errors()->add('kodept', 'PT harus dipilih!');
+            } else {
+                $cekdata = User::where("id", "!=", $request->id)->where("email", $request->kodept)->exists();
+                if ($cekdata) {
+                    $validator->errors()->add('kodept', 'PT tersebut sudah digunakan oleh akun lain!');
+                }
             }
         });
 
@@ -256,11 +261,12 @@ class UserController extends Controller
         }
         $data=[
             'name'=>$request->name,
+            'email'=>$request->kodept,
         ];
         if($request->password){
             $data["password"] =Hash::make($request->password);
         }
-        User::where("id",$request->id)->where("email",$request->kodept)->update($data);
+        User::where("id",$request->id)->update($data);
         return response()->json(['success' => true,'message'=>"user berhasil dibuat"]);       
     }
 }

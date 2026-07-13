@@ -45,26 +45,15 @@
                     <td>{{ $row->role }}</td>
                     <td>
                         @if($row->role != "pt")
-                            <a href="#modalku" data-bs-toggle="modal" class="modalButton" data-src="{{ url('user/edit/'.$row->id) }}" title="Edit User">edit</a>
+                            <x-btn-edit url="{{ url('user/edit/'.$row->id) }}" title="Edit User" />
                         @else
-                        <a href="#modalku" data-bs-toggle="modal" class="modalButton" data-src="{{ url('user/edituserpt/'.$row->id) }}" title="Edit User">edit</a>
+                            <x-btn-edit url="{{ url('user/edituserpt/'.$row->id) }}" title="Edit User" />
                         @endif
                     </td>
                 </tr>
             @endforeach
         @endif
     </tbody>
-    <tfoot>
-        <tr>
-            <th>No</th>
-            <th>Username</th>
-            <th>Nama</th>
-            <th>Nim/NIDN</th>
-            <th>Perguruan Tinggi</th>
-            <th>Role</th>
-            <th>Aksi</th>
-        </tr>
-    </tfoot>
 </table>
 </div>
 <script>
@@ -87,26 +76,6 @@
         columnDefs: [
             { targets: 'no-sort', orderable: false } // Tambahkan class 'no-sort' pada kolom 'Aksi'
         ],
-        initComplete: function () {
-            var table = this;
-            this.api()
-                .columns()
-                .every(function (index) {
-                    var column = this;
-                    var title = column.footer().textContent;
-    
-                    // Create input element and add event listener
-                    if (index !== 0 && index !== 6) { // Skip column "No" (index 0)
-                        $('<input type="text" class="form-control form-control-sm p-1" placeholder="Search ' + title + '" />')
-                            .appendTo($(column.footer()).empty())
-                            .on('keyup change clear', function () {
-                                if (column.search() !== this.value) {
-                                    column.search(this.value).draw();
-                                }
-                            });
-                    }
-                });
-        }
     });
 })
 </script>

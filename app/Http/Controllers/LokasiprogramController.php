@@ -7,6 +7,7 @@ use Session;
 use DataTables;
 use App\Models\LokasiProgram;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class LokasiprogramController extends Controller
 {
@@ -26,8 +27,7 @@ class LokasiprogramController extends Controller
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton p-0 m-0" data-src="'.url('lokasiprogram/edit/'.$row->id).'" title="Edit Data"><i class="ri-edit-box-line text-success"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id.'"  class="p-0 m-0"><i class="ri-delete-bin-3-line text-danger"></a></div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(url('lokasiprogram/edit/'.$row->id), $row->id);
                 })
                 ->rawColumns(['action'])
                 ->make(true);

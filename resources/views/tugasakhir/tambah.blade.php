@@ -6,5 +6,5 @@
         <label>Tautan laporan tugas akhir KKN</label>
         <div class="alert alert-outline-primary alert-dismissible mt-1">(contoh : https://drive.google.com/drive/folders/1q9d9jNrB07_iYV1fRK9ZhEkpimJsXYZ)</div>
     </div>
-    <button type="submit" id="btnSubmit_form-tambah" class="btn btn-sm btn-primary">Simpan</button>
+    <x-btn-save formId="form-tambah">Simpan</x-btn-save>
 </form>

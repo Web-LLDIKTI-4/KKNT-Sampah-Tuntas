@@ -56,7 +56,7 @@
         <label>Tautan Dokumen (Keterangan : Tautan google drive yang berisikan dokumen laporan bulanan)</label>
     </div>
     <br>
-    <button type="submit" id="btnSubmit_form-tambah" class="btn btn-sm btn-primary"><i class="ri-save-2-fill pe-1"></i> Simpan</button>
+    <x-btn-save formId="form-tambah"><i class="ri-save-2-fill pe-1"></i> Simpan</x-btn-save>
 </form>
         
 <script>

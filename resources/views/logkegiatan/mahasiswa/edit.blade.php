@@ -40,7 +40,7 @@
         <input type="text" class="form-control" name="tautan" value="{{ $data->tautan }}">
         <label>Tautan Dokumen</label>
     </div>
-    <button type="submit" id="btnSubmit_form-ubah" class="btn btn-sm btn-primary">Simpan</button>
+    <x-btn-save formId="form-ubah">Simpan</x-btn-save>
 </form>
 <script>
 $(function(){

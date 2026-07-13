@@ -5,7 +5,7 @@
 
 <div class="card">
     <div class="card-header">
-        <a href="#modalku" data-bs-toggle="modal" class="btn btn-primary btn-sm modalButton" data-src="{{ url('dplkonversinilai/tambah') }}" title="Tambah Data">Tambah Data</a>
+        <x-btn-modal url="{{ url('dplkonversinilai/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Data">Tambah Data</x-btn-modal>
     </div>
     <div class="card-body">
         <p id="resultcontent">List data...</p>

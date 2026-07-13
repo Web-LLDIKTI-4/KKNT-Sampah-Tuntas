@@ -15,13 +15,13 @@
           </div>
           <div class="user-profile-header d-flex flex-column flex-sm-row text-sm-start text-center mb-5">
               <div class="flex-shrink-0 mt-n2 mx-sm-0 mx-auto">
-              <a class="modalButton" data-bs-toggle="modal" href="#modalku" data-src="{{ $photoUploadUrl }}" title="Upload Profile">
+              <x-btn-modal url="{{ $photoUploadUrl }}" class="modalButton" title="Upload Profile">
               <img id="showimageprofile"
               src="{{ $photoRoute }}?rand={{ time() }}"
               alt="user image"
               class="d-block h-auto ms-0 ms-sm-5 rounded user-profile-img" />
 
-              </a>
+              </x-btn-modal>
               </div>
               <div class="flex-grow-1 mt-4 mt-sm-12">
               <div
@@ -121,7 +121,7 @@
                             <hr />
                             
                             <!-- Save changes buttons -->
-                            <button type="submit" id="btnSubmit_form-update" class="btn btn-sm btn-primary rounded-pill">Save changes</button>
+                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary rounded-pill">Save changes</x-btn-save>
                         </form>
                     @elseif($isMahasiswa)
                         <form method="post" id="form-update" action="{{ $updateUrl }}">
@@ -183,7 +183,7 @@
                             <hr />
                             
                             <!-- Save changes buttons -->
-                            <button type="submit" id="btnSubmit_form-update" class="btn btn-sm btn-primary rounded-pill"><i class="ri-save-2-fill pe-1"></i>Save changes</button>
+                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary rounded-pill"><i class="ri-save-2-fill pe-1"></i>Save changes</x-btn-save>
                         </form>
                     @else
                         @if(!$dpl)
@@ -246,7 +246,7 @@
                             <hr />
                             
                             <!-- Save changes buttons -->
-                            <button type="submit" id="btnSubmit_form-update" class="btn btn-sm btn-primary rounded-pill">Save changes</button>
+                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary rounded-pill">Save changes</x-btn-save>
                         </form>
                     @endif   
                     </div>
@@ -289,7 +289,7 @@
                               <label for="pbaruulangi">Ulangi Password Baru</label>
                           </div>
                         </div>
-                        <button type="submit" name="kirim" class="btn btn-primary" id="btnSubmit_form-updatepassword">Simpan</button>
+                        <x-btn-save formId="form-updatepassword" class="btn btn-primary" name="kirim">Simpan</x-btn-save>
                       </form>
                     </div>
                   </div>
@@ -340,7 +340,7 @@
                             <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-information-line text-info ri-24px"></i></span>
                         </div>
                         <div class="media-body ml-3">
-                            <a href="#modalku" data-bs-toggle="modal" data-src="{{ url('mhsprofile/formlokasi') }}" title="Set lokasi" class="modalButton stretched-link h6 mb-1">Lokasi Kegiatan</a>
+                            <x-btn-modal url="{{ url('mhsprofile/formlokasi') }}" class="modalButton stretched-link h6 mb-1" title="Set lokasi">Lokasi Kegiatan</x-btn-modal>
                             <p class="mb-0 text-sm">{{ $mahasiswa->lokasi->desa->desa ?? 'Belum di set' }}</p>
                         </div>
                     </div>

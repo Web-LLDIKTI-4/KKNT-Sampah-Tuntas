@@ -35,6 +35,7 @@
     <link rel="stylesheet" href="../../assets/vendor/css/rtl/core.css" class="template-customizer-core-css" />
     <link rel="stylesheet" href="../../assets/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
     <link rel="stylesheet" href="../../assets/css/demo.css" />
+    <link rel="stylesheet" href="../../assets/css/action-buttons.css" />
     <link rel="stylesheet" href="../../assets/vendor/css/pages/front-page.css" />
 
     <!-- Vendors CSS -->

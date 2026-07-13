@@ -17,8 +17,8 @@
                         <td>{{$loop->iteration}}</td>
                         <td><a href="{{$item->tautan}}" target="_blank">{{$item->tautan}}</a></td>
                         <td>
-                            <a class="modalButton" href="#modalku" data-bs-toggle="modal" data-src="{{ url('tugasakhir/edit/'.$item->id_tugasakhir) }}" title="Edit Data">Edit</a>
-                            <a>Hapus</a>
+                            <x-btn-edit url="{{ url('tugasakhir/edit/'.$item->id_tugasakhir) }}" />
+                            <x-btn-delete url="{{ url('tugasakhir/destroy') }}" idField="id_tugasakhir" :idValue="$item->id_tugasakhir" />
                         </td>
                     </tr>
                     @endforeach

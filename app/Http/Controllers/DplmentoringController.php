@@ -11,6 +11,7 @@ use App\Models\Logbulanan;
 use App\Models\Mahasiswa;
 use App\Models\Freeform;
 use App\Models\Nilaikonversi;
+use App\Support\ActionButtons;
 
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
@@ -60,8 +61,7 @@ class DplmentoringController extends Controller
                     return '<a href="'.$tautan.'" target="_blank">'.$tautan.'</a>';
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"> <a href="javascript:void(0)" id="hapus_'.$row->id_mentoring.'"  class="p-0 m-0"><i class="ri-delete-bin-3-line text-danger"></i></a></div>';
-                    return $actionBtn;
+                    return ActionButtons::delete($row->id_mentoring);
                 })
                 ->rawColumns(['action','rekapnilai','nilai_freeform','tugasakhir'])
                 ->make(true);

@@ -1,26 +1,16 @@
 
 <div class="row">
     <div class="col-12 table-responsive">
-        <table class="table table-sm" id="dataTable">
-            <thead>
+        <x-datatable id="dataTable" tableClass="table table-sm">
+    <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
                     <th>Id KPI </th>
                     <th>Key performance indicator </th>
                     <th>Aksi</th>
                 </tr>
-            </thead>
-            <tbody>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th width="1">No</th>
-                    <th>Id KPI </th>
-                    <th>Key performance indicator </th>
-                    <th>Aksi</th>
-                </tr>
-            </tfoot>
-        </table>
+            </x-slot:thead>
+</x-datatable>
     </div>
 </div>
 <script type="text/javascript">
@@ -35,26 +25,6 @@
             {data: 'nama_kpi', name: 'nama_kpi'},
             {data: 'action', name: 'action', orderable: false, searchable: false},
         ],
-        initComplete: function () {
-            var table = this;
-            this.api()
-                .columns()
-                .every(function (index) {
-                    var column = this;
-                    var title = column.footer().textContent;
-    
-                    // Create input element and add event listener
-                    if (index !== 0 && index !== 5) { // Skip column "No" (index 0)
-                        $('<input type="text" class="form-control form-control-sm p-1" placeholder="Search ' + title + '" />')
-                            .appendTo($(column.footer()).empty())
-                            .on('keyup change clear', function () {
-                                if (column.search() !== this.value) {
-                                    column.search(this.value).draw();
-                                }
-                            });
-                    }
-                });
-        }
     });
 
 

@@ -10,6 +10,7 @@ use App\Models\Desa;
 use App\Models\Desaprofile;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class DesaprofileController extends Controller
 {    
@@ -33,8 +34,7 @@ class DesaprofileController extends Controller
                     return $row->desa->desa;
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton p-0 m-0" data-src="'.url('desaprofile/edit/'.$row->id_profile).'" title="Edit Data"><i class="ri-edit-box-line text-success"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_profile.'"  class="p-0 m-0"><i class="ri-delete-bin-3-line text-danger"></i></a></div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(url('desaprofile/edit/'.$row->id_profile), $row->id_profile);
                 })
                 ->rawColumns(['action','kecamatan'])
                 ->make(true);
