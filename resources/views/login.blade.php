@@ -78,94 +78,127 @@
           opacity: 0.1;
       }
       
-      /* Modern Card Kiri */
-      .welcome-card {
-          background: #667eea;
-          border-radius: 24px;
-          box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
-          border: none;
-          overflow: hidden;
-          position: relative;
-      }
-      
-      .welcome-card::before {
-          content: '';
-          position: absolute;
-          top: -50%;
-          right: -50%;
-          width: 200%;
-          height: 200%;
-          background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-          animation: pulse 15s ease-in-out infinite;
-      }
-      
-      @keyframes pulse {
-          0%, 100% { transform: scale(1) rotate(0deg); }
-          50% { transform: scale(1.1) rotate(180deg); }
-      }
-      
-      .welcome-card .card-header {
-          background: rgba(255, 255, 255, 0.15);
-          backdrop-filter: blur(10px);
-          border: none;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-          padding: 2rem;
-          position: relative;
-          z-index: 1;
-      }
-      
-      .welcome-card .card-body {
-          padding: 3rem 2.5rem;
-          position: relative;
-          z-index: 1;
-      }
-      
-      .welcome-card .illustration-wrapper {
-          background: rgba(255, 255, 255, 0.15);
-          backdrop-filter: blur(10px);
+        /* Panel Lokasi Kiri */
+        .lokasi-panel {
+          width: 100%;
+          height: 100%;
+          background: rgba(102, 126, 234, 0.92);
           border-radius: 20px;
-          padding: 2rem;
-          margin-bottom: 2rem;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      }
-      
-      .welcome-card .program-title {
-          color: #ffffff;
-          font-weight: bold;
-          font-size: 2rem;
-          margin-bottom: 1rem;
-          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      }
-      
-      .welcome-card .welcome-text {
-          color: rgba(255, 255, 255, 0.95);
-          font-weight: 500;
-          line-height: 1.7;
-          font-size: 1.5rem;
-      }
-      
-      /* Badge decoratif */
-      .security-badge {
-          position: absolute;
-          top: 20px;
-          right: 20px;
-          background: rgba(255, 255, 255, 0.2);
-          backdrop-filter: blur(10px);
-          border-radius: 50px;
-          padding: 0.5rem 1rem;
-          color: white;
-          font-size: 0.75rem;
-          font-weight: 600;
-          border: 1px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 0 20px 60px rgba(102, 126, 234, 0.35);
           display: flex;
-          align-items: center;
-          gap: 0.5rem;
-      }
-      
-      .security-badge i {
+          flex-direction: column;
+          overflow: hidden;
+        }
+
+        .lokasi-panel-header {
+          padding: 1.5rem 1.75rem 1rem;
+          /* border-bottom: 1px solid rgba(255, 255, 255, 0.2); */
+        }
+
+        .lokasi-panel-title {
+          color: #fff;
+          font-size: 1.6rem;
+          font-weight: 700;
+          margin-bottom: 0.25rem;
+        }
+
+        .lokasi-panel-subtitle {
+          color: rgba(255, 255, 255, 0.9);
+          margin-bottom: 1rem;
+        }
+
+        .lokasi-search .input-group-text,
+        .lokasi-search .form-control {
+          background: rgba(255, 255, 255, 0.14);
+          border-color: rgba(255, 255, 255, 0.35);
+          color: #fff;
+        }
+
+        .lokasi-search .form-control::placeholder {
+          color: rgba(255, 255, 255, 0.75);
+        }
+
+        .lokasi-search .form-control:focus {
+          box-shadow: none;
+          border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .lokasi-grid-wrap {
+          padding: 1.25rem 1.5rem 1.5rem;
+          overflow: auto;
+        }
+
+        .lokasi-grid {
+          display: grid;
+          gap: 0.75rem;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .lokasi-item {
+          background: rgba(255, 255, 255, 0.16);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          border-radius: 12px;
+          color: #fff;
+          min-height: 90px;
+          padding: 0.75rem;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 0.35rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .lokasi-item:hover {
+          transform: translateY(-2px);
+          background: rgba(255, 255, 255, 0.22);
+        }
+
+        .lokasi-item.active {
+          background: rgba(255, 255, 255, 0.28);
+          border-color: rgba(255, 255, 255, 0.8);
+          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        .lokasi-item i {
           font-size: 1rem;
-      }
+          opacity: 0.9;
+        }
+
+        .lokasi-item-name {
+          font-size: 0.9rem;
+          font-weight: 600;
+          line-height: 1.3;
+        }
+
+        .lokasi-empty {
+          color: #fff;
+          background: rgba(255, 255, 255, 0.16);
+          border-radius: 12px;
+          padding: 1rem;
+          text-align: center;
+        }
+
+        .selected-lokasi-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          font-size: 0.78rem;
+          font-weight: 600;
+          color: #667eea;
+          background: rgba(102, 126, 234, 0.12);
+          padding: 0.35rem 0.75rem;
+          border-radius: 999px;
+          margin-bottom: 0.75rem;
+        }
+
+        .selected-lokasi-name {
+          color: #3b4663;
+          font-weight: 600;
+          margin-bottom: 0.5rem;
+          min-height: 1.25rem;
+          font-size: 2rem;
+        }
       
       /* Form Section */
       .authentication-bg {
@@ -216,22 +249,22 @@
       
       /* Responsive */
       @media (max-width: 991px) {
-          .welcome-card .card-body {
-              padding: 2rem 1.5rem;
-          }
-          
-          .welcome-card .program-title {
-              font-size: 1.5rem;
-          }
-          
-          .welcome-card .welcome-text {
-              font-size: 1rem;
-          }
-
           .authentication-bg {
               border-radius: 0px;
           }
       }
+
+        @media (max-width: 1399px) {
+          .lokasi-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 1199px) {
+          .lokasi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
       </style>
 
 
@@ -252,28 +285,31 @@
       <!-- /Logo -->
       <div class="authentication-inner row m-0">
         <!-- Left Section -->
-        <div class="d-none d-lg-flex col-lg-7 col-xl-8 align-items-center justify-content-center p-5">
-          <div class="card welcome-card" style="max-width: 650px; width: 100%;">
-            <div class="security-badge">
-              <i class="ri-shield-check-line"></i>
-              <span>Secure Login</span>
+        <div class="d-none d-lg-flex col-lg-7 col-xl-8 p-4">
+          <div class="lokasi-panel">
+            <div class="lokasi-panel-header">
+              <h2 class="lokasi-panel-title">Lokasi Program KKN Tematik LLDIKTI Wilayah IV</h2>
+              <p class="lokasi-panel-subtitle">Lokasi Pelaksanaan Program.</p>
+              {{-- <div class="input-group lokasi-search">
+                <span class="input-group-text"><i class="ri-search-line"></i></span>
+                <input type="text" id="lokasiSearch" class="form-control" placeholder="Cari lokasi program..." />
+              </div> --}}
             </div>
-            
-            <div class="card-header text-center">
-              <div style="background: white; padding: 0.75rem 1.5rem; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                <img src="../assets/images/logos.png" alt="LLDIKTI Logo" style="max-height: 75px; width: auto;">
-              </div>
-            </div>
-            
-            <div class="card-body text-center mt-5">
-              <div class="illustration-wrapper">
-                <img class="img-fluid" src="../../assets/images/illustrations-login.png" alt="Illustration" style="max-width: 280px;">
-              </div>
-              
-              <h2 class="program-title">KKN Mahasiswa {{ date('Y') }} <br /> LLDIKTI Wilayah IV</h2>
-              {{-- <p class="welcome-text px-3">
-                
-              </p> --}}
+
+            <div class="lokasi-grid-wrap">
+              @if(isset($lokasiProgramList) && $lokasiProgramList->count())
+                <div class="lokasi-grid" id="lokasiGrid">
+                  @foreach($lokasiProgramList as $lokasi)
+                    <div class="lokasi-item" data-lokasi="{{ strtolower($lokasi) }}" data-lokasi-name="{{ $lokasi }}">
+                      <i class="ri-map-pin-2-fill"></i>
+                      <div class="lokasi-item-name">{{ $lokasi }}</div>
+                    </div>
+                  @endforeach
+                </div>
+                <div id="lokasiNoResult" class="lokasi-empty d-none mt-2">Lokasi tidak ditemukan.</div>
+              @else
+                <p class="lokasi-empty mb-0">Data lokasi program belum tersedia.</p>
+              @endif
             </div>
           </div>
         </div>
@@ -283,6 +319,7 @@
         <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-5 px-4 px-sm-5">
           <div class="w-100 mx-auto" style="max-width: 400px;">
             <div class="mb-4 text-center">
+              <p id="selectedLokasiName" class="selected-lokasi-name"></p>
               <h4 class="mb-2 fw-bold">MASUK</h4>
               <p class="mb-0 text-muted">Silakan login untuk masuk ke Dashboard</p>
             </div>
@@ -420,6 +457,29 @@ $(function(){
       })
       return false;
     })
+
+    $("#lokasiSearch").on("input", function () {
+      var keyword = $(this).val().toLowerCase().trim();
+      var visibleCount = 0;
+
+      $("#lokasiGrid .lokasi-item").each(function () {
+        var lokasiName = $(this).data("lokasi");
+        var isMatch = lokasiName.indexOf(keyword) !== -1;
+        $(this).toggle(isMatch);
+        if (isMatch) {
+          visibleCount++;
+        }
+      });
+
+      $("#lokasiNoResult").toggleClass("d-none", visibleCount > 0 || keyword === "");
+    });
+
+      $("#lokasiGrid").on("click", ".lokasi-item", function () {
+        var lokasiName = $(this).data("lokasi-name");
+        $("#lokasiGrid .lokasi-item").removeClass("active");
+        $(this).addClass("active");
+        $("#selectedLokasiName").text(lokasiName);
+      });
     
 })
 </script>

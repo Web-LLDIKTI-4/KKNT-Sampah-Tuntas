@@ -6,11 +6,16 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Session;
+use App\Models\LokasiProgram;
 
 class LoginController extends Controller
 {    
 	public function index(){
-		return view('login');
+		$lokasiProgramList = LokasiProgram::query()
+			->orderBy('nama_lokasi')
+			->pluck('nama_lokasi');
+
+		return view('login', compact('lokasiProgramList'));
 	}
     public function proseslogin(Request $request){
         $ret=array('success'=>false,'messages'=>array());
