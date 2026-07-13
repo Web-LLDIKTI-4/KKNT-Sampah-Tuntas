@@ -10,16 +10,17 @@ use App\Models\Kpicapaian;
 use App\Models\Kpitarget;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class KpiController extends Controller
 {    
     public function index()
     {  
-        return view('admin.kpi.index');
+        return view('kpi.index');
     }
     public function listdata()
     {
-        return view('admin.kpi.listdata');
+        return view('kpi.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -30,15 +31,14 @@ class KpiController extends Controller
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton text-warning p-0 m-0" data-src="'.url('kpi/edit/'.$row->id_kpi).'" title="Edit Data"><i class="ri-edit-box-line"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_kpi.'"  class="text-danger p-0 m-0"><i class="ri-delete-bin-3-line"></i></a></div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(url('kpi/edit/'.$row->id_kpi), $row->id_kpi);
                 })
                 ->rawColumns(['action'])
                 ->make(true);
         }
     }
     public function tambah(){
-        return view('admin.kpi.tambah');
+        return view('kpi.tambah');
     }
     public function insert(Request $request)
     {
@@ -69,7 +69,7 @@ class KpiController extends Controller
     }
     public function edit(Request $request){
         $data = Kpi::where("id_kpi",$request->id_kpi)->first();
-        return view('admin.kpi.edit',compact('data'));
+        return view('kpi.edit',compact('data'));
     }
     public function update(Request $request)
     {

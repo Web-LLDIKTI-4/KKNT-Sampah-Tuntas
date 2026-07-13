@@ -16,11 +16,11 @@ class AdmlogharianController extends Controller
 {    
     public function index()
     {  
-        return view('admin.logharian.index');
+        return view('logharian.index');
     }
     public function listdata()
     {
-        return view('admin.logharian.listdata');
+        return view('logharian.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -54,7 +54,7 @@ class AdmlogharianController extends Controller
     public function permhs(Request $request)
     {
         $email = $request->email;
-        return view('admin.logharian.permhs',compact('email'));
+        return view('logharian.permhs',compact('email'));
     }
     public function permhsserver(Request $request)
     {

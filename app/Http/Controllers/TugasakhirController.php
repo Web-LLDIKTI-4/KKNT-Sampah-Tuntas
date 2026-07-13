@@ -17,15 +17,15 @@ class TugasakhirController extends Controller
 {    
     public function index()
     {  
-        return view('member.tugasakhir.index');
+        return view('tugasakhir.index');
     }
     public function listdata(){
         $data = Tugasakhir::where('email',Auth::user()->email)->get();
-        return view('member.tugasakhir.listdata',compact('data'));
+        return view('tugasakhir.listdata',compact('data'));
     }
     public function tambah(Request $request)
     {
-        return view('member.tugasakhir.tambah');
+        return view('tugasakhir.tambah');
     }
     public function insert(Request $request){
         $validator = Validator::make($request->all(), [
@@ -60,7 +60,7 @@ class TugasakhirController extends Controller
     public function edit(Request $request)
     {
         $data = Tugasakhir::where("email", Auth::user()->email)->where("id_tugasakhir", $request->id_tugasakhir)->first();
-        return view('member.tugasakhir.edit',compact('data'));
+        return view('tugasakhir.edit',compact('data'));
     }
     public function update(Request $request){
         $validator = Validator::make($request->all(), [

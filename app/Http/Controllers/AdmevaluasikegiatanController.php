@@ -17,11 +17,11 @@ class AdmevaluasikegiatanController extends Controller
 {    
     public function index()
     {  
-        return view('admin.evaluasikegiatan.index');
+        return view('evaluasikegiatan.index');
     }
     public function hasilevaluasi()
     {
-        return view('admin.evaluasikegiatan.hasilevaluasi');
+        return view('evaluasikegiatan.hasilevaluasi');
     }
     public function listdataserver(Request $request)
     {
@@ -55,11 +55,11 @@ class AdmevaluasikegiatanController extends Controller
     }
     public function pertanyaanevaluasi()
     {
-        return view('admin.evaluasikegiatan.pertanyaanevaluasi');
+        return view('evaluasikegiatan.pertanyaanevaluasi');
     }
     public function pertanyaanevaluasilistdata()
     {
-        return view('admin.evaluasikegiatan.pertanyaanevaluasi_listdata');
+        return view('evaluasikegiatan.pertanyaanevaluasi_listdata');
     }
     public function pertanyaanevaluasiserver(Request $request)
     {
@@ -78,7 +78,7 @@ class AdmevaluasikegiatanController extends Controller
     }
     public function tambah()
     {
-        return view('admin.evaluasikegiatan.pertanyaanevaluasi_tambah');
+        return view('evaluasikegiatan.pertanyaanevaluasi_tambah');
     }
     public function insert(Request $request)
     {

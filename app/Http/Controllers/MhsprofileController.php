@@ -18,14 +18,14 @@ class MhsprofileController extends Controller
 {    
     public function index()
     {  
-        return view('member.profile.index');
+        return view('profile.index');
     }
     public function data()
     {
         $sp = Satuanpendidikan::get();
         $profile = User::where('email',Auth::user()->email)->first();
         $mahasiswa = Mahasiswa::where("email",Auth::user()->email)->first();
-        return view('member.profile.data',compact('mahasiswa','profile','sp'));
+        return view('profile.data',compact('mahasiswa','profile','sp'));
     }
     public function prosesuploadpoto(Request $request){
         $validator = Validator::make($request->all(), [
@@ -74,7 +74,7 @@ class MhsprofileController extends Controller
         return response()->json(['success'=>false,'error'=>$validator->errors(),'message'=>'Poto gagal di upload'], 200);
     }
     public function uploadpoto(){
-        return view('member.profile.uploadpoto');
+        return view('profile.uploadpoto');
     }
     public function getPoto()
     {
@@ -151,7 +151,7 @@ class MhsprofileController extends Controller
         $data=[
             'desa'=>$desa
         ];
-        return view('member.profile.lokasi',$data);
+        return view('profile.lokasi',$data);
     }
     public function setlokasi(Request $request){
         $id_desa = $request->id_desa;

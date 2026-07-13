@@ -11,16 +11,17 @@ use App\Models\Nilaikonversi;
 
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class DplkonversinilaiController extends Controller
 {    
     public function index()
     {  
-        return view('dpl.konversinilai.index');
+        return view('konversinilai.index');
     }
     public function listdata()
     {
-        return view('dpl.konversinilai.listdata');
+        return view('konversinilai.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -43,11 +44,13 @@ class DplkonversinilaiController extends Controller
                     return $row->mahasiswa->prodi;
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx">';
-                    $actionBtn .= '<a href="#modalku" data-bs-toggle="modal" data-src="'.url('dplkonversinilai/edit/'.$row->id_konversi).'"  class="modalButton p-0 m-0" title="Edit Nilai"><i class="ri-edit-box-line text-success"></i></a>';
-                    $actionBtn .= ' <a href="javascript:void(0)" id="hapus_'.$row->id_konversi.'"  class="p-0 m-0"><i class="ri-delete-bin-3-line text-danger"></i></a>';
-                    $actionBtn .= '</div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(
+                        url('dplkonversinilai/edit/'.$row->id_konversi),
+                        $row->id_konversi,
+                        'btn-action-edit modalButton',
+                        'ri-edit-box-line',
+                        'Edit Nilai'
+                    );
                 })
                 ->rawColumns(['action','rekapnilai'])
                 ->make(true);
@@ -58,7 +61,7 @@ class DplkonversinilaiController extends Controller
         $data=[
             'mahasiswa'=>$mahasiswa
         ];
-        return view('dpl.konversinilai.tambah',$data);
+        return view('konversinilai.tambah',$data);
     }
    
     public function insert(Request $request)
@@ -133,7 +136,7 @@ class DplkonversinilaiController extends Controller
         $data=[
             'data'=>$datanilai
         ];
-        return view('dpl.konversinilai.edit',$data);
+        return view('konversinilai.edit',$data);
     }
     public function update(Request $request)
     {

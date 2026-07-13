@@ -16,11 +16,11 @@ class LapcapaiankpiController extends Controller
 {    
     public function index()
     {  
-        return view('admin.lapcapaiankpi.index');
+        return view('lapcapaiankpi.index');
     }
     public function listdata()
     {
-        return view('admin.lapcapaiankpi.listdata');
+        return view('lapcapaiankpi.listdata');
     }
     public function listdataserver(Request $request)
     {

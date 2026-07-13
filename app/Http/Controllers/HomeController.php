@@ -54,7 +54,7 @@ class HomeController extends Controller
                 'jumlahpt'=>$jumlahpt,
                 'jumlahcapaiankpi' => $jumlahcapaiankpi,
             ];
-            return view('member.home',$data);
+            return view('index-member',$data);
         }else if (Auth::user()->role == "pt"){
             $jumlahmahasiswa = Mahasiswa::where('kodept',Auth::user()->email)->get()->count();
             $data = [
@@ -65,7 +65,7 @@ class HomeController extends Controller
                 'jumlahpt'=>$jumlahpt,
                 'jumlahcapaiankpi' => 0,
             ];
-            return view('user.home',$data);
+            return view('index-user',$data);
         }else{
             //cek data
             $jumlahdpl=0;
@@ -156,7 +156,7 @@ class HomeController extends Controller
                 'jumlahdplnilaikonversi'=>$jumlahdplnilaikonversi,
                 'saran'=>$saran,
             ];
-            return view('admin.home',$data);
+            return view('index-admin',$data);
         }
     }  
 }

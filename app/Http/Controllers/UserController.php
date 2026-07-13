@@ -23,15 +23,15 @@ class UserController extends Controller
 {    
     public function index()
     {  
-        return view('admin.user.index');
+        return view('user.index');
     } 
     public function listdata(){
         $data = User::whereIn('role', ['mahasiswa', 'dpl','pt'])->get();
-        return view('admin.user.list',compact('data'));
+        return view('user.list',compact('data'));
     } 
     public function getdatamember(){
         $data = Mahasiswa::whereDoesntHave('user')->get();
-        return view('admin.user.listmember',compact('data'));
+        return view('user.listmember',compact('data'));
     }
     public function insert(Request $request){
         if($request->createuser){
@@ -60,7 +60,7 @@ class UserController extends Controller
     }
     public function adduser(){
         $role=array('admin','dpl');
-        return view('admin.user.tambah',compact('role'));
+        return view('user.tambah',compact('role'));
     }
     public function insertuser(Request $request){
         $validator = Validator::make($request->all(), [
@@ -103,7 +103,7 @@ class UserController extends Controller
         $data = User::find($request->id);
         $role=array('mahasiswa','dpl');
         $akses=array('pjdesa'=>'Set PJ Desa','hapuspjdesa'=>'Hapus Akses PJ Desa');
-        return view('admin.user.edit',compact('data','role','akses'));
+        return view('user.edit',compact('data','role','akses'));
     }
     public function updateuser(Request $request){
         $validator = Validator::make($request->all(), [
@@ -185,7 +185,7 @@ class UserController extends Controller
     public function adduserpt(){
         $role=array('pt');
         $sp = Satuanpendidikan::get();
-        return view('admin.user.tambah_pt',compact('role','sp'));
+        return view('user.tambah_pt',compact('role','sp'));
     }
     public function insertuserpt(Request $request){
         $validator = Validator::make($request->all(), [
@@ -226,13 +226,13 @@ class UserController extends Controller
     public function edituserpt($id){
         $role=array('pt');
         $user = User::find($id);
-        $sp = Satuanpendidikan::where("npsn",$user->email)->get();
+        $sp = Satuanpendidikan::orderByRaw("TRIM(nm_lemb) DESC")->get();
         $data=[
             'role'=>$role,
             'user'=>$user,
             'sp'=>$sp,
         ];
-        return view('admin.user.edit_pt',$data);
+        return view('user.edit_pt',$data);
     }
     public function updateuserpt(Request $request){
         $validator = Validator::make($request->all(), [
@@ -244,6 +244,11 @@ class UserController extends Controller
         $validator->after(function($validator) use ($request) {
             if (!$request->kodept) {
                 $validator->errors()->add('kodept', 'PT harus dipilih!');
+            } else {
+                $cekdata = User::where("id", "!=", $request->id)->where("email", $request->kodept)->exists();
+                if ($cekdata) {
+                    $validator->errors()->add('kodept', 'PT tersebut sudah digunakan oleh akun lain!');
+                }
             }
         });
 
@@ -256,11 +261,12 @@ class UserController extends Controller
         }
         $data=[
             'name'=>$request->name,
+            'email'=>$request->kodept,
         ];
         if($request->password){
             $data["password"] =Hash::make($request->password);
         }
-        User::where("id",$request->id)->where("email",$request->kodept)->update($data);
+        User::where("id",$request->id)->update($data);
         return response()->json(['success' => true,'message'=>"user berhasil dibuat"]);       
     }
 }

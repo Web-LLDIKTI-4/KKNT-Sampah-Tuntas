@@ -15,11 +15,11 @@ class DpllaptugasakhirController extends Controller
 {    
     public function index()
     {  
-        return view('dpl.laptugasakhir.index');
+        return view('laptugasakhir.dpl.index');
     }
     public function listdata()
     {
-        return view('dpl.laptugasakhir.listdata');
+        return view('laptugasakhir.dpl.listdata');
     }
     public function listdataserver(Request $request)
     {

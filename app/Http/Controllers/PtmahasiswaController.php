@@ -13,11 +13,11 @@ class PtmahasiswaController extends Controller
 {    
     public function index()
     {  
-        return view('user.mahasiswa.index');
+        return view('mahasiswa.pt.index');
     }
     public function listdata()
     {
-        return view('user.mahasiswa.listdata');
+        return view('mahasiswa.pt.listdata');
     }
     public function listdataserver(Request $request)
     {

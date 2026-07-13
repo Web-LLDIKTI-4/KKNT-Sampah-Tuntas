@@ -20,7 +20,7 @@ class LogbulananController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             $namaBulan[$i] = Carbon::create()->month($i)->format('F');
         }
-        return view('member.logbulanan.index',compact('namaBulan'));
+        return view('logbulanan.mahasiswa.index',compact('namaBulan'));
     }
     public function tambah(Request $request)
     {
@@ -36,7 +36,7 @@ class LogbulananController extends Controller
             'logharian' => $logharian
         ];
 
-        return view('member.logbulanan.tambah',$data);
+        return view('logbulanan.mahasiswa.tambah',$data);
     }
     public function insert(Request $request){
         $validator = Validator::make($request->all(), [
@@ -99,6 +99,6 @@ class LogbulananController extends Controller
     }
     public function listdata(){
         $laporan = Logbulanan::where('email',Auth::user()->email)->get();
-        return view('member.logbulanan.listdata',compact('laporan'));
+        return view('logbulanan.mahasiswa.listdata',compact('laporan'));
     }
 }

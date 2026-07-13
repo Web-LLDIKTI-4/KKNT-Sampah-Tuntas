@@ -11,12 +11,11 @@ class PttugasakhirController extends Controller
 {    
     public function index()
     {  
-        return view('user.tugasakhir.index');
+        return view('laptugasakhir.pt.index');
     }
     public function listdata()
     {
-        dd(Auth::user()->email);
-        return view('user.tugasakhir.listdata');
+        return view('laptugasakhir.pt.listdata');
     }
     public function listdataserver(Request $request)
     {

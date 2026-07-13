@@ -11,6 +11,7 @@ use App\Models\Freeform;
 
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 use App\Exports\FreeformExport;
 
@@ -18,11 +19,11 @@ class AdmfreeformController extends Controller
 {    
     public function index()
     {  
-        return view('admin.freeform.index');
+        return view('freeform.index');
     }
     public function listdata()
     {
-        return view('admin.freeform.listdata');
+        return view('freeform.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -50,8 +51,7 @@ class AdmfreeformController extends Controller
                     return ($nilai_dpl + $nilai_dpa)/2;
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"> <a href="javascript:void(0)" id="hapus_'.$row->id_freeform.'"  class="btn btn-sm p-0 m-0"><i class="fa fa-trash"></i></a></div>';
-                    return $actionBtn;
+                    return ActionButtons::delete($row->id_freeform);
                 })
                 ->rawColumns(['action','nilai_akhir'])
                 ->make(true);

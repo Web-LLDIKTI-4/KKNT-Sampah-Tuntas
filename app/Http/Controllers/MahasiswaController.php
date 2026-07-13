@@ -19,11 +19,11 @@ class MahasiswaController extends Controller
 {    
     public function index()
     {  
-        return view('admin.mahasiswa.index');
+        return view('mahasiswa.index');
     }
     public function listdata()
     {
-        return view('admin.mahasiswa.listdata');
+        return view('mahasiswa.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -55,7 +55,7 @@ class MahasiswaController extends Controller
             }
     }
     public function import(){
-        return view('admin.mahasiswa.import');
+        return view('mahasiswa.import');
     }
     public function prosesimport(Request $request){
         try {

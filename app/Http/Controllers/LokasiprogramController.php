@@ -7,16 +7,17 @@ use Session;
 use DataTables;
 use App\Models\LokasiProgram;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class LokasiprogramController extends Controller
 {
     public function index()
     {
-        return view('admin.lokasiprogram.index');
+        return view('lokasiprogram.index');
     }
     public function listdata()
     {
-        return view('admin.lokasiprogram.listdata');
+        return view('lokasiprogram.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -26,15 +27,14 @@ class LokasiprogramController extends Controller
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton p-0 m-0" data-src="'.url('lokasiprogram/edit/'.$row->id).'" title="Edit Data"><i class="ri-edit-box-line text-success"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id.'"  class="p-0 m-0"><i class="ri-delete-bin-3-line text-danger"></a></div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(url('lokasiprogram/edit/'.$row->id), $row->id);
                 })
                 ->rawColumns(['action'])
                 ->make(true);
         }
     }
     public function tambah(){
-        return view('admin.lokasiprogram.tambah');
+        return view('lokasiprogram.tambah');
     }
     public function insert(Request $request)
     {
@@ -66,7 +66,7 @@ class LokasiprogramController extends Controller
         $data=[
             'data'=>$lokasiprogram,
         ];
-        return view('admin.lokasiprogram.edit',$data);
+        return view('lokasiprogram.edit',$data);
     }
     public function update(Request $request)
     {

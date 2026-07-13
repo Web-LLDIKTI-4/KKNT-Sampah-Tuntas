@@ -9,16 +9,17 @@ use App\Models\Kecamatan;
 use App\Models\Desa;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class DesaController extends Controller
 {    
     public function index()
     {  
-        return view('admin.desa.index');
+        return view('desa.index');
     }
     public function listdata()
     {
-        return view('admin.desa.listdata');
+        return view('desa.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -32,8 +33,7 @@ class DesaController extends Controller
                     return $row->kecamatan->kecamatan;
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton p-0 m-0" data-src="'.url('desa/edit/'.$row->id_desa).'" title="Edit Data"><i class="ri-edit-box-line text-success"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_desa.'"  class="p-0 m-0"><i class="ri-delete-bin-3-line text-danger"></i></a></div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(url('desa/edit/'.$row->id_desa), $row->id_desa);
                 })
                 ->rawColumns(['action','kecamatan'])
                 ->make(true);
@@ -41,7 +41,7 @@ class DesaController extends Controller
     }
     public function tambah(){
         $kecamatan = Kecamatan::get();
-        return view('admin.desa.tambah',compact('kecamatan'));
+        return view('desa.tambah',compact('kecamatan'));
     }
     public function insert(Request $request)
     {
@@ -88,7 +88,7 @@ class DesaController extends Controller
             'data'=>$desa,
             'kecamatan'=>$kecamatan,
         ];
-        return view('admin.desa.edit',$data);
+        return view('desa.edit',$data);
     }
     public function update(Request $request)
     {

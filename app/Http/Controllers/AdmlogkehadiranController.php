@@ -15,11 +15,11 @@ class AdmlogkehadiranController extends Controller
 {    
     public function index()
     {  
-        return view('admin.logkehadiran.index');
+        return view('logkehadiran.index');
     }
     public function listdata()
     {
-        return view('admin.logkehadiran.listdata');
+        return view('logkehadiran.listdata');
     }
     public function listdataserver(Request $request)
     {

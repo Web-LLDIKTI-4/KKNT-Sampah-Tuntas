@@ -11,16 +11,17 @@ use App\Models\Freeform;
 
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class DplfreeformController extends Controller
 {    
     public function index()
     {  
-        return view('dpl.freeform.index');
+        return view('freeform.dpl.index');
     }
     public function listdata()
     {
-        return view('dpl.freeform.listdata');
+        return view('freeform.dpl.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -43,11 +44,13 @@ class DplfreeformController extends Controller
                     return $row->mahasiswa->prodi;
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx">';
-                    $actionBtn .= '<a href="#modalku" data-bs-toggle="modal" data-src="'.url('dplfreeform/edit/'.$row->id_freeform).'"  class="btn btn-sm modalButton p-0 m-0" title="Edit Nilai"><i class="fa fa-edit"></i></a>';
-                    $actionBtn .= ' <a href="javascript:void(0)" id="hapus_'.$row->id_freeform.'"  class="btn btn-sm p-0 m-0"><i class="fa fa-trash"></i></a>';
-                    $actionBtn .= '</div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(
+                        url('dplfreeform/edit/'.$row->id_freeform),
+                        $row->id_freeform,
+                        'btn-action-edit modalButton',
+                        'ri-edit-box-line',
+                        'Edit Nilai'
+                    );
                 })
                 ->rawColumns(['action','rekapnilai'])
                 ->make(true);
@@ -67,7 +70,7 @@ class DplfreeformController extends Controller
             'mahasiswa'=>$mahasiswa,
             'freeform'=>$freeform,
         ];
-        return view('dpl.freeform.tambah',$data);
+        return view('freeform.dpl.tambah',$data);
     }
    
     public function insert(Request $request)
@@ -149,7 +152,7 @@ class DplfreeformController extends Controller
             'data'=>$datanilai,
             'freeform'=>$freeform,
         ];
-        return view('dpl.freeform.edit',$data);
+        return view('freeform.dpl.edit',$data);
     }
    
     public function update(Request $request)

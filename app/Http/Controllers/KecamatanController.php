@@ -9,16 +9,17 @@ use App\Models\Kecamatan;
 use App\Models\Desa;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class KecamatanController extends Controller
 {    
     public function index()
     {  
-        return view('admin.kecamatan.index');
+        return view('kecamatan.index');
     }
     public function listdata()
     {
-        return view('admin.kecamatan.listdata');
+        return view('kecamatan.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -29,15 +30,14 @@ class KecamatanController extends Controller
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton p-0 m-0" data-src="'.url('kecamatan/edit/'.$row->id_kecamatan).'" title="Edit Data"><i class="ri-edit-box-line text-success"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_kecamatan.'"  class="p-0 m-0"><i class="ri-delete-bin-3-line text-danger"></a></div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(url('kecamatan/edit/'.$row->id_kecamatan), $row->id_kecamatan);
                 })
                 ->rawColumns(['action'])
                 ->make(true);
         }
     }
     public function tambah(){
-        return view('admin.kecamatan.tambah');
+        return view('kecamatan.tambah');
     }
     public function insert(Request $request)
     {
@@ -77,7 +77,7 @@ class KecamatanController extends Controller
         $data=[
             'data'=>$kecamatan,
         ];
-        return view('admin.kecamatan.edit',$data);
+        return view('kecamatan.edit',$data);
     }
     public function update(Request $request)
     {

@@ -15,11 +15,11 @@ class LaptugasakhirController extends Controller
 {    
     public function index()
     {  
-        return view('admin.laptugasakhir.index');
+        return view('laptugasakhir.index');
     }
     public function listdata()
     {
-        return view('admin.laptugasakhir.listdata');
+        return view('laptugasakhir.listdata');
     }
     public function listdataserver(Request $request)
     {

@@ -1,0 +1,37 @@
+<div class="row">
+    <div class="col-12 table-responsive">
+        <x-datatable id="dataTable" tableClass="table table-bordered user_datatable">
+    <x-slot:thead>
+                <tr>
+                    <th width="1">No</th>
+                    <th>NIM</th>
+                    <th>Nama</th>
+                    <th>Laporan</th>
+                </tr>
+            </x-slot:thead>
+</x-datatable>
+    </div>
+</div>
+
+<script type="text/javascript">
+  $(function () {
+    var table = $('#dataTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('pttugasakhir.listdataserver') }}",
+        columns: [
+            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'nim', name: 'nim'},
+            {data: 'nama', name: 'nama'},
+            {data: 'tugas_akhir', name: 'tugas_akhir'},
+        ],
+        layout: {
+            top1: {
+                searchPanes: {
+                    viewTotal: true
+                }
+            }
+        }
+    });
+  });
+</script>

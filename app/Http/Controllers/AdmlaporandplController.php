@@ -16,11 +16,11 @@ class AdmlaporandplController extends Controller
 {    
     public function index()
     {  
-        return view('admin.laporandpl.index');
+        return view('laporandpl.index');
     }
     public function listdata()
     {
-        return view('admin.laporandpl.listdata');
+        return view('laporandpl.listdata');
     }
     public function listdataserver(Request $request)
     {

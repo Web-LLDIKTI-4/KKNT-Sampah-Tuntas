@@ -9,16 +9,17 @@ use App\Models\Kpi;
 use App\Models\Logkegiatan;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Support\ActionButtons;
 
 class LogkegiatanController extends Controller
 {    
     public function index()
     {  
-        return view('member.logkegiatan.index');
+        return view('logkegiatan.mahasiswa.index');
     }
     public function listdata()
     {
-        return view('member.logkegiatan.listdata');
+        return view('logkegiatan.mahasiswa.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -35,8 +36,7 @@ class LogkegiatanController extends Controller
                     return $row->deskripsi.'<br><a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton p-0 m-0" data-src="'.url('logkegiatan/edit/'.$row->id_log).'" title="Edit Data"><i class="ri-edit-box-line text-success"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_log.'"  class="p-0 m-0"><i class="ri-delete-bin-3-line text-danger"></i></a></div>';
-                    return $actionBtn;
+                    return ActionButtons::editDelete(url('logkegiatan/edit/'.$row->id_log), $row->id_log);
                 })
                 ->rawColumns(['action'])
                 ->make(true);
@@ -44,7 +44,7 @@ class LogkegiatanController extends Controller
     }
     public function tambah(){
         $kpi = Kpi::get();
-        return view('member.logkegiatan.tambah',compact('kpi'));
+        return view('logkegiatan.mahasiswa.tambah',compact('kpi'));
     }
     public function insert(Request $request)
     {
@@ -94,7 +94,7 @@ class LogkegiatanController extends Controller
         $data = Logkegiatan::where("id_log",$request->id_log)->first();
         $kpi = Kpi::get();
         $data=['data'=>$data,'kpi'=>$kpi];
-        return view('member.logkegiatan.edit',$data);
+        return view('logkegiatan.mahasiswa.edit',$data);
     }
     public function update(Request $request)
     {

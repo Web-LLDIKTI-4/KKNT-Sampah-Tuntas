@@ -17,11 +17,11 @@ class KpicapaianController extends Controller
 {    
     public function index()
     {  
-        return view('member.kpicapaian.index');
+        return view('kpicapaian.index');
     }
     public function listdata()
     {
-        return view('member.kpicapaian.listdata');
+        return view('kpicapaian.listdata');
     }
     public function listdataserver(Request $request)
     {
@@ -54,13 +54,13 @@ class KpicapaianController extends Controller
     public function kpitarget(Request $request)
     {
         $kpitarget = Kpitarget::where("id_kpi",$request->id_kpi)->get();
-        return view('member.kpicapaian.kpitarget',compact('kpitarget'));
+        return view('kpicapaian.kpitarget',compact('kpitarget'));
     }
     public function tambah(){
         $data=[
             'kpi'=>Kpi::get(),
         ];
-        return view('member.kpicapaian.tambah',$data);
+        return view('kpicapaian.tambah',$data);
     }
     public function insert(Request $request)
     {
@@ -157,7 +157,7 @@ class KpicapaianController extends Controller
             'data'=>$kpicapaian,
             'kpitarget'=>$kpitarget,
         ];
-        return view('member.kpicapaian.edit',$data);
+        return view('kpicapaian.edit',$data);
     }
     public function update(Request $request)
     {
