@@ -14,7 +14,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>LLDIKTI IV - KKN 2026</title>
+    <title>LLDIKTI IV - KKN {{ date('Y') }}</title>
 
     <meta name="description" content="" />
 
@@ -38,20 +38,44 @@
     <!-- Helpers -->
     <script src="../../assets/vendor/js/helpers.js"></script>
     <script src="../../assets/js/front-config.js"></script>
+
+    <style>
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background-image: url('../../assets/images/bg-landing.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      .landing-wrap {
+        min-height: 100vh;
+        padding: 2rem 1rem;
+      }
+
+      .btn-landing-login {
+        font-size: 1.1rem;
+        padding: 0.9rem 2.6rem;
+        border-radius: 10px;
+        font-weight: 600;
+        margin-left: 10rem;
+      }
+
+      @media (max-width: 576px) {
+        .btn-landing-login {
+          width: 100%;
+          max-width: 320px;
+          margin-left: 0;
+        }
+      }
+    </style>
   </head>
 
   <body>
-    <!-- Temporary simplified landing page: logo + login button only -->
-    <div class="container d-flex flex-column align-items-center justify-content-center" style="min-height: 100vh;">
-      <img
-        src="../../assets/images/logos.png"
-        alt="logo"
-        class="mb-6"
-        style="max-width: 320px; width: 100%; height: auto;" />
-
-      <a href="{{ url('login') }}" class="btn btn-primary px-6">
-        {{-- <span class="tf-icons ri-user-line me-1"></span> --}}
-        <span>Silahkan Masuk</span>
+    <div class="container landing-wrap d-flex align-items-center justify-content-center">
+      <a href="{{ url('login') }}" class="btn btn-warning btn-landing-login">
+        <span>SILAHKAN LOGIN DISINI</span>
       </a>
     </div>
 
