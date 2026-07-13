@@ -442,9 +442,9 @@
                   <input class="form-check-input" type="checkbox" id="remember-me" />
                   <label class="form-check-label" for="remember-me">Ingat Saya</label>
                 </div>
-                <a href="#" class="text-primary">
+                {{-- <a href="#" class="text-primary">
                   <small>Lupa Kata Sandi?</small>
-                </a>
+                </a> --}}
               </div>
               <button class="btn btn-primary" id="btnSubmit_formAuthentication">
                 <i class="ri-lock-fill me-2"></i>Masuk
