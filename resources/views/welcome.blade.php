@@ -43,7 +43,7 @@
       body {
         min-height: 100vh;
         margin: 0;
-        background-image: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+        background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
           url('../../assets/images/bg-image.jpg');
         background-size: cover;
         background-position: center;
