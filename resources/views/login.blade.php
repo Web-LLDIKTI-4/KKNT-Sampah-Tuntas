@@ -14,7 +14,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>GRADASI4 | Silahkan Masuk ke Akun Anda</title>
+    <title>GRADASI4 | Login</title>
 
     <meta name="description" content="" />
 
@@ -511,7 +511,7 @@ $(function(){
         var lokasiName = $(this).data("lokasi-name");
         $("#lokasiGrid .lokasi-item").removeClass("active");
         $(this).addClass("active");
-        $("#selectedLokasiName").html(lokasiName + "<br/> Masuk");
+        $("#selectedLokasiName").text(lokasiName);
       });
     
 })
