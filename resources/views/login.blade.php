@@ -14,7 +14,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>LLDIKTI IV | Login page</title>
+    <title>GRADASI4 | Silahkan Masuk ke Akun Anda</title>
 
     <meta name="description" content="" />
 
@@ -93,6 +93,36 @@
         .lokasi-panel-header {
           padding: 1.5rem 1.75rem 1rem;
           /* border-bottom: 1px solid rgba(255, 255, 255, 0.2); */
+        }
+
+        .auth-cover-brand {
+          padding: 0.5rem 0.75rem;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.95);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .auth-logo-img {
+          height: 42px;
+          width: auto;
+          display: block;
+        }
+
+        .lokasi-header-logo {
+          display: inline-flex;
+          align-items: flex-start;
+          justify-content: left;
+          background: #fff;
+          border-radius: 14px;
+          padding: 0.55rem 0.95rem;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+          margin-bottom: 0.9rem;
+        }
+
+        .lokasi-header-logo img {
+          width: 90px;
+          height: auto;
+          display: block;
         }
 
         .lokasi-panel-title {
@@ -196,8 +226,6 @@
           color: #3b4663;
           font-weight: 600;
           margin-bottom: 0.5rem;
-          min-height: 1.25rem;
-          font-size: 2rem;
           text-transform: uppercase;
         }
       
@@ -275,22 +303,20 @@
     <!-- Content -->
 
     <div class="authentication-wrapper authentication-cover">
-      <!-- Logo -->
-      <a href="{{ url('/') }}" class="auth-cover-brand d-flex align-items-center gap-2">
-        <span class="app-brand-logo demo">
-          <span style="color: var(--bs-primary)">
-            
-          </span>
-        </span>
-      </a>
       <!-- /Logo -->
       <div class="authentication-inner row m-0">
         <!-- Left Section -->
         <div class="d-none d-lg-flex col-lg-7 col-xl-8 p-4">
           <div class="lokasi-panel">
             <div class="lokasi-panel-header">
-              <h2 class="lokasi-panel-title">Lokasi Program KKN Tematik LLDIKTI Wilayah IV</h2>
-              <p class="lokasi-panel-subtitle">Lokasi Pelaksanaan Program.</p>
+              {{-- Logo Header --}}
+              <div class="d-flex justify-content-start">
+                <div class="lokasi-header-logo">
+                  <img src="../../assets/images/logo-kkn-berdampak.jpeg" alt="KKN Tematik Berdampak" />
+                </div>
+              </div>
+              <h2 class="lokasi-panel-title">Program KKN Tematik LLDIKTI Wilayah IV</h2>
+              <p class="lokasi-panel-subtitle">Lokasi Pelaksanaan Program</p>
               {{-- <div class="input-group lokasi-search">
                 <span class="input-group-text"><i class="ri-search-line"></i></span>
                 <input type="text" id="lokasiSearch" class="form-control" placeholder="Cari lokasi program..." />
@@ -309,7 +335,7 @@
                 </div>
                 <div id="lokasiNoResult" class="lokasi-empty d-none mt-2">Lokasi tidak ditemukan.</div>
               @else
-                <p class="lokasi-empty mb-0">Data lokasi program belum tersedia.</p>
+                <p class="lokasi-empty mb-0">Data lokasi kegiatan belum tersedia.</p>
               @endif
             </div>
           </div>
@@ -320,8 +346,8 @@
         <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-5 px-4 px-sm-5">
           <div class="w-100 mx-auto" style="max-width: 400px;">
             <div class="mb-4 text-center">
-              <p id="selectedLokasiName" class="selected-lokasi-name"></p>
-              <h4 class="mb-2 fw-bold">MASUK</h4>
+              <h4 class="mb-2 fw-bold">KKN Tematik</h4>
+              <h4 id="selectedLokasiName" class="selected-lokasi-name fw-bold">Masuk</h4>
               <p class="mb-0 text-muted">Silakan login untuk masuk ke Dashboard</p>
             </div>
 
