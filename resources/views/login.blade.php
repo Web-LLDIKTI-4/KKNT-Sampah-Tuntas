@@ -165,10 +165,10 @@
         }
 
         .lokasi-item {
-          background: rgba(255, 255, 255, 0.16);
+          background: rgba(255, 255, 255, .9);
           border: 1px solid rgba(255, 255, 255, 0.25);
           border-radius: 12px;
-          color: #fff;
+          color: #667eea;
           min-height: 90px;
           padding: 0.75rem;
           display: flex;
@@ -181,11 +181,10 @@
 
         .lokasi-item:hover {
           transform: translateY(-2px);
-          background: rgba(255, 255, 255, 0.22);
         }
 
         .lokasi-item.active {
-          background: rgba(255, 255, 255, 0.28);
+          background: rgba(255, 255, 255, 1);
           border-color: rgba(255, 255, 255, 0.8);
           box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
         }
