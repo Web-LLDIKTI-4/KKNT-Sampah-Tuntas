@@ -198,6 +198,7 @@
           margin-bottom: 0.5rem;
           min-height: 1.25rem;
           font-size: 2rem;
+          text-transform: uppercase;
         }
       
       /* Form Section */
