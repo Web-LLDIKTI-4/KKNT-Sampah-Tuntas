@@ -2,6 +2,41 @@
 @section('title','Home')
 @section('container')
 <div class="container-xxl flex-grow-1 container-p-y">
+    @php
+        $userRole = optional(Auth::user())->role;
+
+        $jumlahdpl = (int) ($jumlahdpl ?? 0);
+        $jumlahlaporandpl = (int) ($jumlahlaporandpl ?? 0);
+        $jumlahdplmentoring = (int) ($jumlahdplmentoring ?? 0);
+        $jumlahdplnilaikonversi = (int) ($jumlahdplnilaikonversi ?? 0);
+        $jumlahmahasiswa = (int) ($jumlahmahasiswa ?? 0);
+        $jumlahlogbulanan = (int) ($jumlahlogbulanan ?? 0);
+        $jumlahlogkegiatan = (int) ($jumlahlogkegiatan ?? 0);
+
+        $persenjumlahlaporandpl = 0;
+        if ($userRole === 'dpl') {
+            $persenjumlahlaporandpl = round(($jumlahlaporandpl / 4) * 100, 1);
+        } else {
+            $targetLaporanDpl = $jumlahdpl * 4;
+            $persenjumlahlaporandpl = $targetLaporanDpl > 0 ? round(($jumlahlaporandpl / $targetLaporanDpl) * 100, 1) : 0;
+        }
+
+        $persenjumlahdplnilaikonversi = $jumlahdplmentoring > 0
+            ? round(($jumlahdplnilaikonversi / $jumlahdplmentoring) * 100, 1)
+            : 0;
+
+        $persenjumlhmahasiswa = $jumlahmahasiswa > 0 ? 100 : 0;
+
+        $targetLogBulanan = $jumlahmahasiswa * 4;
+        $persenjumlahlogbulanan = $targetLogBulanan > 0
+            ? round(($jumlahlogbulanan / $targetLogBulanan) * 100, 1)
+            : 0;
+
+        $targetLogKegiatan = $jumlahmahasiswa * 120;
+        $persenjumlahlogkegiatan = $targetLogKegiatan > 0
+            ? round(($jumlahlogkegiatan / $targetLogKegiatan) * 100, 1)
+            : 0;
+    @endphp
     
     <div class="row g-6">
     <!-- Organic Sessions Chart-->
@@ -32,20 +67,10 @@
                         </div>
                     </div>
                     <div class="ms-3 d-flex flex-column">
-                        @if(Auth::user()->role === "dpl")
-                            @php
-                                $persenjumlahlaporandpl = round(($jumlahlaporandpl/4)*100,1);
-                            @endphp
+                        @if($userRole === "dpl")
                             <h6 class="mb-1">Laporan Anda</h6>
                             <small>{{$jumlahlaporandpl}} : {{$persenjumlahlaporandpl}} %</small>
                         @else
-                            @php
-                                if($jumlahlaporandpl > 0){
-                                    $persenjumlahlaporandpl = round(($jumlahlaporandpl/($jumlahdpl*4))*100,1);
-                                }else{
-                                    $persenjumlahlaporandpl = 0;
-                                }
-                            @endphp
                             <h6 class="mb-1">Laporan DPL</h6>
                             <small>{{$jumlahlaporandpl}} : {{$persenjumlahlaporandpl}} %</small>
                         @endif  
@@ -60,13 +85,6 @@
                     </div>
                     <div class="ms-3 d-flex flex-column">
                         <h6 class="mb-1">Konversi Nilai</h6>
-                        @php
-                        if($jumlahdplnilaikonversi == 0){
-                            $persenjumlahdplnilaikonversi=0;
-                        }else{
-                            $persenjumlahdplnilaikonversi = round(($jumlahdplnilaikonversi/$jumlahdplmentoring)*100,1);
-                        }
-                        @endphp
                         <small>{{ $jumlahdplnilaikonversi }} : {{$persenjumlahdplnilaikonversi}} %</small>
                     </div>
                 </div>
@@ -143,12 +161,6 @@
                         </div>
                         <div class="ms-3 d-flex flex-column">
                             <h6 class="mb-1">Mahasiswa</h6>
-                            @php
-                            if($jumlahmahasiswa > 0)
-                                $persenjumlhmahasiswa = 100;
-                            else
-                                $persenjumlhmahasiswa = 0;
-                            @endphp
                             <small>{{ $jumlahmahasiswa }} : {{$persenjumlhmahasiswa}} %</small>
                         </div>
                     </div>
@@ -159,13 +171,6 @@
                             </div>
                         </div>
                         <div class="ms-3 d-flex flex-column">
-                            @php
-                                if($jumlahlogbulanan == 0){
-                                    $persenjumlahlogbulanan = 0;
-                                }else{
-                                    $persenjumlahlogbulanan = round(($jumlahlogbulanan/($jumlahmahasiswa*4))*100,1);
-                                }
-                            @endphp
                             <h6 class="mb-1">Log Bulanan Mahasiswa</h6>
                             <small>{{$jumlahlogbulanan}} : {{$persenjumlahlogbulanan}}%</small>
                         </div>  
@@ -179,9 +184,6 @@
                         </div>
                         <div class="ms-3 d-flex flex-column">
                             <h6 class="mb-1">Log Kegiatan MHS</h6>
-                            @php
-                                $persenjumlahlogkegiatan = round(($jumlahlogkegiatan/($jumlahmahasiswa*120))*100,1);
-                            @endphp
                             <small>{{$jumlahlogkegiatan}} : {{$persenjumlahlogkegiatan}}%</small>
                         </div>  
                     </div>                
