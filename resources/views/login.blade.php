@@ -225,8 +225,14 @@
         .selected-lokasi-name {
           color: #3b4663;
           font-weight: 600;
-          margin-bottom: 0.5rem;
-          text-transform: uppercase;
+          margin-top: -0.15rem;
+          margin-bottom: 0.35rem;
+          line-height: 1.15;
+        }
+
+        .login-title {
+          margin-bottom: 0.2rem;
+          line-height: 1.1;
         }
       
       /* Form Section */
@@ -346,8 +352,8 @@
         <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-5 px-4 px-sm-5">
           <div class="w-100 mx-auto" style="max-width: 400px;">
             <div class="mb-4 text-center">
-              <h4 class="mb-2 fw-bold">KKN Tematik</h4>
-              <h4 id="selectedLokasiName" class="selected-lokasi-name fw-bold">Masuk</h4>
+              <h4 class="login-title fw-bold">KKN Tematik</h4>
+              <h4 id="selectedLokasiName" class="selected-lokasi-name fw-bold"></h4>
               <p class="mb-0 text-muted">Silakan login untuk masuk ke Dashboard</p>
             </div>
 
@@ -505,7 +511,7 @@ $(function(){
         var lokasiName = $(this).data("lokasi-name");
         $("#lokasiGrid .lokasi-item").removeClass("active");
         $(this).addClass("active");
-        $("#selectedLokasiName").text(lokasiName);
+        $("#selectedLokasiName").html(lokasiName + "<br/> Masuk");
       });
     
 })
