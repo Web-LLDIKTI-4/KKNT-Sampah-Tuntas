@@ -43,7 +43,8 @@
       body {
         min-height: 100vh;
         margin: 0;
-        background-image: url('../../assets/images/bg-landing.png');
+        background-image: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+          url('../../assets/images/bg-image.jpg');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -54,19 +55,50 @@
         padding: 2rem 1rem;
       }
 
+      .landing-content {
+        width: 100%;
+        text-align: center;
+      }
+
+      .landing-logo-wrap {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        max-width: 620px;
+      }
+
+      .landing-logo {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
       .btn-landing-login {
+        position: absolute;
+        left: 67%;
+        bottom: 20%;
+        transform: translateX(-50%);
         font-size: 1.1rem;
         padding: 0.9rem 2.6rem;
         border-radius: 10px;
         font-weight: 600;
-        margin-left: 10rem;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 768px) {
+        .landing-logo-wrap {
+          max-width: 90%;
+        }
       }
 
       @media (max-width: 576px) {
+        .landing-logo-wrap {
+          max-width: 100%;
+        }
+
         .btn-landing-login {
-          width: 100%;
-          max-width: 320px;
-          margin-left: 0;
+          font-size: 0.8rem;
+          padding: 0.6rem 1.2rem;
         }
       }
     </style>
@@ -74,9 +106,18 @@
 
   <body>
     <div class="container landing-wrap d-flex align-items-center justify-content-center">
-      <a href="{{ url('login') }}" class="btn btn-warning btn-landing-login">
-        <span>SILAHKAN LOGIN DISINI</span>
-      </a>
+      <div class="landing-content">
+        <div class="landing-logo-wrap">
+          <img
+            src="{{ asset('assets/images/logo-kkn-kolaborasi.png') }}"
+            alt="Logo KKN Kolaborasi"
+            class="landing-logo" />
+
+          <a href="{{ url('login') }}" class="btn btn-warning btn-landing-login">
+            <span>SILAHKAN LOGIN DISINI</span>
+          </a>
+        </div>
+      </div>
     </div>
 
     <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
