@@ -300,6 +300,51 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
         }
+
+        /* Mobile switch button (left/right view) */
+        .auth-mobile-toggle {
+          display: none;
+        }
+
+        @media (max-width: 991.98px) {
+          .auth-mobile-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1050;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 0.55rem 1.1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);
+          }
+
+          .auth-mobile-toggle:hover,
+          .auth-mobile-toggle:focus {
+            color: #fff;
+          }
+
+          .auth-left-panel {
+            display: none;
+            width: 100%;
+            flex: 0 0 100%;
+            max-width: 100%;
+          }
+
+          .authentication-inner.show-lokasi .auth-left-panel {
+            display: flex;
+          }
+
+          .authentication-inner.show-lokasi .auth-right-panel {
+            display: none;
+          }
+        }
       </style>
 
 
@@ -309,10 +354,15 @@
     <!-- Content -->
 
     <div class="authentication-wrapper authentication-cover">
+      <!-- Mobile switch button -->
+      <button type="button" id="authMobileToggle" class="auth-mobile-toggle d-lg-none">
+        <i class="ri-map-pin-2-line"></i>
+        <span id="authMobileToggleText">Lihat Lokasi Program</span>
+      </button>
       <!-- /Logo -->
       <div class="authentication-inner row m-0">
         <!-- Left Section -->
-        <div class="d-none d-lg-flex col-lg-7 col-xl-8 p-0">
+        <div class="auth-left-panel d-lg-flex col-lg-7 col-xl-8 p-0">
           <div class="lokasi-panel">
             <div class="lokasi-panel-header">
               {{-- Logo Header --}}
@@ -349,7 +399,7 @@
         <!-- /Left Section -->
 
         <!-- Login Form -->
-        <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-5 px-4 px-sm-5">
+        <div class="auth-right-panel d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-5 px-4 px-sm-5">
           <div class="w-100 mx-auto" style="max-width: 400px;">
             <div class="mb-4 text-center">
               <h4 class="login-title fw-bold">KKN Tematik</h4>
@@ -512,6 +562,14 @@ $(function(){
         $("#lokasiGrid .lokasi-item").removeClass("active");
         $(this).addClass("active");
         $("#selectedLokasiName").text(lokasiName);
+      });
+
+      $("#authMobileToggle").on("click", function () {
+        var $inner = $(".authentication-inner");
+        $inner.toggleClass("show-lokasi");
+        var showingLokasi = $inner.hasClass("show-lokasi");
+        $("#authMobileToggleText").text(showingLokasi ? "Kembali ke Login" : "Lihat Lokasi Program");
+        $(this).find("i").toggleClass("ri-map-pin-2-line ri-arrow-left-line");
       });
     
 })
