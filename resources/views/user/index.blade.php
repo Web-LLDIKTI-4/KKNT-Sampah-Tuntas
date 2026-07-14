@@ -3,13 +3,22 @@
 @section('container')
 <x-page-header /> 
 <div class="card">
-    <div class="card-header">
-    <x-btn-modal url="{{ url('user/getdatamember') }}" class="btn btn-primary btn-sm modalButton" title="Buat User Mahasiswa">tambah user mahasiswa</x-btn-modal>
-    <x-btn-modal url="{{ url('user/adduser') }}" class="btn btn-primary btn-sm modalButton" title="Buat User">tambah user non mahasiswa</x-btn-modal>
-    <x-btn-modal url="{{ url('user/adduserpt') }}" class="btn btn-primary btn-sm modalButton" title="Buat User">tambah user perguruan tinggi</x-btn-modal>
+    <div class="card-header d-flex flex-column flex-md-row gap-3">
+        <x-btn-modal url="{{ url('user/getdatamember') }}" class="btn btn-primary btn-sm modalButton" title="Tambah User Mahasiswa">
+            <i class="ri-user-add-fill me-1"></i>
+            Tambah User Mahasiswa
+        </x-btn-modal>
+        <x-btn-modal url="{{ url('user/adduser') }}" class="btn btn-success btn-sm modalButton" title="Tambah User DPL">
+            <i class="ri-user-add-fill me-1"></i>
+            Tambah User DPL
+        </x-btn-modal>
+        <x-btn-modal url="{{ url('user/adduserpt') }}" class="btn btn-warning btn-sm modalButton" title="Tambah User Perguruan Tinggi">
+            <i class="ri-user-add-fill me-1"></i>
+            Tambah User Perguruan Tinggi
+        </x-btn-modal>
     </div>
     <div class="card-body">
-        <p id="resultcontent">loding user...</p>
+        <p id="resultcontent">loading user...</p>
     </div>
 </div>
 <script>

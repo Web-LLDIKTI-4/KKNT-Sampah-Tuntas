@@ -8,7 +8,7 @@
             <form id="form-tambah" method="post" action="{{ url('perguruantinggi/getdata') }}">
                 @csrf
                 @method('PUT')
-                <x-btn-save formId="form-tambah"><i class="ri-loop-left-line me-2"></i> Sinkron PT LLdikti IV</x-btn-save>
+                <button type="submit" class="btn btn-primary btn-sm" id="btnSubmit_form-tambah"><i class="ri-loop-left-line me-2"></i> Sinkron PT LLdikti IV</button>
             </form>&nbsp;
             <x-btn-modal url="{{ url('perguruantinggi/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Perguruan Tinggi"><i class="ri-play-list-add-line me-2"></i> Tambah PT</x-btn-modal>
         </div>
@@ -20,6 +20,7 @@
 <script>
     $(function(){
         $("#resultcontent").load("{{ url('perguruantinggi/listdata') }}");
+
         $("#form-tambah").on("submit",function(){       
         var action = $(this).attr("action");
         var id = $(this).attr("id");
@@ -55,6 +56,7 @@
         });
         return false;
     });
+
     $("body").on("submit","#tambahpilih",function(){       
         var action = $(this).attr("action");
         var id = $(this).attr("id");

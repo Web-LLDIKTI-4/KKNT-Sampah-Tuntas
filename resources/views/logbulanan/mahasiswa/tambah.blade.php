@@ -63,7 +63,7 @@
 $(function(){
     let table = $('#tabel-data').DataTable({
         paging: true,
-        lengthChange: true,
+        lengthChange: false,
         searching: true,
         ordering: true,
         info: true,

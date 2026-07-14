@@ -39,7 +39,6 @@
     <link rel="stylesheet" href="../../assets/vendor/css/pages/front-page.css" />
 
     <!-- Vendors CSS -->
-
     <link rel="stylesheet" href="../../assets/vendor/libs/nouislider/nouislider.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/swiper/swiper.css" />    
     <link rel="stylesheet" href="../../assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
@@ -98,14 +97,16 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-              </button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <p id="modalisi">loading content...</p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+              <i class="ri-close-line me-2"></i>
+              Tutup
+            </button>
           </div>
         </div>
       </div>
@@ -134,7 +135,7 @@
               <h6 class="footer-title mb-4 mb-lg-6">Link Terkait</h6>
               <ul class="list-unstyled mb-0">
                 <li class="mb-4">
-                  <a href="https://lldikti4.kemdikbud.go.id" target="_blank" class="footer-link">Laman LLDIKTI Wilayah IV</a>
+                  <a href="https://lldikti4.kemdiktisaintek.go.id" target="_blank" class="footer-link">Laman LLDIKTI Wilayah IV</a>
                 </li>
                 <li class="mb-4">
                   <a href="https://pddikti.kemdiktisaintek.go.id" target="_blank" class="footer-link">PDDIKTI</a>

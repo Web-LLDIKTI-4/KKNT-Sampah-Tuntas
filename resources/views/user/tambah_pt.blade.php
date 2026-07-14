@@ -36,7 +36,9 @@
         </div>
     </div>
     
-    <x-btn-save formId="form-tambah">Simpan</x-btn-save>
+    <x-btn-save formId="form-tambah">
+        Simpan
+    </x-btn-save>
 </form>
         
 <script>

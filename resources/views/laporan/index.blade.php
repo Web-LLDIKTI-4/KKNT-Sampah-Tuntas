@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Data Log Kegiatan Bulanan')
+@section('title','Log Kegiatan Bulanan')
 @section('container')
 <x-page-header /> 
 <div class="card mb-6">

@@ -4,9 +4,9 @@
     <input type="hidden" name="id_kpi" value="{{$data->id_kpi}}">
     <div class="form-group form-floating form-floating-outline mb-6">
         <input type="text" name="nama_kpi" class="form-control" value="{{$data->nama_kpi}}">
-        <label>Key performance indicator</label>
+        <label>Nama KPI</label>
     </div>
-    <x-btn-save formId="form-ubah"><i class="tf-icons ri-save-3-fill ri-16px me-1"></i> Simpan</x-btn-save>
+    <x-btn-save formId="form-ubah">Simpan</x-btn-save>
 </form>
         
 <script>

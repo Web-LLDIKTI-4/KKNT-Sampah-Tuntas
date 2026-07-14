@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Data Log Kegiatan Bulanan')
+@section('title','Log Kegiatan Bulanan')
 @section('container')
 <x-page-header /> 
 <div class="card mb-5">
@@ -29,7 +29,9 @@
                     <label> Pilih Bulan </label>
                 </div>
                 <div class="col mt-1">
-                    <x-btn-save formId="form-bulan" class="btn btn-primary btn-lg"><i class="ri-filter-3-fill pe-1"></i> Filter Data</x-btn-save>
+                    <x-btn-save formId="form-bulan" class="btn btn-primary btn-lg">
+                        Filter Data
+                    </x-btn-save>
                 </div>
             </div>
         </p> 

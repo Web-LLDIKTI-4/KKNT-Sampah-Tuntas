@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Data Kehadiran')
+@section('title','Kehadiran')
 @section('container')
 <x-page-header /> 
 

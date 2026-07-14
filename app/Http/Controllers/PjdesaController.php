@@ -68,7 +68,7 @@ class PjdesaController extends Controller
             'email'     => 'required',
         ], [
             'id_desa.required' => 'Desa harus dipilih.',
-            'email.required' => 'PJ Desa harus dipilih.',
+            'email.required' => 'Ketua Kelompok harus dipilih.',
         ]);
         
         $validator->after(function($validator) use ($request) {
@@ -109,7 +109,7 @@ class PjdesaController extends Controller
             'email'     => 'required',
         ], [
             'id_desa.required' => 'Desa harus dipilih.',
-            'email.required' => 'PJ Desa harus dipilih.',
+            'email.required' => 'Ketua Kelompok harus dipilih.',
         ]);
         
         $validator->after(function($validator) use ($request) {

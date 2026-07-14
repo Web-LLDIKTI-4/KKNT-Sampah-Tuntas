@@ -6,5 +6,7 @@
         <label>Nama Lokasi</label>
     </div>
     <hr>
-    <x-btn-save formId="form-tambah"><i class="tf-icons ri-save-3-fill ri-16px me-1"></i>Simpan</x-btn-save>
+    <x-btn-save formId="form-tambah">
+        Simpan
+    </x-btn-save>
 </form>

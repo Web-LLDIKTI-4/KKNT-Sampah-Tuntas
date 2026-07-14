@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Data Nilai Structure form')
+@section('title','Nilai Structure form')
 @section('container')
 <x-page-header /> 
 

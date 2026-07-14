@@ -4,19 +4,16 @@
 <x-page-header /> 
 <!-- Nav -->
 <div class="btn-group mb-1 ms-4">
-    <a href="{{ url('admevaluasikegiatan') }}" class="btn btn-secondary btn-sm waves-effect waves-light">
-        <span class="d-none d-sm-block">Data Hasil Evaluasi Kegiatan</span><i class="ri-pause-fill d-sm-none"></i>
-    </a>
     <a href="{{ url('admevaluasikegiatan/pertanyaanevaluasi') }}" class="btn btn-secondary btn-sm waves-effect waves-light">
         <span class="d-none d-sm-block">Pertanyaan Evaluasi Kegiatan</span><i class="ri-play-fill d-sm-none"></i>
     </a>
 </div>
 <div class="card">
 <div class="card-header">
-        <x-btn-modal url="{{ url('admevaluasikegiatan/tambah') }}" title="Tambah Data"><i class="ri-add-circle-line me-1"></i>Tambah Data</x-btn-modal>
+        <x-btn-modal url="{{ url('admevaluasikegiatan/tambah') }}" title="Tambah Pertanyaan"><i class="ri-add-circle-line me-1"></i>Tambah Pertanyaan</x-btn-modal>
     </div>
     <div class="card-body">
-        <p id="resultcontent">loding data</p>
+        <p id="resultcontent">loading data...</p>
     </div>
 </div>
 <script>

@@ -19,6 +19,8 @@
         <label>Catatan Hasil Verifikasi</label>
     </div>
     <div>
-        <x-btn-save formId="form-simpan" class="btn rounded-pill btn-primary"><i class="tf-icons ri-save-2-fill me-1"></i> Simpan</x-btn-save>
+        <x-btn-save formId="form-simpan">
+            Simpan
+        </x-btn-save>
     </div>
 </form>

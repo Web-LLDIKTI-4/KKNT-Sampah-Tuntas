@@ -1,7 +1,7 @@
 <div class="row">
     <div class="col-12 table-responsive">
         <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
-    <x-slot:thead>
+            <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
                     <th>Id kpicapaian</th>
@@ -15,14 +15,15 @@
                     <th>Permasalahan</th>
                     <th>Solusi</th>
                     <th>Kendala</th>
-                    <th>Aksi</th>
+                    <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
-</x-datatable>
+        </x-datatable>
     </div>
-    <hr>
-    <x-btn-export url="{{ url('lapcapaiankpi/export') }}" />
 </div>
+
+<x-btn-export url="{{ url('lapcapaiankpi/export') }}" />
+
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({
@@ -30,7 +31,7 @@
         serverSide: true,
         ajax: "{{ route('lapcapaiankpi.listdataserver') }}",
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex' , className: 'text-center', orderable: false, searchable: false},
             {data: 'id_target', name: 'id_target', visible:false},
             {data: 'desa', name: 'desa'},
             {data: 'pjdesa', name: 'pjdesa'},
@@ -86,7 +87,7 @@
                     return "<div class='text-wrap'>" +strippedText+ "</div>";
                 }
             },
-            {data: 'action', name: 'action', orderable: false, searchable: false,visible:false,},
+            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:false,},
         ],
         layout: {
             top1: {

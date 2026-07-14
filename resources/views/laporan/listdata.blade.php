@@ -2,7 +2,7 @@
 <table class="table table-bordered table-sm" id="dataTable">
     <thead>
         <tr>
-            <th width="1%">No</th><th>Tahun</th><th>Bulan</th><th>Tautan</th><th>Aksi</th>
+            <th width="1">No</th><th>Tahun</th><th>Bulan</th><th>Tautan</th><th width="1">Aksi</th>
         </tr>
     </thead>
     <tbody>
@@ -11,11 +11,11 @@
         @else
             @foreach($laporan as $row)
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
+                    <td class="text-center">{{ $loop->iteration }}</td>
                     <td>{{ $row->tahun }}</td>
                     <td>{{ Carbon\Carbon::create()->month($row->bulan)->format('F') }}</td>
                     <td>{{ $row->tautan }}</td>
-                    <td>
+                    <td class="text-center no-sort">
                         <div class="d-flex">
                             <form method="post" id="form-bulan-{{$row->id_laporan}}" action="{{ url('dpllaporan/tambah') }}">
                                 @csrf

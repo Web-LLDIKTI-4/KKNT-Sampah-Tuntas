@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Data Mahasiswa Mentor')
+@section('title','Mahasiswa Mentor')
 @section('container')
 <x-page-header /> 
 <div class="card">

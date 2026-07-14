@@ -3,21 +3,21 @@
     @method('PUT')
     <div class="form-group form-floating form-floating-outline mb-6">
         <select name="id_kpi" class="form-control form-control-sm">
-            <option value="null">--pilih Key performance indicator--</option>
+            <option value="null">--pilih KPI--</option>
             @if($kpi)
                 @foreach($kpi as $item)
                     <option value="{{$item->id_kpi}}">{{$item->nama_kpi}}</option>
                 @endforeach
             @endif
         </select>
-        <label>Key performance indicator</label>
+        <label>Nama KPI</label>
     </div>
     <div id="resulttargetkpi">
         <div class="form-group form-floating form-floating-outline mb-6">
             <select name="id_target" class="form-control form-control-sm">
-                <option value="null">--pilih dulu Key performance indicator--</option>
+                <option value="null">--pilih dulu KPI--</option>
             </select>
-            <label>Target Key performance indicator</label>
+            <label>Target KPI</label>
         </div>
     </div>
     </div>

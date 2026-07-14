@@ -2,13 +2,13 @@
 <table class="table table-bordered table-sm" id="dataTable-user">
     <thead>
         <tr>
-            <th>No</th>
+            <th width="1">No</th>
             <th>Username</th>
             <th>Nama</th>
             <th>Nim/NIDN</th>
             <th>Perguruan Tinggi</th>
             <th>Role</th>
-            <th>Aksi</th>
+            <th width="1">Aksi</th>
         </tr>
     </thead>
     <tbody>
@@ -17,7 +17,7 @@
         @else
             @foreach($data as $row)
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
+                    <td class="text-center">{{ $loop->iteration }}</td>
                     <td>{{ $row->email }}</td>
                     <td>{{ $row->name }}</td>
                     @if ($row->role === 'mahasiswa' && $row->mahasiswa)
@@ -43,7 +43,7 @@
                         <td>-</td>
                     @endif
                     <td>{{ $row->role }}</td>
-                    <td>
+                    <td class="text-center no-sort">
                         @if($row->role != "pt")
                             <x-btn-edit url="{{ url('user/edit/'.$row->id) }}" title="Edit User" />
                         @else
@@ -58,24 +58,24 @@
 </div>
 <script>
     $(function () {
-
-    let table = $('#dataTable-user').DataTable({
-        paging: true,
-        lengthChange: true,
-        searching: true,
-        ordering: true,
-        info: true,
-        autoWidth: false,
-        responsive: true,
-        serverSide: false,
-        language: {
-            "zeroRecords": "Tidak ada data yang ditemukan",
-            "infoEmpty": "Tidak ada data yang tersedia",
-            "sEmptyTable": "Tidak ada data yang tersedia di tabel"
-        },
-        columnDefs: [
-            { targets: 'no-sort', orderable: false } // Tambahkan class 'no-sort' pada kolom 'Aksi'
-        ],
-    });
-})
+        let table = $('#dataTable-user').DataTable({
+            paging: true,
+            lengthChange: false,
+            searching: true,
+            ordering: true,
+            info: true,
+            autoWidth: false,
+            responsive: true,
+            serverSide: false,
+            language: {
+                "search": "",
+                "searchPlaceholder": "Cari...",
+                "zeroRecords": "Tidak ada data yang ditemukan",
+                "infoEmpty": "Tidak ada data yang tersedia"
+            },
+            columnDefs: [
+                { targets: 'no-sort', orderable: false } // Tambahkan class 'no-sort' pada kolom 'Aksi'
+            ],
+        });
+    })
 </script>

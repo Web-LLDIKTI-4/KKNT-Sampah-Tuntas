@@ -368,6 +368,7 @@
               <div class="d-flex justify-content-start">
                 <div class="lokasi-header-logo">
                   <img src="../../assets/images/logo-kkn-berdampak.jpeg" alt="KKN Tematik Berdampak" />
+                  <img src="../../assets/images/gradasi.png" alt="Gradasi 4" style="width: 110px; height: auto;" />
                 </div>
               </div>
               <h2 class="lokasi-panel-title">Program KKN Tematik LLDIKTI Wilayah IV</h2>

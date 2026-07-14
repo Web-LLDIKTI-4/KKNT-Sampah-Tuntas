@@ -59,7 +59,7 @@ class UserController extends Controller
         }
     }
     public function adduser(){
-        $role=array('admin','dpl');
+        $role=array('dpl');
         return view('user.tambah',compact('role'));
     }
     public function insertuser(Request $request){

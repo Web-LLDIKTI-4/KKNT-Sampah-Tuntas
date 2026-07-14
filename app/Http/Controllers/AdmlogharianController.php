@@ -44,8 +44,9 @@ class AdmlogharianController extends Controller
                 return $log_mhs;
             })
             ->addColumn('action', function($row){
-                $actionBtn = '<div class="d-felx"><a href="'.url('admlogharian/permhs/'.$row->email.'').'" class="p-0 m-0">lihat data</a> </div>';
-                return $actionBtn;
+                return view('components.btn-view', [
+                    'url' => url('admlogharian/permhs/'.$row->email)
+                ])->render();
             })
             ->rawColumns(['action'])
             ->make(true);

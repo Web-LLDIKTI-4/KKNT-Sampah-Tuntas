@@ -13,7 +13,7 @@
                     <th>Permasalahan</th>
                     <th>Solusi</th>
                     <th>Kendala</th>
-                    <th>Aksi</th>
+                    <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
 </x-datatable>
@@ -22,11 +22,19 @@
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({
+        seaching: true,
+        lengthChange: false,
         processing: true,
         serverSide: true,
         ajax: "{{ route('kpicapaian.listdataserver') }}",
+        language: {
+            search: "",
+            searchPlaceholder: "Cari...",
+            zeroRecords: "Tidak ada data yang tersedia",
+            infoEmpty: "Tidak ada data yang ditemukan",
+        },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_target', name: 'id_target', visible:false},
             {data: 'nama_kpi', name: 'nama_kpi'},
             {data: 'tahapan', name: 'tahapan'},               
@@ -80,7 +88,7 @@
                     return "<div class='text-wrap'>" +strippedText+ "</div>";
                 }
             },
-            {data: 'action', name: 'action', orderable: false, searchable: false},
+            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],
         layout: {
             top1: {
