@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Data Mahasiswa')
+@section('title','Mahasiswa')
 @section('container')
 <x-page-header subtitle="Daftar {{ $__env->yieldContent('title') }}" />
 
