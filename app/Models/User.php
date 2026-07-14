@@ -20,6 +20,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'location_program',
         'password',
     ];
     protected $with = ['mahasiswa','dpl'];
@@ -42,10 +43,16 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    public function locationProgram()
+    {
+        return $this->belongsTo(LokasiProgram::class,'location_program','id');
+    }
+
     public function mahasiswa()
     {
         return $this->belongsTo(Mahasiswa::class,'email','email');
     }
+    
     public function dpl()
     {
         return $this->belongsTo(Dpl::class,'email','email');

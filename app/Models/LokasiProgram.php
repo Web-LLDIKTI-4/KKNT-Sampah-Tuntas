@@ -29,4 +29,9 @@ class LokasiProgram extends Model
             }
         });
     }
+
+    public function users()
+    {
+        return $this->hasMany(User::class, 'location_program', 'id');
+    }
 }

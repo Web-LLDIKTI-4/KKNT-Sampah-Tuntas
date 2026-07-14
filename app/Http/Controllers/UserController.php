@@ -101,18 +101,21 @@ class UserController extends Controller
     }
     public function edit(Request $request){
         $data = User::find($request->id);
+        $locationPrograms = \App\Models\LokasiProgram::all();
         $role=array('mahasiswa','dpl');
         $akses=array('pjdesa'=>'Set Ketua Kelompok','hapuspjdesa'=>'Hapus Akses Ketua Kelompok');
-        return view('user.edit',compact('data','role','akses'));
+        return view('user.edit',compact('data','role','akses','locationPrograms'));
     }
     public function updateuser(Request $request){
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'email' => 'required|email',
+            'location_program' => 'nullable|exists:lokasi_program,id'
         ], [
             'name.required' => 'Nama harus di isi.',
             'email.required' => 'Email harus di isi.',
             'email.email' => 'Email harus tidak valid.',
+            'location_program.exists' => 'Lokasi program tidak valid.'
         ]);
         
         $validator->after(function ($validator) use ($request) {
@@ -132,6 +135,7 @@ class UserController extends Controller
         
         $data = [
             'name' => $request->name,            
+            'location_program' => $request->location_program,
             'role' => $request->role,
         ];
         if ($request->akses != "null" && $request->role == "mahasiswa") {

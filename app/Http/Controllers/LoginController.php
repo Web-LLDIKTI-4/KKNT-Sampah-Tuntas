@@ -17,6 +17,7 @@ class LoginController extends Controller
 
 		return view('login', compact('lokasiProgramList'));
 	}
+
     public function proseslogin(Request $request){
         $ret=array('success'=>false,'messages'=>array());
 		$validator = Validator::make($request->all(), [
@@ -44,6 +45,18 @@ class LoginController extends Controller
 					if ($lokasi === '') {
 						Auth::logout();
 						$ret['messages'] = "Silakan pilih lokasi program terlebih dahulu";
+						return response()->json($ret);
+					}
+
+					if (!$user->location_program) {
+						Auth::logout();
+						$ret['messages'] = "Anda belum memiliki lokasi program kkn, silahkan hubungi admin untuk menambahkan lokasi program anda!";
+						return response()->json($ret);
+					}
+
+					if (!$user->locationProgram()->where('nama_lokasi', $lokasi)->exists()) {
+						Auth::logout();
+						$ret['messages'] = "Lokasi program anda tidak valid!";
 						return response()->json($ret);
 					}
 
