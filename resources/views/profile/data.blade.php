@@ -22,6 +22,7 @@
               class="d-block h-auto ms-0 ms-sm-5 rounded user-profile-img" />
 
               </x-btn-modal>
+              
               </div>
               <div class="flex-grow-1 mt-4 mt-sm-12">
               <div
@@ -51,6 +52,7 @@
           </div>
       </div>
     </div>
+
     <!--/ Header -->
     <div class="container-xxl flex-grow-1 container-p-y">
       <div class="row">

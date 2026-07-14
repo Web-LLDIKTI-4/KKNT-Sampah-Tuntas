@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Home')
+@section('title','Dashboard')
 @section('container')
 <style>
 @keyframes spin {
@@ -13,8 +13,21 @@
 }
 </style>
 
-<x-alert />
+<div class="d-flex mb-4 gap-4">
+    <div class="avatar avatar-md">
+        <div class="avatar-initial bg-label-primary rounded-4">
+            <i class="ri-dashboard-3-fill ri-30px"></i>
+        </div>
+    </div>
+    <div>
+        <h5 class="mb-0">
+            <span class="align-middle">Dashboard</span>
+        </h5>
+        <span>Dashboard Mahasiswa</span>
+    </div>
+</div>
 
+<x-alert />
 <div class="d-flex flex-column flex-md-row gap-5">
     <!-- Product List Widget -->
     <div class="card col">

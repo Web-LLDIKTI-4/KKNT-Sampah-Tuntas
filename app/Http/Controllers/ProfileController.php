@@ -91,6 +91,7 @@ class ProfileController extends Controller
                 return response()->file($filePath);
             }
         }
+        
         // Path gambar default jika file tidak ditemukan
         return response()->file('assets/img/avatars/1.png');
     }

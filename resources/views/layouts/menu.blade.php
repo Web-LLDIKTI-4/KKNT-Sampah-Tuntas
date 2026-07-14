@@ -307,7 +307,7 @@
                     <a class="nav-link fw-medium" href="{{ url('logkehadiran') }}">Kehadiran</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('logkegiatan') }}">Kegiatan Harian</a>
+                    <a class="nav-link fw-medium" href="{{ url('logkegiatan') }}">Log Harian</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link fw-medium" href="{{ url('logbulanan') }}">Log Bulanan</a>
@@ -316,10 +316,7 @@
                     <a class="nav-link fw-medium" href="{{ url('kpicapaian') }}">Capaian KPI</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('tugasakhir') }}">Tugas Akhir</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('mhsprofile') }}">Profil Saya</a>
+                    <a class="nav-link fw-medium" href="{{ url('tugasakhir') }}">Laporan Akhir</a>
                 </li>
             @endif
         </ul>
@@ -383,7 +380,7 @@
                     <div class="dropdown-divider"></div>
                 </li>
                 <li>
-                    <a class="dropdown-item waves-effect" href="{{ url('profile') }}">
+                    <a class="dropdown-item waves-effect" href="{{ url(Auth::user()->role === 'mahasiswa' ? 'mhsprofile' : 'profile') }}">
                     <i class="ri-user-3-line ri-22px me-3"></i><span class="align-middle">Profil Saya</span>
                     </a>
                 </li>

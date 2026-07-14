@@ -183,7 +183,7 @@ class LogkehadiranController extends Controller
             }
         });
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->with('error', 'Data gagal disimpan!');
+            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
         }
         $data = [
             'tanggal' => date("Y-m-d"),
@@ -192,7 +192,7 @@ class LogkehadiranController extends Controller
             'keterangan' => $request->keterangan,
         ];
         Kehadiran::create($data);
-        return redirect()->back()->with('success', 'Laporan izin berhasil disimpan.');
+        return response()->json(['success'=>true,'message' => 'Laporan izin berhasil disimpan.'], 200);
     }
     public function export(){
         $email = Auth::user()->email;

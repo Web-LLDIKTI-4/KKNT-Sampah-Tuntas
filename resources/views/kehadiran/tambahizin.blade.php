@@ -6,7 +6,7 @@
     @csrf
     @method('PUT')
     <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="status_kehadiran" class="form-control form-control-sm">
+        <select name="status_kehadiran" class="form-control form-control-sm" required>
             @if($status_kehadiran) 
                 @foreach($status_kehadiran as $row)
                     <option value="{{$row}}">{{$row}}</option>
@@ -16,7 +16,7 @@
         <label>Status Izin</label>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
-        <textarea name="keterangan" class="form-control"></textarea>
+        <textarea name="keterangan" class="form-control" required></textarea>
         <label>Keterangan</label>
     </div>
     <hr>
@@ -52,7 +52,7 @@
             if(ret.success == true){
               $("#modalku").modal("hide");		
               toastr.success(ret.message)			
-              
+              window.location.reload();
             }else{
                 $.each(ret.errors, function(key, value) {
                         $("#" + key + "_error").html(value[0]); // Menampilkan pesan error di dalam field yang sesuai
