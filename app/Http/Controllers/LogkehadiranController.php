@@ -41,13 +41,32 @@ class LogkehadiranController extends Controller
         $data = Kehadiran::where("email",Auth::user()->email)->where("tanggal",date("Y-m-d"))->first();
         return view('kehadiran.tambah',compact('data'));
     }
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371000; 
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+        
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($dLon / 2) * sin($dLon / 2);
+            
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        $distance = $earthRadius * $c;
+        
+        return $distance;
+    }
+
     public function insert(Request $request)
     {
         $mode = $request->mode;
         $validator = Validator::make($request->all(), [
-            //tidak ada
+            'mode' => ['required', 'in:datang,pulang'],
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
         ], [
-            //tidak ada
+            'latitude.required' => 'Lokasi belum terdeteksi. Pastikan GPS aktif dan izinkan akses lokasi.',
+            'longitude.required' => 'Lokasi belum terdeteksi. Pastikan GPS aktif dan izinkan akses lokasi.',
         ]);
         $validator->after(function($validator) use ($request) {
             $cekdata = Kehadiran::where("email",Auth::user()->email)
@@ -57,11 +76,34 @@ class LogkehadiranController extends Controller
             if ($cekdata) {
                 $validator->errors()->add('tanggal', 'Data pada tanggal tersebut terisi!');
             }
+
+            // Validasi jarak Backend
+            $latitude = (float) $request->latitude;
+            $longitude = (float) $request->longitude;
+            $radiusMax = config('attendance.radius_meter', 100);
+            $officeLocations = config('attendance.locations', []);
+            
+            $isWithinRadius = false;
+            foreach ($officeLocations as $office) {
+                $distance = $this->calculateDistance($latitude, $longitude, $office['latitude'], $office['longitude']);
+                if ($distance <= $radiusMax) {
+                    $isWithinRadius = true;
+                    break;
+                }
+            }
+
+            if (!$isWithinRadius) {
+                $validator->errors()->add('latitude', 'Anda berada di luar radius lokasi absen yang diizinkan (maksimal 100 meter).');
+            }
         });
 
         if ($validator->fails()) {
-            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
+            return redirect()->back()->withErrors($validator)->with('error', 'Data gagal disimpan!');
         }
+
+        $latitude = (float) $request->latitude;
+        $longitude = (float) $request->longitude;
+
         $cekdata = Kehadiran::where("email", Auth::user()->email)
                             ->where("tanggal", date("Y-m-d"))
                             ->first();
@@ -73,6 +115,8 @@ class LogkehadiranController extends Controller
                     'tanggal' => date("Y-m-d"),
                     'email' => Auth::user()->email,
                     'waktu_masuk' => date("Y-m-d H:i:s"),
+                    'latitude_datang' => $latitude,
+                    'longitude_datang' => $longitude,
                     'status_kehadiran'=> 'hadir',
                 ];
             } else {
@@ -80,6 +124,8 @@ class LogkehadiranController extends Controller
                     'tanggal' => date("Y-m-d"),
                     'email' => Auth::user()->email,
                     'waktu_pulang' => date("Y-m-d H:i:s"),
+                    'latitude_pulang' => $latitude,
+                    'longitude_pulang' => $longitude,
                     'status_kehadiran'=> 'hadir',
                 ];
             }
@@ -93,6 +139,8 @@ class LogkehadiranController extends Controller
                     'tanggal' => date("Y-m-d"),
                     'email' => Auth::user()->email,
                     'waktu_masuk' => date("Y-m-d H:i:s"),
+                    'latitude_datang' => $latitude,
+                    'longitude_datang' => $longitude,
                     'status_kehadiran'=> 'hadir',
                 ];
             } else {
@@ -100,6 +148,8 @@ class LogkehadiranController extends Controller
                     'tanggal' => date("Y-m-d"),
                     'email' => Auth::user()->email,
                     'waktu_pulang' => date("Y-m-d H:i:s"),
+                    'latitude_pulang' => $latitude,
+                    'longitude_pulang' => $longitude,
                     'status_kehadiran'=> 'hadir',
                 ];
             }
@@ -108,7 +158,7 @@ class LogkehadiranController extends Controller
             $message = 'Data kehadiran berhasil ditambahkan.';
         }
 
-        return response()->json(['success'=>true,'message' => $message]);
+        return redirect()->back()->with('success', $message);
     }
     public function tambahizin(){
         $status_kehadiran=array("izin","sakit","cuti");
@@ -133,7 +183,7 @@ class LogkehadiranController extends Controller
             }
         });
         if ($validator->fails()) {
-            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
+            return redirect()->back()->withErrors($validator)->with('error', 'Data gagal disimpan!');
         }
         $data = [
             'tanggal' => date("Y-m-d"),
@@ -142,7 +192,7 @@ class LogkehadiranController extends Controller
             'keterangan' => $request->keterangan,
         ];
         Kehadiran::create($data);
-        return response()->json(['success'=>true,'message' => 'laporan berhasil disimpan'], 200);
+        return redirect()->back()->with('success', 'Laporan izin berhasil disimpan.');
     }
     public function export(){
         $email = Auth::user()->email;

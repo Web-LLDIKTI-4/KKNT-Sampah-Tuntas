@@ -12,7 +12,7 @@
                 <div class="col-sm-6 col-lg-3">
                 <div class="d-flex justify-content-between align-items-start card-widget-1 border-end pb-4 pb-sm-0">
                     <div>
-                    <p class="mb-1">Mahasiswa</p>
+                    <p class="mb-1">Mahasiswa 1</p>
                     <h4 class="mb-1">{{ $jumlahmahasiswa }}</h4>
                     <p class="mb-0">
                         <span class="badge rounded-pill bg-label-success">100%</span>

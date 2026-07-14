@@ -36,6 +36,29 @@ class LoginController extends Controller
 			];
 	
 			if (Auth::Attempt($data)) {
+				$user = Auth::user();
+
+				if (in_array($user->role, ['dpl', 'mahasiswa'])) {
+					$lokasi = trim((string) $request->input('lokasi'));
+
+					if ($lokasi === '') {
+						Auth::logout();
+						$ret['messages'] = "Silakan pilih lokasi program terlebih dahulu";
+						return response()->json($ret);
+					}
+
+					// samakan penulisan dengan data master jika ditemukan
+					$lokasiMaster = LokasiProgram::whereRaw('LOWER(nama_lokasi) = ?', [mb_strtolower($lokasi)])
+						->value('nama_lokasi');
+					$lokasi = $lokasiMaster ?: $lokasi;
+
+					session(['lokasi_program' => $lokasi]);
+					$ret['redirect_url'] = url('home/'.rawurlencode(mb_strtolower($lokasi)));
+				} else {
+					session()->forget('lokasi_program');
+					$ret['redirect_url'] = url('home');
+				}
+
 				$ret['messages'] = "proses login...";
 				$ret['success'] = true;
 				User::where('email',$username)->update(['last_login'=>date("Y-m-d H:i:s")]);

@@ -161,7 +161,7 @@
         .lokasi-grid {
           display: grid;
           gap: 0.75rem;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
         .lokasi-item {
@@ -409,6 +409,7 @@
             <form id="formAuthentication" class="mb-5" action="{{ url('login') }}" method="POST">
               @csrf
               @method('PUT')
+              <input type="hidden" id="lokasi" name="lokasi" value="" />
               <div class="form-floating form-floating-outline mb-5">
                 <input
                   type="text"
@@ -529,9 +530,14 @@ $(function(){
         success:function(ret){
           if(ret.success == true){
             toastr.success(ret.messages)
-            document.location="{{ url('home') }}";   
+            document.location = ret.redirect_url || "{{ url('home') }}";
           }else{
             toastr.warning(ret.messages)
+            if(ret.messages && ret.messages.indexOf("lokasi program") !== -1){
+              $(".authentication-inner").addClass("show-lokasi");
+              $("#authMobileToggleText").text("Kembali ke Login");
+              $("#authMobileToggle i").removeClass("ri-map-pin-2-line").addClass("ri-arrow-left-line");
+            }
           }
         },
         error:function(xhr,ajaxOptions,thrownError){
@@ -562,6 +568,7 @@ $(function(){
         $("#lokasiGrid .lokasi-item").removeClass("active");
         $(this).addClass("active");
         $("#selectedLokasiName").text(lokasiName);
+        $("#lokasi").val(lokasiName);
       });
 
       $("#authMobileToggle").on("click", function () {

@@ -38,7 +38,7 @@
         </button>
         <ul class="navbar-nav me-auto p-4 p-lg-0">
         <li class="nav-item">
-            <a class="nav-link fw-medium" aria-current="page" href="{{ url('/home') }}">Home</a>
+            <a class="nav-link fw-medium" aria-current="page" href="{{ url('/home') }}">Beranda</a>
         </li>
 
             @if(Auth::user()->role == 'admin')
@@ -49,155 +49,155 @@
                     aria-expanded="false"
                     data-bs-toggle="mega-dropdown"
                     data-trigger="hover">
-                    <span data-i18n="Pages">Kelola Data</span>
+                        <span data-i18n="Pages">Data</span>
                     </a>
                     <div class="dropdown-menu p-4 p-lg-6">
-                    <div class="row gy-4">
-                        <div class="col-12 col-lg">
-                        <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
-                            <div class="avatar avatar-sm flex-shrink-0 me-2">
-                            <span class="avatar-initial rounded bg-label-primary"><i class="ri-layout-grid-line"></i></span>
-                            </div>
-                            <span class="ps-1">Setting Data</span>
-                        </div>
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('perguruantinggi') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                    <span data-i18n="Pricing">Satuan Pendidikan</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('mahasiswa') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                    <span data-i18n="Pricing">Data Mahasiswa</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('user') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                    <span data-i18n="Pricing">Kelola User</span>
-                                </a>
-                            </li>
-                            
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admevaluasikegiatan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                    <span data-i18n="Pricing">Data Evaluasi</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kpi') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                    <span data-i18n="Pricing">Kelola key performance indicator (KPI)</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kpitarget') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                    <span data-i18n="Pricing">Kelola Target KPI</span>
-                                </a>
-                            </li>                    
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lokasiprogram') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                    <span data-i18n="Pricing">Lokasi Kegiatan KKN</span>
-                                </a>
-                            </li>                    
-                        </ul>
-                        </div>
-                        <div class="col-12 col-lg">
-                        <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
-                            <div class="avatar avatar-sm flex-shrink-0 me-2">
-                            <span class="avatar-initial rounded bg-label-primary"><i class="ri-lock-unlock-line"></i></span>
-                            </div>
-                            <span class="ps-1">Data Kecamatan & Desa</span>
-                        </div>
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kecamatan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Kecamatan
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desa') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Desa
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profile Desa
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pjdesa') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> PJ Desa
-                                </a>
-                            </li>
-                        </ul>
-                        </div>
-                        <div class="col-12 col-lg">
-                        <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
-                            <div class="avatar avatar-sm flex-shrink-0 me-2">
-                            <span class="avatar-initial rounded bg-label-primary"><i class="ri-image-fill"></i></span>
-                            </div>
-                            <span class="ps-1">Kelola Laporan</span>
-                        </div>
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogharian') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kegiatan Mahasiswa
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogbulanan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Bulanan Mahasiswa
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkehadiran') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kehadiran Mahasiswa
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankpi') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI Mahasiswa
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('laptugasakhir') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Tugas Akhir KKN
-                                </a>
-                            </li>
-                        </ul>
-                        </div>
-                        <div class="col-lg-4 d-none d-lg-block">
-                            <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
-                                <div class="avatar avatar-sm flex-shrink-0 me-2">
-                                <span class="avatar-initial rounded bg-label-primary"><i class="ri-lock-unlock-line"></i></span>
+                        <div class="row gy-4">
+                            <div class="col-12 col-lg">
+                                <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
+                                    <div class="avatar avatar-sm flex-shrink-0 me-2">
+                                    <span class="avatar-initial rounded bg-label-primary"><i class="ri-layout-grid-line"></i></span>
+                                    </div>
+                                    <span class="ps-1">Kelola Data</span>
                                 </div>
-                                <span class="ps-1">Data Lain</span>
+                                <ul class="nav flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('perguruantinggi') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i>
+                                            <span data-i18n="Pricing">Perguruan Tinggi</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('mahasiswa') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i>
+                                            <span data-i18n="Pricing">Data Mahasiswa</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('user') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i>
+                                            <span data-i18n="Pricing">Kelola User</span>
+                                        </a>
+                                    </li>
+                                    
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admevaluasikegiatan') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i>
+                                            <span data-i18n="Pricing">Data Evaluasi</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kpi') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i>
+                                            <span data-i18n="Pricing">Kelola KPI</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kpitarget') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i>
+                                            <span data-i18n="Pricing">Kelola Target KPI</span>
+                                        </a>
+                                    </li>                    
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lokasiprogram') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i>
+                                            <span data-i18n="Pricing">Lokasi Program</span>
+                                        </a>
+                                    </li>                    
+                                </ul>
                             </div>
-                            <ul class="nav flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlaporandpl') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Bulanan DPL
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admstructureform') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Nilai Structure Form
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admfreeform') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Nilai Free Form
-                                    </a>
-                                </li>               
-                        
-                            </ul>
+                            <div class="col-12 col-lg">
+                                <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
+                                    <div class="avatar avatar-sm flex-shrink-0 me-2">
+                                    <span class="avatar-initial rounded bg-label-primary"><i class="ri-lock-unlock-line"></i></span>
+                                    </div>
+                                    <span class="ps-1">Kelola Lokasi Kegiatan</span>
+                                </div>
+                                <ul class="nav flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kecamatan') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Kecamatan
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desa') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Desa
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profile Desa
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pjdesa') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Ketua Kelompok
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-12 col-lg">
+                                <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
+                                    <div class="avatar avatar-sm flex-shrink-0 me-2">
+                                    <span class="avatar-initial rounded bg-label-primary"><i class="ri-image-fill"></i></span>
+                                    </div>
+                                    <span class="ps-1">Kelola Laporan</span>
+                                </div>
+                                <ul class="nav flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogharian') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Harian Mahasiswa
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogbulanan') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Bulanan Mahasiswa
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkehadiran') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kehadiran Mahasiswa
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankpi') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('laptugasakhir') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlaporandpl') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Bulanan DPL
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-lg-4 d-none d-lg-block">
+                                <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
+                                    <div class="avatar avatar-sm flex-shrink-0 me-2">
+                                    <span class="avatar-initial rounded bg-label-primary"><i class="ri-lock-unlock-line"></i></span>
+                                    </div>
+                                    <span class="ps-1">Data Lain</span>
+                                </div>
+                                <ul class="nav flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admstructureform') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Structure Form
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admfreeform') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Free Form
+                                        </a>
+                                    </li>               
+                            
+                                </ul>
+                            </div>
                         </div>
-                    </div>
                     </div>
                 </li>
 

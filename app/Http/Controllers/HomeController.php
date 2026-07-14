@@ -14,13 +14,24 @@ use App\Models\Dplmentoring;
 use App\Models\Kpicapaian;
 use App\Models\Evaluasikegiatan;
 use App\Models\Saran;
+use App\Models\Kehadiran;
 
 use DB;
 class HomeController extends Controller
 {    
-    public function index()
+    public function index($lokasi = null)
     {  
         ini_set('memory_limit', '1024M');
+
+        // dpl dan mahasiswa wajib login dengan lokasi program terpilih.
+        // Jaga agar url selalu konsisten dengan lokasi yang tersimpan di session (dibandingkan dalam huruf kecil).
+        if (in_array(Auth::user()->role, ['dpl', 'mahasiswa'])) {
+            $lokasiSession = session('lokasi_program');
+            if ($lokasiSession && mb_strtolower((string) $lokasi) !== mb_strtolower($lokasiSession)) {
+                return redirect(url('home/'.rawurlencode(mb_strtolower($lokasiSession))));
+            }
+        }
+
         $jumlahdpl = User::where("role","dpl")->count();
         $jumlahpt = Mahasiswa::select('kodept')->groupBy('kodept')->get()->count();
         $saran = Saran::get();
@@ -46,6 +57,7 @@ class HomeController extends Controller
                 ->groupBy('tanggal')
                 ->get()
                 ->count();
+            $kehadiran = Kehadiran::where('email', $email)->where('tanggal', date('Y-m-d'))->first();
             $data = [
                 'jumlahmahasiswa'=>$jumlahmahasiswa,
                 'jumlahdpl'=>$jumlahdpl,
@@ -53,8 +65,9 @@ class HomeController extends Controller
                 'jumlahlogkegiatan'=>$jumlahlogkegiatan,
                 'jumlahpt'=>$jumlahpt,
                 'jumlahcapaiankpi' => $jumlahcapaiankpi,
+                'kehadiran' => $kehadiran,
             ];
-            return view('index-member',$data);
+            return view('index-user',$data);
         }else if (Auth::user()->role == "pt"){
             $jumlahmahasiswa = Mahasiswa::where('kodept',Auth::user()->email)->get()->count();
             $data = [
@@ -65,7 +78,7 @@ class HomeController extends Controller
                 'jumlahpt'=>$jumlahpt,
                 'jumlahcapaiankpi' => 0,
             ];
-            return view('index-user',$data);
+            return view('index-member',$data);
         }else{
             //cek data
             $jumlahdpl=0;

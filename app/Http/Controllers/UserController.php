@@ -102,7 +102,7 @@ class UserController extends Controller
     public function edit(Request $request){
         $data = User::find($request->id);
         $role=array('mahasiswa','dpl');
-        $akses=array('pjdesa'=>'Set PJ Desa','hapuspjdesa'=>'Hapus Akses PJ Desa');
+        $akses=array('pjdesa'=>'Set Ketua Kelompok','hapuspjdesa'=>'Hapus Akses Ketua Kelompok');
         return view('user.edit',compact('data','role','akses'));
     }
     public function updateuser(Request $request){

@@ -32,18 +32,20 @@
         </div>
     </div>
 
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select  id="akses" class="form-control form-control-sm" name="akses">
-            <option value="null" selected>--pilih--</option>
-            @foreach($akses as $key=>$val)
-                <option value="{{ trim($key) }}" @if($data->akses == $key) selected @endif>{{$val}}</option>
-            @endforeach
-        </select>  
-        <label>Tambah akses (<span class="text-danger">Hanya role mahasiswa yang bisa jadi PJ Desa</span>)</label>
-        <span id="akses_error" class="text-danger"></span>
-    </div>
+    @if ($data->role == 'mahasiswa')
+        <div class="form-group form-floating form-floating-outline mb-6">
+            <select  id="akses" class="form-control form-control-sm" name="akses">
+                <option value="null" selected>--pilih--</option>
+                @foreach($akses as $key=>$val)
+                    <option value="{{ trim($key) }}" @if($data->akses == $key) selected @endif>{{$val}}</option>
+                @endforeach
+            </select>  
+            <label>Tambah akses (<span class="text-danger">Hanya role mahasiswa yang bisa jadi Ketua Kelompok</span>)</label>
+            <span id="akses_error" class="text-danger"></span>
+        </div>
+    @endif
     <hr>
-    <x-btn-save formId="form-update">Update Data</x-btn-save>
+    <x-btn-save formId="form-update">Simpan</x-btn-save>
 </form>
         
 <script>

@@ -3,6 +3,12 @@
 * File include item demo only specific css only
 ******************************************************************************/
 
+/* Center the header text of every DataTables table (overrides DataTables'
+   default `text-align: left` rule on thead th) */
+table.dataTable thead th {
+  text-align: center !important;
+}
+
 .light-style .menu .app-brand.demo {
   height: 64px;
 }

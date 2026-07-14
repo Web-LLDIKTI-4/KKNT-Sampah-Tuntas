@@ -12,7 +12,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>LLDIKTI IV - KKN Nusantara</title>
+    <title>GRADASI4 | KKN Tematik</title>
 
     <meta name="description" content="" />
 
@@ -126,7 +126,7 @@
                 </span>
               </a>
               <p class="footer-text footer-logo-description mb-6">
-                KKN Mahasiswa {{ date('Y') }} adalah program untuk memberikan kesempatan kepada mahasiswa untuk memperoleh pengalaman kerja dan meningkatkan kompetensi sesuai bidang keilmuan.
+                KKN Tematik merupakan implementasi Program GRADASI LLDIKTI Wilayah IV yang memberikan pengalaman belajar berbasis pengabdian melalui kolaborasi perguruan tinggi, pemerintah daerah, dunia usaha, dan masyarakat untuk mewujudkan pembangunan berkelanjutan.
               <span class="text-warning"></span>
               </p>
             </div>
@@ -134,13 +134,13 @@
               <h6 class="footer-title mb-4 mb-lg-6">Link Terkait</h6>
               <ul class="list-unstyled mb-0">
                 <li class="mb-4">
-                  <a href="https://lldikti4.kemdikbud.go.id" target="_blank" class="footer-link">Laman LLDIKTI IV</a>
+                  <a href="https://lldikti4.kemdikbud.go.id" target="_blank" class="footer-link">Laman LLDIKTI Wilayah IV</a>
                 </li>
                 <li class="mb-4">
-                  <a href="https://majalah.lldikti4.id" target="_blank" class="footer-link">Majalah</a>
+                  <a href="https://pddikti.kemdiktisaintek.go.id" target="_blank" class="footer-link">PDDIKTI</a>
                 </li>
                 <li class="mb-4">
-                  <a href="https://jurnal.lldikti4.or.id" target="_blank" class="footer-link">Jurnal</a>
+                  <a href="https://jurnal.lldikti4.or.id" target="_blank" class="footer-link">Jurnal LLDIKTI Wilayah IV</a>
                 </li>
                 <!--
                 <li class="mb-4">
@@ -177,7 +177,7 @@
         <div
           class="container d-flex flex-wrap justify-content-between flex-md-row flex-column text-center text-md-start">
           <div class="mb-2 mb-md-0">
-            <span class="footer-text">© {{ date('Y') }}, Data Informasi & Pembiayaan Pendidikan LLDIKTI Wilayah IV</span>
+            <span class="footer-text">© {{ date('Y') }}, LLDIKTI Wilayah IV</span>
           </div>
           <div>
             <a href="https://www.facebook.com/lldiktiwilayah4/?tsid=0.24115179413463506&source=result" class="footer-link me-4" target="_blank"><i class="ri-facebook-circle-fill"></i></a>

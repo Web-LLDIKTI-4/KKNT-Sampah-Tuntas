@@ -37,18 +37,11 @@ class MahasiswaController extends Controller
                     return $row->sp->nm_lemb ?? 'Belum terdata';
                 })
                 ->addColumn('action', function($row){
-                    $csrf = csrf_field();
-                    $methodField = method_field('PUT');
-            
-                    $actionBtn = '<div class="d-felx">'.
-                                     '<form method="POST" action="'.url('mahasiswa/destroy').'" id="hapusmhs-'.$row->id_mahasiswa.'">
-                                     <input type="hidden" name="id_mahasiswa" value="'.$row->id_mahasiswa.'">'.
-                                         $csrf.
-                                         $methodField.
-                                         '<button type="submit" id="btnSubmit_hapusmhs-'.$row->id_mahasiswa.'" class="btn p-0 m-0"><small>Hapus<small></button>'.
-                                     '</form>'.
-                                 '</div>';
-                    return $actionBtn;
+                    return view('components.btn-delete', [
+                        'url' => url('mahasiswa/destroy'),
+                        'idField' => 'id_mahasiswa',
+                        'idValue' => $row->id_mahasiswa,
+                    ])->render();
                 })
                 ->rawColumns(['action'])
                 ->make(true);

@@ -62,9 +62,15 @@ use App\Http\Controllers\SaranController;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('logout', [LoginController::class, 'logout']);
-Route::put('login', [LoginController::class, 'proseslogin']);
-Route::get('login', [LoginController::class, 'index'])->name('login');
+
+Route::middleware('guest')->group(function () {
+    Route::get('login', [LoginController::class, 'index'])->name('login');
+    Route::put('login', [LoginController::class, 'proseslogin']);
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('logout', [LoginController::class, 'logout']);
+});
 //Route::get('login/createuser', [LoginController::class, 'createuser']);
 Route::put('saran/insert', [SaranController::class, 'insert']);
 
@@ -73,7 +79,8 @@ Route::get('ptpeserta/listdata', [PtpesertaController::class, 'listdata'])->name
 Route::get('ptpeserta/listdataserver', [PtpesertaController::class, 'listdataserver'])->name('ptpeserta.listdataserver');
 
 Route::group(['middleware' => ['auth']], function() { 
-    Route::get('home', [HomeController::class, 'index']);
+    Route::get('home', [HomeController::class, 'index'])->name('home');
+    Route::get('home/{lokasi}', [HomeController::class, 'index'])->name('home.lokasi');
     Route::get('setting', [SettingController::class, 'index']);
     Route::put('setting/update', [SettingController::class, 'update']);
 });
