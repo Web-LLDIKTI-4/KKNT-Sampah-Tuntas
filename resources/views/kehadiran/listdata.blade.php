@@ -25,7 +25,7 @@
   $(function () {
     var table = $('#dataTable').DataTable({
         searching: true,
-        lengthChange: true,
+        lengthChange: false,
         processing: true,
         serverSide: true,
         ajax: "{{ route('logkehadiran.listdataserver') }}",
@@ -36,12 +36,12 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'tanggal', name: 'tanggal'},
             {data: 'status_kehadiran', name: 'status_kehadiran'},
             {data: 'waktu_masuk', name: 'waktu_masuk'},
             {data: 'waktu_pulang', name: 'waktu_pulang'},
-            {data: 'action', name: 'action', orderable: false, searchable: false, visible:false},
+            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:false},
         ]
     });
   });

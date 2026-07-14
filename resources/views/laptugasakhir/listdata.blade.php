@@ -14,9 +14,9 @@
             </x-slot:thead>
         </x-datatable>
     </div>
-    <hr>
-    <x-btn-export url="{{ url('laptugasakhir/export') }}" />
 </div>
+
+<x-btn-export url="{{ url('laptugasakhir/export') }}" />
 
 <script type="text/javascript">
   $(function () {
@@ -33,14 +33,14 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_tugasakhir', name: 'id_tugasakhir', visible:false},
-            {data: 'nim', name: 'nim'},
+            {data: 'nim', name: 'nim', className: 'text-center'},
             {data: 'nama', name: 'nama'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'tautan', name: 'tautan'},
             {data: 'nilai_dpl', name: 'nilai_dpl'},
-            {data: 'action', name: 'action', orderable: false, searchable: false,visible:false,},
+            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false,visible:false,},
         ],
         layout: {
             top1: {

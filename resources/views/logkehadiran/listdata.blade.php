@@ -1,5 +1,3 @@
-<div class="alert alert-info"> (Info DPL) Jika mahasiswa belum masuk ke daftarsilahkan kelola melalui menu "<a href="{{ url('dplmentoring') }}">Kelola Data Mentoring Mahasiswa</a>"</div>
-
 <div class="row">
     <div class="col-12 table-responsive">
         <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
@@ -32,13 +30,13 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'tanggal', name: 'tanggal'},
             {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'waktu_masuk', name: 'waktu_masuk'},
             {data: 'waktu_pulang', name: 'waktu_pulang'},
-            {data: 'action', name: 'action', orderable: false, searchable: false, visible:false},
+            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:false},
         ],
     });
   });

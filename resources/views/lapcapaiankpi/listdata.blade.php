@@ -5,16 +5,16 @@
                 <tr>
                     <th width="1">No</th>
                     <th>Id kpicapaian</th>
-                    <th>Desa</th>
-                    <th>PJ Desa</th>
-                    <th>Key performance indicator</th>
-                    <th>Tahapan</th>
-                    <th>Target Key performance indicator</th>
-                    <th>Sudah Terlaksana</th>
-                    <th>Tautan</th>
+                    <th>Desa / Kelurahan</th>
+                    <th>Ketua Kelompok</th>
+                    <th>Nama KPI</th>
+                    <th>Tahapan KPI</th>
+                    <th>Target KPI</th>
                     <th>Permasalahan</th>
                     <th>Solusi</th>
-                    <th>Kendala</th>
+                    <th>Kebutuhan Dukungan</th>
+                    <th>Tindak Lanjut</th>
+                    <th>Tautan</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
@@ -49,8 +49,6 @@
                     return "<div class='text-wrap'>" +strippedText+ "</div>";
                 }
             },
-            {data: 'status_capaian', name: 'status_capaian'},
-            {data: 'tautan', name: 'tautan'},
             {
                 data: 'permasalahan',
                 name: 'permasalahan',
@@ -87,6 +85,8 @@
                     return "<div class='text-wrap'>" +strippedText+ "</div>";
                 }
             },
+            {data: 'status_capaian', name: 'status_capaian'},
+            {data: 'tautan', name: 'tautan'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:false,},
         ],
         layout: {

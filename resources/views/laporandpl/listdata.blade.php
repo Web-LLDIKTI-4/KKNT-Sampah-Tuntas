@@ -1,24 +1,25 @@
 @if(Auth::user()->role == 'dpl')
-<div class="alert alert-info"> (Info DPL) Jika mahasiswa belum masuk ke daftar silahkan kelola melalui menu "<a href="{{ url('dplmentoring') }}">Kelola Data Mentoring Mahasiswa</a>"</div>
+    <div class="alert alert-info"> (Info DPL) Jika mahasiswa belum masuk ke daftar silahkan kelola melalui menu "<a href="{{ url('dplmentoring') }}">Kelola Data Mentoring Mahasiswa</a>"</div>
 @endif
+
 <div class="row">
     <div class="col-12 table-responsive">
         <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
-    <x-slot:thead>
+            <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
                     <th>Bulan</th>
                     <th>Nama</th>
                     <th>Deskripsi</th>
-                    <th>Aksi</th>
+                    <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
-</x-datatable>
+        </x-datatable>
     </div>
-    <hr>
-    <x-btn-export url="{{ url('admlaporandpl/export') }}" />
-
 </div>
+
+<x-btn-export url="{{ url('admlaporandpl/export') }}" />
+
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({
@@ -26,7 +27,7 @@
         serverSide: true,
         ajax: "{{ route('admlaporandpl.listdataserver') }}",
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex' , className: 'text-center', orderable: false, searchable: false},
             {data: 'nama_bulan', name: 'nama_bulan'},
             {data: 'nama_dpl', name: 'nama_dpl'},
             {
@@ -41,7 +42,7 @@
                     return strippedText;
                 }
             },
-            {data: 'action', name: 'action', orderable: false, searchable: false, visible:false},
+            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:false},
         ],
     });
   });
