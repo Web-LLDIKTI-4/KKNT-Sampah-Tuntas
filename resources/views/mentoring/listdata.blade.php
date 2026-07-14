@@ -22,9 +22,17 @@
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({
+        searching: true,
+        lengthChange: true,
         processing: true,
         serverSide: true,
         ajax: "{{ route('dplmentoring.listdataserver') }}",
+        language: {
+            search: "",
+            searchPlaceholder: "Cari...",
+            zeroRecords: "Tidak ada data yang tersedia",
+            infoEmpty: "Tidak ada data yang ditemukan",
+        },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex'},
             {data: 'id_mentoring', name: 'id_mentoring', visible:false},

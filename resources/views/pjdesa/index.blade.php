@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Data PJ Mahasiswa Desa')
+@section('title','Ketua Kelompok')
 @section('container')
 <x-page-header /> 
 
@@ -8,7 +8,7 @@
         <x-btn-modal url="{{ url('pjdesa/tambah') }}" title="Tambah Data"><i class="ri-add-circle-line me-1"></i>Tambah Data</x-btn-modal>
     </div>
     <div class="card-body">
-        <p id="resultcontent">loding data</p>
+        <p id="resultcontent">loading data...</p>
     </div>
 </div>
 <script>

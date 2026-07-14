@@ -5,7 +5,9 @@
         <textarea name="pertanyaan" class="form-control form-control-sm summernote"></textarea>
         <label>Pertanyaan</label>
     </div>
-    <x-btn-save formId="form-tambah"><span class="tf-icons ri-save-3-fill ri-16px me-1"></span>Simpan</x-btn-save>
+    <x-btn-save formId="form-tambah">
+        Simpan
+    </x-btn-save>
 </form>
 <script>
     $(function(){

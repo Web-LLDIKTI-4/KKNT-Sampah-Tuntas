@@ -14,18 +14,22 @@
             @endforeach
         @endif
         </select>
-        <label>Desa</label>
+        <label>Nama Desa / Kelurahan</label>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <select name="email" class="form-control">
-        @if($user)
-            @foreach($user as $item)
-             <option value="{{$item->email}}">{{$item->name }} | {{ $item->mahasiswa->sp->nm_lemb ?? 'Data tidak tersedia'; }}</option>
-            @endforeach
-        @endif
+            @if($user->count() > 0)
+                @foreach($user as $item)
+                    <option value="{{$item->email}}">{{$item->name }} | {{ $item->mahasiswa->sp->nm_lemb ?? 'Data tidak tersedia'; }}</option>
+                @endforeach
+            @else
+                <option value="">Tidak ada data</option>
+            @endif
         </select>
-        <label>PJ Desa</label>
+        <label>Nama Ketua Kelompok</label>
     </div>
     <hr>
-    <x-btn-save formId="form-tambah"><i class="tf-icons ri-save-3-fill ri-16px me-1"></i>Simpan</x-btn-save>
+    <x-btn-save formId="form-tambah">
+        Simpan
+    </x-btn-save>
 </form>

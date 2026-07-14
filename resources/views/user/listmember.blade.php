@@ -5,11 +5,11 @@
         <table class="table table-bordered table-sm" id="tabel-data">
             <thead>
                 <tr>
-                    <th>No</th>
+                    <th width="1">No</th>
                     <th>Nim</th>
                     <th>Nama</th>
                     <th>Perguruan Tinggi</th>
-                    <th class="no-sort">Aksi <input type="checkbox" id="checkAll"></th>
+                    <th class="no-sort" width="1">Aksi <input type="checkbox" id="checkAll"></th>
                 </tr>
             </thead>
             <tbody>
@@ -18,7 +18,7 @@
                 @else
                     @foreach($data as $mahasiswa)
                         <tr>
-                            <td>{{ $loop->iteration }}</td>
+                            <td class="text-center">{{ $loop->iteration }}</td>
                             <td>{{ $mahasiswa->nim }}</td>
                             <td>{{ $mahasiswa->nama }}</td>
                             <td>
@@ -28,7 +28,7 @@
                                     {{ $mahasiswa->kodept }}
                                 @endif
                             </td>
-                            <td><input type="checkbox" name="createuser[]" value="{{ $mahasiswa->email }}"></td>
+                            <td class="text-center"><input type="checkbox" name="createuser[]" value="{{ $mahasiswa->email }}"></td>
                         </tr>
                     @endforeach
                 @endif
@@ -36,7 +36,7 @@
         </table>
     </div>
     <hr>
-    <x-btn-save formId="form-create" class="btn btn-primary btn-sm">Proses Create User</x-btn-save>
+    <x-btn-save formId="form-create">Tambah User</x-btn-save>
     </form>
 <script>
     

@@ -10,7 +10,7 @@
                 @endforeach
             @endif
         </select>
-        <label>Key performance indicator</label>
+        <label>Nama KPI</label>
     </div>
     <div class="row">
         <div class="form-group col-md-4 form-floating form-floating-outline mb-6">
@@ -19,12 +19,12 @@
         </div>
         <div class="form-group col form-floating form-floating-outline mb-6">
             <input type="text" name="nama_kpitarget" class="form-control form-control-sm" value="{{$data->nama_kpitarget}}">
-            <label>Target Key performance indicator</label>
+            <label>Target KPI</label>
         </div>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <input type="text" name="persen" class="form-control form-control-sm" value="{{$data->persen}}">
-        <label>Percen</label>
+        <label>Percentase (%)</label>
     </div>
     <hr>
     <x-btn-save formId="form-tambah">Simpan</x-btn-save>

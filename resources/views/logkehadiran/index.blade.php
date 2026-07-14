@@ -1,11 +1,11 @@
 @extends('layouts.app')
-@section('title','Data Kehadiran Mahasiswa')
+@section('title','Kehadiran Mahasiswa')
 @section('container')
 <x-page-header /> 
 
 <div class="card">
     <div class="card-body">
-        <p id="resultcontent">loding data</p>
+        <p id="resultcontent">Loading data...</p>
     </div>
 </div>
 <script>

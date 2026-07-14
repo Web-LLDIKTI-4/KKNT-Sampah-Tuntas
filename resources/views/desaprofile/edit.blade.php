@@ -23,7 +23,7 @@
                 @endforeach
             @endif
             </select>
-            <label>Desa</label>
+            <label>Nama Desa / Kelurahan</label>
         </div>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
@@ -36,7 +36,9 @@
     </div>
 
     <hr>
-    <x-btn-save formId="form-ubah"><i class="tf-icons ri-save-3-fill ri-16px me-1"></i> Simpan</x-btn-save>
+    <x-btn-save formId="form-ubah">
+        Simpan
+    </x-btn-save>
 </form>
 <script>
     $(function(){

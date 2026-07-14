@@ -2,7 +2,7 @@
 <table class="table table-bordered table-sm" id="dataTable">
     <thead>
         <tr>
-            <th width="1%">No</th><th>Tahun</th><th>Bulan</th><th>Tautan</th><th>Aksi</th><th>Nilai</th><th>Hasil Verifikasi</th>
+            <th width="1">No</th><th>Tahun</th><th>Bulan</th><th>Tautan</th><th width="1">Aksi</th><th>Nilai</th><th>Hasil Verifikasi</th>
         </tr>
     </thead>
     <tbody>
@@ -43,6 +43,8 @@
 <script>
 $(function(){
     var table = $('#dataTable').DataTable({
+        searching: true,
+        lengthChange: false,
         processing: true
     });
     $("[id^=form-hapus-]").on("submit",function(){       

@@ -6,7 +6,7 @@
                     <th width="1">No</th>
                     <th>Id</th>
                     <th>Nama Lokasi</th>
-                    <th>Aksi</th>
+                    <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
         </x-datatable>
@@ -15,9 +15,17 @@
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({
+        searching: true,
+        lengthChange: false,
         processing: true,
         serverSide: true,
         ajax: "{{ route('lokasiprogram.listdataserver') }}",
+        language: {
+            search: "",
+            searchPlaceholder: "Cari...",
+            zeroRecords: "Tidak ada data yang tersedia",
+            infoEmpty: "Tidak ada data yang ditemukan",
+        },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex'},
             {data: 'id', name: 'id', visible:false},

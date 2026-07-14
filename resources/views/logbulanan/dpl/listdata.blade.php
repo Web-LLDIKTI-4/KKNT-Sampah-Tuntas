@@ -3,7 +3,7 @@
 <div class="row">
     <div class="col-12 table-responsive">
         <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
-    <x-slot:thead>
+            <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
                     <th>Bulan</th>
@@ -13,17 +13,27 @@
                     <th>#</th>
                 </tr>
             </x-slot:thead>
-</x-datatable>
+        </x-datatable>
     </div>
     <hr>
-    <x-btn-export url="{{ url('admlogbulanan/export') }}" />
 </div>
+
+<x-btn-export url="{{ url('admlogbulanan/export') }}" />
+
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({
+        searching: true,
+        lengthChange: true,
         processing: true,
         serverSide: true,
         ajax: "{{ route('admlogbulanan.listdataserver') }}",
+        language: {
+            search: "",
+            searchPlaceholder: "Cari...",
+            zeroRecords: "Tidak ada data yang tersedia",
+            infoEmpty: "Tidak ada data yang ditemukan",
+        },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex'},
             {data: 'nama_bulan', name: 'nama_bulan'},

@@ -2,19 +2,31 @@
  * Custom styling for the reusable edit/delete action buttons
  * (resources/views/components/btn-edit.blade.php and btn-delete.blade.php)
  */
+.btn-action-view,
 .btn-action-edit,
 .btn-action-delete {
-  display: inline-flex;
+  /* display: inline-flex; */
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
+  padding: .2rem .5rem;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   line-height: 1;
   transition: all 0.2s ease-in-out;
+}
+
+.btn-action-view {
+  background-color: rgba(0, 184, 255, 0.12);
+  color: #00b8ff;
+}
+
+.btn-action-view:hover,
+.btn-action-view:focus {
+  background-color: #00b8ff;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 184, 255, 0.35);
 }
 
 .btn-action-edit {

@@ -14,7 +14,7 @@
             @endforeach
         @endif
         </select>
-        <label>Desa</label>
+        <label>Nama Desa / Kelurahan</label>
        <!-- <input type="hidden" name="id_desa" value="{{$data->id_desa}}"/> -->
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
@@ -25,8 +25,10 @@
             @endforeach
         @endif
         </select>
-        <label>PJ Desa</label>
+        <label>Nama Ketua Kelompok</label>
     </div>
     <hr>
-    <x-btn-save formId="form-ubah">Simpan</x-btn-save>
+    <x-btn-save formId="form-ubah">
+        Simpan
+    </x-btn-save>
 </form>

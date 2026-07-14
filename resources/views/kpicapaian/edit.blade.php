@@ -10,7 +10,7 @@
                 @endforeach
             @endif
         </select>
-        <label>Key performance indicator</label>
+        <label>Nama KPI</label>
     </div>
     <div id="resulttargetkpi">
         <div class="form-group form-floating form-floating-outline mb-6">
@@ -21,7 +21,7 @@
                     @endforeach
                 @endif
             </select>
-            <label>Target Key performance indicator</label>
+            <label>Target KPI</label>
         </div>
     </div>
     </div>

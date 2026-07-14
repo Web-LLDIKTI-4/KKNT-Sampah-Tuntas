@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Data Nilai Konversi dan Free Form')
+@section('title','Nilai Konversi dan Free Form')
 @section('container')
 <x-page-header /> 
 

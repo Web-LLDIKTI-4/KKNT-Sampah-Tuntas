@@ -44,7 +44,7 @@
         </tfoot>
     </table>
     <hr>
-    <x-btn-save formId="form-create" class="btn btn-primary btn-sm">Proses Create User</x-btn-save>
+    <x-btn-save formId="form-create">Proses Create User</x-btn-save>
     </form>
     <br>
 </div>

@@ -121,12 +121,12 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desa') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Desa
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Desa / Kelurahan
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profile Desa
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profile Desa / Kelurahan
                                         </a>
                                     </li>
                                     <li class="nav-item">

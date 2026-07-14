@@ -75,8 +75,8 @@
 
       .btn-landing-login {
         position: absolute;
-        left: 67%;
-        bottom: 20%;
+        left: 50%;
+        bottom: 10%;
         transform: translateX(-50%);
         font-size: 1.1rem;
         padding: 0.9rem 2.6rem;
@@ -108,11 +108,6 @@
     <div class="container landing-wrap d-flex align-items-center justify-content-center">
       <div class="landing-content">
         <div class="landing-logo-wrap">
-          <img
-            src="{{ asset('assets/images/logo-kkn-kolaborasi.png') }}"
-            alt="Logo KKN Kolaborasi"
-            class="landing-logo" />
-
           <a href="{{ url('login') }}" class="btn btn-warning btn-landing-login">
             <span>SILAHKAN LOGIN DISINI</span>
           </a>

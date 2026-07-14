@@ -8,7 +8,7 @@
         <x-btn-modal url="{{ url('lokasiprogram/tambah') }}" title="Tambah Data"><i class="ri-add-circle-line me-1"></i>Tambah Data</x-btn-modal>
     </div>
     <div class="card-body">
-        <p id="resultcontent">loading data</p>
+        <p id="resultcontent">loading data...</p>
     </div>
 </div>
 <script>
