@@ -1,4 +1,4 @@
-@extends('layouts/template')
+@extends('layouts.app')
 @section('title','Data Nilai Free Form')
 @section('container')
 <x-page-header /> 
@@ -8,7 +8,7 @@
         <x-btn-modal url="{{ url('dplfreeform/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Data">Tambah Data</x-btn-modal>
     </div>
     <div class="card-body">
-        <p id="resultcontent">List data...</p>
+        <p id="resultcontent">Loading data...</p>
     </div>
 </div>
 <script>

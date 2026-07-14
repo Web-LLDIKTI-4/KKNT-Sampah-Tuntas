@@ -26,16 +26,16 @@
         serverSide: true,
         ajax: "{{ route('dplfreeform.listdataserver') }}",
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_freeform', name: 'id_freeform', visible:false},
-            {data: 'action', name: 'action', orderable: false, searchable: false},
+            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false,visible:false},
             {data: 'nim', name: 'nim'},
             {data: 'nama', name: 'nama'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'prodi', name: 'prodi'},
             {data: 'freeform', name: 'freeform'},
-            {data: 'nilai_dpl', name: 'nilai_dpl'},
-            {data: 'nilai_dpa', name: 'nilai_dpa'},
+            {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center'},
+            {data: 'nilai_dpa', name: 'nilai_dpa', className: 'text-center'},
         ],
         layout: {
             top1: {

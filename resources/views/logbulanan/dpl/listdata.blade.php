@@ -1,5 +1,3 @@
-<div class="alert alert-info"> (Info DPL) Jika mahasiswa belum masuk ke daftarsilahkan kelola melalui menu "<a href="{{ url('dplmentoring') }}">Kelola Data Mentoring Mahasiswa</a>"</div>
-
 <div class="row">
     <div class="col-12 table-responsive">
         <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
@@ -24,7 +22,7 @@
   $(function () {
     var table = $('#dataTable').DataTable({
         searching: true,
-        lengthChange: true,
+        lengthChange: false,
         processing: true,
         serverSide: true,
         ajax: "{{ route('admlogbulanan.listdataserver') }}",
@@ -35,7 +33,7 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'nama_bulan', name: 'nama_bulan'},
             {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
             {data: 'nm_lemb', name: 'nm_lemb'},
@@ -51,7 +49,7 @@
                     return "<div class='text-wrap width-200'>" +strippedText+ "</div>";
                 }
             },
-            {data: 'action', name: 'action', orderable: false, searchable: false},
+            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],
         layout: {
             top1: {

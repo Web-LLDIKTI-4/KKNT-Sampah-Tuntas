@@ -5,9 +5,9 @@
             <option value="{{$item->id_target}}">{{$item->tahapan}} | {{$item->nama_kpitarget}} ({{$item->persen}} Persen)</option>
         @endforeach
     @else
-        <option value="null">--pilih dulu Key performance indicator--</option>    
+        <option value="null">--pilih dulu Target KPI--</option>    
     @endif
 </select>
-<label>Target Key performance indicator</label>
+<label>Target KPI</label>
 
 </div>
