@@ -52,7 +52,7 @@
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">       
         <input type="text" class="form-control" name="tautan" value="{{ $isi->tautan ?? '' }}">
-        <label>Tautan Dokumen Laporan (Bisa menggunakan tautan google drive)</label>
+        <label>Tautan Laporan</label>
     </div>
     <br>
     <x-btn-save formId="form-tambah">

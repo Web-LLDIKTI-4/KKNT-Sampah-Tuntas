@@ -115,71 +115,71 @@
     <div class="card col align-self-start">
         <div class="card-widget-separator-wrapper">
             <div class="card-body card-widget-separator">
-            <div class="d-flex flex-column gy-4 gy-sm-1 gap-5">
-                <div class="col border-bottom">
-                    <div class="d-flex justify-content-between align-items-start pb-3 card-widget-3">
-                        <div>
-                        <p class="mb-1">Log Harian</p>
-                        <h4 class="mb-1">{{$jumlahlogkegiatan}}</h4>
-                        {{-- @php
-                            $persenkegiatan = round(($jumlahlogkegiatan/30)*100,1);
-                        @endphp --}}
-                        {{-- <p class="mb-0">
-                            <span class="me-2">{{$jumlahlogkegiatan}}</span>
-                        </p> --}}
-                        </div>
-                        <div class="avatar me-sm-6">
-                        <span class="avatar-initial rounded text-heading">
-                            <i class="ri-bookmark-line ri-26px"></i>
-                        </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col border-bottom">
-                    <div class="d-flex justify-content-between align-items-start pb-3 card-widget-2">
-                        <div>
-                        <p class="mb-1">Log Bulanan</p>
-                        <h4 class="mb-1">{{ $jumlahlogbulanan }}</h4>
-                        {{-- @php
-                            $persenbulan = round(($jumlahlogbulanan/1)*100,1);
-                        @endphp --}}
-                        {{-- <p class="mb-0">
-                            <span class="me-2">{{$jumlahlogbulanan}}</span>
-                        </p> --}}
-                        </div>
-                        <div class="avatar me-lg-6">
-                        <span class="avatar-initial rounded text-heading">
-                            <i class="ri-book-line ri-26px"></i>
-                        </span>
+                <div class="d-flex flex-column gy-4 gy-sm-1 gap-5">
+                    <div class="col border-bottom">
+                        <div class="d-flex justify-content-between align-items-start pb-3 card-widget-3">
+                            <div>
+                            <p class="mb-1">Log Harian</p>
+                            <h4 class="mb-1">{{$jumlahlogkegiatan}} <span class="fs-5">Kegiatan</span></h4>
+                            {{-- @php
+                                $persenkegiatan = round(($jumlahlogkegiatan/30)*100,1);
+                            @endphp --}}
+                            {{-- <p class="mb-0">
+                                <span class="me-2">{{$jumlahlogkegiatan}}</span>
+                            </p> --}}
+                            </div>
+                            <div class="avatar me-sm-6">
+                            <span class="avatar-initial rounded text-heading">
+                                <i class="ri-bookmark-line ri-26px"></i>
+                            </span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                @if(Auth::user()->akses === "pjdesa")
                     <div class="col border-bottom">
                         <div class="d-flex justify-content-between align-items-start pb-3 card-widget-2">
                             <div>
-                                <p class="mb-1">Capaian KPI</p>
-                                <h4 class="mb-1">{{ $jumlahcapaiankpi }}</h4>
-                                {{-- @php
-                                    if($jumlahcapaiankpi == 0){
-                                        $persenjumlahcapaiankpi = 0;
-                                    }else{
-                                        $persenjumlahcapaiankpi = round(($jumlahcapaiankpi/5)*100,1);
-                                    }
-                                @endphp --}}
-                                {{-- <p class="mb-0">
-                                    <span class="me-2">({{$jumlahcapaiankpi}})</span>
-                                </p> --}}
+                            <p class="mb-1">Log Bulanan</p>
+                            <h4 class="mb-1">{{ $jumlahlogbulanan }} <span class="fs-5">Bulan</span></h4>
+                            {{-- @php
+                                $persenbulan = round(($jumlahlogbulanan/1)*100,1);
+                            @endphp --}}
+                            {{-- <p class="mb-0">
+                                <span class="me-2">{{$jumlahlogbulanan}}</span>
+                            </p> --}}
                             </div>
-                            <div class="avatar">
-                                <span class="avatar-initial rounded text-heading">
-                                    <i class="ri-star-line ri-26px"></i>
-                                </span>
+                            <div class="avatar me-lg-6">
+                            <span class="avatar-initial rounded text-heading">
+                                <i class="ri-book-line ri-26px"></i>
+                            </span>
                             </div>
                         </div>
                     </div>
-                @endif
-            </div>
+                    @if(Auth::user()->akses === "pjdesa")
+                        <div class="col border-bottom">
+                            <div class="d-flex justify-content-between align-items-start pb-3 card-widget-2">
+                                <div>
+                                    <p class="mb-1">Capaian KPI</p>
+                                    <h4 class="mb-1">{{ $jumlahcapaiankpi }} <span class="fs-5">KPI</span></h4>
+                                    {{-- @php
+                                        if($jumlahcapaiankpi == 0){
+                                            $persenjumlahcapaiankpi = 0;
+                                        }else{
+                                            $persenjumlahcapaiankpi = round(($jumlahcapaiankpi/5)*100,1);
+                                        }
+                                    @endphp --}}
+                                    {{-- <p class="mb-0">
+                                        <span class="me-2">({{$jumlahcapaiankpi}})</span>
+                                    </p> --}}
+                                </div>
+                                <div class="avatar me-lg-6">
+                                    <span class="avatar-initial rounded text-heading">
+                                        <i class="ri-star-line ri-26px"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
