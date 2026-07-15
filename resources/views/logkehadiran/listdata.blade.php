@@ -6,9 +6,9 @@
                     <th width="1">No</th>
                     <th>Tanggal</th>
                     <th>Nama</th>
-                    <th>Perguruan Tinggi</th>
-                    <th>Waktu Masuk</th>
-                    <th>Waktu Pulang</th>
+                    <th>Nama Perguruan Tinggi</th>
+                    <th>Jam Masuk</th>
+                    <th>Jam Pulang</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>

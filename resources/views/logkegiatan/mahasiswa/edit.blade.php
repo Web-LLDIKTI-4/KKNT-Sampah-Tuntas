@@ -33,7 +33,7 @@
                 @endforeach
             @endif
         </select>
-        <label>Key performance indicator</label>
+        <label>Nama KPI</label>
         <span id="id_kpi_error" class="text-danger"></span>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">

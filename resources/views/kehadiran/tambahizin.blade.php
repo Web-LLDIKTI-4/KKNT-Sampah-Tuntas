@@ -9,7 +9,7 @@
         <select name="status_kehadiran" class="form-control form-control-sm" required>
             @if($status_kehadiran) 
                 @foreach($status_kehadiran as $row)
-                    <option value="{{$row}}">{{$row}}</option>
+                    <option value="{{$row}}">{{ ucfirst($row) }}</option>
                 @endforeach
             @endif
         </select>

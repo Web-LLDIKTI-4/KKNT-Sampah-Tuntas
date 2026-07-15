@@ -34,9 +34,9 @@
         <div class="card-body">
             {{-- <x-button class="btn btn-sm btn-info modalButton" href="#modalku" data-bs-toggle="modal" data-src="{{ url('logkehadiran/tambahizin') }}" title="Laporan Izin"><i class="ri-calendar-todo-line pe-1"></i> Laporan Izin</x-button> --}}
             <div class="d-flex flex-column flex-md-row gap-3">
-                <x-button class="btn-sm btn-info" modal="modalku" :modalSrc="url('logkehadiran/tambahizin')" title="Tambah Laporan Izin" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional']) || $kehadiran && $kehadiran->waktu_masuk">
+                <x-button class="btn-sm btn-secondary" modal="modalku" :modalSrc="url('logkehadiran/tambahizin')" title="Pengajuan Izin" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional']) || $kehadiran && $kehadiran->waktu_masuk">
                     <i class="ri-add-line me-3"></i> 
-                    Tambah Laporan Izin
+                    Pengajuan Izin
                 </x-button>
 
                 <x-button id="btnTambahLog" class="btn-sm" style="background-color: black; color: white;" modal="modalku" :modalSrc="url('logkegiatan/tambah')" title="Tambah Log Harian" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional'])">

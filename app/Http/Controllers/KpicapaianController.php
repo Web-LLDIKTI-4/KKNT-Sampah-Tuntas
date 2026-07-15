@@ -41,10 +41,12 @@ class KpicapaianController extends Controller
                     return $row->target->nama_kpitarget;
                 })
                 ->addColumn('status_capaian', function($row){
-                    if($row->status_capaian == 1){
+                    if($row->status_capaian == 'Y'){
                         return '<span class="badge bg-success">Sudah Selesai</span>';
+                    }elseif ($row->status_capaian == 'P') {
+                        return '<span class="badge bg-warning">Proses</span>';
                     }else{
-                        return '<span class="badge bg-warning">Belum Selesai</span>';
+                        return '<span class="badge bg-danger">Belum Ditindaklanjuti</span>';
                     }
                 })
                 ->addColumn('tautan', function($row){
@@ -54,7 +56,7 @@ class KpicapaianController extends Controller
                     $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton btn btn-sm p-0 m-0" data-src="'.url('kpicapaian/edit/'.$row->id_capaian).'" title="Edit Data"><i class="fas fa-edit"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_capaian.'"  class="btn btn-sm p-0 m-0"><i class="fa fa-trash"></i></a></div>';
                     return $actionBtn;
                 })
-                ->rawColumns(['action','tautan'])
+                ->rawColumns(['action','tautan', 'status_capaian'])
                 ->make(true);
         }
     }
@@ -66,8 +68,9 @@ class KpicapaianController extends Controller
     public function tambah(){
         $data=[
             'kpi'=>Kpi::get(),
+            'kpitarget'=> Kpitarget::get(),
         ];
-        return view('kpicapaian.tambah',$data);
+        return view('kpicapaian.tambah', $data);
     }
     public function insert(Request $request)
     {
@@ -127,9 +130,9 @@ class KpicapaianController extends Controller
                 $validator->errors()->add('id_target', ''.$tahapan.'Tahapan sebelumnya harus di isi!'.$tahapansebelumnya + 1);
             }
 
-            $pjdesa = Pjdesa::where("email",Auth::user()->email)->exists();
+            $pjdesa = Pjdesa::where("email", Auth::user()->email)->exists();
             if(!$pjdesa){
-                $validator->errors()->add('kendala', 'Akun anda belum di set PJ desa Mana!');
+                $validator->errors()->add('kendala', 'Akun anda belum di set sebagai kelompok di desa!');
             }
 
         });

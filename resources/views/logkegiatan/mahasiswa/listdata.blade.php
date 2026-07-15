@@ -40,7 +40,7 @@
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_log', name: 'id_log', visible: false}, 
-            {data: 'tanggal', name: 'tanggal'},
+            {data: 'tanggal', name: 'tanggal', className: 'text-center'},
             {
                 data: 'deskripsi',
                 name: 'deskripsi',
@@ -53,7 +53,7 @@
                     return strippedText;
                 }
             },
-            {data: 'volume', name: 'volume'},
+            {data: 'volume', name: 'volume', className: 'text-center'},
             {data: 'satuan', name: 'satuan'},
             {data: 'nama_kpi', name: 'nama_kpi'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},

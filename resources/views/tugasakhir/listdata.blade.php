@@ -16,7 +16,7 @@
                     <tr>
                         <td class="text-center">{{$loop->iteration}}</td>
                         <td><a href="{{$item->tautan}}" target="_blank">{{$item->tautan}}</a></td>
-                        <td class="text-center">
+                        <td class="text-center d-flex justify-content-center">
                             <x-btn-edit url="{{ url('tugasakhir/edit/'.$item->id_tugasakhir) }}" />
                             <x-btn-delete url="{{ url('tugasakhir/destroy') }}" idField="id_tugasakhir" :idValue="$item->id_tugasakhir" />
                         </td>

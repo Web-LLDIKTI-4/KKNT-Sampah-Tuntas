@@ -29,11 +29,33 @@ class LogkehadiranController extends Controller
 
             return Datatables::of($data)
                 ->addIndexColumn()
+                ->addColumn('status_kehadiran', function($row){
+                    if ($row->status_kehadiran == 'hadir') {
+                        return '<span class="badge bg-success">Hadir</span>';
+                    } elseif ($row->status_kehadiran == 'izin') {
+                        return '<span class="badge bg-warning">Izin</span>';
+                    } elseif ($row->status_kehadiran == 'sakit') {
+                        return '<span class="badge bg-danger">Sakit</span>';
+                    } elseif ($row->status_kehadiran == 'cuti') {
+                        return '<span class="badge bg-info">Cuti</span>';
+                    } else {
+                        return '<span class="badge bg-secondary">Belum Absen</span>';
+                    }
+                })
+                ->addColumn('tanggal', function($row){
+                    return $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-';
+                })
+                ->addColumn('waktu_masuk', function($row){
+                    return $row->waktu_masuk ? date('H:i:s', strtotime($row->waktu_masuk)) . ' WIB' : '-';
+                })
+                ->addColumn('waktu_pulang', function($row){
+                    return $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)) . ' WIB' : '-';
+                })
                 ->addColumn('action', function($row){
                     $actionBtn = '<div class="d-felx"><a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-pencil-square"></i></a> <a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-trash"></i></a></div>';
                     return $actionBtn;
                 })
-                ->rawColumns(['action'])
+                ->rawColumns(['action', 'status_kehadiran'])
                 ->make(true);
         }
     }

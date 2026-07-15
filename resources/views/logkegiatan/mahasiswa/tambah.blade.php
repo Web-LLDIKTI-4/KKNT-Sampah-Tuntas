@@ -10,8 +10,8 @@
         <span class="alert-icon rounded">
             <i class="ri-error-warning-line ri-22px"></i>
         </span>
-            Panduan Pengisian :<br>
-            tidak diisikan gambar/dokumentasi kegiatan, hanya narasi atas kegiatan yang telah dilakukan
+        Catatan: <br />
+        dokumentasi kegiatan bisa dalam bentuk tautan google drive atau media sosial
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <textarea name="deskripsi" class="form-control form-control-sm summernote"></textarea>
@@ -39,10 +39,16 @@
                 @endforeach
             @endif
         </select>
-        <label>Key performance indicator</label>
+        <label>Nama KPI</label>
         <span id="id_kpi_error" class="text-danger"></span>
     </div>
-    <div class="alert alert-solid-info d-flex align-items-center">Keterangan : Tautan dokumentasi kegiatan dalam bentuk google drive atau media sosial</div>
+    <div class="alert alert-solid-info d-flex align-items-center">
+        <span class="alert-icon rounded">
+            <i class="ri-error-warning-line ri-22px"></i>
+        </span>
+        Keterangan : <br />
+        Tautan dokumentasi kegiatan dalam bentuk google drive atau media sosial
+    </div>
 
     <div class="form-group form-floating form-floating-outline mb-6">
         <input type="text" class="form-control" name="tautan">

@@ -2,13 +2,13 @@
 <table class="table table-bordered table-sm" id="dataTable">
     <thead>
         <tr>
-            <th width="1">No</th>
-            <th>Tahun</th>
-            <th>Bulan</th>
-            <th>Tautan</th>
-            <th width="1">Aksi</th>
-            <th>Nilai</th>
-            <th>Hasil Verifikasi</th>
+            <th class="text-center" width="1">No</th>
+            <th class="text-center">Tahun</th>
+            <th class="text-center">Bulan</th>
+            <th class="text-center">Tautan</th>
+            <th class="text-center" width="1">Aksi</th>
+            <th class="text-center">Nilai</th>
+            <th class="text-center">Hasil Verifikasi</th>
         </tr>
     </thead>
     <tbody>
@@ -19,7 +19,7 @@
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td class="text-center">{{ $row->tahun }}</td>
-                    <td>{{ Carbon\Carbon::create()->month($row->bulan)->format('F') }}</td>
+                    <td class="text-center">{{ Carbon\Carbon::create()->month($row->bulan)->format('F') }}</td>
                     <td>{{ $row->tautan }}</td>
                     <td class="text-center">
                         <div class="d-flex">
@@ -38,7 +38,7 @@
                             </form>
                         </div>
                     </td>
-                    <td>{{$row->nilai}}</td>
+                    <td class="text-center">{{$row->nilai}}</td>
                     <td>{{$row->hasil_verifikasi}}</td>
                 </tr>
             @endforeach

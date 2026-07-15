@@ -21,6 +21,7 @@ class AdmlogkehadiranController extends Controller
     {
         return view('logkehadiran.listdata');
     }
+    
     public function listdataserver(Request $request)
     {
 

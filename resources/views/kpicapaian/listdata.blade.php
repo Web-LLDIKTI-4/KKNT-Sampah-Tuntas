@@ -8,11 +8,11 @@
                     <th>Nama KPI</th>
                     <th>Tahapan</th>
                     <th>Target KPI</th>
-                    <th>Tindak Lanjut</th>
-                    <th>Tautan</th>
                     <th>Permasalahan</th>
                     <th>Solusi</th>
                     <th>Kebutuhan Dukungan</th>
+                    <th>Tindak Lanjut</th>
+                    <th>Tautan</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>

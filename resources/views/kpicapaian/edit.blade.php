@@ -42,20 +42,21 @@
         <select name="status_capaian" class="form-control form-control-sm">
             @php
                 $statusCapaian = [
-                    {
+                    [
                         'status' => 'Y',
                         'label' => 'Sudah Selesai'
-                    },
-                    {
+                    ],
+                    [
                         'status' => 'P',
                         'label' => 'Proses'
-                    },
-                    {
+                    ],
+                    [
                         'status' => 'N',
                         'label' => 'Belum Ditindaklanjuti'
-                    },
-                ]
+                    ],
+                ];
             @endphp
+            
             @foreach($statusCapaian as $item)
                 <option value="{{$item['status']}}" @if($data->status_capaian == $item['status']) selected @endif>{{$item['label']}}</option>
             @endforeach

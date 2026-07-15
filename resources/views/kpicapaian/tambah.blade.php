@@ -16,6 +16,11 @@
         <div class="form-group form-floating form-floating-outline mb-6">
             <select name="id_target" class="form-control form-control-sm">
                 <option value="null">--pilih dulu KPI--</option>
+                @if ($kpitarget)
+                    @foreach ($kpitarget as $item)
+                        <option value="{{$item->id_target}}">{{$item->tahapan}} | {{$item->nama_kpitarget}} ({{$item->persen}} Persen)</option>
+                    @endforeach
+                @endif
             </select>
             <label>Target KPI</label>
         </div>
@@ -38,20 +43,21 @@
         <select name="status_capaian" class="form-control form-control-sm">
             @php
                 $statusCapaian = [
-                    {
+                    [
                         'status' => 'Y',
                         'label' => 'Sudah Selesai'
-                    },
-                    {
+                    ],
+                    [
                         'status' => 'P',
                         'label' => 'Proses'
-                    },
-                    {
+                    ],
+                    [
                         'status' => 'N',
                         'label' => 'Belum Ditindaklanjuti'
-                    },
-                ]
+                    ],
+                ];
             @endphp
+
             @foreach($statusCapaian as $item)
                 <option value="{{$item['status']}}">{{$item['label']}}</option>
             @endforeach

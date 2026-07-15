@@ -37,10 +37,10 @@
         },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
-            {data: 'tanggal', name: 'tanggal'},
-            {data: 'status_kehadiran', name: 'status_kehadiran'},
-            {data: 'waktu_masuk', name: 'waktu_masuk'},
-            {data: 'waktu_pulang', name: 'waktu_pulang'},
+            {data: 'tanggal', name: 'tanggal', className: 'text-center'},
+            {data: 'status_kehadiran', name: 'status_kehadiran', className: 'text-center'},
+            {data: 'waktu_masuk', name: 'waktu_masuk', className: 'text-center'},
+            {data: 'waktu_pulang', name: 'waktu_pulang', className: 'text-center'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:false},
         ]
     });

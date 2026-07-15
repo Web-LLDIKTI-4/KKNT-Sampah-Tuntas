@@ -9,7 +9,7 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="mode" value="datang">
-                <x-btn-save formId="form-datang">waktu_masuk) disabled @endif class="btn btn-sm btn-primary"><i class="ri-time-line pe-1"></i> Datang</x-btn-save>
+                <x-btn-save formId="form-datang">Datang</x-btn-save>
             </form>
         </div>
         <div class="col">
@@ -17,7 +17,7 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="mode" value="pulang">
-                <x-btn-save formId="form-pulang">waktu_pulang) disabled @endif class="btn btn-sm btn-danger"> <i class="ri-time-line pe-1"></i> Pulang</x-btn-save>
+                <x-btn-save formId="form-pulang">Pulang</x-btn-save>
             </form>
         </div>
     </div>
