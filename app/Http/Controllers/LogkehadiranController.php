@@ -84,12 +84,12 @@ class LogkehadiranController extends Controller
         $mode = $request->mode;
         $validator = Validator::make($request->all(), [
             'mode' => ['required', 'in:datang,pulang'],
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
-        ], [
-            'latitude.required' => 'Lokasi belum terdeteksi. Pastikan GPS aktif dan izinkan akses lokasi.',
-            'longitude.required' => 'Lokasi belum terdeteksi. Pastikan GPS aktif dan izinkan akses lokasi.',
+            'latitude_datang' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude_datang' => ['nullable', 'numeric', 'between:-180,180'],
+            'latitude_pulang' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude_pulang' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
+
         $validator->after(function($validator) use ($request) {
             $cekdata = Kehadiran::where("email",Auth::user()->email)
                         ->where("tanggal",date("Y-m-d"))
@@ -99,32 +99,17 @@ class LogkehadiranController extends Controller
                 $validator->errors()->add('tanggal', 'Data pada tanggal tersebut terisi!');
             }
 
-            // Validasi jarak Backend
-            $latitude = (float) $request->latitude;
-            $longitude = (float) $request->longitude;
-            $radiusMax = config('attendance.radius_meter', 100);
-            $officeLocations = config('attendance.locations', []);
-            
-            $isWithinRadius = false;
-            foreach ($officeLocations as $office) {
-                $distance = $this->calculateDistance($latitude, $longitude, $office['latitude'], $office['longitude']);
-                if ($distance <= $radiusMax) {
-                    $isWithinRadius = true;
-                    break;
-                }
-            }
-
-            if (!$isWithinRadius) {
-                $validator->errors()->add('latitude', 'Anda berada di luar radius lokasi absen yang diizinkan (maksimal 100 meter).');
-            }
+            // Validasi lokasi/radius sudah dihapus. Koordinat hanya dicatat, tidak divalidasi.
         });
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->with('error', 'Data gagal disimpan!');
         }
 
-        $latitude = (float) $request->latitude;
-        $longitude = (float) $request->longitude;
+        $latitudeDatang  = $request->filled('latitude_datang')  ? (float) $request->latitude_datang  : null;
+        $longitudeDatang = $request->filled('longitude_datang') ? (float) $request->longitude_datang : null;
+        $latitudePulang  = $request->filled('latitude_pulang')  ? (float) $request->latitude_pulang  : null;
+        $longitudePulang = $request->filled('longitude_pulang') ? (float) $request->longitude_pulang : null;
 
         $cekdata = Kehadiran::where("email", Auth::user()->email)
                             ->where("tanggal", date("Y-m-d"))
@@ -137,8 +122,8 @@ class LogkehadiranController extends Controller
                     'tanggal' => date("Y-m-d"),
                     'email' => Auth::user()->email,
                     'waktu_masuk' => date("Y-m-d H:i:s"),
-                    'latitude_datang' => $latitude,
-                    'longitude_datang' => $longitude,
+                    'latitude_datang' => $latitudeDatang,
+                    'longitude_datang' => $longitudeDatang,
                     'status_kehadiran'=> 'hadir',
                 ];
             } else {
@@ -146,12 +131,12 @@ class LogkehadiranController extends Controller
                     'tanggal' => date("Y-m-d"),
                     'email' => Auth::user()->email,
                     'waktu_pulang' => date("Y-m-d H:i:s"),
-                    'latitude_pulang' => $latitude,
-                    'longitude_pulang' => $longitude,
+                    'latitude_pulang' => $latitudePulang,
+                    'longitude_pulang' => $longitudePulang,
                     'status_kehadiran'=> 'hadir',
                 ];
             }
-            
+
             $cekdata->update($data);
             $message = 'Data kehadiran berhasil diperbarui.';
         } else {
@@ -161,8 +146,8 @@ class LogkehadiranController extends Controller
                     'tanggal' => date("Y-m-d"),
                     'email' => Auth::user()->email,
                     'waktu_masuk' => date("Y-m-d H:i:s"),
-                    'latitude_datang' => $latitude,
-                    'longitude_datang' => $longitude,
+                    'latitude_datang' => $latitudeDatang,
+                    'longitude_datang' => $longitudeDatang,
                     'status_kehadiran'=> 'hadir',
                 ];
             } else {
@@ -170,8 +155,8 @@ class LogkehadiranController extends Controller
                     'tanggal' => date("Y-m-d"),
                     'email' => Auth::user()->email,
                     'waktu_pulang' => date("Y-m-d H:i:s"),
-                    'latitude_pulang' => $latitude,
-                    'longitude_pulang' => $longitude,
+                    'latitude_pulang' => $latitudePulang,
+                    'longitude_pulang' => $longitudePulang,
                     'status_kehadiran'=> 'hadir',
                 ];
             }
@@ -182,6 +167,7 @@ class LogkehadiranController extends Controller
 
         return redirect()->back()->with('success', $message);
     }
+
     public function tambahizin(){
         $status_kehadiran=array("izin","sakit","cuti");
         $data = [
