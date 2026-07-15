@@ -46,7 +46,7 @@
             </div>
             
             <div class="divider">
-                <div class="divider-text"><h4><i class="ri-calendar-todo-line"></i> {{ date("Y-m-d") }}</h4></div>
+                <div class="divider-text"><h4><i class="ri-calendar-todo-line"></i> {{ date("d-m-Y") }}</h4></div>
             </div>
 
             <div class="d-flex justify-content-center">

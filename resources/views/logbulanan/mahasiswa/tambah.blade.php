@@ -34,12 +34,11 @@
     <input type="hidden" name="bulan" value="{{$bulan}}">
     <input type="hidden" name="tahun" value="{{$tahun}}">    
     <div class="alert alert-solid-info d-flex align-items-center">
-    Panduan Pengisian :<br>
-        1. Bagaimana aktifitas mentoring dan koordinasi dengan DPL maupun perangkat desa dan atau kecamatan ?<br>
-        2. Apa yang telah kamu kerjakan dan bagaimana perkembangannya, apakah itu pekerjaan rutin atau yang berkaitan dengan KPI ?<br>
-        3. Tantangan apa yang dihadapi selama di lokasi dan berikan alternatif solusi untuk menghadapainya ?<br>
-        4. Apa saja dan jelaskan pengembangan kompetensi (hardskill maupun softskill) yang telah dicapai ?<br>
-        minimal 200 kata (angka dan tanda baca tidak di hitung kata).
+    Panduan Pengisian : <br />
+        1. Bagaimana aktifitas mentoring dan koordinasi dengan DPL maupun perangkat desa dan atau kecamatan ? <br />
+        2. Apa yang telah dikerjakan dan bagaimana perkembangannya, apakah itu pekerjaan rutin atau yang berkaitan dengan KPI ? <br />
+        3. Tantangan apa yang dihadapi selama di lokasi dan berikan alternatif solusi, dan bahkan tindaklanjutnya? <br />
+        4. Apa saja dan jelaskan pengembangan kompetensi (hardskill maupun softskill) yang telah dicapai ? <br />
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <textarea class="form-control summernote" name="deskripsi">
@@ -47,65 +46,97 @@
                 {{ $isi->deskripsi }}
             @endif
         </textarea>
-        <label>Log bulanan : Bulan <b>{{ Carbon\Carbon::create()->month($bulan)->translatedFormat('F')}}</b> Tahun <b>{{ $tahun }}</b> </label>
-        <p id="wordCount ps-5">Jumlah kata: 0</p>
+        <label>Deskripsi: </label>
+        <p id="wordCount" class="ps-5">Jumlah kata: 0</p>
         <span id="deskripsi_error" class="text-danger"></span>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">       
         <input type="text" class="form-control" name="tautan" value="{{ $isi->tautan ?? '' }}">
-        <label>Tautan Dokumen (Keterangan : Tautan google drive yang berisikan dokumen laporan bulanan)</label>
+        <label>Tautan Dokumen Laporan (Bisa menggunakan tautan google drive)</label>
     </div>
     <br>
-    <x-btn-save formId="form-tambah"><i class="ri-save-2-fill pe-1"></i> Simpan</x-btn-save>
+    <x-btn-save formId="form-tambah">
+        Simpan
+    </x-btn-save>
 </form>
         
 <script>
-$(function(){
-    let table = $('#tabel-data').DataTable({
-        paging: true,
-        lengthChange: false,
-        searching: true,
-        ordering: true,
-        info: true,
-        autoWidth: false,
-        responsive: true,
-        serverSide: false,
-        language: {
-            "zeroRecords": "Tidak ada data yang ditemukan",
-            "infoEmpty": "Tidak ada data yang tersedia",
-            "sEmptyTable": "Tidak ada data yang tersedia di tabel"
-        },
-        columnDefs: [
-            { targets: 'no-sort', orderable: false } // Tambahkan class 'no-sort' pada kolom 'Aksi'
-        ]
-    })
+    $(function(){
+        let table = $('#tabel-data').DataTable({
+            paging: true,
+            lengthChange: false,
+            searching: true,
+            ordering: true,
+            info: true,
+            autoWidth: false,
+            responsive: true,
+            serverSide: false,
+            language: {
+                "zeroRecords": "Tidak ada data yang ditemukan",
+                "infoEmpty": "Tidak ada data yang tersedia",
+                "sEmptyTable": "Tidak ada data yang tersedia di tabel"
+            },
+            columnDefs: [
+                { targets: 'no-sort', orderable: false } // Tambahkan class 'no-sort' pada kolom 'Aksi'
+            ]
+        })
+        function updateWordCount(contents) {
+        // Hilangkan tag HTML
+        let plainText = $('<div>').html(contents).text().trim();
+
+        // Hitung kata
+        let words = plainText.match(/\S+/g);
+
+        $('#wordCount').text('Jumlah kata: ' + (words ? words.length : 0));
+    }
+
+    function updateWordCount(contents) {
+        // Hilangkan tag HTML
+        let plainText = $('<div>').html(contents).text().trim();
+
+        // Hitung kata
+        let words = plainText.match(/\S+/g);
+
+        $('#wordCount').text('Jumlah kata: ' + (words ? words.length : 0));
+    }
+
     $('.summernote').summernote({
         toolbar: [
             ['style', ['bold', 'italic', 'underline', 'clear']],
             ['font', ['strikethrough', 'superscript', 'subscript']],
             ['para', ['ul', 'ol', 'paragraph']],
             ['height', ['height']],
-            ['misc', ['undo', 'redo']],
-            // Anda tidak perlu menyertakan 'insert' di sini
+            ['misc', ['undo', 'redo']]
         ],
-        minHeight: 300, // Atur ketinggian minimum editor teks di sini (dalam piksel)
-        // Opsi lainnya disini
+        minHeight: 300,
+
         callbacks: {
-            onKeyup: function() {
-                var text = $(this).summernote('code');
-                var plainText = text.replace(/(<([^>]+)>)/ig,"").trim(); // Menghapus tag HTML dari teks
-                var wordArray = plainText.match(/\b[a-zA-Z]+\b/g); // Mencocokkan kata-kata (hanya huruf)
-                var wordCount = wordArray ? wordArray.length : 0; // Menghitung panjang array kata atau 0 jika null
-                $('#wordCount').text("Jumlah kata: " + wordCount);
+            onInit: function () {
+                updateWordCount($(this).summernote('code'));
             },
+
+            onChange: function (contents) {
+                updateWordCount(contents);
+            },
+
+            onKeyup: function () {
+                updateWordCount($(this).summernote('code'));
+            },
+
             onPaste: function (e) {
-                var bufferText = ((e.originalEvent || e).clipboardData || window.clipboardData).getData('text/html');
                 e.preventDefault();
-                var div = $('<div></div>');
-                div.html(bufferText);
+
+                let clipboard = (e.originalEvent || e).clipboardData;
+                let html = clipboard.getData('text/html');
+                let text = clipboard.getData('text/plain');
+
+                let div = $('<div>').html(html || text);
                 div.find('*').removeAttr('style');
-                setTimeout(function () {
-                    document.execCommand('insertHtml', false, div.html());
+
+                document.execCommand('insertHTML', false, div.html());
+
+                setTimeout(() => {
+                    updateWordCount($(this).summernote('code'));
                 }, 10);
             }
         }

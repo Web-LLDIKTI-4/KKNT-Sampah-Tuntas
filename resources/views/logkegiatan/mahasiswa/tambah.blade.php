@@ -11,7 +11,7 @@
             <i class="ri-error-warning-line ri-22px"></i>
         </span>
         Catatan: <br />
-        dokumentasi kegiatan bisa dalam bentuk tautan google drive atau media sosial
+        Tidak diisikan gambar/dokumentasi kegitatan, hanya narasi atas kegiatan yang telah dilakukan.
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <textarea name="deskripsi" class="form-control form-control-sm summernote"></textarea>
@@ -46,8 +46,8 @@
         <span class="alert-icon rounded">
             <i class="ri-error-warning-line ri-22px"></i>
         </span>
-        Keterangan : <br />
-        Tautan dokumentasi kegiatan dalam bentuk google drive atau media sosial
+        Catatan : <br />
+        Dokumentasi tautan bisa dalam beluntuk tautan google drive atau media sosial.
     </div>
 
     <div class="form-group form-floating form-floating-outline mb-6">
