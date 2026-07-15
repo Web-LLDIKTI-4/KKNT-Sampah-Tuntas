@@ -8,8 +8,9 @@
                     <th>Nama</th>
                     <th>Nama Perguruan Tinggi</th>
                     <th>Jam Masuk</th>
-                    <th>Lokasi Jam Masuk</th>
+                    <th>Lokasi Masuk</th>
                     <th>Jam Pulang</th>
+                    <th>Lokasi Pulang</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
@@ -36,7 +37,9 @@
             {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'waktu_masuk', name: 'waktu_masuk', className: 'text-center'},
+            {data: 'coordinates_datang', name: 'coordinates_datang', className: 'text-center'},
             {data: 'waktu_pulang', name: 'waktu_pulang', className: 'text-center'},
+            {data: 'coordinates_pulang', name: 'coordinates_pulang', className: 'text-center'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:false},
         ],
     });

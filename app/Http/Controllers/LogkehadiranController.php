@@ -48,14 +48,26 @@ class LogkehadiranController extends Controller
                 ->addColumn('waktu_masuk', function($row){
                     return $row->waktu_masuk ? date('H:i:s', strtotime($row->waktu_masuk)) . ' WIB' : '-';
                 })
+                ->addColumn('coordinates_datang', function($row){
+                    return view('components.embed-map', [
+                        'latitude' => $row->latitude_datang,
+                        'longitude' => $row->longitude_datang,
+                    ]);
+                })
                 ->addColumn('waktu_pulang', function($row){
                     return $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)) . ' WIB' : '-';
+                })
+                ->addColumn('coordinates_pulang', function($row){
+                    return view('components.embed-map', [
+                        'latitude' => $row->latitude_pulang,
+                        'longitude' => $row->longitude_pulang,
+                    ]);
                 })
                 ->addColumn('action', function($row){
                     $actionBtn = '<div class="d-felx"><a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-pencil-square"></i></a> <a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-trash"></i></a></div>';
                     return $actionBtn;
                 })
-                ->rawColumns(['action', 'status_kehadiran'])
+                ->rawColumns(['action', 'status_kehadiran', 'coordinates_datang', 'coordinates_pulang'])
                 ->make(true);
         }
     }
