@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col-12 table-responsive">
-        <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
+        <x-datatable id="dataTable">
             <x-slot:thead>
                 <tr>
                     <th width="1">No</th>

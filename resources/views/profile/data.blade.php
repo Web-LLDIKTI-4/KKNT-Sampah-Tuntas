@@ -33,8 +33,11 @@
                   <ul  class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-4">
                       @if ($isDpl || $isMahasiswa)
                             <li class="list-inline-item">
-                                @isset($dpl){{ 'Instansi : ' . $dpl->sp->nm_lemb ?? '-' }}@endisset
-                                @isset($mahasiswa){{ 'Program Studi : ' . $mahasiswa->prodi ?? '-' }}@endisset
+                                @isset($dpl)
+                                    <span class="fw-medium">{{ 'Instansi : ' . $dpl->sp->nm_lemb ?? '-' }}</span>
+                                @endisset
+                                @isset($mahasiswa)
+                                    <span class="fw-medium">{{ 'Program Studi : ' . $mahasiswa->prodi ?? '-' }}</span>@endisset
                             </li>
                       @endif
                       <li class="list-inline-item">
@@ -189,7 +192,7 @@
                             <hr />
                             
                             <!-- Simpan buttons -->
-                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary"><i class="ri-save-2-fill pe-1"></i>Simpan</x-btn-save>
+                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary">Simpan</x-btn-save>
                         </form>
                     @else
                         @if(!$dpl)
