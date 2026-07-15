@@ -69,10 +69,10 @@
                     <div class="ms-3 d-flex flex-column">
                         @if($userRole === "dpl")
                             <h6 class="mb-1">Laporan Anda</h6>
-                            <small>{{$jumlahlaporandpl}} : {{$persenjumlahlaporandpl}} %</small>
+                            <small>{{$jumlahlaporandpl}}</small>
                         @else
                             <h6 class="mb-1">Laporan DPL</h6>
-                            <small>{{$jumlahlaporandpl}} : {{$persenjumlahlaporandpl}} %</small>
+                            <small>{{$jumlahlaporandpl}}</small>
                         @endif  
                         
                     </div>
@@ -85,7 +85,7 @@
                     </div>
                     <div class="ms-3 d-flex flex-column">
                         <h6 class="mb-1">Konversi Nilai</h6>
-                        <small>{{ $jumlahdplnilaikonversi }} : {{$persenjumlahdplnilaikonversi}} %</small>
+                        <small>{{ $jumlahdplnilaikonversi }}</small>
                     </div>
                 </div>
             </div>
@@ -158,7 +158,7 @@
                         </div>
                         <div class="ms-3 d-flex flex-column">
                             <h6 class="mb-1">Jumlah Mahasiswa</h6>
-                            <small>{{ $jumlahmahasiswa }} : {{$persenjumlhmahasiswa}} %</small>
+                            <small>{{ $jumlahmahasiswa }}</small>
                         </div>
                     </div>
                     <div class="d-flex align-items-center mb-6">
@@ -169,7 +169,7 @@
                         </div>
                         <div class="ms-3 d-flex flex-column">
                             <h6 class="mb-1">Log Bulanan Mahasiswa</h6>
-                            <small>{{$jumlahlogbulanan}} : {{$persenjumlahlogbulanan}}%</small>
+                            <small>{{$jumlahlogbulanan}}</small>
                         </div>  
                     </div>
                     @if($jumlahlogkegiatan)
@@ -181,7 +181,7 @@
                             </div>
                             <div class="ms-3 d-flex flex-column">
                                 <h6 class="mb-1">Log Kegiatan MHS</h6>
-                                <small>{{$jumlahlogkegiatan}} : {{$persenjumlahlogkegiatan}}%</small>
+                                <small>{{$jumlahlogkegiatan}}</small>
                             </div>  
                         </div>                
                     @endif
