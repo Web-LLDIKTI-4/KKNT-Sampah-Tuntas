@@ -11,21 +11,35 @@ use Illuminate\Support\Facades\Auth;
 use DB;
 class LogkegiatanExport implements FromCollection, WithHeadings
 {
+    protected $email;
+    private $index = 0;
+    public function __construct($email)
+    {
+        $this->email = $email;
+    }
+
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
         // Ambil data log bulanan
-        $logkegiatan = Mahasiswa::get();
+        $logkegiatan = null;
+        
+        if ($this->email) {
+            $logkegiatan = Logkegiatan::where('email', $this->email)->get();
+        } else {
+            $logkegiatan = Logkegiatan::get();
+
+        }
         
         // Lakukan relasi yang diperlukan dan tambahkan judul kolom
         $data = $logkegiatan->map(function ($item, $key) {
             return [
                 'No' => $key + 1, 
-                'Nama Mahasiswa' => $item->nama, 
-                'NIM' => strval($item->nim),
-                'Perguruan Tinggi' => $item->sp->nm_lemb, 
+                'Nama Mahasiswa' => $item->mahasiswa->nama, 
+                'NIM' => strval($item->mahasiswa->nim),
+                'Kode PT' => $item->mahasiswa->kodept, 
                 'Jumlah Hari' => Logkegiatan::where('email', $item->email)
                 ->select(DB::raw('count(distinct tanggal) as count'))
                 ->value('count'),
@@ -45,7 +59,7 @@ class LogkegiatanExport implements FromCollection, WithHeadings
             'No',
             'Nama Mahasiswa',
             'NIM',
-            'Perguruan Tinggi',
+            'Kode PT',
             'Jumlah Hari',
             // Tambahkan judul kolom lain sesuai kebutuhan
         ];

@@ -291,6 +291,7 @@ Route::middleware(['auth', 'role:dpl'])->group(function () {
     Route::get('dpllaptugasakhir/export', [DpllaptugasakhirController::class, 'export']);
     Route::put('dpllaptugasakhir/nilai', [DpllaptugasakhirController::class, 'nilai']);
 });
+
 Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::get('logkehadiran', [LogkehadiranController::class, 'index']);
     Route::get('logkehadiran/listdata', [LogkehadiranController::class, 'listdata'])->name('logkehadiran.listdata');
@@ -310,6 +311,7 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::get('logkegiatan/edit/{id_log}', [LogkegiatanController::class, 'edit']);
     Route::put('logkegiatan/update', [LogkegiatanController::class, 'update']);
     Route::put('logkegiatan/destroy', [LogkegiatanController::class, 'destroy']);
+    Route::get('logkegiatan/export', [LogkegiatanController::class, 'export']);
 
     Route::get('kpicapaian', [KpicapaianController::class, 'index']);
     Route::get('kpicapaian/listdata', [KpicapaianController::class, 'listdata'])->name('kpicapaian.listdata');
