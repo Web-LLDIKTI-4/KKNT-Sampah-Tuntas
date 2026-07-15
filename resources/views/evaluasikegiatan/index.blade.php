@@ -26,6 +26,7 @@
         <p id="resultcontent">loading data...</p>
     </div>
 </div>
+
 <script>
     $(function(){
         // $("#resultcontent").load("{{ url('admevaluasikegiatan/pertanyaanevaluasilistdata') }}");

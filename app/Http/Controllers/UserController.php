@@ -142,17 +142,22 @@ class UserController extends Controller
         }
         
         $data = [
-            'name' => $request->name,            
-            'location_program' => $request->location_program,
+            'name' => $request->name,
             'role' => $request->role,
         ];
+        
+        if ($request->role == 'dpl') {
+            $data['location_program'] = $request->location_program;
+        }
+
         if ($request->akses !== null && $request->role == "mahasiswa") {
             if($request->akses == 'hapuspjdesa'){
+                Pjdesa::where('email', $request->email)->delete();
                 $data['akses'] = null; 
             }else{
                 Pjdesa::updateOrCreate(
                     ['email' => $request->email],
-                    ['akses' => $request->akses]
+                    ['id_desa' => $request->id_desa]
                 );
                 $data['akses'] = $request->akses; 
             }

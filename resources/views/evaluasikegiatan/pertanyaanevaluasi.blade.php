@@ -30,9 +30,11 @@
 <script>
 $(function(){
     $("#resultcontent").load("{{ url('admevaluasikegiatan/pertanyaanevaluasilistdata') }}");
+
     $('#modalku').on('show.bs.modal', function () {
         $(".modal-dialog").addClass("modal-lg");
     })
+
     $("body").on("submit","#form-tambah,#form-ubah",function(e){
         e.preventDefault();     
         var action = $(this).attr("action");
@@ -84,6 +86,7 @@ $(function(){
             
         })
     })
+    
     // Menangani klik tombol hapus
     $("body").on('click','[id^=hapus]', function() {
         var table = $('#dataTable').DataTable();
