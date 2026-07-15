@@ -44,6 +44,7 @@ class UserController extends Controller
                     $data[] = [
                         'name' => $mahasiswa->nama,
                         'email' => $createuser,
+                        'location_program' => $mahasiswa->location_program ?? null,
                         'password' => Hash::make($mahasiswa->nim),
                         'role' => 'mahasiswa',
                         'created_at' => now(),
@@ -93,7 +94,6 @@ class UserController extends Controller
         $data=[
             'name'=>$request->name,
             'email'=>$request->email,
-            'location_program' => $request->locationProgram->id,
             'role' =>$request->role,
             'password'=> Hash::make($request->password)
         ];

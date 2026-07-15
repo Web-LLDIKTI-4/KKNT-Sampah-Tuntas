@@ -153,7 +153,8 @@ $(function () {
                     toastr.success(data.success)	
                     var table = $('#table-data').DataTable(); // Menginisialisasi objek tabel
                     // Memuat ulang data tabel secara manual
-                    table.ajax.reload();    
+                    table.ajax.reload();
+                    window.location.reload(); // Redirect to the user page    
                 }else{                    
                     toastr.warning(data.error)	 
                 }

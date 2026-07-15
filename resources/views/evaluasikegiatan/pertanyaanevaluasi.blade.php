@@ -9,12 +9,12 @@
     <div class="card-header">
         <div class="btn-group" role="group" aria-label="Basic example">
             <a href="{{ url('admevaluasikegiatan') }}" class="btn btn-secondary btn-sm waves-effect waves-light">
-                <span class="d-none d-sm-block">Data Hasil Evaluasi</span>
-                <i class="ri-play-fill d-sm-none"></i>
+                <i class="ri-pass-valid-line d-none d-md-block me-2"></i>
+                <span>Data Hasil Evaluasi</span>
             </a>
             <a href="{{ url('admevaluasikegiatan/pertanyaanevaluasi') }}" class="btn btn-info btn-sm waves-effect waves-light">
-                <span class="d-none d-sm-block">Data Pertanyaan</span>
-                <i class="ri-play-fill d-sm-none"></i>
+                <i class="ri-questionnaire-line d-none d-md-block me-2"></i>
+                <span>Data Pertanyaan</span>
             </a>
         </div>
         <x-btn-modal url="{{ url('admevaluasikegiatan/tambah') }}" title="Tambah Pertanyaan">
