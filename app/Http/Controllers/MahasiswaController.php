@@ -34,10 +34,10 @@ class MahasiswaController extends Controller
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('nm_lemb', function($row) {
-                    return $row->sp->nm_lemb ?? 'Belum terdata';
+                    return $row->sp->nm_lemb ?? 'Belum Terdata';
                 })
                 ->addColumn('location_program', function($row) {
-                    return $row->locationProgram->nama_lokasi ?? 'Belum terdata';
+                    return $row->locationProgram->nama_lokasi ?? 'Belum Terdata';
                 })
                 ->addColumn('action', function($row){
                     return view('components.btn-delete', [
