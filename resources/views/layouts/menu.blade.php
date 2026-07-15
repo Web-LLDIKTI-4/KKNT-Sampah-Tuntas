@@ -189,11 +189,11 @@
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Structure Form
                                         </a>
                                     </li>
-                                    <li class="nav-item">
+                                    {{-- <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admfreeform') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Free Form
                                         </a>
-                                    </li>               
+                                    </li>                --}}
                             
                                 </ul>
                             </div>
