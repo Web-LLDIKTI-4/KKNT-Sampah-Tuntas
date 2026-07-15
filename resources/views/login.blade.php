@@ -402,6 +402,9 @@
         <div class="auth-right-panel d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-5 px-4 px-sm-5">
           <div class="w-100 mx-auto" style="max-width: 400px;">
             <div class="mb-4 text-center">
+              <div class="lokasi-header-logo">
+                <img src="../../assets/images/lldikti4_logo.png" alt="LLDIKTI Wilayah IV" style="width: 200px; height: auto;" />
+              </div>
               <h4 class="login-title fw-bold">KKN Tematik</h4>
               <h4 id="selectedLokasiName" class="selected-lokasi-name fw-bold"></h4>
               <p class="mb-0 text-muted">Silakan login untuk masuk ke Dashboard</p>

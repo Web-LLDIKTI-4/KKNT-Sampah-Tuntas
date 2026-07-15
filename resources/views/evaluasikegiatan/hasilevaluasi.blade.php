@@ -3,12 +3,12 @@
         <x-datatable id="dataTable" tableClass="table table-sm table-bordered">
             <x-slot:thead>
                 <tr>
-                    <th width="1">No</th>
+                    <th class="text-center" width="1">No</th>
                     <th class="text-center">Kode PT</th>
                     <th class="text-center">Nama Perguruan Tinggi</th>
                     <th class="text-center">Pertanyaan</th>
                     <th class="text-center">Jawaban</th>
-                    <th class="text-center">Aksi</th>
+                    <th class="text-center" width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
         </x-datatable>

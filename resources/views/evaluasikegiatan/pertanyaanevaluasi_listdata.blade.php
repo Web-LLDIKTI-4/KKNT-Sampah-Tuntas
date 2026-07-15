@@ -3,9 +3,9 @@
         <x-datatable id="dataTable" tableClass="table table-sm table-bordered">
             <x-slot:thead>
                 <tr>
-                    <th width="1">No</th>
-                    <th>Pertanyaan</th>
-                    <th>Aksi</th>
+                    <th class="text-center" width="1">No</th>
+                    <th class="text-center">Pertanyaan</th>
+                    <th class="text-center" width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
         </x-datatable>
