@@ -1,52 +1,49 @@
 <div class="table-responsive">
     <form method="post" id="form-create" action="{{ url('dplmentoring/insert') }}">
-    @csrf
-    @method('PUT')
-    <table class="table table-sm" id="tabel-data">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nim</th>
-                <th>Nama</th>
-                <th>Perguruan Tinggi</th>
-                <th class="no-sort">Aksi <input type="checkbox" id="checkAll"></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if($data->isEmpty())
-                <tr><td colspan="5">Tidak ada data mahasiswa yang belum memiliki user.</td></tr>
-            @else
-                @foreach($data as $mahasiswa)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{ $mahasiswa->nim }}</td>
-                        <td>{{ $mahasiswa->nama }}</td>
-                        <td>
-                            @if($mahasiswa->sp && $mahasiswa->sp->nm_lemb)
-                                {{ $mahasiswa->sp->nm_lemb }}
-                            @else
-                                {{ $mahasiswa->kodept }}
-                            @endif
-                        </td>
-                        <td><input type="checkbox" name="createuser[]" value="{{ $mahasiswa->email }}"></td>
-                    </tr>
-                @endforeach
-            @endif
-        </tbody>
-        <tfoot>
-            <tr>
-                <th>No</th>
-                <th>Nim</th>
-                <th>Nama</th>
-                <th>Perguruan Tinggi</th>
-                <th class="no-sort">Aksi</th>
-            </tr>
-        </tfoot>
-    </table>
-    <hr>
-    <x-btn-save formId="form-create">Proses Create User</x-btn-save>
+        @csrf
+        @method('PUT')
+        <table class="table table-sm" id="tabel-data">
+            <thead>
+                <tr>
+                    <th class="text-center">No</th>
+                    <th class="text-center">Nim</th>
+                    <th class="text-center">Nama</th>
+                    <th class="text-center">Nama Perguruan Tinggi</th>
+                    <th class="text-center">Lokasi Program KKN</th>
+                    <th class="no-sort text-center">
+                        Aksi <br />
+                        <input type="checkbox" id="checkAll">
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @if($data->isEmpty())
+                    
+                @else
+                    @foreach($data as $mahasiswa)
+                        <tr>
+                            <td class="text-center">{{ $loop->iteration }}</td>
+                            <td class="text-center">{{ $mahasiswa->nim }}</td>
+                            <td>{{ $mahasiswa->nama }}</td>
+                            <td>
+                                @if($mahasiswa->sp && $mahasiswa->sp->nm_lemb)
+                                    {{ $mahasiswa->sp->nm_lemb }}
+                                @else
+                                    {{ $mahasiswa->kodept }}
+                                @endif
+                            </td>
+                            <td class="text-center">{{ $mahasiswa->locationProgram->nama_lokasi ?? 'Belum Terdata' }}</td>
+                            <td class="text-center">
+                                <input type="checkbox" name="createuser[]" value="{{ $mahasiswa->email }}">
+                            </td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+        <hr>
+        <x-btn-save formId="form-create">Tambah User</x-btn-save>
     </form>
-    <br>
 </div>
 <script>
 // Function to uncheck all checkboxes
@@ -79,14 +76,16 @@ $(function () {
 
     let table = $('#tabel-data').DataTable({
         paging: true,
-        lengthChange: true,
         searching: true,
+        lengthChange: false,
         ordering: true,
         info: true,
         autoWidth: false,
         responsive: true,
         serverSide: false,
         language: {
+            "search": "",
+            "searchPlaceholder": "Cari...",
             "zeroRecords": "Tidak ada data yang ditemukan",
             "infoEmpty": "Tidak ada data yang tersedia",
             "sEmptyTable": "Tidak ada data yang tersedia di tabel"

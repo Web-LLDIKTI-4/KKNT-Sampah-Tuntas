@@ -1,14 +1,18 @@
 @extends('layouts.app')
-@section('title','Nilai Structure form')
+@section('title','Konversi Nilai Structure form')
 @section('container')
+
 <x-page-header /> 
 
 <div class="card">
     <div class="card-header">
-        <x-btn-modal url="{{ url('dplkonversinilai/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Data">Tambah Data</x-btn-modal>
+        <x-btn-modal url="{{ url('dplkonversinilai/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Data">
+            <i class="ri-add-fill me-2"></i>
+            Tambah Data
+        </x-btn-modal>
     </div>
     <div class="card-body">
-        <p id="resultcontent">List data...</p>
+        <p id="resultcontent">Loading data...</p>
     </div>
 </div>
 <script>

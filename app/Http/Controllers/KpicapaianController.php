@@ -9,6 +9,7 @@ use App\Models\Kpi;
 use App\Models\Kpitarget;
 use App\Models\Kpicapaian;
 use App\Models\Pjdesa;
+use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -53,7 +54,7 @@ class KpicapaianController extends Controller
                     return '<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="#modalku" data-bs-toggle="modal" class="modalButton btn btn-sm p-0 m-0" data-src="'.url('kpicapaian/edit/'.$row->id_capaian).'" title="Edit Data"><i class="fas fa-edit"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_capaian.'"  class="btn btn-sm p-0 m-0"><i class="fa fa-trash"></i></a></div>';
+                    $actionBtn = '<div class="d-flex"><a href="#modalku" data-bs-toggle="modal" class="modalButton btn btn-sm p-0 m-0" data-src="'.url('kpicapaian/edit/'.$row->id_capaian).'" title="Edit Data"><i class="fas fa-edit"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_capaian.'"  class="btn btn-sm p-0 m-0"><i class="fa fa-trash"></i></a></div>';
                     return $actionBtn;
                 })
                 ->rawColumns(['action','tautan', 'status_capaian'])
@@ -131,17 +132,15 @@ class KpicapaianController extends Controller
             }
 
             $pjdesa = Pjdesa::where("email", Auth::user()->email)->exists();
-            if(!$pjdesa){
-                $validator->errors()->add('kendala', 'Akun anda belum di set sebagai kelompok di desa!');
+            if (!$pjdesa) {
+                $validator->errors()->add('kendala', 'Anda tidak memiliki akses untuk menyimpan data capaian KPI. Silakan hubungi administrator.');
             }
-
         });
 
         
         if ($validator->fails()) {
             return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
         }
-        $pjdesa = Pjdesa::where("email",Auth::user()->email)->first();
         $data=[
             'id_kpi'=>$request->id_kpi,
             'id_target'=>$request->id_target,

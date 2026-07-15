@@ -214,59 +214,39 @@
                     <div class="dropdown-menu p-4 p-lg-6">
                     <div class="row gy-4">
                         <div class="col-12 col-lg">
-                        <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
-                            <div class="avatar avatar-sm flex-shrink-0 me-2">
-                            <span class="avatar-initial rounded bg-label-primary"><i class="ri-layout-grid-line"></i></span>
+                            <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
+                                <div class="avatar avatar-sm flex-shrink-0 me-2">
+                                <span class="avatar-initial rounded bg-label-primary"><i class="ri-lock-unlock-line"></i></span>
+                                </div>
+                                <span class="ps-1">Laporan & Mentoring</span>
                             </div>
-                            <span class="ps-1">Profil & Perguruan Tinggi</span>
-                        </div>
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('profile') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Saya
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('perguruantinggi') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Satuan Pendidikan
-                                </a>
-                            </li>
-                        </ul>
-                        </div>
-                        <div class="col-12 col-lg">
-                        <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
-                            <div class="avatar avatar-sm flex-shrink-0 me-2">
-                            <span class="avatar-initial rounded bg-label-primary"><i class="ri-lock-unlock-line"></i></span>
-                            </div>
-                            <span class="ps-1">Laporan & Mentoring</span>
-                        </div>
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dpllaporan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Bulanan
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplmentoring') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Mentoring
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplkonversinilai') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplfreeform') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Nilai Free Form
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dpllaptugasakhir') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Tugas Akhir
-                                </a>
-                            </li>
-                        </ul>
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dpllaporan') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Bulanan
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplmentoring') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kelola Mahasiswa
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplkonversinilai') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai Structure Form
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplfreeform') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai Free Form
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dpllaptugasakhir') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
                         <div class="col-12 col-lg">
                         <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
@@ -278,7 +258,7 @@
                         <ul class="nav flex-column">
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkegiatan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kegiatan Harian
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Harian
                                 </a>
                             </li>
                             <li class="nav-item">

@@ -4,7 +4,10 @@
 <x-page-header /> 
 <div class="card">
     <div class="card-header">
-        <x-btn-modal url="{{ url('dplmentoring/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Mahasiswa">Tambah mahasiswa</x-btn-modal>
+        <x-btn-modal url="{{ url('dplmentoring/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Mahasiswa">
+            <i class="ri-add-fill me-2"></i>
+            Tambah Mahasiswa
+        </x-btn-modal>
     </div>
     <div class="card-body">
         <p id="resultcontent">List data...</p>

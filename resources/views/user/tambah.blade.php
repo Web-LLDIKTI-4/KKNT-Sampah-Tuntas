@@ -13,6 +13,16 @@
             <span id="email_error" class="text-danger"></span>
         </div>
     </div>
+    <div class="form-group form-floating form-floating-outline mb-6">
+        <select  id="location_program" class="form-control form-control-sm" name="location_program" required>
+            <option value="" selected>--pilih--</option>
+            @foreach($locationPrograms as $val)
+                <option value="{{ $val->id }}">{{$val->nama_lokasi}}</option>
+            @endforeach
+        </select>
+        <label>Lokasi Program</label>
+        <span id="location_program_error" class="text-danger"></span>
+    </div>
     <div class="row">   
         <div class="form-group col form-floating form-floating-outline mb-6">
             <input type="text" name="password" class="form-control form-control-sm">

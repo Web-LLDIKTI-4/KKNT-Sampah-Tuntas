@@ -259,7 +259,7 @@ Route::middleware(['auth', 'role:dpl'])->group(function () {
     Route::get('dplmentoring/listdataserver', [DplmentoringController::class, 'listdataserver'])->name('dplmentoring.listdataserver');
     Route::get('dplmentoring/tambah', [DplmentoringController::class, 'tambah']);
     Route::put('dplmentoring/insert', [DplmentoringController::class, 'insert']);
-    Route::put('dplmentoring/destroy', [DplmentoringController::class, 'destroy']);
+    Route::put('dplmentoring/destroy/{id_mentoring}', [DplmentoringController::class, 'destroy']);
     Route::get('dplmentoring/rekapnilai/{email}', [DplmentoringController::class, 'rekapnilai']);
     Route::get('dplmentoring/nilaifreeform/{id_mahasiswa}', [DplmentoringController::class, 'nilaifreeform']);
     Route::get('dplmentoring/nilaikonversi/{id_mahasiswa}', [DplmentoringController::class, 'nilaikonversi']);

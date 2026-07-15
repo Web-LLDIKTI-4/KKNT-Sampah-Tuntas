@@ -34,16 +34,16 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
-            {data: 'action', name: 'action', orderable: false, searchable: false},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
+            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
             {data: 'nim', name: 'nim'},
             {data: 'nama', name: 'nama'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'prodi', name: 'prodi'},
             {data: 'matakuliah', name: 'matakuliah'},
-            {data: 'sks', name: 'sks'},
-            {data: 'nilai_dpl', name: 'nilai_dpl'},
-            {data: 'nilai_dpa', name: 'nilai_dpa'},
+            {data: 'sks', name: 'sks', className: 'text-center'},
+            {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center'},
+            {data: 'nilai_dpa', name: 'nilai_dpa', className: 'text-center'},
         ],
         layout: {
             top1: {

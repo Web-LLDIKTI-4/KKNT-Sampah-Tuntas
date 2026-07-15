@@ -22,7 +22,7 @@ class ProfileController extends Controller
     {
         $sp = Satuanpendidikan::orderByRaw("TRIM(nm_lemb) DESC")->get();
         $profile = User::where('email',Auth::user()->email)->first();
-        $dpl = Dpl::where("email",Auth::user()->email)->first();
+        $dpl = Dpl::where("email", Auth::user()->email)->first();
         return view('profile.data',compact('profile','dpl','sp'));
     }
     public function uploadpoto(){

@@ -17,7 +17,7 @@
                 {{ $isi->deskripsi }}
             @endif
         </textarea>
-        <label>Log bulanan : Bulan <b>{{ Carbon\Carbon::create()->month($bulan)->format('F')}}</b> Tahun <b>{{ $tahun }}</b> </label>
+        <label>Log bulanan : Bulan <b>{{ Carbon\Carbon::create()->month($bulan)->translatedFormat('F')}}</b> Tahun <b>{{ $tahun }}</b> </label>
         <p id="wordCount">Jumlah kata: 0</p>
         <span id="deskripsi_error" class="text-danger"></span>
     </div>

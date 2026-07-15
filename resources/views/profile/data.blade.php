@@ -36,16 +36,18 @@
                                 @isset($dpl)
                                     <span class="fw-medium">{{ 'Instansi : ' . $dpl->sp->nm_lemb ?? '-' }}</span>
                                 @endisset
+
                                 @isset($mahasiswa)
-                                    <span class="fw-medium">{{ 'Program Studi : ' . $mahasiswa->prodi ?? '-' }}</span>@endisset
+                                    <span class="fw-medium">{{ 'Program Studi : ' . $mahasiswa->prodi ?? '-' }}</span>
+                                @endisset
                             </li>
                       @endif
                       <li class="list-inline-item">
-                        <i class="ri-user-line me-2 ri-24px"></i><span class="fw-medium">Level : {{ $profile->role }}</span>
+                        <i class="ri-user-line me-2 ri-24px"></i><span class="fw-medium">Level : {{ Str::upper($profile->role) }}</span>
                       </li>
                       <li class="list-inline-item">
                       <i class="ri-calendar-line me-2 ri-24px"></i>
-                      <span class="fw-medium"> Bergabung {{ \Carbon\Carbon::parse($profile->created_at)->format('Y-m-d H:i:s') }}</span>
+                      <span class="fw-medium">Bergabung  {{ \Carbon\Carbon::parse($profile->created_at)->format('Y-m-d H:i:s') }}</span>
                       </li>
                   </ul>
                   </div>

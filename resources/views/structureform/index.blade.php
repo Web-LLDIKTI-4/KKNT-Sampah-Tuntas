@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Koversi Nilai Structure form')
+@section('title','Konversi Nilai Structure form')
 @section('container')
 
 <div class="d-flex mb-4 gap-4">
@@ -10,7 +10,7 @@
     </div>
     <div>
         <h5 class="mb-0">
-            <span class="align-middle">Koversi Nilai Structure form</span>
+            <span class="align-middle">Konversi Nilai Structure form</span>
         </h5>
         <span>Data Structure Form</span>
     </div>

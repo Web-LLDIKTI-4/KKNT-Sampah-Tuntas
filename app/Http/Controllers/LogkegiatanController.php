@@ -61,20 +61,20 @@ class LogkegiatanController extends Controller
             'satuan.required' => 'Satuan harus di isi.',
         ]);
         
-        $validator->after(function($validator) use ($request) {
-            $cekdata = Logkegiatan::where("tanggal",$request->tanggal) //where("deskripsi",$request->deskripsi)
-                        ->where("email",Auth::user()->email)
-                        ->count(); // Menghitung jumlah baris yang ditemukan
+        // $validator->after(function($validator) use ($request) {
+        //     $cekdata = Logkegiatan::where("tanggal",$request->tanggal) //where("deskripsi",$request->deskripsi)
+        //                 ->where("email",Auth::user()->email)
+        //                 ->count(); // Menghitung jumlah baris yang ditemukan
             
-            if ($cekdata > 0) {
-                $validator->errors()->add('tanggal', 'Kegiatan tanggal '.$request->tanggal.' sudah ada!');
-            }
-        });
+        //     if ($cekdata > 0) {
+        //         $validator->errors()->add('tanggal', 'Kegiatan tanggal '.$request->tanggal.' sudah ada!');
+        //     }
+        // });
        
         
-        if ($validator->fails()) {
-            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
-        }
+        // if ($validator->fails()) {
+        //     return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
+        // }
 
          // Jika validasi berhasil, lanjutkan dengan menyimpan data ke dalam database
          $data =[

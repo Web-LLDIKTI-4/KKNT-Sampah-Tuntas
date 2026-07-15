@@ -17,9 +17,10 @@
             </tbody>
         </table>
     </div>
-    <hr>
-    <x-btn-export url="{{ url('admlogkegiatan/export') }}" />
 </div>
+
+<x-btn-export url="{{ url('admlogkegiatan/export') }}" />
+
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({

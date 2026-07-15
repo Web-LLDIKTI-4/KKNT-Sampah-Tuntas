@@ -60,19 +60,23 @@ class UserController extends Controller
         }
     }
     public function adduser(){
-        $role=array('dpl');
-        return view('user.tambah',compact('role'));
+        $role = array('dpl');
+        $locationPrograms = \App\Models\LokasiProgram::all();
+        return view('user.tambah',compact('role', 'locationPrograms'));
     }
+    
     public function insertuser(Request $request){
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'email' => 'required|email',
             'password' => 'required', // Validasi numerik
+            'location_program' => 'required'
         ], [
             'name.required' => 'Nama harus di isi.',
             'email.required' => 'Email harus di isi.',
             'email.email' => 'Email harus tidak valid.',
             'password.required' => 'Password harus di isi.',
+            'location_program.required' => 'Lokasi program harus di isi.',
         ]);
         
         $validator->after(function($validator) use ($request) {
@@ -95,7 +99,8 @@ class UserController extends Controller
             'name'=>$request->name,
             'email'=>$request->email,
             'role' =>$request->role,
-            'password'=> Hash::make($request->password)
+            'password'=> Hash::make($request->password),
+            'location_program' => $request->location_program
         ];
         User::insert($data);
         return response()->json(['success' => true,'message'=>"user berhasil dibuat"]);       
@@ -108,6 +113,7 @@ class UserController extends Controller
         $akses=array('pjdesa'=>'Set Ketua Kelompok','hapuspjdesa'=>'Hapus Akses Ketua Kelompok');
         return view('user.edit',compact('data','role','akses','locationPrograms'));
     }
+
     public function updateuser(Request $request){
         $validator = Validator::make($request->all(), [
             'name' => 'required',
@@ -140,13 +146,18 @@ class UserController extends Controller
             'location_program' => $request->location_program,
             'role' => $request->role,
         ];
-        if ($request->akses != "null" && $request->role == "mahasiswa") {
+        if ($request->akses !== null && $request->role == "mahasiswa") {
             if($request->akses == 'hapuspjdesa'){
                 $data['akses'] = null; 
             }else{
+                Pjdesa::updateOrCreate(
+                    ['email' => $request->email],
+                    ['akses' => $request->akses]
+                );
                 $data['akses'] = $request->akses; 
             }
         }
+
         if ($request->password) {
             $data['password'] = Hash::make($request->password); 
         }

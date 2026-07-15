@@ -61,7 +61,11 @@ class DplmentoringController extends Controller
                     return '<a href="'.$tautan.'" target="_blank">'.$tautan.'</a>';
                 })
                 ->addColumn('action', function($row){
-                    return ActionButtons::delete($row->id_mentoring);
+                    return view('components.btn-delete', [
+                        'url' => url('dplmentoring/destroy/'.$row->id_mentoring),
+                        'idField' => 'hapus_mentoring',
+                        'idValue' => $row->id_mentoring,
+                    ])->render();
                 })
                 ->rawColumns(['action','rekapnilai','nilai_freeform','tugasakhir'])
                 ->make(true);
@@ -101,16 +105,16 @@ class DplmentoringController extends Controller
         }
     }
     
-    public function destroy(Request $request){
-        if ($request->has('id_mentoring')) {
+    public function destroy(Request $request, String $id_mentoring){
+        if ($id_mentoring) {
             // Lakukan tindakan penghapusan di sini
             $id = $request->id_mentoring;
+
             //cek apakah sudah di gunakan di relasi lain
-            
-            Dplmentoring::find($id)->delete();
+            Dplmentoring::find($id_mentoring)->delete();
     
             // Beri respons berhasil
-            return response()->json(['message' => 'Data berhasil dihapus'], 200);
+            return response()->json(['success' => 'Data berhasil dihapus'], 200);
         } else {
             // Jika tidak ada id yang diterima, kembalikan pesan kesalahan
             return response()->json(['error' => 'Tidak ada ID yang diterima'], 400);
