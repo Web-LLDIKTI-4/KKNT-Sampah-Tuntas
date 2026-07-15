@@ -38,6 +38,7 @@ class LogkegiatanController extends Controller
                 ->addColumn('action', function($row){
                     return view('components.action-data', [
                         'urlEdit' => url('logkegiatan/edit/'.$row->id_log),
+                        'urlDelete' => $row->id_log,
                     ]);
                 })
                 ->rawColumns(['action'])
