@@ -12,7 +12,7 @@
                 <div class="col-sm-6 col-lg-3">
                 <div class="d-flex justify-content-between align-items-start card-widget-1 border-end pb-4 pb-sm-0">
                     <div>
-                    <p class="mb-1">Mahasiswa 1</p>
+                    <p class="mb-1">Mahasiswa</p>
                     <h4 class="mb-1">{{ $jumlahmahasiswa }}</h4>
                     <p class="mb-0">
                         <span class="badge rounded-pill bg-label-success">100%</span>
@@ -48,12 +48,12 @@
                     <div>
                     <p class="mb-1">Log Kegiatan</p>
                     <h4 class="mb-1">{{$jumlahlogkegiatan}}</h4>
-                    @php
+                    {{-- @php
                         $persenkegiatan = round(($jumlahlogkegiatan/120)*100,1);
                     @endphp
                     <p class="mb-0">
                         <span class="me-2">({{$jumlahlogkegiatan}}/120)*100</span><span class="badge rounded-pill bg-label-success">{{$persenkegiatan}}%</span>
-                    </p>
+                    </p> --}}
                     </div>
                     <div class="avatar me-sm-6">
                     <span class="avatar-initial rounded text-heading">
@@ -67,12 +67,12 @@
                     <div>
                     <p class="mb-1">Log Bulanan</p>
                     <h4 class="mb-1">{{ $jumlahlogbulanan }}</h4>
-                    @php
+                    {{-- @php
                         $persenbulan = round(($jumlahlogbulanan/4)*100,1);
                     @endphp
                     <p class="mb-0">
                         <span class="me-2">({{$jumlahlogbulanan}}/4)*100</span><span class="badge rounded-pill bg-label-danger">{{$persenbulan}}%</span>
-                    </p>
+                    </p> --}}
                     </div>
                     <div class="avatar">
                     <span class="avatar-initial rounded text-heading">
@@ -134,7 +134,7 @@
                         <div>
                         <p class="mb-1">Capaian KPI</p>
                         <h4 class="mb-1">{{ $jumlahcapaiankpi }}</h4>
-                        @php
+                        {{-- @php
                             if($jumlahcapaiankpi == 0){
                                 $persenjumlahcapaiankpi = 0;
                             }else{
@@ -143,7 +143,7 @@
                         @endphp
                         <p class="mb-0">
                             <span class="me-2">({{$jumlahcapaiankpi}})/5*100</span><span class="badge rounded-pill bg-label-danger">{{$persenjumlahcapaiankpi}}%</span>
-                        </p>
+                        </p> --}}
                         </div>
                         <div class="avatar">
                         <span class="avatar-initial rounded text-heading">

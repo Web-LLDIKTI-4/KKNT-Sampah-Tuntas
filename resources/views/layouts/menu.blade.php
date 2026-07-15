@@ -233,7 +233,7 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplkonversinilai') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai Structure Form
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai
                                     </a>
                                 </li>
                                 {{-- <li class="nav-item">
