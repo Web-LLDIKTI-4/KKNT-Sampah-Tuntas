@@ -1,5 +1,6 @@
 <div class="container-xxl flex-grow-1 container-p-y">
     @php
+        $isDpl = Auth::user()->role == 'dpl';
         $isMahasiswa = Auth::user()->role == 'mahasiswa';
         $photoUploadUrl = $isMahasiswa ? url('mhsprofile/uploadpoto') : url('profile/uploadpoto');
         $photoRoute = $isMahasiswa ? route('mhsprofile.getPoto') : route('profile.getPoto');
@@ -30,21 +31,23 @@
                   <div class="user-profile-info">
                   <h4 class="mb-2">{{ $displayName }} [{{ $profile->email }}]</h4>
                   <ul  class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-4">
-                      <li class="list-inline-item">
-                         @isset($dpl){{ $dpl->sp->nm_lemb ?? '-' }}@endisset
-                         @isset($mahasiswa){{ $mahasiswa->prodi ?? '-' }}@endisset
-                      </li>
+                      @if ($isDpl || $isMahasiswa)
+                            <li class="list-inline-item">
+                                @isset($dpl){{ $dpl->sp->nm_lemb ?? '-' }}@endisset
+                                @isset($mahasiswa){{ $mahasiswa->prodi ?? '-' }}@endisset
+                            </li>
+                      @endif
                       <li class="list-inline-item">
                         <i class="ri-user-line me-2 ri-24px"></i><span class="fw-medium">Level : {{ $profile->role }}</span>
                       </li>
                       <li class="list-inline-item">
                       <i class="ri-calendar-line me-2 ri-24px"></i>
-                      <span class="fw-medium"> Joined {{ \Carbon\Carbon::parse($profile->created_at)->format('Y-m-d H:i:s') }}</span>
+                      <span class="fw-medium"> Bergabung {{ \Carbon\Carbon::parse($profile->created_at)->format('Y-m-d H:i:s') }}</span>
                       </li>
                   </ul>
                   </div>
                   <a href="javascript:void(0)" class="btn btn-primary">
-                  <i class="ri-user-follow-line ri-16px me-2"></i>Last Login {{ $profile->last_login }}
+                  <i class="ri-user-follow-line ri-16px me-2"></i>Terakhir Login {{ $profile->last_login }}
                   </a>
               </div>
               </div>
@@ -63,13 +66,13 @@
               <li class="nav-item">
                 <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile">
                   <i class="ri-bank-card-line me-2"></i>
-                  <span class="align-middle">Profile</span>
+                  <span class="align-middle">Profil</span>
                 </button>
               </li>
               <li class="nav-item">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#updatepassword">
                   <i class="ri-lock-line me-2"></i>
-                  <span class="align-middle">Update Password</span>
+                  <span class="align-middle">Ubah Kata Sandi</span>
                 </button>
               </li>
               @if($isMahasiswa)
@@ -90,7 +93,8 @@
         <div class="col-lg-9 col-md-8 col-12">
           <div class="tab-content p-0">
             <div class="tab-pane fade show active" id="profile" role="tabpanel">
-              <x-page-header icon="ri-bank-card-line" title="Profile" subtitle="Informasi Akun" />
+              <x-page-header icon="ri-bank-card-line" title="Profil" subtitle="Informasi Akun" />
+
               <div id="accordionPayment" class="accordion">
                 <div class="accordion-item active">
                   <h2 class="accordion-header">
@@ -258,7 +262,7 @@
               </div>
             </div>
             <div class="tab-pane fade" id="updatepassword" role="tabpanel">
-              <x-page-header icon="ri-lock-line" title="Setting Password" subtitle="Kelola Password." />
+              <x-page-header icon="ri-lock-line" title="Kata Sandi" subtitle="Kelola Kata Sandi" />
               <div id="accordionDelivery" class="accordion">
                 <div class="accordion-item active">
                   <h2 class="accordion-header">
