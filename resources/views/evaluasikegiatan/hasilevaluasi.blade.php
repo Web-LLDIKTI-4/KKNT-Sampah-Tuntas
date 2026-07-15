@@ -4,11 +4,11 @@
             <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
-                    <th>Kode PT</th>
-                    <th>Nama Perguruan Tinggi</th>
-                    <th>Pertanyaan</th>
-                    <th>Jawaban</th>
-                    <th>Aksi</th>
+                    <th class="text-center">Kode PT</th>
+                    <th class="text-center">Nama Perguruan Tinggi</th>
+                    <th class="text-center">Pertanyaan</th>
+                    <th class="text-center">Jawaban</th>
+                    <th class="text-center">Aksi</th>
                 </tr>
             </x-slot:thead>
         </x-datatable>
