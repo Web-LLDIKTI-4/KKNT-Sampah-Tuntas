@@ -12,7 +12,7 @@
                     <th>Prodi</th>
                     <th>Matakuliah</th>
                     <th>SKS</th>
-                    <th>Nilai DPL</th>
+                    {{-- <th>Nilai DPL</th> --}}
                     <th>Nilai DPA</th>
                 </tr>
             </x-slot:thead>
@@ -42,7 +42,7 @@
             {data: 'prodi', name: 'prodi'},
             {data: 'matakuliah', name: 'matakuliah'},
             {data: 'sks', name: 'sks', className: 'text-center'},
-            {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center'},
+            // {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center'},
             {data: 'nilai_dpa', name: 'nilai_dpa', className: 'text-center'},
         ],
         layout: {

@@ -236,11 +236,11 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai Structure Form
                                     </a>
                                 </li>
-                                <li class="nav-item">
+                                {{-- <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplfreeform') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai Free Form
                                     </a>
-                                </li>
+                                </li> --}}
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dpllaptugasakhir') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
