@@ -11,27 +11,13 @@ use Illuminate\Support\Facades\Auth;
 use DB;
 class LogkegiatanExport implements FromCollection, WithHeadings
 {
-    protected $email;
-    private $index = 0;
-    public function __construct($email)
-    {
-        $this->email = $email;
-    }
-
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
         // Ambil data log bulanan
-        $logkegiatan = null;
-        
-        if ($this->email) {
-            $logkegiatan = Logkegiatan::where('email', $this->email)->get();
-        } else {
-            $logkegiatan = Logkegiatan::get();
-
-        }
+        $logkegiatan = Logkegiatan::get();
         
         // Lakukan relasi yang diperlukan dan tambahkan judul kolom
         $data = $logkegiatan->map(function ($item, $key) {

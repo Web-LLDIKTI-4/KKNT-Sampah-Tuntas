@@ -10,7 +10,7 @@ use App\Models\Logkegiatan;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 use App\Support\ActionButtons;
-use App\Exports\LogkegiatanExport;
+use App\Exports\LogHarianExport;
 
 class LogkegiatanController extends Controller
 {    
@@ -178,6 +178,6 @@ class LogkegiatanController extends Controller
     public function export(Request $request)
     {
         $email = Auth::user()->email; // Ambil email pengguna yang sedang login
-        return Excel::download(new LogkegiatanExport($email), 'log_harian-' . date('Y-m-d_H-i-s') . '.xlsx');
+        return Excel::download(new LogHarianExport($email), 'log_harian-' . date('Y-m-d_H-i-s') . '.xlsx');
     }
 }
