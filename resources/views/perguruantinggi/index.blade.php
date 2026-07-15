@@ -8,7 +8,9 @@
             <form id="form-tambah" method="post" action="{{ url('perguruantinggi/getdata') }}">
                 @csrf
                 @method('PUT')
-                <button type="submit" class="btn btn-primary btn-sm" id="btnSubmit_form-tambah"><i class="ri-loop-left-line me-2"></i> Sinkron PT LLdikti IV</button>
+                <button type="submit" class="btn btn-primary btn-sm" id="btnSubmit_form-tambah">
+                    <i class="ri-loop-left-line me-2"></i> Sync PDDIKTI
+                </button>
             </form>&nbsp;
             <x-btn-modal url="{{ url('perguruantinggi/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Perguruan Tinggi"><i class="ri-play-list-add-line me-2"></i> Tambah PT</x-btn-modal>
         </div>

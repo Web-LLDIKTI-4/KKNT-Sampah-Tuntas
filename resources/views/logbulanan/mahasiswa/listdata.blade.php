@@ -2,20 +2,26 @@
 <table class="table table-bordered table-sm" id="dataTable">
     <thead>
         <tr>
-            <th width="1">No</th><th>Tahun</th><th>Bulan</th><th>Tautan</th><th width="1">Aksi</th><th>Nilai</th><th>Hasil Verifikasi</th>
+            <th width="1">No</th>
+            <th>Tahun</th>
+            <th>Bulan</th>
+            <th>Tautan</th>
+            <th width="1">Aksi</th>
+            <th>Nilai</th>
+            <th>Hasil Verifikasi</th>
         </tr>
     </thead>
     <tbody>
         @if($laporan->isEmpty())
-           
+            
         @else
             @foreach($laporan as $row)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ $row->tahun }}</td>
+                    <td class="text-center">{{ $row->tahun }}</td>
                     <td>{{ Carbon\Carbon::create()->month($row->bulan)->format('F') }}</td>
                     <td>{{ $row->tautan }}</td>
-                    <td>
+                    <td class="text-center">
                         <div class="d-flex">
                             <form method="post" id="form-bulan-{{$row->id_logbulanan}}" action="{{ url('logbulanan/tambah') }}">
                                 @csrf
@@ -45,8 +51,15 @@ $(function(){
     var table = $('#dataTable').DataTable({
         searching: true,
         lengthChange: false,
-        processing: true
+        processing: true,
+        language: {
+            search: "",
+            searchPlaceholder: "Cari...",
+            zeroRecords: "Tidak ada data yang tersedia",
+            infoEmpty: "Tidak ada data yang ditemukan",
+        },
     });
+
     $("[id^=form-hapus-]").on("submit",function(){       
         var action = $(this).attr("action");
         var id = $(this).attr("id");

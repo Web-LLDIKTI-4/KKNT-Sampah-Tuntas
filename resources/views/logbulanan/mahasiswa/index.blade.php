@@ -1,7 +1,21 @@
 @extends('layouts.app')
-@section('title','Log Kegiatan Bulanan')
+@section('title','Log Bulanan Mahasiswa')
 @section('container')
-<x-page-header /> 
+
+<div class="d-flex mb-4 gap-4">
+    <div class="avatar avatar-md">
+        <div class="avatar-initial bg-label-primary rounded-4">
+            <i class="ri-information-2-fill ri-30px"></i>
+        </div>
+    </div>
+    <div>
+        <h5 class="mb-0">
+            <span class="align-middle">Log Bulanan Mahasiswa</span>
+        </h5>
+        <span>Data Log Bulanan</span>
+    </div>
+</div>
+
 <div class="card mb-5">
     <div class="card-body">
         <p id="listdata">list data...</p>

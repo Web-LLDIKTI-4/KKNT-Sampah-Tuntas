@@ -5,18 +5,18 @@
                 <tr>
                     <th width="1">No</th>
                     <th>Tautan</th>
-                    <th>Aksi</th>
+                    <th width="1">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @if($data->isEmpty())
-                   
+                    
                 @else
                     @foreach($data as $item)
                     <tr>
-                        <td>{{$loop->iteration}}</td>
+                        <td class="text-center">{{$loop->iteration}}</td>
                         <td><a href="{{$item->tautan}}" target="_blank">{{$item->tautan}}</a></td>
-                        <td>
+                        <td class="text-center">
                             <x-btn-edit url="{{ url('tugasakhir/edit/'.$item->id_tugasakhir) }}" />
                             <x-btn-delete url="{{ url('tugasakhir/destroy') }}" idField="id_tugasakhir" :idValue="$item->id_tugasakhir" />
                         </td>
@@ -29,6 +29,16 @@
 </div>
 <script type="text/javascript">
   $(function () {
-    $('#dataTable').DataTable();
+    $('#dataTable').DataTable({
+        searching: true,
+        lengthChange: false,
+        processing: true,
+        language: {
+            search: "",
+            searchPlaceholder: "Cari...",
+            zeroRecords: "Tidak ada data yang tersedia",
+            infoEmpty: "Tidak ada data yang ditemukan",
+        },
+    });
   });
 </script>

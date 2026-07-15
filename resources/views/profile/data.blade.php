@@ -33,8 +33,8 @@
                   <ul  class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-4">
                       @if ($isDpl || $isMahasiswa)
                             <li class="list-inline-item">
-                                @isset($dpl){{ $dpl->sp->nm_lemb ?? '-' }}@endisset
-                                @isset($mahasiswa){{ $mahasiswa->prodi ?? '-' }}@endisset
+                                @isset($dpl){{ 'Instansi : ' . $dpl->sp->nm_lemb ?? '-' }}@endisset
+                                @isset($mahasiswa){{ 'Program Studi : ' . $mahasiswa->prodi ?? '-' }}@endisset
                             </li>
                       @endif
                       <li class="list-inline-item">
@@ -97,7 +97,7 @@
 
               <div id="accordionPayment" class="accordion">
                 <div class="accordion-item active">
-                  <h2 class="accordion-header">
+                  <h2 class="accordion-header mb-3">
                     <button
                       class="accordion-button"
                       type="button"
@@ -105,7 +105,7 @@
                       aria-expanded="true"
                       data-bs-target="#accordionPayment-1"
                       aria-controls="accordionPayment-1">
-                      {{ $displayName }}
+                      Profil Nama
                     </button>
                   </h2>
 
@@ -194,8 +194,8 @@
                     @else
                         @if(!$dpl)
                             <div class="alert alert-info">
-                              <span>Penting</span>
-                              <span class="alert-content">Sebelum melakukan aktifitas lain mohon untuk mengisi kelengkapan profil!</span>
+                                <span>Penting</span>
+                                <span class="alert-content">Sebelum melakukan aktifitas lain mohon untuk mengisi kelengkapan profil!</span>
                             </div>
                         @endif
                         <form method="post" id="form-update" action="{{ $updateUrl }}">

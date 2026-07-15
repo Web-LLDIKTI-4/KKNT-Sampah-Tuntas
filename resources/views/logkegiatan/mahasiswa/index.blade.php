@@ -1,12 +1,12 @@
 @extends('layouts.app')
-@section('title','Log Kegiatan')
+@section('title','Log Harian')
 @section('container')
 <x-page-header /> 
 
 <div class="card">
     <div class="card-header">
         <x-btn-modal url="{{ url('logkegiatan/tambah') }}" title="Tambah Data">
-            <i class="fas fa-plus me-2"></i>
+            <i class="ri-add-fill me-2"></i>
             Tambah Data
         </x-btn-modal>
     </div>

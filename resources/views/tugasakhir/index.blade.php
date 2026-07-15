@@ -1,14 +1,17 @@
 @extends('layouts.app')
-@section('title','Data Tugas Akhir')
+@section('title','Laporan Akhir')
 @section('container')
 <x-page-header /> 
 
 <div class="card">
     <div class="card-header">
-        <x-btn-modal url="{{ url('tugasakhir/tambah') }}" title="Tambah Data">Tambah Data</x-btn-modal>
+        <x-btn-modal url="{{ url('tugasakhir/tambah') }}" title="Tambah Data">
+            <i class="ri-add-fill me-2"></i>
+            Tambah Data
+        </x-btn-modal>
     </div>
     <div class="card-body">
-        <p id="resultcontent">loding data</p>
+        <p id="resultcontent">loading data...</p>
     </div>
 </div>
 <script>

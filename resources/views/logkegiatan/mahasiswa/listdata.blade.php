@@ -20,11 +20,14 @@
         </table>
     </div>
 </div>
+
+<x-btn-export url="#" title="Export Data" />
+
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({
         searching: true,
-        lengthChange: true,
+        lengthChange: false,
         processing: true,
         serverSide: true,
         ajax: "{{ route('logkegiatan.listdataserver') }}",
@@ -35,7 +38,7 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_log', name: 'id_log', visible: false}, 
             {data: 'tanggal', name: 'tanggal'},
             {
@@ -53,7 +56,7 @@
             {data: 'volume', name: 'volume'},
             {data: 'satuan', name: 'satuan'},
             {data: 'nama_kpi', name: 'nama_kpi'},
-            {data: 'action', name: 'action', orderable: false, searchable: false},
+            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],
         // Menambahkan opsi untuk mencegah escape HTML oleh DataTables
         decodeEntities: false

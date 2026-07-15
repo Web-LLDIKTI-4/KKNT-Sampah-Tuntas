@@ -9,7 +9,7 @@
                     <th>Nama</th>
                     <th>Perguruan Tinggi</th>
                     <th>Laporan</th>
-                    <th>Nilai</th>
+                    <th width="1">Nilai</th>
                 </tr>
             </x-slot:thead>
         </x-datatable>
@@ -22,7 +22,7 @@
   $(function () {
     var table = $('#dataTable').DataTable({
         searching: true,
-        lengthChange: true,
+        lengthChange: false,
         processing: true,
         serverSide: true,
         ajax: "{{ route('laptugasakhir.listdataserver') }}",
@@ -39,7 +39,7 @@
             {data: 'nama', name: 'nama'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'tautan', name: 'tautan'},
-            {data: 'nilai_dpl', name: 'nilai_dpl'},
+            {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center', orderable: false, searchable: false},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false,visible:false,},
         ],
         layout: {

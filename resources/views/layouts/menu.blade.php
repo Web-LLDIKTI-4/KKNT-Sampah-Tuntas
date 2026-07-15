@@ -126,7 +126,7 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profile Desa / Kelurahan
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -390,7 +390,7 @@
                 <li>
                     <div class="d-grid px-4 pt-2 pb-1">
                     <a class="btn btn-sm btn-danger d-flex waves-effect waves-light" href="{{ url('logout') }}">
-                        <small class="align-middle">Keluar</small>
+                        <small class="align-middle">Logout</small>
                         <i class="ri-logout-box-r-line ms-2 ri-16px"></i>
                     </a>
                     </div>
