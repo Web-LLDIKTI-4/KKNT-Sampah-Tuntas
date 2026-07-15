@@ -37,7 +37,7 @@
                 <div class="col form-group form-floating form-floating-outline mb-6">
                     <select name="bulan" class="form-control form-control-sm">
                         @foreach ($namaBulan as $nomorBulan => $bulan)
-                            <option value="{{ $nomorBulan }}" @if($nomorBulan == date("m")) selected @endif>{{ $bulan }}</option>
+                            <option value="{{ $nomorBulan }}" @if($nomorBulan == date("m")) selected @endif>{{ Carbon\Carbon::create()->month($nomorBulan)->translatedFormat('F') }}</option>
                         @endforeach
                     </select>
                     <label> Pilih Bulan </label>

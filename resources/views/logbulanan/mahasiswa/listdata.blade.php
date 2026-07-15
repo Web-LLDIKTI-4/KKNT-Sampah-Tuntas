@@ -19,7 +19,7 @@
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td class="text-center">{{ $row->tahun }}</td>
-                    <td class="text-center">{{ Carbon\Carbon::create()->month($row->bulan)->format('F') }}</td>
+                    <td class="text-center">{{ Carbon\Carbon::create()->month($row->bulan)->translatedFormat('F') }}</td>
                     <td>{{ $row->tautan }}</td>
                     <td class="text-center">
                         <div class="d-flex">

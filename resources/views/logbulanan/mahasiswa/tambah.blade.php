@@ -1,6 +1,6 @@
 <p>
   <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-    Data log bulanan bulan <b class="ms-1 me-1"> {{ Carbon\Carbon::create()->month($bulan)->format('F')}}</b> tahun <b class="ms-1 me-1"> {{ $tahun }}</b>
+    Data log bulanan bulan <b class="ms-1 me-1"> {{ Carbon\Carbon::create()->month($bulan)->translatedFormat('F')}}</b> tahun <b class="ms-1 me-1"> {{ $tahun }}</b>
   </button>
 </p>
 <div class="collapse" id="collapseExample">
@@ -24,7 +24,7 @@
             </tbody>
         </table>
     @else
-        <div>tidak ada log harian bulan <b>{{ Carbon\Carbon::create()->month($bulan)->format('F')}}</b> tahun <b>{{ $tahun }}</b> </div>
+        <div>tidak ada log harian bulan <b>{{ Carbon\Carbon::create()->month($bulan)->translatedFormat('F')}}</b> tahun <b>{{ $tahun }}</b> </div>
     @endif
   </div>
 </div>
@@ -47,7 +47,7 @@
                 {{ $isi->deskripsi }}
             @endif
         </textarea>
-        <label>Log bulanan : Bulan <b>{{ Carbon\Carbon::create()->month($bulan)->format('F')}}</b> Tahun <b>{{ $tahun }}</b> </label>
+        <label>Log bulanan : Bulan <b>{{ Carbon\Carbon::create()->month($bulan)->translatedFormat('F')}}</b> Tahun <b>{{ $tahun }}</b> </label>
         <p id="wordCount ps-5">Jumlah kata: 0</p>
         <span id="deskripsi_error" class="text-danger"></span>
     </div>
