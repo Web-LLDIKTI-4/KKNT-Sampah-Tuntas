@@ -31,9 +31,10 @@ class LogHarianExport implements FromCollection, WithHeadings, WithStyles
                     'No' => $key + 1,
                     'Tanggal' => \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y'),
                     'Deskripsi' => strip_tags($item->deskripsi),
+                    'Tautan' => $item->tautan,
                     'Volume' => $item->volume,
                     'Satuan' => $item->satuan,
-                    'Tautan' => $item->tautan,
+                    'KPI' => $item->kpi->nama_kpi,
                 ];
             });
     }
@@ -44,9 +45,10 @@ class LogHarianExport implements FromCollection, WithHeadings, WithStyles
             'No',
             'Tanggal',
             'Deskripsi',
+            'Tautan',
             'Volume',
             'Satuan',
-            'Tautan',
+            'KPI',
         ];
     }
 
