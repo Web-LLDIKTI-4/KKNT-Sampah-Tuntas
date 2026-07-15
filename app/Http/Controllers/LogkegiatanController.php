@@ -33,10 +33,12 @@ class LogkegiatanController extends Controller
                     return $row->kpi->nama_kpi;
                 })
                 ->addColumn('deskripsi', function($row){
-                    return $row->deskripsi.'<br><a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
+                    return $row->deskripsi.'<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                 })
                 ->addColumn('action', function($row){
-                    return ActionButtons::editDelete(url('logkegiatan/edit/'.$row->id_log), $row->id_log);
+                    return view('components.action-data', [
+                        'urlEdit' => url('logkegiatan/edit/'.$row->id_log),
+                    ]);
                 })
                 ->rawColumns(['action'])
                 ->make(true);

@@ -12,6 +12,7 @@ use App\Models\Evaluasikegiatanjawaban;
 use App\Models\Evaluasikegiatan;
 use DB;
 use Validator;
+use App\Support\ActionButtons;
 
 class AdmevaluasikegiatanController extends Controller
 {    
@@ -27,30 +28,30 @@ class AdmevaluasikegiatanController extends Controller
     {
 
         if ($request->ajax()) { 
-
             $data = Evaluasikegiatanjawaban::get();
             return DataTables::of($data)
-            ->addIndexColumn()
-            ->addColumn('nm_lemb', function($row) {
-                if ($row->sp) {
-                    return $row->sp->nm_lemb;
-                } else {
-                    return 'No PT'; // or any default value you prefer
-                }
-            })
-            ->addColumn('pertanyaan', function($row) {
-                if ($row->evaluasikegiatan) {
-                    return $row->evaluasikegiatan->pertanyaan;
-                } else {
-                    return 'No PT'; // or any default value you prefer
-                }
-            })
-            ->addColumn('action', function($row){
-                $actionBtn = '<div class="d-felx"><a href="'.url('admlogharian/permhs/'.$row->email.'').'" class="btn btn-sm p-0 m-0">lihat data</a> </div>';
-                return $actionBtn;
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+                ->addIndexColumn()
+                ->addColumn('nm_lemb', function($row) {
+                    if ($row->sp) {
+                        return $row->sp->nm_lemb;
+                    } else {
+                        return 'Tidak ada'; // or any default value you prefer
+                    }
+                })
+                ->addColumn('pertanyaan', function($row) {
+                    if ($row->evaluasikegiatan) {
+                        return $row->evaluasikegiatan->pertanyaan;
+                    } else {
+                        return 'Tidak ada'; // or any default value you prefer
+                    }
+                })
+                ->addColumn('action', function($row){
+                    return view('components.btn-view', [
+                        'url' => url('admlogharian/permhs/'.$row->email.'')
+                    ]);
+                })
+                ->rawColumns(['action'])
+                ->make(true);
         }
     }
     public function pertanyaanevaluasi()
@@ -68,11 +69,13 @@ class AdmevaluasikegiatanController extends Controller
             $data = Evaluasikegiatan::get();           
             return DataTables::of($data)
             ->addIndexColumn()
-            ->addColumn('action', function($row){
-                $actionBtn = '<div class="d-felx"><a href="'.url('#').'" class="p-0 m-0"><i class="ri-delete-bin-line"></i></a> </div>';
-                return $actionBtn;
+            ->addColumn('pertanyaan', function($row) {
+                return $row->pertanyaan;
             })
-            ->rawColumns(['action'])
+            ->addColumn('action', function($row){
+                return ActionButtons::editDelete(url('admevaluasikegiatan/pertanyaanevaluasi/destroy'), $row->id_evaluasi);
+            })
+            ->rawColumns(['pertanyaan', 'action'])
             ->make(true);
         }
     }
@@ -107,5 +110,13 @@ class AdmevaluasikegiatanController extends Controller
         //insert data dan tampilkan pesan
         return response()->json(['success'=>true,'message' => 'Data berhasil disimpan'], 200);
     }
-    
+    public function destroy(Request $request){
+        $id_evaluasi = $request->id_evaluasi;
+        if (Evaluasikegiatan::where("id_evaluasi", $id_evaluasi)->delete()) {
+            return response()->json(['success' => true, 'message' => 'Data berhasil dihapus'], 200);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Data gagal dihapus'], 200);
+        }
+        
+    }
 }

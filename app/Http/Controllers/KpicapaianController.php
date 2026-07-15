@@ -41,6 +41,15 @@ class KpicapaianController extends Controller
                 ->addColumn('nama_kpitarget', function($row){
                     return $row->target->nama_kpitarget;
                 })
+                ->addColumn('permasalahan', function($row){
+                    return $row->permasalahan;
+                })
+                ->addColumn('solusi', function($row){
+                    return $row->solusi;
+                })
+                ->addColumn('kendala', function($row){
+                    return $row->kendala;
+                })
                 ->addColumn('status_capaian', function($row){
                     if($row->status_capaian == 'Y'){
                         return '<span class="badge bg-success">Sudah Selesai</span>';
@@ -54,10 +63,12 @@ class KpicapaianController extends Controller
                     return '<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-flex"><a href="#modalku" data-bs-toggle="modal" class="modalButton btn btn-sm p-0 m-0" data-src="'.url('kpicapaian/edit/'.$row->id_capaian).'" title="Edit Data"><i class="fas fa-edit"></i></a> <a href="javascript:void(0)" id="hapus_'.$row->id_capaian.'"  class="btn btn-sm p-0 m-0"><i class="fa fa-trash"></i></a></div>';
-                    return $actionBtn;
+                    return view('components.action-data', [
+                        'urlEdit' => url('kpicapaian/edit/'.$row->id_capaian),
+                        'urlDelete' => $row->id_capaian,
+                    ]);
                 })
-                ->rawColumns(['action','tautan', 'status_capaian'])
+                ->rawColumns(['action', 'tautan', 'status_capaian', 'permasalahan', 'solusi', 'kendala'])
                 ->make(true);
         }
     }
@@ -131,8 +142,7 @@ class KpicapaianController extends Controller
                 $validator->errors()->add('id_target', ''.$tahapan.'Tahapan sebelumnya harus di isi!'.$tahapansebelumnya + 1);
             }
 
-            $pjdesa = Pjdesa::where("email", Auth::user()->email)->exists();
-            if (!$pjdesa) {
+            if (!Pjdesa::where("email", Auth::user()->email)->exists()) {
                 $validator->errors()->add('kendala', 'Anda tidak memiliki akses untuk menyimpan data capaian KPI. Silakan hubungi administrator.');
             }
         });
@@ -151,7 +161,7 @@ class KpicapaianController extends Controller
             'solusi'=>$request->solusi,
             'kendala'=>$request->kendala,
             'tahapan'=>$tahapan,
-            'id_pjdesa'=>$pjdesa->id_pjdesa,
+            'id_pjdesa'=>Pjdesa::where("email", Auth::user()->email)->first()->id_pjdesa,
         ];
         Kpicapaian::create($data);
         //insert data dan tampilkan pesan

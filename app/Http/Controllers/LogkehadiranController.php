@@ -138,7 +138,7 @@ class LogkehadiranController extends Controller
             }
 
             $cekdata->update($data);
-            $message = 'Data kehadiran berhasil diperbarui.';
+            $message = 'Data kehadiran berhasil diupdate, anda pukul ' . date("H:i:s");
         } else {
             //insert
             if($mode === "datang") {
@@ -162,7 +162,7 @@ class LogkehadiranController extends Controller
             }
 
             Kehadiran::create($data);
-            $message = 'Data kehadiran berhasil ditambahkan.';
+            $message = 'Data kehadiran berhasil ditambahkan, anda pukul ' . date("H:i:s");
         }
 
         return redirect()->back()->with('success', $message);

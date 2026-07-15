@@ -22,6 +22,7 @@ class LogbulananController extends Controller
         }
         return view('logbulanan.mahasiswa.index',compact('namaBulan'));
     }
+
     public function tambah(Request $request)
     {
         $isi = Logbulanan::where('email',Auth::user()->email)->where('tahun',$request->tahun)->where('bulan',$request->bulan)->first();
@@ -38,6 +39,7 @@ class LogbulananController extends Controller
 
         return view('logbulanan.mahasiswa.tambah',$data);
     }
+    
     public function insert(Request $request){
         $validator = Validator::make($request->all(), [
             'deskripsi' => 'required',
@@ -89,6 +91,7 @@ class LogbulananController extends Controller
         //insert data dan tampilkan pesan
         return response()->json(['success'=>true,'message' => 'Log kegiatan bulanan berhasil disimpan'], 200);
     }
+
     public function destroy(Request $request){
         if (Logbulanan::where("email", Auth::user()->email)->where("id_logbulanan", $request->id_logbulanan)->delete()) {
             return response()->json(['success' => true, 'message' => 'Log kegiatan bulanan berhasil dihapus'], 200);
@@ -97,6 +100,7 @@ class LogbulananController extends Controller
         }
         
     }
+
     public function listdata(){
         $laporan = Logbulanan::where('email',Auth::user()->email)->get();
         return view('logbulanan.mahasiswa.listdata',compact('laporan'));

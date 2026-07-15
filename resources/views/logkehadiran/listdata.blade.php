@@ -1,18 +1,19 @@
 <div class="row">
     <div class="col-12 table-responsive">
         <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
-    <x-slot:thead>
+            <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
                     <th>Tanggal</th>
                     <th>Nama</th>
                     <th>Nama Perguruan Tinggi</th>
                     <th>Jam Masuk</th>
+                    <th>Lokasi Jam Masuk</th>
                     <th>Jam Pulang</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
-</x-datatable>
+        </x-datatable>
     </div>
 </div>
 <script type="text/javascript">

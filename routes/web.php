@@ -84,6 +84,7 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('setting', [SettingController::class, 'index']);
     Route::put('setting/update', [SettingController::class, 'update']);
 });
+
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('user', [UserController::class, 'index']);
     Route::get('user/listdata', [UserController::class, 'listdata']);
@@ -206,6 +207,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admevaluasikegiatan/pertanyaanevaluasi', [AdmevaluasikegiatanController::class, 'pertanyaanevaluasi'])->name('admevaluasikegiatan.pertanyaanevaluasi');
     Route::get('admevaluasikegiatan/pertanyaanevaluasilistdata', [AdmevaluasikegiatanController::class, 'pertanyaanevaluasilistdata'])->name('admevaluasikegiatan.pertanyaanevaluasilistdata');
     Route::get('admevaluasikegiatan/pertanyaanevaluasiserver', [AdmevaluasikegiatanController::class, 'pertanyaanevaluasiserver'])->name('admevaluasikegiatan.pertanyaanevaluasiserver');
+    Route::put('admevaluasikegiatan/pertanyaanevaluasi/destroy', [AdmevaluasikegiatanController::class, 'destroy'])->name('admevaluasikegiatan.pertanyaanevaluasi.destroy');
 
 });
 
