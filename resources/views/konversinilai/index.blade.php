@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Konversi Nilai Structure form')
+@section('title','Konversi Nilai')
 @section('container')
 
 <x-page-header /> 

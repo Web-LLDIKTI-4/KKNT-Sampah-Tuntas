@@ -1,7 +1,9 @@
 @extends('layouts.app')
-@section('title','Mahasiswa Mentor')
+@section('title','Mahasiswa')
 @section('container')
+
 <x-page-header /> 
+
 <div class="card">
     <div class="card-header">
         <x-btn-modal url="{{ url('dplmentoring/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Mahasiswa">

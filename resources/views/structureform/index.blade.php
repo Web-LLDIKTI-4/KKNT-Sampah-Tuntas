@@ -10,9 +10,9 @@
     </div>
     <div>
         <h5 class="mb-0">
-            <span class="align-middle">Konversi Nilai Structure form</span>
+            <span class="align-middle">Konversi Nilai </span>
         </h5>
-        <span>Data Structure Form</span>
+        <span>Data Konversi Nilai</span>
     </div>
 </div>
 
