@@ -4,7 +4,8 @@ namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromCollection;
 
-use App\Models\LogKegiatan;
+use App\Models\Logkegiatan;
+
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -23,7 +24,7 @@ class LogHarianExport implements FromCollection, WithHeadings, WithStyles
     */
     public function collection()
     {
-        return LogKegiatan::where('email', $this->email)
+        return Logkegiatan::where('email', $this->email)
             ->get()
             ->map(function ($item, $key) {
                 return [
