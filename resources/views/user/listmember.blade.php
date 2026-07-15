@@ -9,7 +9,7 @@
                     <th>Nim</th>
                     <th>Nama</th>
                     <th>Perguruan Tinggi</th>
-                    <th>Lokasi Program</th>
+                    <th>Lokasi Program KKN</th>
                     <th class="no-sort text-center" width="1">Aksi <input type="checkbox" id="checkAll"></th>
                 </tr>
             </thead>

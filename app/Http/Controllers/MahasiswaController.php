@@ -36,6 +36,9 @@ class MahasiswaController extends Controller
                 ->addColumn('nm_lemb', function($row) {
                     return $row->sp->nm_lemb ?? 'Belum terdata';
                 })
+                ->addColumn('location_program', function($row) {
+                    return $row->locationProgram->nama_lokasi ?? 'Belum terdata';
+                })
                 ->addColumn('action', function($row){
                     return view('components.btn-delete', [
                         'url' => url('mahasiswa/destroy'),

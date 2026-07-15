@@ -10,6 +10,7 @@
                     <th>Email</th>
                     <th>Hp</th>
                     <th>Perguruan Tinggi</th>
+                    <th>Lokasi Program KKN</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
@@ -37,6 +38,7 @@
             {data: 'email', name: 'email'},
             {data: 'phone', name: 'phone'},
             {data: 'nm_lemb', name: 'nm_lemb'},
+            {data: 'location_program', name: 'location_program'},
             {data: 'action', name: 'action', orderable: false, searchable: false},
         ],
     });
