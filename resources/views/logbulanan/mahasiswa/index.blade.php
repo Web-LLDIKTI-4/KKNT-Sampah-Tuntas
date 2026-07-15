@@ -44,14 +44,14 @@
                 </div>
                 <div class="col mt-1">
                     <x-btn-save formId="form-bulan" class="btn btn-primary btn-lg">
-                        Filter Data
+                        Input Log Bulanan
                     </x-btn-save>
                 </div>
             </div>
         </p> 
     </div>
     <div class="card-body">
-        <p id="resultcontent">Pilih dulu bulan dan tahun</p>
+        <p id="resultcontent"></p>
     </div>
 </div>
 <script>
