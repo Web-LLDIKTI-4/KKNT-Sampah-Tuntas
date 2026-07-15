@@ -56,7 +56,7 @@ class LogkehadiranExport implements FromCollection, WithHeadings, WithMapping
         return [
             'No' => $this->index,
             'Tanggal' => \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y'),
-            'Status Kehadiran' => $item->status_kehadiran,
+            'Status Kehadiran' => ucfirst($item->status_kehadiran),
             'Jam Masuk' => \Carbon\Carbon::parse($item->waktu_masuk)->format('H:i:s'),
             'Jam Pulang' => \Carbon\Carbon::parse($item->waktu_pulang)->format('H:i:s'),
             // Tambahkan kolom lain sesuai kebutuhan
