@@ -126,8 +126,8 @@
                             </div>
                             <hr />
                             
-                            <!-- Save changes buttons -->
-                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary rounded-pill">Save changes</x-btn-save>
+                            <!-- Simpan buttons -->
+                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary">Simpan</x-btn-save>
                         </form>
                     @elseif($isMahasiswa)
                         <form method="post" id="form-update" action="{{ $updateUrl }}">
@@ -188,8 +188,8 @@
                             </div>
                             <hr />
                             
-                            <!-- Save changes buttons -->
-                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary rounded-pill"><i class="ri-save-2-fill pe-1"></i>Save changes</x-btn-save>
+                            <!-- Simpan buttons -->
+                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary"><i class="ri-save-2-fill pe-1"></i>Simpan</x-btn-save>
                         </form>
                     @else
                         @if(!$dpl)
@@ -251,8 +251,8 @@
                             </div>
                             <hr />
                             
-                            <!-- Save changes buttons -->
-                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary rounded-pill">Save changes</x-btn-save>
+                            <!-- Simpan buttons -->
+                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary">Simpan</x-btn-save>
                         </form>
                     @endif   
                     </div>
