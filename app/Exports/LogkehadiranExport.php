@@ -55,10 +55,10 @@ class LogkehadiranExport implements FromCollection, WithHeadings, WithMapping
         $this->index++; // Increment index setiap kali map dipanggil
         return [
             'No' => $this->index,
-            'Tanggal' => $item->tanggal,
+            'Tanggal' => \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y'),
             'Status Kehadiran' => $item->status_kehadiran,
-            'Jam Masuk' => $item->waktu_masuk,
-            'Jam Pulang' => $item->waktu_pulang,
+            'Jam Masuk' => \Carbon\Carbon::parse($item->waktu_masuk)->format('H:i:s'),
+            'Jam Pulang' => \Carbon\Carbon::parse($item->waktu_pulang)->format('H:i:s'),
             // Tambahkan kolom lain sesuai kebutuhan
         ];
     }
