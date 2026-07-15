@@ -9,7 +9,8 @@
                     <th>Nim</th>
                     <th>Nama</th>
                     <th>Perguruan Tinggi</th>
-                    <th class="no-sort" width="1">Aksi <input type="checkbox" id="checkAll"></th>
+                    <th>Lokasi Program</th>
+                    <th class="no-sort text-center" width="1">Aksi <input type="checkbox" id="checkAll"></th>
                 </tr>
             </thead>
             <tbody>
@@ -28,7 +29,10 @@
                                     {{ $mahasiswa->kodept }}
                                 @endif
                             </td>
-                            <td class="text-center"><input type="checkbox" name="createuser[]" value="{{ $mahasiswa->email }}"></td>
+                            <td>{{ $mahasiswa->locationProgram->nama_lokasi }}</td>
+                            <td class="text-center">
+                                <input type="checkbox" name="createuser[]" value="{{ $mahasiswa->email }}">
+                            </td>
                         </tr>
                     @endforeach
                 @endif
@@ -70,17 +74,16 @@ $(function () {
 
     let table = $('#tabel-data').DataTable({
         paging: true,
-        lengthChange: true,
         searching: true,
+        lengthChange: true,
         ordering: true,
         info: true,
         autoWidth: false,
         responsive: true,
         serverSide: false,
         language: {
-            "zeroRecords": "Tidak ada data yang ditemukan",
-            "infoEmpty": "Tidak ada data yang tersedia",
-            "sEmptyTable": "Tidak ada data yang tersedia di tabel"
+            "search": "",
+            "searchPlaceholder": "Cari..."
         },
         columnDefs: [
             { targets: 'no-sort', orderable: false } // Tambahkan class 'no-sort' pada kolom 'Aksi'
@@ -97,6 +100,7 @@ $(function () {
 
     $("#form-create").on("submit",function(e){
         e.preventDefault();
+
         // Get unique checked checkboxes on all pages
         var uniqueCheckedCheckboxes = [];
 
@@ -147,7 +151,7 @@ $(function () {
                 if($.isEmptyObject(data.error)){  
                     $("#modalku").modal("hide");
                     toastr.success(data.success)	
-                    var table = $('#dataTable').DataTable(); // Menginisialisasi objek tabel
+                    var table = $('#table-data').DataTable(); // Menginisialisasi objek tabel
                     // Memuat ulang data tabel secara manual
                     table.ajax.reload();    
                 }else{                    

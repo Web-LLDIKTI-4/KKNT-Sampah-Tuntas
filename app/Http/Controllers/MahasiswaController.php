@@ -50,15 +50,28 @@ class MahasiswaController extends Controller
     public function import(){
         return view('mahasiswa.import');
     }
-    public function prosesimport(Request $request){
+
+    public function prosesimport(Request $request)
+    {
         try {
-            Excel::import(new ImportMahasiswa, $request->file);
+            $import = new ImportMahasiswa;
+            Excel::import($import, $request->file);
+
+            if (count($import->errors) > 0) {
+                // ada baris yang gagal/di-skip
+                return back()
+                    ->with('warning', "{$import->imported} data berhasil diimpor.")
+                    ->with('import_errors', $import->errors);
+            }
+
             session()->flash('success', 'Data mahasiswa berhasil diimpor.');
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan saat mengimpor data: ' . $e->getMessage());
         }
+
         return back();
     }
+
     public function destroy(Request $request){
         try {
             DB::beginTransaction();

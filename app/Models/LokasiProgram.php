@@ -34,4 +34,9 @@ class LokasiProgram extends Model
     {
         return $this->hasMany(User::class, 'location_program', 'id');
     }
+
+    public function mahasiswa() 
+    {
+        return $this->hasMany(User::class, 'location_program', 'id');
+    }
 }

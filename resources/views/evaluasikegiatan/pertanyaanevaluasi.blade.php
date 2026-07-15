@@ -7,10 +7,16 @@
 <!-- Nav -->
 <div class="card">
     <div class="card-header">
-        <a href="{{ url('admevaluasikegiatan/pertanyaanevaluasi') }}" class="btn btn-info btn-sm waves-effect waves-light">
-            <span class="d-none d-sm-block">Data Pertanyaan</span>
-            <i class="ri-play-fill d-sm-none"></i>
-        </a>
+        <div class="btn-group" role="group" aria-label="Basic example">
+            <a href="{{ url('admevaluasikegiatan') }}" class="btn btn-secondary btn-sm waves-effect waves-light">
+                <span class="d-none d-sm-block">Data Hasil Evaluasi</span>
+                <i class="ri-play-fill d-sm-none"></i>
+            </a>
+            <a href="{{ url('admevaluasikegiatan/pertanyaanevaluasi') }}" class="btn btn-info btn-sm waves-effect waves-light">
+                <span class="d-none d-sm-block">Data Pertanyaan</span>
+                <i class="ri-play-fill d-sm-none"></i>
+            </a>
+        </div>
         <x-btn-modal url="{{ url('admevaluasikegiatan/tambah') }}" title="Tambah Pertanyaan">
             <i class="ri-add-line me-1"></i>
             Tambah Data Pertanyaan

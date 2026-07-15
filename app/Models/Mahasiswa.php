@@ -37,4 +37,9 @@ class Mahasiswa extends Model
     {
         return $this->hasOne(Tugasakhir::class,'email','email');
     }
+
+    public function locationProgram()
+    {
+        return $this->belongsTo(LokasiProgram::class,'location_program','id');
+    }
 }

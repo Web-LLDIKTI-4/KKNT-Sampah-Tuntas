@@ -10,9 +10,9 @@
     </div>
     <div>
         <h5 class="mb-0">
-            <span class="align-middle">Laporan Capaian Key Performance Indicator (KPI)</span>
+            <span class="align-middle">Capaian Key Performance Indicator (KPI)</span>
         </h5>
-        <span>Data Laporan Capaian KPI</span>
+        <span>Data Capaian KPI</span>
     </div>
 </div> 
 

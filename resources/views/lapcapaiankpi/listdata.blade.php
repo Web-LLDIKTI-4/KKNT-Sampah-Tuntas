@@ -44,7 +44,7 @@
             {data: 'desa', name: 'desa'},
             {data: 'pjdesa', name: 'pjdesa'},
             {data: 'nama_kpi', name: 'nama_kpi'},
-            {data: 'tahapan', name: 'tahapan'},               
+            {data: 'tahapan', name: 'tahapan', className: 'text-center'},
             {
                 data: 'nama_kpitarget',
                 name: 'nama_kpitarget',

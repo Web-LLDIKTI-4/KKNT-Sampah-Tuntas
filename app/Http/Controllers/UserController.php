@@ -93,12 +93,14 @@ class UserController extends Controller
         $data=[
             'name'=>$request->name,
             'email'=>$request->email,
+            'location_program' => $request->locationProgram->id,
             'role' =>$request->role,
             'password'=> Hash::make($request->password)
         ];
         User::insert($data);
         return response()->json(['success' => true,'message'=>"user berhasil dibuat"]);       
     }
+
     public function edit(Request $request){
         $data = User::find($request->id);
         $locationPrograms = \App\Models\LokasiProgram::all();
