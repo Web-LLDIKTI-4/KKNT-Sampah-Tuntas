@@ -24,15 +24,7 @@
             <label>Target KPI</label>
         </div>
     </div>
-    </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="status_capaian" class="form-control form-control-sm">
-            @foreach(array('Y','N') as $item)
-                <option value="{{$item}}" @if($data->status_capaian == $item) selected @endif>{{$item}}</option>
-            @endforeach
-        </select>
-        <label>Capaian</label>
-    </div>
+    
     <div class="form-group form-floating form-floating-outline mb-6">
         <textarea name="permasalahan" class="form-control">{{ $data->permasalahan }}</textarea>
         <label>Permasalahan</label>
@@ -43,8 +35,34 @@
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <textarea name="kendala" class="form-control">{{ $data->kendala }}</textarea>
-        <label>Kendala</label>
+        <label>Kebutuhan Dukungan</label>
     </div>
+
+    <div class="form-group form-floating form-floating-outline mb-6">
+        <select name="status_capaian" class="form-control form-control-sm">
+            @php
+                $statusCapaian = [
+                    {
+                        'status' => 'Y',
+                        'label' => 'Sudah Selesai'
+                    },
+                    {
+                        'status' => 'P',
+                        'label' => 'Proses'
+                    },
+                    {
+                        'status' => 'N',
+                        'label' => 'Belum Ditindaklanjuti'
+                    },
+                ]
+            @endphp
+            @foreach($statusCapaian as $item)
+                <option value="{{$item['status']}}" @if($data->status_capaian == $item['status']) selected @endif>{{$item['label']}}</option>
+            @endforeach
+        </select>
+        <label>Tindak Lanjut</label>
+    </div>
+
     <div class="form-group form-floating form-floating-outline mb-6">
         <input type="text" name="tautan" value="{{ $data->tautan }}" class="form-control form-control-sm">
         <label>Tautan</label>

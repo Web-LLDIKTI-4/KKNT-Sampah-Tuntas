@@ -1,14 +1,14 @@
 <div class="row">
     <div class="col-12 table-responsive">
         <x-datatable id="dataTable" tableClass="table table-sm table-bordered">
-    <x-slot:thead>
+            <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
                     <th>Pertanyaan</th>
                     <th>Aksi</th>
                 </tr>
             </x-slot:thead>
-</x-datatable>
+        </x-datatable>
     </div>
 </div>
 <script type="text/javascript">

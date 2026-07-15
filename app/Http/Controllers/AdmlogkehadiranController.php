@@ -43,6 +43,15 @@ class AdmlogkehadiranController extends Controller
                 ->addColumn('nm_lemb', function($row){
                     return $row->mahasiswa->sp->nm_lemb ?? '-';
                 })
+                ->addColumn('tanggal', function($row){
+                    return $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-';
+                })
+                ->addColumn('waktu_masuk', function($row){
+                    return $row->waktu_masuk ? date('H:i:s', strtotime($row->waktu_masuk)) . ' WIB' : '-';
+                })
+                ->addColumn('waktu_pulang', function($row){
+                    return $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)) . ' WIB' : '-';
+                })
                 ->addColumn('action', function($row){
                     $actionBtn = '<div class="d-felx"><a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-pencil-square"></i></a> <a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-trash"></i></a></div>';
                     return $actionBtn;

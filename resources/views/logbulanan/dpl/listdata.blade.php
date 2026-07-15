@@ -1,14 +1,14 @@
 <div class="row">
     <div class="col-12 table-responsive">
-        <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
+        <x-datatable id="dataTable">
             <x-slot:thead>
                 <tr>
-                    <th width="1">No</th>
-                    <th>Bulan</th>
-                    <th>Nama</th>
-                    <th>Perguruan Tinggi</th>
-                    <th>Deskripsi</th>
-                    <th>#</th>
+                    <th width="1" class="text-center">No</th>
+                    <th class="text-center">Bulan</th>
+                    <th class="text-center">Nama</th>
+                    <th class="text-center">Nama Perguruan Tinggi</th>
+                    <th class="text-center">Deskripsi</th>
+                    <th class="text-center">Nilai</th>
                 </tr>
             </x-slot:thead>
         </x-datatable>

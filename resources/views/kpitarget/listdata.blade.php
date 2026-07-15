@@ -1,18 +1,18 @@
 <div class="row">
     <div class="col-12 table-responsive">
         <x-datatable id="dataTable" tableClass="table table-sm">
-    <x-slot:thead>
+            <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
                     <th>Id kpitarget</th>
-                    <th>Key performance indicator</th>
+                    <th>Nama KPI</th>
                     <th>Tahapan</th>
-                    <th>Target Key performance indicator</th>
-                    <th>Persen</th>
+                    <th>Target KPI</th>
+                    <th>Persentase (%)</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
-</x-datatable>
+        </x-datatable>
     </div>
 </div>
 <script type="text/javascript">

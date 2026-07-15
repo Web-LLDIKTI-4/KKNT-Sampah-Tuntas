@@ -50,8 +50,6 @@
                     return "<div class='text-wrap'>" +strippedText+ "</div>";
                 }
             },
-            {data: 'status_capaian', name: 'status_capaian'},
-            {data: 'tautan', name: 'tautan'},
             {
                 data: 'permasalahan',
                 name: 'permasalahan',
@@ -88,6 +86,8 @@
                     return "<div class='text-wrap'>" +strippedText+ "</div>";
                 }
             },
+            {data: 'status_capaian', name: 'status_capaian'},
+            {data: 'tautan', name: 'tautan'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],
         layout: {

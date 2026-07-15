@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Data target key performance indicator')
+@section('title','Target Key Performance Indicator (KPI)')
 @section('container')
 
 <div class="d-flex mb-4 gap-4">

@@ -35,16 +35,16 @@ class AdmstructureformController extends Controller
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('nim', function($row){
-                    return $row->mahasiswa->nim;
+                    return $row->mahasiswa->nim ?? '-';
                 })
                 ->addColumn('nama', function($row){
-                    return $row->mahasiswa->nama;
+                    return $row->mahasiswa->nama ?? '-';
                 })
                 ->addColumn('nm_lemb', function($row){
-                    return $row->mahasiswa->sp->nm_lemb;
+                    return $row->mahasiswa->sp->nm_lemb ?? '-';
                 })
                 ->addColumn('prodi', function($row){
-                    return $row->mahasiswa->prodi;
+                    return $row->mahasiswa->prodi ?? '-';
                 })
                 ->addColumn('nilai_akhir', function($row){
                     $nilai_dpl = is_numeric($row->nilai_dpl) ? $row->nilai_dpl : 0;

@@ -40,6 +40,13 @@ class KpicapaianController extends Controller
                 ->addColumn('nama_kpitarget', function($row){
                     return $row->target->nama_kpitarget;
                 })
+                ->addColumn('status_capaian', function($row){
+                    if($row->status_capaian == 1){
+                        return '<span class="badge bg-success">Sudah Selesai</span>';
+                    }else{
+                        return '<span class="badge bg-warning">Belum Selesai</span>';
+                    }
+                })
                 ->addColumn('tautan', function($row){
                     return '<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                 })

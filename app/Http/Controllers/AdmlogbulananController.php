@@ -38,25 +38,26 @@ class AdmlogbulananController extends Controller
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('nama_mahasiswa', function($row){
-                    return $row->mahasiswa->nama;
+                    return $row->mahasiswa->nama ?? 'Nama tidak tersedia';
                 })
                 ->addColumn('nm_lemb', function($row){
-                    return $row->mahasiswa->sp->nm_lemb;
+                    return $row->mahasiswa->sp->nm_lemb ?? 'Nama Perguruan Tinggi tidak tersedia';
                 })
                 ->addColumn('deskripsi', function($row){
                     return $row->deskripsi.'<br><a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                 })
                 ->addColumn('nama_bulan', function($row){
-                    return Carbon::create()->month($row->bulan)->format('F');
+                    return Carbon::create()->month($row->bulan)->translatedFormat('F');
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx">';
                     if (Auth::check() && Auth::user()->role == 'dpl') {
-                        $actionBtn.= '<a href="#modalku" data-bs-toggle="modal" data-src="'.url('admlogbulanan/formpenilaian/'.$row->id_logbulanan.'').'" class="modalButton p-0 m-0" title="Penilaian">berikan <br>penilaian</a>';
+                        return view('components.btn-modal', [
+                            'url' => url('admlogbulanan/formpenilaian/'.$row->id_logbulanan),
+                            'slot' => 'Berikan Nilai',
+                        ])->render();
+                    } else {
+                        return '<h4>'.$row->nilai.'</h4>';
                     }
-                    $actionBtn.= '<hr> <h4>'.$row->nilai.'</h4>';
-                    $actionBtn.= '</div>';
-                    return $actionBtn;
                 })
                 ->rawColumns(['action'])
                 ->make(true);

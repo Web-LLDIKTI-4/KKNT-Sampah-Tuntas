@@ -31,11 +31,11 @@
         },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
-            {data: 'tanggal', name: 'tanggal'},
+            {data: 'tanggal', name: 'tanggal', className: 'text-center'},
             {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
             {data: 'nm_lemb', name: 'nm_lemb'},
-            {data: 'waktu_masuk', name: 'waktu_masuk'},
-            {data: 'waktu_pulang', name: 'waktu_pulang'},
+            {data: 'waktu_masuk', name: 'waktu_masuk', className: 'text-center'},
+            {data: 'waktu_pulang', name: 'waktu_pulang', className: 'text-center'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:false},
         ],
     });

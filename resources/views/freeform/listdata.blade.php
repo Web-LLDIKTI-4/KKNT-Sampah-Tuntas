@@ -31,6 +31,12 @@
         processing: true,
         serverSide: true,
         ajax: "{{ route('admfreeform.listdataserver') }}",
+        language: {
+            search: "",
+            searchPlaceholder: "Cari...",
+            zeroRecords: "Tidak ada data yang tersedia",
+            infoEmpty: "Tidak ada data yang ditemukan",
+        },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_freeform', name: 'id_freeform', visible:false},

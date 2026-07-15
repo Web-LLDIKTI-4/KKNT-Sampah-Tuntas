@@ -49,6 +49,13 @@ class LaptugasakhirController extends Controller
                     </div>';
                     return $actionBtn;
                 })
+                ->addColumn('action', function($row) {
+                    return view('components.btn-delete', [
+                        'idField' => 'hapus_'.$row->id_tugasakhir,
+                        'idValue' => $row->id_tugasakhir,
+                        'url' => url('tugasakhir/delete/'.$row->id_tugasakhir)
+                    ])->render();
+                })
                 ->rawColumns(['action', 'tautan'])
                 ->make(true);
         }

@@ -10,7 +10,7 @@
                     <th>Nim</th>
                     <th>Nama</th>
                     <th>Perguruan Tinggi</th>
-                    <th>Prodi</th>
+                    <th>Prodi.</th>
                     <th>Free Form</th>
                     <th>Nilai DPL</th>
                     <th>Nilai DPA</th>
@@ -22,9 +22,17 @@
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({
+        searching: true,
+        lengthChange: false,
         processing: true,
         serverSide: true,
         ajax: "{{ route('dplfreeform.listdataserver') }}",
+        language: {
+            search: "",
+            searchPlaceholder: "Cari...",
+            zeroRecords: "Tidak ada data yang tersedia",
+            infoEmpty: "Tidak ada data yang ditemukan",
+        },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_freeform', name: 'id_freeform', visible:false},

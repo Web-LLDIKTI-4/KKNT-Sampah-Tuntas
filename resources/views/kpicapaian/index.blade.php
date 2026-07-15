@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Data Capaian KPI')
+@section('title','Capaian KPI')
 @section('container')
 
 <div class="d-flex mb-4 gap-4">

@@ -28,10 +28,10 @@ return [
             'latitude' => -6.8992479713514285,
             'longitude' => 107.63771992191431,
         ],
-        // [
-        //     'nama' => 'Kantor Saya',
-        //     'latitude' => -6.833644,
-        //     'longitude' => 108.247755,
-        // ],
+        [
+            'nama' => 'Kantor Saya',
+            'latitude' => -6.833644,
+            'longitude' => 108.247755,
+        ],
     ],
 ];

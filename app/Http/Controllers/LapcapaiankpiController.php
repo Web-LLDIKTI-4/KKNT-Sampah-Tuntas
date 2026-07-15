@@ -31,7 +31,7 @@ class LapcapaiankpiController extends Controller
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('desa', function($row) {
-                    return isset($row->pjdesa->desa->desa) ? $row->pjdesa->desa->desa : null;
+                    return isset($row->pjdesa->desa->desa) ? $row->pjdesa->desa->desa : '-';
                 })
                 ->addColumn('pjdesa', function($row) {
                     return isset($row->pjdesa->email) ? $row->pjdesa->email : null;
@@ -44,6 +44,15 @@ class LapcapaiankpiController extends Controller
                 })
                 ->addColumn('nama_kpitarget', function($row) {
                     return isset($row->target->nama_kpitarget) ? $row->target->nama_kpitarget : null;
+                })
+                ->addColumn('status_capaian', function($row) {
+                    if($row->status_capaian == 'Y'){
+                        return '<span class="badge bg-success">Sudah Selesai</span>';
+                    } elseif ($row->status_capaian == 'P') {
+                        return '<span class="badge bg-warning">Proses</span>';
+                    } else {
+                        return '<span class="badge bg-danger">Belum Ditindaklanjuti</span>';
+                    }
                 })
                 ->addColumn('tautan', function($row) {
                     return $row->tautan ? '<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>' : null;
@@ -59,7 +68,7 @@ class LapcapaiankpiController extends Controller
                     </div>';
                     return $actionBtn;
                 })
-                ->rawColumns(['action', 'tautan'])
+                ->rawColumns(['action', 'status_capaian', 'tautan'])
                 ->make(true);
         }
         
