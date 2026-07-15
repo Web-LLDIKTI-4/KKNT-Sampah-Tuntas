@@ -37,7 +37,7 @@
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_target', name: 'id_target', visible:false},
             {data: 'nama_kpi', name: 'nama_kpi'},
-            {data: 'tahapan', name: 'tahapan'},               
+            {data: 'tahapan', name: 'tahapan', className: 'text-center'},               
             {
                 data: 'nama_kpitarget',
                 name: 'nama_kpitarget',
