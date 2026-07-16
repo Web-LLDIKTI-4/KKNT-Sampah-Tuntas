@@ -1,24 +1,34 @@
-<div class="row">
-    <div class="col-12 table-responsive">
-        <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
-            <x-slot:thead>
-                <tr>
-                    <th class="text-center" width="1">No</th>
-                    <th class="text-center">Tanggal</th>
-                    <th class="text-center">Nama</th>
-                    <th class="text-center">Nama Perguruan Tinggi</th>
-                    <th class="text-center">Jam Masuk</th>
-                    <th class="text-center">Lokasi Masuk</th>
-                    <th class="text-center">Jam Pulang</th>
-                    <th class="text-center">Lokasi Pulang</th>
-                    <th class="text-center" width="1">Aksi</th>
-                </tr>
-            </x-slot:thead>
-        </x-datatable>
+@extends('layouts.app')
+@section('title', 'Kehadiran Mahasiswa')
+@section('container')
+
+<x-page-header title="Kehadiran Mahasiswa" subtitle="Data {{ request()->route('email') }}" />
+
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12 table-responsive">
+                <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
+                    <x-slot:thead>
+                        <tr>
+                            <th class="text-center" width="1">No</th>
+                            <th class="text-center">Tanggal</th>
+                            <th class="text-center">NIM</th>
+                            <th class="text-center">Nama</th>
+                            <th class="text-center">Nama Perguruan Tinggi</th>
+                            <th class="text-center">Jam Masuk</th>
+                            <th class="text-center">Lokasi Masuk</th>
+                            <th class="text-center">Jam Pulang</th>
+                            <th class="text-center">Lokasi Pulang</th>
+                        </tr>
+                    </x-slot:thead>
+                </x-datatable>
+            </div>
+        </div>
+
+        <x-btn-export url="{{ url('admlogkehadiran/export/' . request()->route('email')) }}" />
     </div>
 </div>
-
-<x-btn-export url="{{ url('admlogkehadiran/export') }}" />
 
 <script type="text/javascript">
     $(function () {
@@ -27,7 +37,7 @@
             lengthChange: false,
             processing: true,
             serverSide: true,
-            ajax: "{{ route('admlogkehadiran.listdataserver') }}",
+            ajax: "{{ route('admlogkehadiran.listdataserver',request()->route('email')) }}",
             language: {
                 search: "",
                 searchPlaceholder: "Cari...",
@@ -37,14 +47,15 @@
             columns: [
                 {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
                 {data: 'tanggal', name: 'tanggal', className: 'text-center'},
+                {data: 'nim', name: 'nim', className: 'text-center'},
                 {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
                 {data: 'nm_lemb', name: 'nm_lemb'},
                 {data: 'waktu_masuk', name: 'waktu_masuk', className: 'text-center'},
                 {data: 'coordinates_datang', name: 'coordinates_datang', className: 'text-center'},
                 {data: 'waktu_pulang', name: 'waktu_pulang', className: 'text-center'},
                 {data: 'coordinates_pulang', name: 'coordinates_pulang', className: 'text-center'},
-                {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:false},
             ],
         });
     });
 </script>
+@stop

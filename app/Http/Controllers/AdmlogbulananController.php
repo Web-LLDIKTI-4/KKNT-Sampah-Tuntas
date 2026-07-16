@@ -9,7 +9,7 @@ use DataTables;
 use App\Models\Logbulanan;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
-use App\Exports\LogbulananmhsExport;
+use App\Exports\LogBulananByMhsExport;
 
 class AdmlogbulananController extends Controller
 {    
@@ -17,23 +17,59 @@ class AdmlogbulananController extends Controller
     {  
         return view('logbulanan.dpl.index');
     }
-    public function listdata()
+    public function listdatagroup()
     {
-        return view('logbulanan.dpl.listdata');
+        return view('logbulanan.dpl.listdatagroup');
     }
-    public function listdataserver(Request $request)
+    public function listdatagrouping(Request $request)
     {
-
         if ($request->ajax()) {
             if (Auth::check() && Auth::user()->role == 'dpl') {
-                $data = Logbulanan::with(['mahasiswa', 'dplmentoring'])
+                $data = Mahasiswa::with(['dplmentoring'])
                     ->whereHas('dplmentoring', function ($query) {
                         $query->where('email_dpl', Auth::user()->email);
                     })
                     ->get();
             } else {
-                $data = Logbulanan::with(['mahasiswa'])->get();
+                $data = Mahasiswa::all();
             }           
+
+            return Datatables::of($data)
+                ->addIndexColumn()
+                ->addColumn('nim', function($row){
+                    return $row->nim ?? 'NIM tidak tersedia';
+                })
+                ->addColumn('nama_mahasiswa', function($row){
+                    return $row->nama ?? 'Nama tidak tersedia';
+                })
+                ->addColumn('email', function($row){
+                    return $row->email ?? 'Email tidak tersedia';
+                })
+                ->addColumn('nm_lemb', function($row){
+                    return $row->sp->nm_lemb ?? 'Nama Perguruan Tinggi tidak tersedia';
+                })
+                ->addColumn('count_log', function($row){
+                    return $row->logbulanan->count() ?? '0';
+                })
+                ->addColumn('action', function($row){
+                    return view('components.action-data', [
+                        'urlView' => url('admlogbulanan/listdata/'.$row->email)
+                    ]);
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
+
+    public function listdata()
+    {
+        return view('logbulanan.dpl.listdata');
+    }
+    public function listdataserver(Request $request, String $email)
+    {
+
+        if ($request->ajax()) {
+            $data = Logbulanan::where('email', $email)->get();
 
             return Datatables::of($data)
                 ->addIndexColumn()
@@ -50,9 +86,10 @@ class AdmlogbulananController extends Controller
                     return Carbon::create()->month($row->bulan)->translatedFormat('F');
                 })
                 ->addColumn('action', function($row){
-                    if (Auth::check() && Auth::user()->role == 'dpl') {
+                    if (Auth::check() && Auth::user()->role == 'dpl' && $row->nilai == null) {
                         return view('components.btn-modal', [
                             'url' => url('admlogbulanan/formpenilaian/'.$row->id_logbulanan),
+                            'title' => 'Penilaian Log Bulanan',
                             'slot' => 'Berikan Nilai',
                         ])->render();
                     } else {
@@ -63,9 +100,7 @@ class AdmlogbulananController extends Controller
                 ->make(true);
         }
     }
-    public function export(){
-        return Excel::download(new LogbulananmhsExport, 'logbulanan_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
-    }
+
     public function formpenilaian(Request $request){
         $logbulanan=Logbulanan::find($request->id);
         $anilai = array('10','20','30','40','50','60','70','80','90','100');
@@ -75,9 +110,9 @@ class AdmlogbulananController extends Controller
         ];
         return view('logbulanan.dpl.penilaian',$data);
     }
-    public function updatenilai(Request $request){
 
-        $logbulanan=Logbulanan::find($request->id_logbulanan);
+    public function updatenilai(Request $request){
+        $logbulanan = Logbulanan::find($request->id_logbulanan);
         if ($logbulanan) {
             $logbulanan->update([
                 'nilai' => $request->nilai,
@@ -88,5 +123,9 @@ class AdmlogbulananController extends Controller
         } else {
             return response()->json(['success'=>false,'message' => 'Data tidak ditemukan'], 404);
         }        
+    }
+
+    public function export(String $email){
+        return Excel::download(new LogBulananByMhsExport($email), 'logbulanan_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

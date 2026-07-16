@@ -47,7 +47,12 @@ class DplmentoringController extends Controller
                     return $row->mahasiswa->prodi ?? 'tidak ada';
                 })
                 ->addColumn('rekapnilai', function($row){
-                    return '<a href="#modalku" class="modalButton" data-bs-toggle="modal" data-src="'.url('dplmentoring/rekapnilai/').'/'.base64_encode($row->email_mahasiswa).'" title="Rekap Nilai Log Bulanan">rekap nilai</a>';
+                    // return '<a href="#modalku" class="modalButton" data-bs-toggle="modal" data-src="'.url('dplmentoring/rekapnilai/').'/'.base64_encode($row->email_mahasiswa).'" title="Rekap Nilai Log Bulanan">rekap nilai</a>';
+                    return view('components.btn-modal', [
+                        'url' => url('dplmentoring/rekapnilai/').'/'.base64_encode($row->email_mahasiswa),
+                        'title' => 'Rekap Nilai Log Bulanan',
+                        'slot' => 'Rekap Nilai',
+                    ])->render();
                 })
                 ->addColumn('nilai_freeform', function($row){
                     if($row->mahasiswa){
