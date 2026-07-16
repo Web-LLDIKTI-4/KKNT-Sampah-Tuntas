@@ -27,10 +27,28 @@ class LogHarianExport implements FromCollection, WithHeadings, WithStyles
         return Logkegiatan::where('email', $this->email)
             ->get()
             ->map(function ($item, $key) {
+                $deskripsi = $item->deskripsi ?? '-';
+                if ($deskripsi !== '-') {
+                    $deskripsi = str_replace(
+                        ['<br>', '<br/>', '<br />', '</p>', '</li>'],
+                        "\n",
+                        $deskripsi
+                    );
+
+                    $deskripsi = strip_tags($deskripsi);
+                    $deskripsi = html_entity_decode($deskripsi, ENT_QUOTES | ENT_HTML5);
+
+                    // Rapikan spasi tanpa menghapus newline
+                    $deskripsi = preg_replace('/[ \t]+/', ' ', $deskripsi);
+
+                    // Hilangkan baris kosong berlebih
+                    $deskripsi = preg_replace("/\n{3,}/", "\n\n", trim($deskripsi));
+                }
+
                 return [
                     'No' => $key + 1,
                     'Tanggal' => \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y'),
-                    'Deskripsi' => strip_tags($item->deskripsi),
+                    'Deskripsi' => $deskripsi,
                     'Tautan' => $item->tautan,
                     'Volume' => $item->volume,
                     'Satuan' => $item->satuan,

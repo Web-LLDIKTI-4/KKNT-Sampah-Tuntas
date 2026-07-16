@@ -88,7 +88,7 @@
             },
             {data: 'status_capaian', name: 'status_capaian'},
             {data: 'tautan', name: 'tautan'},
-            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
+            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible: @json(in_array(auth()->user()->akses, ['pjdesa']))},
         ],
         layout: {
             top1: {

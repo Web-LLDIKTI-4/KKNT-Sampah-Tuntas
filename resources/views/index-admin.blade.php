@@ -56,7 +56,7 @@
                     </div>
                     <div class="ms-3 d-flex flex-column">
                         <h6 class="mb-1">Jumlah DPL</h6>
-                        <small>{{$jumlahdpl}}</small>
+                        <small>{{$jumlahdpl}} Orang</small>
                     </div>
                 </div>
                 @endif                
@@ -67,14 +67,8 @@
                         </div>
                     </div>
                     <div class="ms-3 d-flex flex-column">
-                        @if($userRole === "dpl")
-                            <h6 class="mb-1">Laporan Anda</h6>
-                            <small>{{$jumlahlaporandpl}}</small>
-                        @else
-                            <h6 class="mb-1">Laporan DPL</h6>
-                            <small>{{$jumlahlaporandpl}}</small>
-                        @endif  
-                        
+                        <h6 class="mb-1">Laporan DPL</h6>
+                        <small>{{$jumlahlaporandpl}} Laporan</small>
                     </div>
                 </div>
                 <div class="d-flex align-items-center">
@@ -85,7 +79,7 @@
                     </div>
                     <div class="ms-3 d-flex flex-column">
                         <h6 class="mb-1">Konversi Nilai</h6>
-                        <small>{{ $jumlahdplnilaikonversi }}</small>
+                        <small>{{ $jumlahdplnilaikonversi }} Mahasiswa</small>
                     </div>
                 </div>
             </div>
@@ -139,7 +133,7 @@
                     <p class="mb-0 card-subtitle">Data Mahasiswa</p>
                 </div>
                 <div class="card-body pt-4">
-                    <div class="d-flex align-items-center mb-6">
+                    {{-- <div class="d-flex align-items-center mb-6">
                         <div class="avatar">
                             <div class="avatar-initial bg-label-primary rounded">
                             <i class="ri-smartphone-line ri-24px"></i>
@@ -147,9 +141,9 @@
                         </div>
                         <div class="ms-3 d-flex flex-column">
                             <h6 class="mb-1">Jumlah Pergururan Tinggi</h6>
-                            <small>{{ $jumlahpt }}</small>
+                            <small>{{ $jumlahpt }} </small>
                         </div>
-                    </div>
+                    </div> --}}
                     <div class="d-flex align-items-center mb-6">
                         <div class="avatar">
                             <div class="avatar-initial bg-label-success rounded">
@@ -158,7 +152,7 @@
                         </div>
                         <div class="ms-3 d-flex flex-column">
                             <h6 class="mb-1">Jumlah Mahasiswa</h6>
-                            <small>{{ $jumlahmahasiswa }}</small>
+                            <small>{{ $jumlahmahasiswa }} Orang</small>
                         </div>
                     </div>
                     <div class="d-flex align-items-center mb-6">
@@ -169,7 +163,7 @@
                         </div>
                         <div class="ms-3 d-flex flex-column">
                             <h6 class="mb-1">Log Bulanan Mahasiswa</h6>
-                            <small>{{$jumlahlogbulanan}}</small>
+                            <small>{{$jumlahlogbulanan}} Laporan</small>
                         </div>  
                     </div>
                     @if($jumlahlogkegiatan)
@@ -181,7 +175,7 @@
                             </div>
                             <div class="ms-3 d-flex flex-column">
                                 <h6 class="mb-1">Log Kegiatan MHS</h6>
-                                <small>{{$jumlahlogkegiatan}}</small>
+                                <small>{{$jumlahlogkegiatan}} Kegiatan</small>
                             </div>  
                         </div>                
                     @endif

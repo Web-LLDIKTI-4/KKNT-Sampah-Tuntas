@@ -11,11 +11,11 @@
     <input type="hidden" name="tahun" value="{{$tahun}}">
     <div class="alert alert-info">
         Panduan Pengisian : <br />
-            1. Bagaimana aktifitas mentoring dan koordinasi dengan DPL maupun perangkat desa dan atau kecamatan ? <br />
-            2. Apa yang telah dikerjakan dan bagaimana perkembangannya, apakah itu pekerjaan rutin atau yang berkaitan dengan KPI ? <br />
-            3. Tantangan apa yang dihadapi selama di lokasi dan berikan alternatif solusi, dan bahkan tindaklanjutnya? <br />
-            4. Apa saja dan jelaskan pengembangan kompetensi (hardskill maupun softskill) yang telah dicapai ? <br />
-            minimal 200 kata (angka dan tanda baca tidak di hitung kata)
+            1. Bagaimana pelaksanaan pembimbingan dan koordinasi yang telah dilakukan dengan mahasiswa KKN, pemerintah desa/kelurahan, kecamatan, serta mitra selama periode pelaporan? <br />
+            2. Bagaimana perkembangan pelaksanaan program kerja mahasiswa berdasarkan hasil monitoring dan evaluasi yang telah dilakukan? Jelaskan capaian, progres, serta kesesuaiannya dengan rencana kegiatan. <br />
+            3. Apa saja kendala atau permasalahan yang ditemukan selama proses pendampingan, dan langkah pembinaan, solusi, serta tindak lanjut apa yang telah dilakukan? <br />
+            4. Bagaimana hasil evaluasi terhadap kinerja dan perkembangan mahasiswa KKN, baik dari aspek disiplin, kerja sama, komunikasi, kepemimpinan, profesionalisme, maupun pencapaian program kerja? <br />
+            5. Apa rencana tindak lanjut, arahan, atau rekomendasi yang akan dilakukan pada periode berikutnya untuk mendukung keberhasilan pelaksanaan KKN? <br />
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <textarea class="form-control summernote" name="deskripsi">

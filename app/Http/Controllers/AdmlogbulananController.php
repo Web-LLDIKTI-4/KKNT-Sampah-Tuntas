@@ -64,7 +64,7 @@ class AdmlogbulananController extends Controller
         }
     }
     public function export(){
-        return Excel::download(new LogbulananmhsExport, 'logbulanan_mahasiswa.xlsx');
+        return Excel::download(new LogbulananmhsExport, 'logbulanan_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
     }
     public function formpenilaian(Request $request){
         $logbulanan=Logbulanan::find($request->id);
