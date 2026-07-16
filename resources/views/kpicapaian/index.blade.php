@@ -18,7 +18,7 @@
 
 <div class="card">
     <div class="card-header">
-        @if (auth()->user()->akses)
+        @if (in_array(auth()->user()->akses, ['pjdesa']))
             <x-btn-modal url="{{ url('kpicapaian/tambah') }}" title="Tambah Data">
                 <i class="ri-add-fill me-2"></i> 
                 Tambah Data
