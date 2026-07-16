@@ -14,7 +14,16 @@ class LaptugasakhirExport implements FromCollection, WithHeadings
     public function collection()
     {
         // Ambil data log bulanan
-        $tugasakhir = Tugasakhir::all();
+        if (auth()->user()->role === 'dpl') {
+            $tugasakhir = Tugasakhir::with(['dplmentoring'])
+                ->whereHas('dplmentoring', function ($q) {
+                    $q->where('email_dpl', auth()->user()->email);
+                })
+                ->get();
+        } else {
+            $tugasakhir = Tugasakhir::all();
+
+        }
 
         // Lakukan relasi yang diperlukan dan tambahkan judul kolom
         $data = $tugasakhir->map(function ($item, $key) {

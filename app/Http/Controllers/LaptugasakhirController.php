@@ -25,9 +25,15 @@ class LaptugasakhirController extends Controller
     {
 
         if ($request->ajax()) {
-            $data = Tugasakhir::get();
+            $query = Tugasakhir::query();
+
+            if (auth()->user()->role === 'dpl') {
+                $data = Tugasakhir::whereHas('dplmentoring', function ($q) {
+                    $q->where('email_dpl', auth()->user()->email);
+                })->get();
+            }
         
-            return Datatables::of($data)
+            return Datatables::of($query)
                 ->addIndexColumn()
                 ->addColumn('nim', function($row) {
                     return $row->mahasiswa->nim ?? '-';
@@ -42,20 +48,17 @@ class LaptugasakhirController extends Controller
                     return $row->tautan ? '<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>' : null;
                 })
                 ->addColumn('action', function($row) {
-                    $actionBtn = '<div class="d-flex">
-                        <a href="javascript:void(0)" id="hapus_'.$row->id_tugasakhir.'" class="btn btn-sm p-0 m-0">
-                            <i class="fa fa-trash"></i>
-                        </a>
-                    </div>';
-                    return $actionBtn;
+                    return view('components.action-data', [
+                        'urlDelete' => $row->id_tugasakhir,
+                    ]);
                 })
-                ->addColumn('action', function($row) {
-                    return view('components.btn-delete', [
-                        'idField' => 'hapus_'.$row->id_tugasakhir,
-                        'idValue' => $row->id_tugasakhir,
-                        'url' => url('tugasakhir/delete/'.$row->id_tugasakhir)
-                    ])->render();
-                })
+                // ->addColumn('action', function($row) {
+                //     return view('components.btn-delete', [
+                //         'idField' => 'hapus_'.$row->id_tugasakhir,
+                //         'idValue' => $row->id_tugasakhir,
+                //         'url' => url('tugasakhir/delete/'.$row->id_tugasakhir)
+                //     ])->render();
+                // })
                 ->rawColumns(['action', 'tautan'])
                 ->make(true);
         }

@@ -16,4 +16,13 @@ class Dplmentoring extends Model
     {
         return $this->hasOne(Tugasakhir::class,'email','email_mahasiswa');
     }
+
+    public function kpiCapaian()
+    {
+        return $this->hasMany(
+            Kpicapaian::class,
+            'email', 
+            'email_mahasiswa'
+        );
+    }
 }

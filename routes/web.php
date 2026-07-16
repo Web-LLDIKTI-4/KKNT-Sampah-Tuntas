@@ -242,11 +242,13 @@ Route::middleware(['auth', 'role:dpl,admin'])->group(function () {
     Route::get('admlogkehadiran', [AdmlogkehadiranController::class, 'index']);
     Route::get('admlogkehadiran/listdata', [AdmlogkehadiranController::class, 'listdata'])->name('admlogkehadiran.listdata');
     Route::get('admlogkehadiran/listdataserver', [AdmlogkehadiranController::class, 'listdataserver'])->name('admlogkehadiran.listdataserver');
+    Route::get('admlogkehadiran/export', [AdmlogkehadiranController::class, 'export']);
 
     Route::get('lapcapaiankpi', [LapcapaiankpiController::class, 'index']);
     Route::get('lapcapaiankpi/listdata', [LapcapaiankpiController::class, 'listdata'])->name('lapcapaiankpi.listdata');
     Route::get('lapcapaiankpi/listdataserver', [LapcapaiankpiController::class, 'listdataserver'])->name('lapcapaiankpi.listdataserver');
     Route::get('lapcapaiankpi/export', [LapcapaiankpiController::class, 'export']);
+
 });
 
 Route::middleware(['auth', 'role:dpl'])->group(function () {

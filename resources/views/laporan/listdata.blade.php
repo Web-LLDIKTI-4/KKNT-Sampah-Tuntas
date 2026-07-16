@@ -12,23 +12,29 @@
             @foreach($laporan as $row)
                 <tr>
                     <td class="text-center">{{ $loop->iteration }}</td>
-                    <td>{{ $row->tahun }}</td>
-                    <td>{{ Carbon\Carbon::create()->month($row->bulan)->format('F') }}</td>
-                    <td>{{ $row->tautan }}</td>
+                    <td class="text-center">{{ $row->tahun }}</td>
+                    <td class="text-center">{{ Carbon\Carbon::create()->month($row->bulan)->translatedFormat('F') }}</td>
+                    <td>
+                        <a href="{{ $row->tautan }}" target="_blank">{{ $row->tautan }}</a>
+                    </td>
                     <td class="text-center no-sort">
-                        <div class="d-flex">
+                        <div class="d-flex gap-2">
                             <form method="post" id="form-bulan-{{$row->id_laporan}}" action="{{ url('dpllaporan/tambah') }}">
                                 @csrf
                                 <input type="hidden" name="tahun" value="{{$row->tahun}}">
                                 <input type="hidden" name="bulan" value="{{$row->bulan}}">
-                                <button type="submit" id="btnSubmit_form-bulan-{{$row->id_laporan}}" class="btn p-0 m-0 action-item" data-toggle="tooltip" title="" data-original-title="Quick view"><i class="ri-edit-box-line text-success"></i></button>
+                                <button type="submit" id="btnSubmit_form-bulan-{{$row->id_laporan}}" class="btn-action-edit" data-toggle="tooltip" title="" data-original-title="Quick view">
+                                    <i class="ri-edit-box-line fs-4"></i>
+                                </button>
                             </form>
 
                             <form method="post" id="form-hapus-{{$row->id_laporan}}" action="{{ url('dpllaporan/destroy') }}">
                                 @csrf
                                 @method('PUT')
                                 <input type="hidden" name="id_laporan" value="{{$row->id_laporan}}">
-                                <button type="submit" id="btnSubmit_form-hapus-{{$row->id_laporan}}" class="btn p-0 m-0 action-item text-danger ml-2" data-toggle="tooltip" title="" data-original-title="Move to trash"><i class="ri-delete-bin-3-line text-danger"></i></button>
+                                <button type="submit" id="btnSubmit_form-hapus-{{$row->id_laporan}}" class="btn-action-delete" data-toggle="tooltip" title="" data-original-title="Move to trash">
+                                    <i class="ri-delete-bin-3-line fs-4"></i>
+                                </button>
                             </form>
                         </div>
                     </td>
@@ -41,8 +47,14 @@
 <script>
 $(function(){
     var table = $('#dataTable').DataTable({
+        searching: true,
+        lengthChange: false,
         processing: true,
         serverSide: false, // Set to true if you're processing on the server
+        language: {
+            search: "",
+            searchPlaceholder: "Cari..."
+        },
         columnDefs: [
             { targets: 0, orderable: false } // Prevent sorting on the "No" column
             // Remove the ellipsis render function
@@ -67,7 +79,8 @@ $(function(){
                     $("#btnSubmit_"+id+"").html(btnHtml);	
                 },
                 success:function(ret){
-                    $("#listdata").load("{{ url('dpllaporan/listdata') }}");                    
+                    $("#listdata").load("{{ url('dpllaporan/listdata') }}");
+                    window.location.reload();                  
                 },
                 error:function(xhr,ajaxOptions,thrownError){
                     console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				

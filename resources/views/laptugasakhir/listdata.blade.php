@@ -3,13 +3,13 @@
         <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
             <x-slot:thead>
                 <tr>
-                    <th width="1">No</th>
-                    <th>Id Lap</th>
-                    <th>NIM</th>
-                    <th>Nama</th>
-                    <th>Perguruan Tinggi</th>
-                    <th>Laporan</th>
-                    <th width="1">Nilai</th>
+                    <th class="text-center" width="1">No</th>
+                    <th class="text-center">Id Lap</th>
+                    <th class="text-center">NIM</th>
+                    <th class="text-center">Nama</th>
+                    <th class="text-center">Perguruan Tinggi</th>
+                    <th class="text-center">Laporan</th>
+                    <th class="text-center" width="1">Nilai</th>
                 </tr>
             </x-slot:thead>
         </x-datatable>

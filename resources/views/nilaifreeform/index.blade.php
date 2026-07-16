@@ -10,7 +10,7 @@
     </div>
     <div>
         <h5 class="mb-0">
-            <span class="align-middle">Koversi Nilai Free form</span>
+            <span class="align-middle">Konversi Nilai Free form</span>
         </h5>
         <span>Data Free Form</span>
     </div>

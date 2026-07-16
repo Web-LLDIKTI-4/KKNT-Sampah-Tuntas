@@ -1,7 +1,9 @@
 @extends('layouts.app')
 @section('title','Log Kegiatan Bulanan')
 @section('container')
+
 <x-page-header /> 
+
 <div class="card mb-6">
     <div class="card-body">
         <p id="listdata">list data...</p>
@@ -30,14 +32,16 @@
                     <label> Pilih Bulan </label>
                 </div>
                 <div class="col mt-1">
-                    <x-btn-save formId="form-bulan" class="btn btn-lg btn-primary"><i class="ri-filter-3-fill pe-1"></i> Filter Data</x-btn-save>
+                    <x-btn-save formId="form-bulan" class="btn btn-lg btn-primary" icon="ri-filter-3-fill">
+                        Input Log Bulanan
+                    </x-btn-save>
                 </div>
             </div>
         </p> 
     </div>
     
     <div class="card-body">
-        <p id="resultcontent"><div class="alert alert-danger">Untuk menambahkan data silahkan pilih dulu bulan dan tahun kemudian klik filter</div></p>
+        <p id="resultcontent"></p>
     </div>
 </div>
 <script>

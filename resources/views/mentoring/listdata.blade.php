@@ -12,7 +12,7 @@
                     <th>Prodi</th>
                     <th>Aksi</th>
                     <th>Nilai Log Bulanan</th>
-                    <th>Nilai & Free Form</th>
+                    {{-- <th>Nilai & Free Form</th> --}}
                     <th>Tugas akhir</th>
                 </tr>
             </x-slot:thead>
@@ -23,7 +23,7 @@
     $(function () {
         var table = $('#dataTable').DataTable({
             searching: true,
-            lengthChange: true,
+            lengthChange: false,
             processing: true,
             serverSide: true,
             ajax: "{{ route('dplmentoring.listdataserver') }}",
@@ -42,7 +42,7 @@
                 {data: 'prodi', name: 'prodi'},
                 {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
                 {data: 'rekapnilai', name: 'rekapnilai', className: 'text-center'},
-                {data: 'nilai_freeform', name: 'nilai_freeform', className: 'text-center'},
+                // {data: 'nilai_freeform', name: 'nilai_freeform', className: 'text-center'},
                 {data: 'tugasakhir', name: 'tugasakhir', className: 'text-center'},
             ],
             // Menambahkan opsi untuk mencegah escape HTML oleh DataTables

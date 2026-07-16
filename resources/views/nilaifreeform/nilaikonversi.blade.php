@@ -5,7 +5,7 @@
             <th>Mata Kuliah</th>
             <th>SKS</th>
             <th>Nilai DPL</th>
-            <th>Nilai DPA</th>
+            {{-- <th>Nilai DPA</th> --}}
             <th>Nilai Akhir</th>
         </tr>
     </thead>
@@ -31,7 +31,7 @@
                     <td>{{$item->matakuliah}}</td>
                     <td class="text-center">{{$item->sks}}</td>
                     <td class="text-center">{{$item->nilai_dpl}}</td>
-                    <td class="text-center">{{$item->nilai_dpa}}</td>
+                    {{-- <td class="text-center">{{$item->nilai_dpa}}</td> --}}
                     <td class="text-center">{{ $nilaiakhir }}</td>
                 </tr>
             @endforeach

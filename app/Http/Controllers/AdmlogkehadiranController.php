@@ -8,6 +8,7 @@ use App\Models\Mahasiswa;
 use DataTables;
 use App\Models\Kehadiran;
 use App\Models\Dplmentoring;
+use App\Exports\LogkehadiranExport;
 
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -74,5 +75,10 @@ class AdmlogkehadiranController extends Controller
                 ->rawColumns(['action', 'coordinates_datang', 'coordinates_pulang'])
                 ->make(true);
         }
+    }
+
+    public function export(){
+        $email = Auth::user()->email;
+        return Excel::download(new LogkehadiranExport($email), 'kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

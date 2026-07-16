@@ -152,7 +152,7 @@ class LogkehadiranController extends Controller
             }
 
             $cekdata->update($data);
-            $message = 'Data kehadiran berhasil diupdate, anda pukul ' . date("H:i:s");
+            $message = 'Data kehadiran berhasil diupdate, anda melakukan absensi pukul ' . date("H:i:s");
         } else {
             //insert
             if($mode === "datang") {
@@ -176,7 +176,7 @@ class LogkehadiranController extends Controller
             }
 
             Kehadiran::create($data);
-            $message = 'Data kehadiran berhasil ditambahkan, anda pukul ' . date("H:i:s");
+            $message = 'Data kehadiran berhasil ditambahkan, anda melakukan absensi pukul ' . date("H:i:s");
         }
 
         return redirect()->back()->with('success', $message);
@@ -218,6 +218,6 @@ class LogkehadiranController extends Controller
     }
     public function export(){
         $email = Auth::user()->email;
-        return Excel::download(new LogkehadiranExport($email), 'logkehadiran.xlsx');
+        return Excel::download(new LogkehadiranExport($email), 'kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

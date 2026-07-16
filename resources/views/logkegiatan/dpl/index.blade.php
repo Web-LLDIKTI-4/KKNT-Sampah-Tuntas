@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title','Kegiatan Mahasiswa')
 @section('container')
+
 <x-page-header /> 
 
 <div class="card">

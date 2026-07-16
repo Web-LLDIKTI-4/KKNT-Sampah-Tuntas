@@ -20,7 +20,9 @@
                     <td>{{ $loop->iteration }}</td>
                     <td class="text-center">{{ $row->tahun }}</td>
                     <td class="text-center">{{ Carbon\Carbon::create()->month($row->bulan)->translatedFormat('F') }}</td>
-                    <td>{{ $row->tautan }}</td>
+                    <td>
+                        <a href="{{ $row->tautan }}" target="_blank">{{ $row->tautan }}</a>
+                    </td>
                     <td class="text-center">
                         <div class="d-flex">
                             <form method="post" id="form-bulan-{{$row->id_logbulanan}}" action="{{ url('logbulanan/tambah') }}">

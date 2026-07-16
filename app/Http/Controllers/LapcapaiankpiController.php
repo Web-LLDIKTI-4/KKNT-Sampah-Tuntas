@@ -26,9 +26,15 @@ class LapcapaiankpiController extends Controller
     {
 
         if ($request->ajax()) {
-            $data = Kpicapaian::get();
+            $query = Kpicapaian::query();
+
+            if (auth()->user()->role === 'dpl') {
+                $query->whereHas('dplMentoring', function ($q) {
+                    $q->where('email_dpl', auth()->user()->email);
+                });
+            }
         
-            return Datatables::of($data)
+            return Datatables::of($query)
                 ->addIndexColumn()
                 ->addColumn('desa', function($row) {
                     return isset($row->pjdesa->desa->desa) ? $row->pjdesa->desa->desa : '-';
@@ -74,7 +80,7 @@ class LapcapaiankpiController extends Controller
         
     }
     public function export(){
-        return Excel::download(new CapaiankpiExport, 'capaian_kpi.xlsx');
+        return Excel::download(new CapaiankpiExport, 'capaian_kpi_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 
 }

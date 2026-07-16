@@ -1,15 +1,21 @@
+<p>
+  <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+    Data log bulanan bulan <b class="ms-1 me-1"> {{ Carbon\Carbon::create()->month($bulan)->translatedFormat('F')}}</b> tahun <b class="ms-1 me-1"> {{ $tahun }}</b>
+  </button>
+</p>
+
 <form id="form-tambah" method="post" action="{{ url('dpllaporan/insert') }}">
     @csrf
     @method('PUT')
     <input type="hidden" name="bulan" value="{{$bulan}}">
     <input type="hidden" name="tahun" value="{{$tahun}}">
     <div class="alert alert-info">
-        Panduan Pengisian :<br>
-        1. Bagaimana aktifitas mentoring dan koordinasi dengan mahasiswa maupun perangkat desa dan atau kecamatan ?<br>
-        2. Tantangan apa yang dihadapi selama di lokasi dan berikan alternatif solusi untuk menghadapainya ?<br>
-        3. Apa saja dan jelaskan pengembangan kompetensi (hardskill maupun softskill) mahasiswa yang telah dicapai ?<br>
-        4. Bagaimana capaian KPI yang telah ditetapkan berdasarkan program kerja para mahasiswa dan berikan penjelasannya?<br>
-        minimal 200 kata (angka dan tanda baca tidak di hitung kata).
+        Panduan Pengisian : <br />
+            1. Bagaimana aktifitas mentoring dan koordinasi dengan DPL maupun perangkat desa dan atau kecamatan ? <br />
+            2. Apa yang telah dikerjakan dan bagaimana perkembangannya, apakah itu pekerjaan rutin atau yang berkaitan dengan KPI ? <br />
+            3. Tantangan apa yang dihadapi selama di lokasi dan berikan alternatif solusi, dan bahkan tindaklanjutnya? <br />
+            4. Apa saja dan jelaskan pengembangan kompetensi (hardskill maupun softskill) yang telah dicapai ? <br />
+            minimal 200 kata (angka dan tanda baca tidak di hitung kata)
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <textarea class="form-control summernote" name="deskripsi">
@@ -17,17 +23,13 @@
                 {{ $isi->deskripsi }}
             @endif
         </textarea>
-        <label>Log bulanan : Bulan <b>{{ Carbon\Carbon::create()->month($bulan)->translatedFormat('F')}}</b> Tahun <b>{{ $tahun }}</b> </label>
+        <label>Deskripsi</label>
         <p id="wordCount">Jumlah kata: 0</p>
         <span id="deskripsi_error" class="text-danger"></span>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <input type="text" class="form-control" name="tautan" value="@if($isi) {{$isi->tautan}}  @endif">
-        <label>Tautan Dokumen</label>
-        <div class="alert alert-info">
-        Keterangan : Tautan google drive yang berisikan dokumen laporan bulanan
-        </div>
-
+        <label>Tautan Laporan</label>
     </div>
     <hr>
     <x-btn-save formId="form-tambah">Simpan</x-btn-save>

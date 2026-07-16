@@ -4,7 +4,7 @@
             <th width="1%">No</th>
             <th>Free Form</th>
             <th>Nilai DPL</th>
-            <th>Nilai DPA</th>
+            {{-- <th>Nilai DPA</th> --}}
             <th>Nilai Akhir</th>
         </tr>
     </thead>
@@ -29,7 +29,7 @@
                     <td>{{$loop->iteration}}</td>
                     <td>{{$item->freeform}}</td>
                     <td class="text-center">{{$item->nilai_dpl}}</td>
-                    <td class="text-center">{{$item->nilai_dpa}}</td>
+                    {{-- <td class="text-center">{{$item->nilai_dpa}}</td> --}}
                     <td class="text-center">{{ $nilaiakhir }} - {{ $grade }}</td>
                 </tr>
             @endforeach

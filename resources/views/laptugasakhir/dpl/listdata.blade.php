@@ -9,7 +9,7 @@
                     <th>Nama</th>
                     <th>Nama Perguruan Tinggi</th>
                     <th>Laporan</th>
-                    <th>Nilai</th>                    
+                    <th class="text-center" width="100">Nilai</th>
                 </tr>
             </x-slot:thead>
         </x-datatable>
@@ -33,7 +33,7 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', searchable: false},
             {data: 'id_tugasakhir', name: 'id_tugasakhir', visible:false},
             {data: 'nim', name: 'nim'},
             {data: 'nama', name: 'nama'},

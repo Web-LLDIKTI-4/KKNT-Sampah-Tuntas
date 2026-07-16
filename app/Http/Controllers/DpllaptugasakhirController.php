@@ -34,7 +34,7 @@ class DpllaptugasakhirController extends Controller
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('nim', function($row) {
-                    return $row->mahasiswa->nim ?? '-';
+                    return '<div class="text-center">'.($row->mahasiswa->nim ?? '-').'</div>';
                 })
                 ->addColumn('nama', function($row) {
                     return $row->mahasiswa->nama ?? '-';
@@ -53,12 +53,12 @@ class DpllaptugasakhirController extends Controller
                             $csrf.
                             $methodField. 
                             '<input type="hidden" name="id_tugasakhir" value="'.$row->id_tugasakhir.'">'.                         
-                            '<input type="text" name="nilai_dpl" class="form-control form-control-sm col-md-5" value="'.$row->nilai_dpl.'">'.
+                            '<input type="number" name="nilai_dpl" class="form-control form-control-sm col-md-5 text-center" value="'.$row->nilai_dpl.'">'.
                         '</form>
                         </div>';
                     return $actionBtn;
                 })
-                ->rawColumns(['action', 'tautan'])
+                ->rawColumns(['nim', 'action', 'tautan'])
                 ->make(true);
         }
         
@@ -94,7 +94,7 @@ class DpllaptugasakhirController extends Controller
         ], 200);  
     }
     public function export(){
-        return Excel::download(new LaptugasakhirExport, 'capaian_kpi.xlsx');
+        return Excel::download(new LaptugasakhirExport, 'laporan_akhir_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 
 }

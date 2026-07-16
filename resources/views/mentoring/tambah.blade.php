@@ -154,29 +154,12 @@ $(function () {
                 console.log(data.error);
                 if($.isEmptyObject(data.error)){  
                     $("#modalku").modal("hide");
-                    $.notify({
-                        icon: "add_alert",
-                        message: data.success
+                    toastr.success(data.success) 
 
-                    },{
-                        type: 'success',
-                        timer: 4000,
-                        z_index: 2000,
-                    });	 
-                    var table = $('#dataTable').DataTable(); // Menginisialisasi objek tabel
-                    // Memuat ulang data tabel secara manual
-                    table.ajax.reload();    
+                    var table = $('#dataTable').DataTable();
+                    table.ajax.reload();
                 }else{
-                    
-                    $.notify({
-                        icon: "add_alert",
-                        message: data.error
-
-                    },{
-                        type: 'danger',
-                        timer: 4000,
-                        z_index: 2000,
-                    });	 
+                    toastr.error(data.error)
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){

@@ -37,6 +37,9 @@ class AdmlogkegiatanController extends Controller
 
             return Datatables::of($data)
                 ->addIndexColumn()
+                ->addColumn('tanggal', function($row){
+                    return \Carbon\Carbon::parse($row->tanggal)->format('d-m-Y');
+                })
                 ->addColumn('nama_mahasiswa', function($row){
                     return $row->mahasiswa->nama;
                 })
@@ -49,9 +52,9 @@ class AdmlogkegiatanController extends Controller
                 ->addColumn('deskripsi', function($row){
                     
                     if (Auth::check() && Auth::user()->role == 'dpl') {
-                        return $row->deskripsi.'<br><a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
+                        return $row->deskripsi.'<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                     }else{
-                        return 'tidak ditampilkan <br><a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
+                        return 'tidak ditampilkan <a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                     }
                 })
                 ->addColumn('action', function($row){

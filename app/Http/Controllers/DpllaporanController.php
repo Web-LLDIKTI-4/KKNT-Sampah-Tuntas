@@ -24,7 +24,7 @@ class DpllaporanController extends Controller
 
         $namaBulan = [];
         for ($i = 1; $i <= 12; $i++) {
-            $namaBulan[$i] = Carbon::create()->month($i)->format('F');
+            $namaBulan[$i] = Carbon::create()->month($i)->translatedFormat('F');
         }
         return view('laporan.index',compact('namaBulan'));
     }

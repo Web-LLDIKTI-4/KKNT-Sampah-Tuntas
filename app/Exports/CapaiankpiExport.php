@@ -8,13 +8,33 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class CapaiankpiExport implements FromCollection, WithHeadings
 {
+    public function statusFormat($status)
+    {
+        switch ($status) {
+            case 'Y':
+                return 'Sudah Selesai';
+            case 'P':
+                return 'Proses';
+            default:
+                return 'Belum Ditindaklanjuti';
+        }
+    }
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
         // Ambil data log bulanan
-        $kpicapaian = Kpicapaian::all();
+        if (auth()->user()->role === 'dpl') {
+            $kpicapaian = Kpicapaian::with(['dplMentoring'])
+                ->whereHas('dplMentoring', function ($q) {
+                    $q->where('email_dpl', auth()->user()->email);
+                })
+                ->get();
+        } else {
+            $kpicapaian = Kpicapaian::all();
+
+        }
 
         // Lakukan relasi yang diperlukan dan tambahkan judul kolom
         $data = $kpicapaian->map(function ($item, $key) {
@@ -31,11 +51,11 @@ class CapaiankpiExport implements FromCollection, WithHeadings
                 'KPI' => $kpi, 
                 'Tahapan' => $tahapan, 
                 'Target KPI' => $target_kpi,
-                'Status' => $item->status_capaian,
-                'Tautan' => $item->tautan,
                 'Permasalahan' => $item->permasalahan,
                 'Solusi' => $item->solusi,
-                'Kendala' => $item->kendala,
+                'Kebutuhan Dukungan' => $item->kendala,
+                'Tindak Lanjut' => $this->statusFormat($item->status_capaian),
+                'Tautan' => $item->tautan,
                 // Tambahkan kolom lain sesuai kebutuhan
             ];
         });
@@ -56,11 +76,11 @@ class CapaiankpiExport implements FromCollection, WithHeadings
             'KPI',
             'Tahapan',
             'Target KPI',
-            'Status',
-            'Tautan',
             'Permasalahan',
             'Solusi',
-            'Kendala',
+            'Kebutuhan Dukungan',
+            'Tindak Lanjut',
+            'Tautan',
             // Tambahkan judul kolom lain sesuai kebutuhan
         ];
     }

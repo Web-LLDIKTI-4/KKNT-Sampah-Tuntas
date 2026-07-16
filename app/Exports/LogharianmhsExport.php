@@ -28,8 +28,8 @@ class LogharianmhsExport implements FromCollection, WithHeadings
                 'Nama Mahasiswa' => $item->mahasiswa->nama, 
                 'NIM' => $item->mahasiswa->nim,
                 'Perguruan Tinggi' => $item->mahasiswa->sp->nm_lemb, 
-                'Tanggal' => $item->tanggal,
-                'Deskripsi' => $item->deskripsi,    
+                'Tanggal' => \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y'),
+                'Deskripsi' => strip_tags($item->deskripsi),    
                 'KPI' => $item->kpi->nama_kpi,
                 // Tambahkan kolom lain sesuai kebutuhan
             ];

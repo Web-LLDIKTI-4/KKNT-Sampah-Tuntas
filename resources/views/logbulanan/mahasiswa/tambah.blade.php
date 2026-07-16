@@ -3,6 +3,7 @@
     Data log bulanan bulan <b class="ms-1 me-1"> {{ Carbon\Carbon::create()->month($bulan)->translatedFormat('F')}}</b> tahun <b class="ms-1 me-1"> {{ $tahun }}</b>
   </button>
 </p>
+
 <div class="collapse" id="collapseExample">
   <div class="card card-body">
     @if(!$logharian->isEMpty())

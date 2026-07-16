@@ -24,7 +24,19 @@ class LogkehadiranExport implements FromCollection, WithHeadings, WithMapping
     public function collection()
     {
         // Ambil data berdasarkan email jika diperlukan
-        return Kehadiran::where('email', $this->email)->get();
+        if (auth()->user()->role === 'dpl') {
+            $kehadiran = Kehadiran::with(['dplmentoring'])
+                ->whereHas('dplmentoring', function ($q) {
+                    $q->where('email_dpl', auth()->user()->email);
+                })
+                ->get();
+        } elseif ($this->email) {
+            return Kehadiran::where('email', $this->email)->get();
+        } else {
+            $kehadiran = Kehadiran::all();
+
+        }
+        return $kehadiran;
     }
 
     /**

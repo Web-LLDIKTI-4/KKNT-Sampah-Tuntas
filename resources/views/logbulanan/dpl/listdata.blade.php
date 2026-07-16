@@ -34,7 +34,7 @@
         },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
-            {data: 'nama_bulan', name: 'nama_bulan'},
+            {data: 'nama_bulan', name: 'nama_bulan', className: 'text-center'},
             {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {
