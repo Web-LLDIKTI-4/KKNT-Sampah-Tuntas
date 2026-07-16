@@ -33,7 +33,7 @@
                 </div>
                 <div class="col mt-1">
                     <x-btn-save formId="form-bulan" class="btn btn-lg btn-primary" icon="ri-filter-3-fill">
-                        Input Log Bulanan
+                        Isi Log Bulanan
                     </x-btn-save>
                 </div>
             </div>

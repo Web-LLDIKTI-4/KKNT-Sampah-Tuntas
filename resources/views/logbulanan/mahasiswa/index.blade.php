@@ -44,7 +44,7 @@
                 </div>
                 <div class="col mt-1">
                     <x-btn-save formId="form-bulan" class="btn btn-primary btn-lg">
-                        Input Log Bulanan
+                        Isi Log Bulanan
                     </x-btn-save>
                 </div>
             </div>

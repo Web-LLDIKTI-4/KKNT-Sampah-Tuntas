@@ -27,13 +27,31 @@ class LogbulananmhsExport implements FromCollection, WithHeadings
         }                      
         // Lakukan relasi yang diperlukan dan tambahkan judul kolom
         $data = $logbulanan->map(function ($item, $key) {
+            $deskripsi = $item->deskripsi ?? '-';
+            if ($deskripsi !== '-') {
+                $deskripsi = str_replace(
+                    ['<br>', '<br/>', '<br />', '</p>', '</li>'],
+                    "\n",
+                    $deskripsi
+                );
+
+                $deskripsi = strip_tags($deskripsi);
+                $deskripsi = html_entity_decode($deskripsi, ENT_QUOTES | ENT_HTML5);
+
+                // Rapikan spasi tanpa menghapus newline
+                $deskripsi = preg_replace('/[ \t]+/', ' ', $deskripsi);
+
+                // Hilangkan baris kosong berlebih
+                $deskripsi = preg_replace("/\n{3,}/", "\n\n", trim($deskripsi));
+            }
+            
             return [
                 'No' => $key + 1, 
                 'Nama Mahasiswa' => $item->mahasiswa->nama, 
                 'NIM' => $item->mahasiswa->nim, 
                 'Perguruan Tinggi' => $item->mahasiswa->sp->nm_lemb, 
                 'Bulan' => $item->bulan,
-                'Deskripsi' => $item->deskripsi,
+                'Deskripsi' => $deskripsi,
                 'Nilai' => $item->nilai,
                 // Tambahkan kolom lain sesuai kebutuhan
             ];

@@ -21,7 +21,7 @@
     </div>
     <div class="row">
         <div class="form-group form-floating form-floating-outline mb-6 col">
-            <input type="text" name="volume" class="form-control form-control-sm">
+            <input type="number" name="volume" class="form-control form-control-sm">
             <label>Volume</label>
             <span id="volume_error" class="text-danger"></span>
         </div>

@@ -36,6 +36,7 @@ class LogkehadiranExport implements FromCollection, WithHeadings, WithMapping
             $kehadiran = Kehadiran::all();
 
         }
+        
         return $kehadiran;
     }
 

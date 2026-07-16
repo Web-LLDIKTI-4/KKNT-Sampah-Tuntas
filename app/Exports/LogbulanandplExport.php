@@ -22,13 +22,31 @@ class LogbulanandplExport implements FromCollection, WithHeadings
             $nama = $item->dpl ? $item->dpl->nama : null;
             $nidn = $item->dpl ? $item->dpl->nidn : null;
 
+            $deskripsi = $item->deskripsi ?? '-';
+            if ($deskripsi !== '-') {
+                $deskripsi = str_replace(
+                    ['<br>', '<br/>', '<br />', '</p>', '</li>'],
+                    "\n",
+                    $deskripsi
+                );
+
+                $deskripsi = strip_tags($deskripsi);
+                $deskripsi = html_entity_decode($deskripsi, ENT_QUOTES | ENT_HTML5);
+
+                // Rapikan spasi tanpa menghapus newline
+                $deskripsi = preg_replace('/[ \t]+/', ' ', $deskripsi);
+
+                // Hilangkan baris kosong berlebih
+                $deskripsi = preg_replace("/\n{3,}/", "\n\n", trim($deskripsi));
+            }
+
             return [
                 'No' => $key + 1, 
                 'Nama DPL' => $nama, 
                 'NIDN' => $nidn, 
                 'Perguruan Tinggi' => $nama_lemb, 
                 'Bulan' => $item->bulan,
-                'Deskripsi' => $item->deskripsi,
+                'Deskripsi' => $deskripsi,
                 // Tambahkan kolom lain sesuai kebutuhan
             ];
         });
