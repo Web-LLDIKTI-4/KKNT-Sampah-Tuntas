@@ -20,7 +20,7 @@ class TugasakhirController extends Controller
         return view('tugasakhir.index');
     }
     public function listdata(){
-        $data = Tugasakhir::where('email',Auth::user()->email)->get();
+        $data = Tugasakhir::where('email', Auth::user()->email)->get();
         return view('tugasakhir.listdata',compact('data'));
     }
     public function tambah(Request $request)

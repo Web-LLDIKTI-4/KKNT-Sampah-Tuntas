@@ -93,7 +93,7 @@ class AdmlogbulananController extends Controller
                             'slot' => 'Berikan Nilai',
                         ])->render();
                     } else {
-                        return '<h4>'.$row->nilai.'</h4>';
+                        return $row->nilai;
                     }
                 })
                 ->rawColumns(['action'])
