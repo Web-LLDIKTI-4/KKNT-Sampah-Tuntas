@@ -228,21 +228,27 @@ Route::middleware(['auth', 'role:dpl,admin'])->group(function () {
     Route::put('perguruantinggi/insert', [PerguruantinggiController::class, 'insert']);
 
     Route::get('admlogkegiatan', [AdmlogkegiatanController::class, 'index']);
-    Route::get('admlogkegiatan/listdata', [AdmlogkegiatanController::class, 'listdata'])->name('admlogkegiatan.listdata');
-    Route::get('admlogkegiatan/listdataserver', [AdmlogkegiatanController::class, 'listdataserver'])->name('admlogkegiatan.listdataserver');
-    Route::get('admlogkegiatan/export', [AdmlogkegiatanController::class, 'export']);
+    Route::get('admlogkegiatan/listdatagroup', [AdmlogkegiatanController::class, 'listdatagroup'])->name('admlogkegiatan.listdatagroup');
+    Route::get('admlogkegiatan/listdatagrouping', [AdmlogkegiatanController::class, 'listdatagrouping'])->name('admlogkegiatan.listdatagrouping');
+    Route::get('admlogkegiatan/listdata/{email}', [AdmlogkegiatanController::class, 'listdata'])->name('admlogkegiatan.listdata');
+    Route::get('admlogkegiatan/listdataserver/{email}', [AdmlogkegiatanController::class, 'listdataserver'])->name('admlogkegiatan.listdataserver');
+    Route::get('admlogkegiatan/export/{email}', [AdmlogkegiatanController::class, 'export']);
  
     Route::get('admlogbulanan', [AdmlogbulananController::class, 'index']);
-    Route::get('admlogbulanan/listdata', [AdmlogbulananController::class, 'listdata'])->name('admlogbulanan.listdata');
-    Route::get('admlogbulanan/listdataserver', [AdmlogbulananController::class, 'listdataserver'])->name('admlogbulanan.listdataserver');
-    Route::get('admlogbulanan/export', [AdmlogbulananController::class, 'export']);
+    Route::get('admlogbulanan/listdatagroup', [AdmlogbulananController::class, 'listdatagroup'])->name('admlogbulanan.listdatagroup');
+    Route::get('admlogbulanan/listdatagrouping', [AdmlogbulananController::class, 'listdatagrouping'])->name('admlogbulanan.listdatagrouping');
+    Route::get('admlogbulanan/listdata/{email}', [AdmlogbulananController::class, 'listdata'])->name('admlogbulanan.listdata');
+    Route::get('admlogbulanan/listdataserver/{email}', [AdmlogbulananController::class, 'listdataserver'])->name('admlogbulanan.listdataserver');
+    Route::get('admlogbulanan/export/{email}', [AdmlogbulananController::class, 'export']);
     Route::get('admlogbulanan/formpenilaian/{id}', [AdmlogbulananController::class, 'formpenilaian']);
     Route::put('admlogbulanan/updatenilai', [AdmlogbulananController::class, 'updatenilai']);
     
     Route::get('admlogkehadiran', [AdmlogkehadiranController::class, 'index']);
-    Route::get('admlogkehadiran/listdata', [AdmlogkehadiranController::class, 'listdata'])->name('admlogkehadiran.listdata');
-    Route::get('admlogkehadiran/listdataserver', [AdmlogkehadiranController::class, 'listdataserver'])->name('admlogkehadiran.listdataserver');
-    Route::get('admlogkehadiran/export', [AdmlogkehadiranController::class, 'export']);
+    Route::get('admlogkehadiran/listdatagroup', [AdmlogkehadiranController::class, 'listdatagroup'])->name('admlogkehadiran.listdatagroup');
+    Route::get('admlogkehadiran/listdatagrouping', [AdmlogkehadiranController::class, 'listdatagrouping'])->name('admlogkehadiran.listdatagrouping');
+    Route::get('admlogkehadiran/listdata/{email}', [AdmlogkehadiranController::class, 'listdata'])->name('admlogkehadiran.listdata');
+    Route::get('admlogkehadiran/listdataserver/{email}', [AdmlogkehadiranController::class, 'listdataserver'])->name('admlogkehadiran.listdataserver');
+    Route::get('admlogkehadiran/export/{email}', [AdmlogkehadiranController::class, 'export']);
 
     Route::get('lapcapaiankpi', [LapcapaiankpiController::class, 'index']);
     Route::get('lapcapaiankpi/listdata', [LapcapaiankpiController::class, 'listdata'])->name('lapcapaiankpi.listdata');

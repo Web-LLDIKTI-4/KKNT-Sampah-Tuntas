@@ -14,9 +14,9 @@ class Kehadiran extends Model
     {
         return $this->hasOne(Mahasiswa::class,'email','email');
     }
+    
     public function dplmentoring()
     {
         return $this->hasOne(Dplmentoring::class,'email_mahasiswa','email');
     }
-    
 }

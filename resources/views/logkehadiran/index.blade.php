@@ -11,7 +11,7 @@
 </div>
 <script>
     $(function(){
-        $("#resultcontent").load("{{ url('admlogkehadiran/listdata') }}");
+        $("#resultcontent").load("{{ url('admlogkehadiran/listdatagroup') }}");
     })
 </script>
 @stop 

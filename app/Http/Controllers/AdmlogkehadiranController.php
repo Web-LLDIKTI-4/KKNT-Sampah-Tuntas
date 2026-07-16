@@ -8,7 +8,7 @@ use App\Models\Mahasiswa;
 use DataTables;
 use App\Models\Kehadiran;
 use App\Models\Dplmentoring;
-use App\Exports\LogkehadiranExport;
+use App\Exports\LogKehadiranByMhsExport;
 
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -18,32 +18,66 @@ class AdmlogkehadiranController extends Controller
     {  
         return view('logkehadiran.index');
     }
+    public function listdatagroup()
+    {
+        return view('logkehadiran.listdatagroup');
+    }
+    
+    public function listdatagrouping(Request $request)
+    {
+        if ($request->ajax()) {
+            if (Auth::check() && Auth::user()->role == 'dpl') {
+                $data = Mahasiswa::with(['dplmentoring'])
+                    ->whereHas('dplmentoring', function ($query) {
+                        $query->where('email_dpl', Auth::user()->email);
+                    })->get();
+            } else {
+                $data = Mahasiswa::with(['dplmentoring'])->get();
+            }
+            
+            return Datatables::of($data)
+                ->addIndexColumn()
+                ->addColumn('nim', function($row){
+                    return $row->nim ?? 'NIM tidak tersedia';
+                })
+                ->addColumn('nama_mahasiswa', function($row){
+                    return $row->nama ?? 'Nama tidak tersedia';
+                })
+                ->addColumn('nm_lemb', function($row){
+                    return $row->sp->nm_lemb ?? 'Perguruan Tinggi tidak tersedia';
+                })
+                ->addColumn('count_log', function($row){
+                    return $row->logkehadiran->count() ?? '0';
+                })
+                ->addColumn('action', function($row){
+                    return view('components.action-data', [
+                        'urlView' => url('admlogkehadiran/listdata/' . $row->email ?? ''),
+                    ]);
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
     public function listdata()
     {
         return view('logkehadiran.listdata');
     }
     
-    public function listdataserver(Request $request)
+    public function listdataserver(Request $request, String $email)
     {
-
         if ($request->ajax()) {
-            if (Auth::check() && Auth::user()->role == 'dpl') {
-                $data = Kehadiran::with(['mahasiswa', 'dplmentoring'])
-                    ->whereHas('dplmentoring', function ($query) {
-                        $query->where('email_dpl', Auth::user()->email);
-                    })
-                    ->get();
-            } else {
-                $data = Kehadiran::with(['mahasiswa'])->get();
-            }
+            $data = Kehadiran::where('email', $email)->get();
             
             return Datatables::of($data)
                 ->addIndexColumn()
+                ->addColumn('nim', function($row){
+                    return $row->mahasiswa->nim ?? 'NIM tidak tersedia';
+                })
                 ->addColumn('nama_mahasiswa', function($row){
-                    return $row->mahasiswa->nama ?? '-';
+                    return $row->mahasiswa->nama ?? 'Nama tidak tersedia';
                 })
                 ->addColumn('nm_lemb', function($row){
-                    return $row->mahasiswa->sp->nm_lemb ?? '-';
+                    return $row->mahasiswa->sp->nm_lemb ?? 'Perguruan Tinggi tidak tersedia';
                 })
                 ->addColumn('tanggal', function($row){
                     return $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-';
@@ -68,17 +102,12 @@ class AdmlogkehadiranController extends Controller
                     //     'longitude' => $row->longitude_pulang,
                     // ]);
                 })
-                ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-pencil-square"></i></a> <a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-trash"></i></a></div>';
-                    return $actionBtn;
-                })
-                ->rawColumns(['action', 'coordinates_datang', 'coordinates_pulang'])
+                ->rawColumns(['coordinates_datang', 'coordinates_pulang'])
                 ->make(true);
         }
     }
 
-    public function export(){
-        $email = Auth::user()->email;
-        return Excel::download(new LogkehadiranExport($email), 'kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
+    public function export(String $email){
+        return Excel::download(new LogKehadiranByMhsExport($email), 'kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

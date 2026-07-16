@@ -145,7 +145,7 @@
                                 </div>
                                 <ul class="nav flex-column">
                                     <li class="nav-item">
-                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogharian') }}">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkegiatan') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Harian Mahasiswa
                                         </a>
                                     </li>
@@ -204,12 +204,12 @@
             @elseif(Auth::user()->role == 'dpl')
                 <li class="nav-item mega-dropdown">
                     <a
-                    href="javascript:void(0);"
-                    class="nav-link dropdown-toggle navbar-ex-14-mega-dropdown mega-dropdown fw-medium"
-                    aria-expanded="false"
-                    data-bs-toggle="mega-dropdown"
-                    data-trigger="hover">
-                    <span data-i18n="Pages">Kelola Data</span>
+                        href="javascript:void(0);"
+                        class="nav-link dropdown-toggle navbar-ex-14-mega-dropdown mega-dropdown fw-medium"
+                        aria-expanded="false"
+                        data-bs-toggle="mega-dropdown"
+                        data-trigger="hover">
+                        <span data-i18n="Pages">Kelola Data</span>
                     </a>
                     <div class="dropdown-menu p-4 p-lg-6">
                     <div class="row gy-4">
@@ -350,8 +350,8 @@
                         </div>
                         </div>
                         <div class="flex-grow-1">
-                        <span class="fw-medium d-block small">{{ Auth::user()->name}}</span>
-                        <small class="text-muted">{{ Auth::user()->role}}</small>
+                        <span class="fw-medium d-block small">{{ Auth::user()->name }}</span>
+                        <small class="text-muted">{{ Str::upper(Auth::user()->role) }}</small>
                         </div>
                     </div>
                     </a>

@@ -42,4 +42,9 @@ class Mahasiswa extends Model
     {
         return $this->belongsTo(LokasiProgram::class,'location_program','id');
     }
+
+    public function logkehadiran()
+    {
+        return $this->hasMany(Kehadiran::class,'email','email');
+    }
 }

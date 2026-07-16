@@ -1,0 +1,52 @@
+<div class="row">
+    <div class="col-12 table-responsive">
+        <x-datatable id="dataTable">
+            <x-slot:thead>
+                <tr>
+                    <th class="text-center" width="1">No</th>
+                    <th class="text-center">NIM</th>
+                    <th class="text-center">Nama</th>
+                    <th class="text-center">Email</th>
+                    <th class="text-center">Nama Perguruan Tinggi</th>
+                    <th class="text-center">Jumlah</th>
+                    <th class="text-center" width="1">Aksi</th>
+                </tr>
+            </x-slot:thead>
+        </x-datatable>
+    </div>
+    <hr>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        var table = $('#dataTable').DataTable({
+            searching: true,
+            lengthChange: false,
+            processing: true,
+            serverSide: true,
+            ajax: "{{ route('admlogbulanan.listdatagrouping') }}",
+            language: {
+                search: "",
+                searchPlaceholder: "Cari...",
+                zeroRecords: "Tidak ada data yang tersedia",
+                infoEmpty: "Tidak ada data yang ditemukan",
+            },
+            columns: [
+                {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', searchable: false},
+                {data: 'nim', name: 'nim', className: 'text-center'},
+                {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
+                {data: 'email', name: 'email'},
+                {data: 'nm_lemb', name: 'nm_lemb'},
+                {data: 'count_log', name: 'count_log', className: 'text-center', searchable: false},
+                {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
+            ],
+            layout: {
+                top1: {
+                    searchPanes: {
+                        viewTotal: true
+                    }
+                }
+            }
+        });
+    });
+</script>

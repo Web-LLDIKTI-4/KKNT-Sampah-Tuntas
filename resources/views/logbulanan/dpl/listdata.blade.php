@@ -1,22 +1,28 @@
-<div class="row">
-    <div class="col-12 table-responsive">
-        <x-datatable id="dataTable">
-            <x-slot:thead>
-                <tr>
-                    <th width="1" class="text-center">No</th>
-                    <th class="text-center">Bulan</th>
-                    <th class="text-center">Nama</th>
-                    <th class="text-center">Nama Perguruan Tinggi</th>
-                    <th class="text-center">Deskripsi</th>
-                    <th class="text-center">Nilai</th>
-                </tr>
-            </x-slot:thead>
-        </x-datatable>
-    </div>
-    <hr>
-</div>
+@extends('layouts.app')
+@section('title', 'Log Bulanan Mahasiswa')
+@section('container')
+<x-page-header title="Log Bulanan Mahasiswa" subtitle="Data {{ request()->route('email') }}" />
 
-<x-btn-export url="{{ url('admlogbulanan/export') }}" />
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12 table-responsive">
+                <x-datatable id="dataTable">
+                    <x-slot:thead>
+                        <tr>
+                            <th width="1" class="text-center">No</th>
+                            <th class="text-center">Bulan</th>
+                            <th class="text-center">Deskripsi</th>
+                            <th class="text-center">Nilai</th>
+                        </tr>
+                    </x-slot:thead>
+                </x-datatable>
+            </div>
+            <hr>
+        </div>
+        <x-btn-export url="{{ url('admlogbulanan/export/' . request()->route('email')) }}" />
+    </div>
+</div>
 
 <script type="text/javascript">
   $(function () {
@@ -25,7 +31,7 @@
         lengthChange: false,
         processing: true,
         serverSide: true,
-        ajax: "{{ route('admlogbulanan.listdataserver') }}",
+        ajax: "{{ route('admlogbulanan.listdataserver', request()->route('email')) }}",
         language: {
             search: "",
             searchPlaceholder: "Cari...",
@@ -33,10 +39,8 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', searchable: false},
             {data: 'nama_bulan', name: 'nama_bulan', className: 'text-center'},
-            {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
-            {data: 'nm_lemb', name: 'nm_lemb'},
             {
                 data: 'deskripsi',
                 name: 'deskripsi',
@@ -46,7 +50,7 @@
                     tempDiv.innerHTML = data;
                     // Mengambil teks dari div tersebut yang sudah bersih dari tag HTML
                     var strippedText = tempDiv.textContent || tempDiv.innerText || '';
-                    return "<div class='text-wrap width-200'>" +strippedText+ "</div>";
+                    return strippedText;
                 }
             },
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
@@ -61,3 +65,4 @@
     });
   });
 </script>
+@stop
