@@ -26,7 +26,7 @@ class LapcapaiankpiController extends Controller
     {
 
         if ($request->ajax()) {
-            $query = Kpicapaian::query();
+            $query = Kpicapaian::orderBy('id_capaian', 'desc')->get();
 
             if (auth()->user()->role === 'dpl') {
                 $query->whereHas('dplMentoring', function ($q) {
@@ -36,20 +36,24 @@ class LapcapaiankpiController extends Controller
         
             return Datatables::of($query)
                 ->addIndexColumn()
-                ->addColumn('desa', function($row) {
-                    return isset($row->pjdesa->desa->desa) ? $row->pjdesa->desa->desa : '-';
+                ->addColumn('lokasi', function($row) {
+                    if (isset($row->pjdesa->mahasiswa->user->locationProgram->nama_lokasi) && isset($row->pjdesa->desa->kecamatan->kecamatan) && isset($row->pjdesa->desa->desa)) {
+                        return $row->pjdesa->mahasiswa->user->locationProgram->nama_lokasi . '<br /> ' . $row->pjdesa->desa->kecamatan->kecamatan . ', ' . $row->pjdesa->desa->desa;
+                    }
+
+                    return 'Tidak Diketahui';
                 })
                 ->addColumn('pjdesa', function($row) {
-                    return isset($row->pjdesa->email) ? $row->pjdesa->email : null;
+                    return isset($row->pjdesa->email) ? $row->pjdesa->email : 'Ketua Kelompok Tidak Tersedia';
                 })
                 ->addColumn('nama_kpi', function($row) {
-                    return isset($row->kpi->nama_kpi) ? $row->kpi->nama_kpi : null;
+                    return isset($row->kpi->nama_kpi) ? $row->kpi->nama_kpi : 'Tidak Diketahui';
                 })
                 ->addColumn('tahapan', function($row) {
-                    return isset($row->target->tahapan) ? $row->target->tahapan : null;
+                    return isset($row->target->tahapan) ? $row->target->tahapan : 'Tidak Diketahui';
                 })
                 ->addColumn('nama_kpitarget', function($row) {
-                    return isset($row->target->nama_kpitarget) ? $row->target->nama_kpitarget : null;
+                    return isset($row->target->nama_kpitarget) ? $row->target->nama_kpitarget : 'Tidak Diketahui';
                 })
                 ->addColumn('status_capaian', function($row) {
                     if($row->status_capaian == 'Y'){
@@ -61,7 +65,7 @@ class LapcapaiankpiController extends Controller
                     }
                 })
                 ->addColumn('tautan', function($row) {
-                    return $row->tautan ? '<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>' : null;
+                    return $row->tautan ? '<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>' : 'Tidak Ada';
                 })
                 ->addColumn('action', function($row) {
                     $actionBtn = '<div class="d-flex">
@@ -74,7 +78,7 @@ class LapcapaiankpiController extends Controller
                     </div>';
                     return $actionBtn;
                 })
-                ->rawColumns(['action', 'status_capaian', 'tautan'])
+                ->rawColumns(['lokasi', 'action', 'tautan', 'status_capaian'])
                 ->make(true);
         }
         
@@ -82,5 +86,4 @@ class LapcapaiankpiController extends Controller
     public function export(){
         return Excel::download(new CapaiankpiExport, 'capaian_kpi_'.date('Y-m-d_H-i-s').'.xlsx');
     }
-
 }

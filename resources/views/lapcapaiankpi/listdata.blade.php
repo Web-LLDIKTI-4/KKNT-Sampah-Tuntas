@@ -5,7 +5,7 @@
                 <tr>
                     <th width="1">No</th>
                     <th>Id kpicapaian</th>
-                    <th>Desa / Kelurahan</th>
+                    <th>Lokasi Kegiatan</th>
                     <th>Ketua Kelompok</th>
                     <th>Nama KPI</th>
                     <th>Tahapan KPI</th>
@@ -41,7 +41,7 @@
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex' , className: 'text-center', orderable: false, searchable: false},
             {data: 'id_target', name: 'id_target', visible:false},
-            {data: 'desa', name: 'desa'},
+            {data: 'lokasi', name: 'lokasi'},
             {data: 'pjdesa', name: 'pjdesa'},
             {data: 'nama_kpi', name: 'nama_kpi'},
             {data: 'tahapan', name: 'tahapan', className: 'text-center'},

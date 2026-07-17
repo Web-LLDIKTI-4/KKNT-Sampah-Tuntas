@@ -69,6 +69,20 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('home', [HomeController::class, 'index'])->name('home');
+    Route::get('home/{lokasi}', [HomeController::class, 'index'])->name('home.lokasi')->middleware('user.guard');
+    Route::get('setting', [SettingController::class, 'index']);
+    Route::put('setting/update', [SettingController::class, 'update']);
+
+    Route::get('mhsprofile', [MhsprofileController::class, 'index']);
+    Route::get('mhsprofile/data', [MhsprofileController::class, 'data']);
+    Route::get('mhsprofile/getPoto', [MhsprofileController::class, 'getPoto'])->name('mhsprofile.getPoto');
+    Route::get('mhsprofile/uploadpoto', [MhsprofileController::class, 'uploadpoto'])->name('mhsprofile.uploadpoto');
+    Route::put('mhsprofile/prosesuploadpoto', [MhsprofileController::class, 'prosesuploadpoto']);
+    Route::put('mhsprofile/update', [MhsprofileController::class, 'update']);
+    Route::get('mhsprofile/formlokasi', [MhsprofileController::class, 'formlokasi']);
+    Route::put('mhsprofile/setlokasi', [MhsprofileController::class, 'setlokasi']);
+
     Route::get('logout', [LoginController::class, 'logout']);
 });
 //Route::get('login/createuser', [LoginController::class, 'createuser']);
@@ -77,13 +91,6 @@ Route::put('saran/insert', [SaranController::class, 'insert']);
 Route::get('ptpeserta', [PtpesertaController::class, 'index']);
 Route::get('ptpeserta/listdata', [PtpesertaController::class, 'listdata'])->name('ptpeserta.listdata');
 Route::get('ptpeserta/listdataserver', [PtpesertaController::class, 'listdataserver'])->name('ptpeserta.listdataserver');
-
-Route::group(['middleware' => ['auth']], function() { 
-    Route::get('home', [HomeController::class, 'index'])->name('home');
-    Route::get('home/{lokasi}', [HomeController::class, 'index'])->name('home.lokasi');
-    Route::get('setting', [SettingController::class, 'index']);
-    Route::put('setting/update', [SettingController::class, 'update']);
-});
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('user', [UserController::class, 'index']);
@@ -212,7 +219,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:dpl,admin'])->group(function () {
-
     Route::get('profile', [ProfileController::class, 'index']);
     Route::get('profile/data', [ProfileController::class, 'data']);
     Route::get('profile/getPoto', [ProfileController::class, 'getPoto'])->name('profile.getPoto');
@@ -300,7 +306,7 @@ Route::middleware(['auth', 'role:dpl'])->group(function () {
     Route::put('dpllaptugasakhir/nilai', [DpllaptugasakhirController::class, 'nilai']);
 });
 
-Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
+Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
     Route::get('logkehadiran', [LogkehadiranController::class, 'index']);
     Route::get('logkehadiran/listdata', [LogkehadiranController::class, 'listdata'])->name('logkehadiran.listdata');
     Route::get('logkehadiran/listdataserver', [LogkehadiranController::class, 'listdataserver'])->name('logkehadiran.listdataserver');
@@ -330,21 +336,13 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::put('kpicapaian/update', [KpicapaianController::class, 'update']);
     Route::put('kpicapaian/destroy', [KpicapaianController::class, 'destroy']);
     Route::post('kpicapaian/kpitarget', [KpicapaianController::class, 'kpitarget']);
+    Route::get('kpicapaian/export', [KpicapaianController::class, 'export']);
 
     Route::get('logbulanan', [LogbulananController::class, 'index']);
     Route::post('logbulanan/tambah', [LogbulananController::class, 'tambah'])->name('logbulanan.tambah');
     Route::put('logbulanan/insert', [LogbulananController::class, 'insert']);
     Route::put('logbulanan/destroy', [LogbulananController::class, 'destroy']);
     Route::get('logbulanan/listdata', [LogbulananController::class, 'listdata']);
-    
-    Route::get('mhsprofile', [MhsprofileController::class, 'index']);
-    Route::get('mhsprofile/data', [MhsprofileController::class, 'data']);
-    Route::get('mhsprofile/getPoto', [MhsprofileController::class, 'getPoto'])->name('mhsprofile.getPoto');
-    Route::get('mhsprofile/uploadpoto', [MhsprofileController::class, 'uploadpoto'])->name('mhsprofile.uploadpoto');
-    Route::put('mhsprofile/prosesuploadpoto', [MhsprofileController::class, 'prosesuploadpoto']);
-    Route::put('mhsprofile/update', [MhsprofileController::class, 'update']);
-    Route::get('mhsprofile/formlokasi', [MhsprofileController::class, 'formlokasi']);
-    Route::put('mhsprofile/setlokasi', [MhsprofileController::class, 'setlokasi']);
 
     Route::get('nilaifreeform', [NilaifreeformController::class, 'index']);
     Route::get('nilaifreeform/nilaikonversi', [NilaifreeformController::class, 'nilaikonversi']);

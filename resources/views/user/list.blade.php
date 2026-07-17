@@ -21,7 +21,7 @@
                     <td>{{ $row->email }}</td>
                     <td>{{ $row->name }}</td>
                     @if ($row->role === 'mahasiswa' && $row->mahasiswa)
-                        <td>{{ $row->mahasiswa->nim }}</td>
+                        <td class="text-center">{{ $row->mahasiswa->nim }}</td>
                         <td>
                             @if($row->mahasiswa->sp && $row->mahasiswa->sp->nm_lemb)
                                 {{ $row->mahasiswa->sp->nm_lemb }}
@@ -30,24 +30,29 @@
                             @endif
                         </td>
                     @elseif ($row->role === 'dpl' && $row->dpl)
-                        <td>{{ $row->dpl->nidn }}</td>
+                        <td class="text-center">{{ $row->dpl->nidn }}</td>
                         <td>
                             @if($row->dpl->sp && $row->dpl->sp->nm_lemb)
                                 {{ $row->dpl->sp->nm_lemb }}
                             @else
                                 {{ $row->dpl->kodept }}
                             @endif
-                        </td>    
+                        </td>  
+                    @elseif ($row->role === 'pt' && $row->pt)
+                        <td class="text-center">-</td>
+                        <td>
+                            {{ $row->pt->nm_lemb }}
+                        </td> 
                     @else
-                        <td>-</td>
+                        <td class="text-center">-</td>
                         <td>-</td>
                     @endif
                     <td>{{ $row->role }}</td>
                     <td class="text-center no-sort">
                         @if($row->role != "pt")
-                            <x-btn-edit url="{{ url('user/edit/'.$row->id) }}" title="Edit User" />
+                            <x-action-data urlEdit="{{ url('user/edit/'.$row->id) }}" />
                         @else
-                            <x-btn-edit url="{{ url('user/edituserpt/'.$row->id) }}" title="Edit User" />
+                            <x-action-data urlEdit="{{ url('user/edituserpt/'.$row->id) }}" />
                         @endif
                     </td>
                 </tr>

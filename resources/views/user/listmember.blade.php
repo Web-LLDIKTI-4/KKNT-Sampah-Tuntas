@@ -75,15 +75,17 @@ $(function () {
     let table = $('#tabel-data').DataTable({
         paging: true,
         searching: true,
-        lengthChange: true,
+        lengthChange: false,
         ordering: true,
         info: true,
         autoWidth: false,
         responsive: true,
         serverSide: false,
         language: {
-            "search": "",
-            "searchPlaceholder": "Cari..."
+            search: "",
+            searchPlaceholder: "Cari...",
+            zeroRecords: "Tidak ada data yang tersedia",
+            infoEmpty: "Tidak ada data yang ditemukan",
         },
         columnDefs: [
             { targets: 'no-sort', orderable: false } // Tambahkan class 'no-sort' pada kolom 'Aksi'

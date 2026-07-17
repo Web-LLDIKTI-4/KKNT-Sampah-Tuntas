@@ -149,11 +149,11 @@ class MhsprofileController extends Controller
     }
 
     public function formlokasi(){
-        $locationPrograms = LokasiProgram::get();
+        // $locationPrograms = LokasiProgram::get();
         $desa =  Kecamatan::get();
         $data=[
             'desa'=>$desa,
-            'locationPrograms'=>$locationPrograms
+            // 'locationPrograms'=>$locationPrograms
         ];
         return view('profile.lokasi',$data);
     }
@@ -181,14 +181,6 @@ class MhsprofileController extends Controller
             Mahasiswa_lokasi::create($datain);
             $message = 'Lokasi berhasil disimpan';
         }
-
-        $user->update([
-            'location_program' => $request->location_program,
-        ]);
-
-        Mahasiswa::where("email", Auth::user()->email)->update([
-            'location_program' => $request->location_program,
-        ]);
     
         // Return a JSON response
         return response()->json([

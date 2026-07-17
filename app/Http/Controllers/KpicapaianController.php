@@ -13,6 +13,7 @@ use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use App\Exports\CapaiankpiExport;
 
 class KpicapaianController extends Controller
 {    
@@ -28,10 +29,17 @@ class KpicapaianController extends Controller
     {
 
         if ($request->ajax()) {
-            $data = Kpicapaian::where('email',Auth::user()->email)->get();
+            $data = Kpicapaian::where('email',Auth::user()->email)->orderBy('id_capaian', 'desc')->get();
 
             return Datatables::of($data)
                 ->addIndexColumn()
+                ->addColumn('lokasi', function($row) {
+                    if (isset($row->pjdesa->mahasiswa->user->locationProgram->nama_lokasi) && isset($row->pjdesa->desa->kecamatan->kecamatan) && isset($row->pjdesa->desa->desa)) {
+                        return $row->pjdesa->mahasiswa->user->locationProgram->nama_lokasi . '<br /> ' . $row->pjdesa->desa->kecamatan->kecamatan . ', ' . $row->pjdesa->desa->desa;
+                    }
+
+                    return 'Tidak Diketahui';
+                })
                 ->addColumn('nama_kpi', function($row){
                     return $row->kpi->nama_kpi;
                 })
@@ -68,7 +76,7 @@ class KpicapaianController extends Controller
                         'urlDelete' => $row->id_capaian,
                     ]);
                 })
-                ->rawColumns(['action', 'tautan', 'status_capaian', 'permasalahan', 'solusi', 'kendala'])
+                ->rawColumns(['lokasi', 'action', 'tautan', 'status_capaian', 'permasalahan', 'solusi', 'kendala'])
                 ->make(true);
         }
     }
@@ -274,4 +282,8 @@ class KpicapaianController extends Controller
         }
     }
 
+    public function export(){
+        $emailMahasiswa = Auth::user()->role === 'mahasiswa' ? Auth::user()->email : null;
+        return Excel::download(new CapaiankpiExport($emailMahasiswa), 'capaian_kpi_'.date('Y-m-d_H-i-s').'.xlsx');
+    }
 }

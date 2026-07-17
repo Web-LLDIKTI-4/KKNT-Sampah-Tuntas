@@ -47,7 +47,7 @@
                       </li>
                       <li class="list-inline-item">
                       <i class="ri-calendar-line me-2 ri-24px"></i>
-                      <span class="fw-medium">Bergabung  {{ \Carbon\Carbon::parse($profile->created_at)->format('Y-m-d H:i:s') }}</span>
+                      <span class="fw-medium">Bergabung  {{ \Carbon\Carbon::parse($profile->created_at)->format('d-m-Y H:i:s') }}</span>
                       </li>
                   </ul>
                   </div>
@@ -60,6 +60,16 @@
           </div>
       </div>
     </div>
+
+    @if (auth()->user()->role == 'mahasiswa' && !auth()->user()->mahasiswa?->lokasi?->exists())
+        <div class="alert alert-warning d-flex gap-3">
+            <i class="ri-information-line me-2"></i>
+            <div>
+                <strong>Penting!</strong> <br />
+                <span class="alert-content">Sebelum melakukan aktifitas lain mohon untuk mengisi lokasi kegiatan KKN, silahkan set lokasi di <b>menu cepat</b>.</span>
+            </div>
+        </div>
+    @endif
 
     <!--/ Header -->
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -348,10 +358,10 @@
                     <div class="list-group-item">
                         <div class="d-flex align-items-center mb-2">
                             <div class="avatar flex-shrink-0 me-3">
-                                <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-information-line text-info ri-24px"></i></span>
+                                <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-crosshair-2-line text-info ri-24px"></i></span>
                             </div>
                             <div class="media-body ml-3">
-                                <x-btn-modal url="{{ url('mhsprofile/formlokasi') }}" class="modalButton stretched-link h6 mb-1" title="Set lokasi">Lokasi Kegiatan</x-btn-modal>
+                                <x-btn-modal url="{{ url('mhsprofile/formlokasi') }}" class="modalButton stretched-link h6 mb-1" title="Set lokasi">Set Lokasi Kegiatan</x-btn-modal>
                                 <p class="mb-0 text-sm">
                                     {{ $mahasiswa->locationProgram->nama_lokasi ?? 'Lokasi Program belum di set' }},
                                     {{ $mahasiswa->lokasi->desa->kecamatan->kecamatan ?? 'Kecamatan belum di set' }},

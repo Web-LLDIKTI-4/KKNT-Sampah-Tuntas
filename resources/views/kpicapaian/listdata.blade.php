@@ -5,6 +5,7 @@
                 <tr>
                     <th width="1">No</th>
                     <th>Id kpicapaian</th>
+                    <th>Lokasi Kegiatan</th>
                     <th>Nama KPI</th>
                     <th>Tahapan</th>
                     <th>Target KPI</th>
@@ -17,6 +18,8 @@
                 </tr>
             </x-slot:thead>
         </x-datatable>
+
+        <x-btn-export url="{{ url('kpicapaian/export') }}" />
     </div>
 </div>
 <script type="text/javascript">
@@ -36,6 +39,7 @@
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_target', name: 'id_target', visible:false},
+            {data: 'lokasi', name: 'lokasi'},
             {data: 'nama_kpi', name: 'nama_kpi'},
             {data: 'tahapan', name: 'tahapan', className: 'text-center'},               
             {

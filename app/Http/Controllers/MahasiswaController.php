@@ -40,8 +40,8 @@ class MahasiswaController extends Controller
                     return $row->locationProgram->nama_lokasi ?? 'Belum Terdata';
                 })
                 ->addColumn('action', function($row){
-                    return view('components.btn-delete', [
-                        'url' => url('mahasiswa/destroy'),
+                    return view('components.action-data', [
+                        'urlDelete' => url('mahasiswa/destroy'),
                         'idField' => 'id_mahasiswa',
                         'idValue' => $row->id_mahasiswa,
                     ])->render();

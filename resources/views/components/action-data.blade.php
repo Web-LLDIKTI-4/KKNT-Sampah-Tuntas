@@ -7,7 +7,10 @@
     'classModal' => 'btn-action-view',
     'classView' => 'btn-action-view',
     'classEdit' => 'btn-action-edit',
-    'classDelete' => 'btn-action-delete'
+    'classDelete' => 'btn-action-delete',
+    'idField' => null,
+    'idValue' => null,
+    'confirm' => 'Anda yakin ingin menghapus data ini?',
 ])
 
 <div class="d-flex gap-2">
@@ -29,9 +32,55 @@
         </a>
     @endif 
     
-    @if ($urlDelete)
+    @if ($urlDelete && empty($idField) && empty($idValue))
         <a href="javascript:void(0)" id="hapus_{{ $urlDelete }}"  class="{{ $classDelete }}">
             <i class="ri-delete-bin-3-line fs-4"></i>
         </a>
     @endif
+
+    @if ($urlDelete && $idField && $idValue)
+        <a href="javascript:void(0)" class="btn-delete {{ $classDelete }}" title="Hapus Data"
+            data-url="{{ $urlDelete }}" data-id-field="{{ $idField }}" data-id-value="{{ $idValue }}" data-confirm="{{ $confirm }}">
+            <i class="ri-delete-bin-3-line fs-4"></i>
+        </a>
+    @endif
 </div>
+
+@once
+<script>
+$(function () {
+    $(document).on('click', '.btn-delete', function () {
+        var $btn = $(this);
+        var url = $btn.data('url');
+        var idField = $btn.data('id-field');
+        var idValue = $btn.data('id-value');
+        var confirmMsg = $btn.data('confirm');
+
+        if (!confirm(confirmMsg)) return;
+
+        var csrfToken = $('meta[name="csrf-token"]').attr('content');
+        var payload = {};
+        payload[idField] = idValue;
+
+        $.ajax({
+            url: url,
+            method: 'PUT',
+            data: payload,
+            headers: { 'X-CSRF-TOKEN': csrfToken },
+            success: function (ret) {
+                if (ret.success) {
+                    toastr.success(ret.message);
+                    $btn.closest('tr').remove();
+                } else {
+                    toastr.warning(ret.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.log(xhr.status + "\n" + xhr.responseText + "\n" + error);
+                toastr.error('Terjadi kesalahan saat menghapus data');
+            }
+        });
+    });
+});
+</script>
+@endonce

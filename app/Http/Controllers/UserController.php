@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Session;
 use App\Models\User;
 use App\Models\Mahasiswa;
+use App\Models\Mahasiswa_lokasi;
 use App\Models\Kehadiran;
 use App\Models\Dplmentoring;
 use App\Models\Dpllaporan;
@@ -150,6 +151,15 @@ class UserController extends Controller
             $data['location_program'] = $request->location_program;
         }
 
+        $userHasLokasi = Mahasiswa_lokasi::where('user_in_up', $request->email)->exists();
+        if (in_array($request->akses, ['pjdesa']) && in_array($request->role, ['mahasiswa']) && !$userHasLokasi) {
+            // Kalo mahasiswa belum set desa tidak bisa add pj desa
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak dapat set sebagai ketua kelompok, mahasiswa harus set lokasi kegiatan KKN terlebih dahulu!'
+            ], 200);
+        }
+
         if ($request->akses !== null && $request->role == "mahasiswa") {
             if($request->akses == 'hapuspjdesa'){
                 Pjdesa::where('email', $request->email)->delete();
@@ -157,7 +167,7 @@ class UserController extends Controller
             }else{
                 Pjdesa::updateOrCreate(
                     ['email' => $request->email],
-                    ['id_desa' => $request->id_desa]
+                    ['id_desa' => $userHasLokasi ? Mahasiswa_lokasi::where('user_in_up', $request->email)->value('id_desa') : null]
                 );
                 $data['akses'] = $request->akses; 
             }

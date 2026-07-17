@@ -1,8 +1,8 @@
 <form method="post" id="form-lokasi" action="{{ url('mhsprofile/setlokasi') }}">
     @csrf
     @method('PUT')
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select  id="location_program" class="form-control form-control-sm select2" name="location_program" required>
+    {{-- <div class="form-group form-floating form-floating-outline mb-6">
+        <select  id="location_program" class="form-control form-control-sm select2" name="location_program" disabled="false" required>
             <option value="" selected>--pilih--</option>
             @foreach($locationPrograms as $val)
                 <option value="{{ $val->id }}" @if(auth()->user()->location_program == $val->id) selected @endif>{{$val->nama_lokasi}}</option>
@@ -10,7 +10,7 @@
         </select>
         <label>Lokasi Program</label>
         <span id="location_program_error" class="text-danger"></span>
-    </div>
+    </div> --}}
 
     <div class="row">
         <div class="form-group col form-floating form-floating-outline">
@@ -20,7 +20,7 @@
                 @foreach($desa as $item)
                     <optgroup label="Kecamatan : {{$item->kecamatan}}">
                         @foreach($item->desa as $row)
-                            <option value="{{$row->id_desa}}" @if(auth()->user()->mahasiswa->lokasi->desa->id_desa == $row->id_desa) selected @endif>Desa / Kelurahan : {{$row->desa}}</option>
+                            <option value="{{$row->id_desa}}" @if(auth()->user()->mahasiswa?->lokasi?->desa?->id_desa == $row->id_desa) selected @endif>Desa / Kelurahan : {{$row->desa}}</option>
                         @endforeach
                     </optgroup>
                 @endforeach
