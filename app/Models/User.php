@@ -57,4 +57,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Dpl::class,'email','email');
     }
+
+    public function pt()
+    {
+        return $this->belongsTo(Satuanpendidikan::class,'email','npsn');
+    }
 }

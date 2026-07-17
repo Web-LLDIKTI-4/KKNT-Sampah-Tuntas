@@ -1,7 +1,9 @@
 @extends('layouts.app')
 @section('title','Data Profile')
 @section('container')
+
 <p id="resultcontent">Loading data...</p>    
+
 <script>
 $(function(){
     $('#modalku').on('show.bs.modal', function (e) {

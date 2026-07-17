@@ -1,20 +1,32 @@
 <form method="post" id="form-lokasi" action="{{ url('mhsprofile/setlokasi') }}">
     @csrf
     @method('PUT')
+    {{-- <div class="form-group form-floating form-floating-outline mb-6">
+        <select  id="location_program" class="form-control form-control-sm select2" name="location_program" disabled="false" required>
+            <option value="" selected>--pilih--</option>
+            @foreach($locationPrograms as $val)
+                <option value="{{ $val->id }}" @if(auth()->user()->location_program == $val->id) selected @endif>{{$val->nama_lokasi}}</option>
+            @endforeach
+        </select>
+        <label>Lokasi Program</label>
+        <span id="location_program_error" class="text-danger"></span>
+    </div> --}}
+
     <div class="row">
         <div class="form-group col form-floating form-floating-outline">
-            <select name="id_desa" class="form-control">
+            <select name="id_desa" class="form-control select2" required>
+                <option value="" selected>--pilih--</option>
             @if($desa)
                 @foreach($desa as $item)
-                    <optgroup label="{{$item->kecamatan}}">
+                    <optgroup label="Kecamatan : {{$item->kecamatan}}">
                         @foreach($item->desa as $row)
-                            <option value="{{$row->id_desa}}">{{$row->desa}}</option>
+                            <option value="{{$row->id_desa}}" @if(auth()->user()->mahasiswa?->lokasi?->desa?->id_desa == $row->id_desa) selected @endif>Desa / Kelurahan : {{$row->desa}}</option>
                         @endforeach
                     </optgroup>
                 @endforeach
             @endif
             </select>
-            <label>Pilih Lokasi</label>
+            <label>Pilih Desa / Kelurahan</label>
         </div>
         <div class="form-group col-md-2 form-floating form-floating-outline">
             <select name="tahun" class="form-control">
@@ -26,10 +38,16 @@
         </div>
     </div>
     <hr>
-    <x-btn-save formId="form-lokasi" class="btn rounded-pill btn-primary btn-sm"><i class="ri-save-2-fill pe-1"></i> Simpan</x-btn-save>
+    <x-btn-save formId="form-lokasi" class="btn rounded-pill btn-primary btn-sm">
+        Simpan
+    </x-btn-save>
 </form>
 <script>
 $(function(){
+    $('.select2').select2({
+       dropdownParent: $('#modalku')
+    });
+
     $("#form-lokasi").on("submit",function(){       
         var action = $(this).attr("action");
         var id = $(this).attr("id");
