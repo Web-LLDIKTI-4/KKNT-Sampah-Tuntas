@@ -41,7 +41,7 @@
             <a class="nav-link fw-medium" aria-current="page" href="{{ url('/home') }}">Beranda</a>
         </li>
 
-            @if(Auth::user()->role == 'admin')
+            @if(in_array(Auth::user()->role, ['admin']))
                 <li class="nav-item mega-dropdown">
                     <a
                     href="javascript:void(0);"
@@ -201,7 +201,7 @@
                     </div>
                 </li>
 
-            @elseif(Auth::user()->role == 'dpl')
+            @elseif(in_array(Auth::user()->role, ['dpl']))
                 <li class="nav-item mega-dropdown">
                     <a
                         href="javascript:void(0);"
@@ -281,7 +281,87 @@
                     </div>
                     </div>
                 </li>
-
+            @elseif (in_array(Auth::user()->role, ['pt']))
+                <li class="nav-item mega-dropdown">
+                    <a
+                        href="javascript:void(0);"
+                        class="nav-link dropdown-toggle navbar-ex-14-mega-dropdown mega-dropdown fw-medium"
+                        aria-expanded="false"
+                        data-bs-toggle="mega-dropdown"
+                        data-trigger="hover">
+                        <span data-i18n="Pages">Kelola Data</span>
+                    </a>
+                    <div class="dropdown-menu p-4 p-lg-6">
+                    <div class="row gy-4">
+                        <div class="col-12 col-lg">
+                            <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
+                                <div class="avatar avatar-sm flex-shrink-0 me-2">
+                                <span class="avatar-initial rounded bg-label-primary"><i class="ri-lock-unlock-line"></i></span>
+                                </div>
+                                <span class="ps-1">Laporan & Mentoring</span>
+                            </div>
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dpllaporan') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Bulanan
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplkonversinilai') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai
+                                    </a>
+                                </li>
+                                {{-- <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplfreeform') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai Free Form
+                                    </a>
+                                </li> --}}
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dpllaptugasakhir') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admevaluasikegiatan') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i>
+                                        <span data-i18n="Pricing">Data Evaluasi</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-12 col-lg">
+                        <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
+                            <div class="avatar avatar-sm flex-shrink-0 me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ri-image-fill"></i></span>
+                            </div>
+                            <span class="ps-1">Rekap Kegiatan Mahasiswa</span>
+                        </div>
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkegiatan') }}">
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Harian Mahasiswa
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogbulanan') }}">
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Bulanan Mahasiswa
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkehadiran') }}">
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kehadiran
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankpi') }}">
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                </a>
+                            </li>
+                        </ul>
+                        </div>
+                    </div>
+                    </div>
+                </li>
             @else
                 <li class="nav-item">
                     <a class="nav-link fw-medium" href="{{ url('logkehadiran') }}">Kehadiran</a>

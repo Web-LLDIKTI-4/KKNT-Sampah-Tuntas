@@ -45,7 +45,7 @@ class HomeController extends Controller
             }
 
             $jumlahmahasiswa = Mahasiswa::count(); 
-          
+        
             $jumlahlogbulanan = Logbulanan::where('email', $email)
                 ->select(DB::raw('count(*) as count, bulan'))
                 ->groupBy('bulan')
@@ -105,7 +105,7 @@ class HomeController extends Controller
                             ->from('dpl_mentoring')
                             ->where('email_dpl', $emailDpl);
                     });
-                   
+                
                 // Query utama untuk menghitung jumlah id_mahasiswa unik dari nilai_konversi yang terkait dengan email_dpl saat ini dan id_mahasiswa dari subquery
                 $jumlahdplnilaikonversi = DB::table('nilai_konversi')
                 ->where('email_dpl', $emailDpl)
@@ -130,7 +130,7 @@ class HomeController extends Controller
                 ->select(DB::raw('count(*) as count'))
                 ->whereIn('email', $subqueryEmailmhs)
                 ->value('count');
-           
+
             }else{
                 $jumlahlaporandpl = Dpllaporan::count();
                 $jumlahlogbulanan = DB::table(DB::raw("(SELECT bulan, email FROM logkegiatan_bulanan GROUP BY bulan, email) as grouped"))
@@ -156,7 +156,7 @@ class HomeController extends Controller
                     ->whereIn('id_mahasiswa', $subquery)
                     ->distinct('id_mahasiswa')
                     ->count('id_mahasiswa');
-           
+            
             }            
             $data = [
                 'jumlahmahasiswa'=>$jumlahmahasiswa,

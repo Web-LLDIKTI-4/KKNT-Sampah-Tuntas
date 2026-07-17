@@ -218,7 +218,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'role:dpl,admin'])->group(function () {
+Route::middleware(['auth', 'role:dpl,admin,pt'])->group(function () {
     Route::get('profile', [ProfileController::class, 'index']);
     Route::get('profile/data', [ProfileController::class, 'data']);
     Route::get('profile/getPoto', [ProfileController::class, 'getPoto'])->name('profile.getPoto');
@@ -263,7 +263,7 @@ Route::middleware(['auth', 'role:dpl,admin'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'role:dpl'])->group(function () {
+Route::middleware(['auth', 'role:dpl,pt'])->group(function () {
     Route::get('dpllaporan', [DpllaporanController::class, 'index']);
     Route::get('dpllaporan/listdata', [DpllaporanController::class, 'listdata']);
     Route::post('dpllaporan/tambah', [DpllaporanController::class, 'tambah'])->name('dpllaporan.tambah');

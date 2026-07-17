@@ -39,7 +39,7 @@ class LoginController extends Controller
 			if (Auth::Attempt($data)) {
 				$user = Auth::user();
 
-				if (in_array($user->role, ['dpl', 'mahasiswa'])) {
+				if (in_array($user->role, ['dpl', 'mahasiswa', 'pt'])) {
 					$lokasi = trim((string) $request->input('lokasi'));
 
 					if ($lokasi === '') {
