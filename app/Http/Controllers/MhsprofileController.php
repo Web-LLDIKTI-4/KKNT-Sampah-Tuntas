@@ -7,6 +7,7 @@ use Session;
 use App\Models\Mahasiswa;
 use App\Models\User;
 use App\Models\Satuanpendidikan;
+use App\Models\LokasiProgram;
 use App\Models\Kecamatan;
 use App\Models\Mahasiswa_lokasi;
 use DataTables;
@@ -24,7 +25,7 @@ class MhsprofileController extends Controller
     {
         $sp = Satuanpendidikan::get();
         $profile = User::where('email',Auth::user()->email)->first();
-        $mahasiswa = Mahasiswa::where("email",Auth::user()->email)->first();
+        $mahasiswa = Mahasiswa::where("email", Auth::user()->email)->first();
         return view('profile.data',compact('mahasiswa','profile','sp'));
     }
     public function prosesuploadpoto(Request $request){
@@ -146,13 +147,17 @@ class MhsprofileController extends Controller
             'message' => 'Profile berhasil disimpan'
         ], 200);
     }
+
     public function formlokasi(){
+        $locationPrograms = LokasiProgram::get();
         $desa =  Kecamatan::get();
         $data=[
-            'desa'=>$desa
+            'desa'=>$desa,
+            'locationPrograms'=>$locationPrograms
         ];
         return view('profile.lokasi',$data);
     }
+
     public function setlokasi(Request $request){
         $id_desa = $request->id_desa;
         $tahun = $request->tahun;
@@ -176,6 +181,14 @@ class MhsprofileController extends Controller
             Mahasiswa_lokasi::create($datain);
             $message = 'Lokasi berhasil disimpan';
         }
+
+        $user->update([
+            'location_program' => $request->location_program,
+        ]);
+
+        Mahasiswa::where("email", Auth::user()->email)->update([
+            'location_program' => $request->location_program,
+        ]);
     
         // Return a JSON response
         return response()->json([

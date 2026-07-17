@@ -207,21 +207,24 @@ class UserController extends Controller
     public function adduserpt(){
         $role=array('pt');
         $sp = Satuanpendidikan::get();
-        return view('user.tambah_pt',compact('role','sp'));
+        $locationPrograms = \App\Models\LokasiProgram::all();
+        return view('user.tambah_pt',compact('role','sp','locationPrograms'));
     }
     public function insertuserpt(Request $request){
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'kodept' => 'required',
+            'location_program' => 'required',
             'password' => 'required', // Validasi numerik
         ], [
             'name.required' => 'Nama harus di isi.',
-            'kodept.required' => 'Email harus di isi.',
+            'kodept.required' => 'Perguruan Tinggi harus di isi.',
+            'location_program.required' => 'Lokasi program harus di isi.',
             'password.required' => 'Password harus di isi.',
         ]);
         
         $validator->after(function($validator) use ($request) {
-            $cekdata = User::where("email",$request->kodept)
+            $cekdata = User::where("email", $request->kodept)
                         ->exists(); // Menggunakan exists() untuk mengecek keberadaan data
             
             if ($cekdata) {
@@ -239,6 +242,7 @@ class UserController extends Controller
         $data=[
             'name'=>$request->name,
             'email'=>$request->kodept,
+            'location_program' => $request->location_program,
             'role' =>$request->role,
             'password'=> Hash::make($request->password)
         ];
@@ -249,18 +253,24 @@ class UserController extends Controller
         $role=array('pt');
         $user = User::find($id);
         $sp = Satuanpendidikan::orderByRaw("TRIM(nm_lemb) DESC")->get();
+        $locationPrograms = \App\Models\LokasiProgram::all();
         $data=[
             'role'=>$role,
             'user'=>$user,
             'sp'=>$sp,
+            'locationPrograms'=>$locationPrograms,
         ];
         return view('user.edit_pt',$data);
     }
     public function updateuserpt(Request $request){
         $validator = Validator::make($request->all(), [
             'name' => 'required',
+            'kodept' => 'required',
+            'location_program' => 'required',
         ], [
             'name.required' => 'Nama harus di isi.',
+            'kodept.required' => 'Perguruan Tinggi harus di isi.',
+            'location_program.required' => 'Lokasi program harus di isi.',
         ]);
         
         $validator->after(function($validator) use ($request) {
@@ -281,6 +291,7 @@ class UserController extends Controller
                 'errors' => $validator->errors()
             ], 200); 
         }
+
         $data=[
             'name'=>$request->name,
             'email'=>$request->kodept,

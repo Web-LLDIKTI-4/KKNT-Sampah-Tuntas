@@ -308,57 +308,61 @@
               </div>
             </div>
             @if($isMahasiswa)
-            <div class="tab-pane fade" id="menucepat" role="tabpanel">
-              <x-page-header icon="ri-links-line" title="Menu Cepat" subtitle="Akses cepat ke aktifitas KKN." />
-              <div class="card">
-                <div class="list-group list-group-flush">
-                <div class="list-group-item">
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="avatar flex-shrink-0 me-3">
-                            <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-check-line text-info ri-24px"></i></span>
-                        </div>
-                        <div class="media-body ml-3">
-                            <a href="{{ url('logkegiatan') }}" class="stretched-link h6 mb-1">Log Harian</a>
-                            <p class="mb-0 text-sm">Informasi log harian</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="list-group-item">
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="avatar flex-shrink-0 me-3">
-                            <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-news-line text-info ri-24px"></i></span>
-                        </div>
-                        <div class="media-body ml-3">
-                            <a href="{{ url('logkehadiran') }}" class="stretched-link h6 mb-1">Kehadiran</a>
-                            <p class="mb-0 text-sm">Informasi kehadiran</p>
+                <div class="tab-pane fade" id="menucepat" role="tabpanel">
+                <x-page-header icon="ri-links-line" title="Menu Cepat" subtitle="Akses cepat ke aktifitas KKN." />
+                <div class="card">
+                    <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="avatar flex-shrink-0 me-3">
+                                <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-check-line text-info ri-24px"></i></span>
+                            </div>
+                            <div class="media-body ml-3">
+                                <a href="{{ url('logkegiatan') }}" class="stretched-link h6 mb-1">Log Harian</a>
+                                <p class="mb-0 text-sm">Informasi log harian</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="list-group-item">
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="avatar flex-shrink-0 me-3">
-                            <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-information-line text-info ri-24px"></i></span>
-                        </div>
-                        <div class="media-body ml-3">
-                            <a href="{{ url('logbulanan') }}" class="stretched-link h6 mb-1">Log Bulanan</a>
-                            <p class="mb-0 text-sm">Informasi Log Bulanan</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="list-group-item">
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="avatar flex-shrink-0 me-3">
-                            <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-information-line text-info ri-24px"></i></span>
-                        </div>
-                        <div class="media-body ml-3">
-                            <x-btn-modal url="{{ url('mhsprofile/formlokasi') }}" class="modalButton stretched-link h6 mb-1" title="Set lokasi">Lokasi Kegiatan</x-btn-modal>
-                            <p class="mb-0 text-sm">{{ $mahasiswa->lokasi->desa->desa ?? 'Belum di set' }}</p>
+                    <div class="list-group-item">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="avatar flex-shrink-0 me-3">
+                                <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-news-line text-info ri-24px"></i></span>
+                            </div>
+                            <div class="media-body ml-3">
+                                <a href="{{ url('logkehadiran') }}" class="stretched-link h6 mb-1">Kehadiran</a>
+                                <p class="mb-0 text-sm">Informasi kehadiran</p>
+                            </div>
                         </div>
                     </div>
+                    <div class="list-group-item">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="avatar flex-shrink-0 me-3">
+                                <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-information-line text-info ri-24px"></i></span>
+                            </div>
+                            <div class="media-body ml-3">
+                                <a href="{{ url('logbulanan') }}" class="stretched-link h6 mb-1">Log Bulanan</a>
+                                <p class="mb-0 text-sm">Informasi Log Bulanan</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="avatar flex-shrink-0 me-3">
+                                <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-information-line text-info ri-24px"></i></span>
+                            </div>
+                            <div class="media-body ml-3">
+                                <x-btn-modal url="{{ url('mhsprofile/formlokasi') }}" class="modalButton stretched-link h6 mb-1" title="Set lokasi">Lokasi Kegiatan</x-btn-modal>
+                                <p class="mb-0 text-sm">
+                                    {{ $mahasiswa->locationProgram->nama_lokasi ?? 'Lokasi Program belum di set' }},
+                                    {{ $mahasiswa->lokasi->desa->kecamatan->kecamatan ?? 'Kecamatan belum di set' }},
+                                    {{ $mahasiswa->lokasi->desa->desa ?? 'Desa belum di set' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
                 </div>
                 </div>
-              </div>
-            </div>
             @endif
           </div>
         </div>
