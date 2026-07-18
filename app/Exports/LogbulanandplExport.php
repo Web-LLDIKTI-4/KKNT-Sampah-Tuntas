@@ -8,13 +8,18 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class LogbulanandplExport implements FromCollection, WithHeadings
 {
+    protected $email;
+    public function __construct(String $email)
+    {
+        $this->email = $email;
+    }
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
         // Ambil data log bulanan
-        $logbulanan = Dpllaporan::all();
+        $logbulanan = Dpllaporan::where('email', $this->email)->orderBy('created_at', 'desc')->get();
 
         // Lakukan relasi yang diperlukan dan tambahkan judul kolom
         $data = $logbulanan->map(function ($item, $key) {
