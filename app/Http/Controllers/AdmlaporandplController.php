@@ -66,11 +66,14 @@ class AdmlaporandplController extends Controller
             $query = Dpllaporan::where('email', $email)->orderBy('created_at', 'desc')->get();
             return Datatables::of($query)
                 ->addIndexColumn()
-                ->addColumn('deskripsi', function($row){
-                    return $row->deskripsi.'<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
-                })
                 ->addColumn('nama_bulan', function($row){
                     return Carbon::create()->month($row->bulan)->translatedFormat('F');
+                })
+                ->addColumn('tahun', function($row){
+                    return $row->tahun;
+                })
+                ->addColumn('deskripsi', function($row){
+                    return $row->deskripsi.'<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                 })
                 // ->addColumn('action', function($row){
                 //     $actionBtn = '<div class="d-felx"><a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-pencil-square"></i></a> <a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-trash"></i></a></div>';

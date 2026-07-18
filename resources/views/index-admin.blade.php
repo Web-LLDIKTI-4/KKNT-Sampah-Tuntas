@@ -1,6 +1,9 @@
 @extends('layouts.app')
 @section('title','Home')
 @section('container')
+
+<x-page-header title="Dashboard" description="Selamat datang di Dashboard."/>
+
 <div class="container-xxl flex-grow-1 container-p-y">
     @php
         $userRole = optional(Auth::user())->role;
@@ -47,7 +50,6 @@
                 <p class="mb-0 card-subtitle">Data DPL</p>
             </div>
             <div class="card-body">
-                @if($jumlahdpl != 0)
                 <div class="d-flex align-items-center mb-6">
                     <div class="avatar">
                         <div class="avatar-initial bg-label-info rounded">
@@ -58,30 +60,34 @@
                         <h6 class="mb-1">Jumlah DPL</h6>
                         <small>{{$jumlahdpl}} Orang</small>
                     </div>
-                </div>
-                @endif                
-                <div class="d-flex align-items-center mb-6">
-                    <div class="avatar">
-                        <div class="avatar-initial bg-label-info rounded">
-                        <i class="ri-pencil-ruler-2-line ri-24px"></i>
+                </div>               
+                @if (!in_array($userRole, ['pt']))
+                    <div class="d-flex align-items-center mb-6">
+                        <div class="avatar">
+                            <div class="avatar-initial bg-label-info rounded">
+                            <i class="ri-pencil-ruler-2-line ri-24px"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3 d-flex flex-column">
+                            <h6 class="mb-1">Laporan DPL</h6>
+                            <small>{{$jumlahlaporandpl}} Laporan</small>
                         </div>
                     </div>
-                    <div class="ms-3 d-flex flex-column">
-                        <h6 class="mb-1">Laporan DPL</h6>
-                        <small>{{$jumlahlaporandpl}} Laporan</small>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center">
-                    <div class="avatar">
-                        <div class="avatar-initial bg-label-info rounded">
-                        <i class="ri-pencil-ruler-2-line ri-24px"></i>
+                @endif
+                
+                @if (!in_array($userRole, ['pt']))
+                    <div class="d-flex align-items-center">
+                        <div class="avatar">
+                            <div class="avatar-initial bg-label-info rounded">
+                            <i class="ri-pencil-ruler-2-line ri-24px"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3 d-flex flex-column">
+                            <h6 class="mb-1">Konversi Nilai</h6>
+                            <small>{{ $jumlahdplnilaikonversi }} Mahasiswa</small>
                         </div>
                     </div>
-                    <div class="ms-3 d-flex flex-column">
-                        <h6 class="mb-1">Konversi Nilai</h6>
-                        <small>{{ $jumlahdplnilaikonversi }} Mahasiswa</small>
-                    </div>
-                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -157,6 +163,17 @@
                     </div>
                     <div class="d-flex align-items-center mb-6">
                         <div class="avatar">
+                            <div class="avatar-initial bg-label-info rounded">
+                            <i class="ri-file-list-3-line ri-24px"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3 d-flex flex-column">
+                            <h6 class="mb-1">Log Kegiatan MHS</h6>
+                            <small>{{$jumlahlogkegiatan}} Kegiatan</small>
+                        </div>  
+                    </div>
+                    <div class="d-flex align-items-center mb-6">
+                        <div class="avatar">
                             <div class="avatar-initial bg-label-secondary rounded">
                             <i class="ri-bank-card-2-line ri-24px"></i>
                             </div>
@@ -166,19 +183,6 @@
                             <small>{{$jumlahlogbulanan}} Laporan</small>
                         </div>  
                     </div>
-                    @if($jumlahlogkegiatan)
-                        <div class="d-flex align-items-center mb-6">
-                            <div class="avatar">
-                                <div class="avatar-initial bg-label-secondary rounded">
-                                <i class="ri-bank-card-2-line ri-24px"></i>
-                                </div>
-                            </div>
-                            <div class="ms-3 d-flex flex-column">
-                                <h6 class="mb-1">Log Kegiatan MHS</h6>
-                                <small>{{$jumlahlogkegiatan}} Kegiatan</small>
-                            </div>  
-                        </div>                
-                    @endif
                 </div>
             </div>
         </div>

@@ -68,17 +68,6 @@ class HomeController extends Controller
                 'kehadiran' => $kehadiran,
             ];
             return view('index-user',$data);
-        }else if (Auth::user()->role == "pt"){
-            $jumlahmahasiswa = Mahasiswa::where('kodept',Auth::user()->email)->get()->count();
-            $data = [
-                'jumlahmahasiswa'=>$jumlahmahasiswa,
-                'jumlahdpl'=>$jumlahdpl,
-                'jumlahlogbulanan'=>0,
-                'jumlahlogkegiatan'=>0,
-                'jumlahpt'=>$jumlahpt,
-                'jumlahcapaiankpi' => 0,
-            ];
-            return view('index-member',$data);
         }else{
             //cek data
             $jumlahdpl=0;
@@ -130,7 +119,62 @@ class HomeController extends Controller
                 ->select(DB::raw('count(*) as count'))
                 ->whereIn('email', $subqueryEmailmhs)
                 ->value('count');
+            }elseif (in_array(Auth::user()->role, ['pt'])) {
+                // Ambil email mahasiswa yang menjadi tanggung jawab PT
+                $emailMahasiswa = User::query()
+                    ->where('role', 'mahasiswa')
+                    ->where('location_program', Auth::user()->location_program)
+                    ->whereHas('mahasiswa', function ($q) {
+                        $q->where('kodept', Auth::user()->pt->npsn);
+                    })
+                    ->pluck('email');
 
+                // Ambil id_mahasiswa
+                $idMahasiswa = Mahasiswa::whereIn('email', $emailMahasiswa)
+                    ->pluck('id_mahasiswa');
+
+                // Jumlah laporan DPL
+                $jumlahlaporandpl = Dpllaporan::whereIn('email', $emailMahasiswa)
+                    ->count();
+
+                // Jumlah log bulanan (unik bulan + email)
+                $jumlahlogbulanan = DB::table('logkegiatan_bulanan')
+                    ->whereIn('email', $emailMahasiswa)
+                    ->groupBy('bulan', 'email')
+                    ->count();
+
+                // Jumlah mahasiswa
+                $jumlahmahasiswa = $emailMahasiswa->count();
+
+                // Jumlah log kegiatan (unik tanggal + email)
+                $jumlahlogkegiatan = DB::table('logkegiatan')
+                    ->whereIn('email', $emailMahasiswa)
+                    ->groupBy('tanggal', 'email')
+                    ->count();
+
+                // Jumlah DPL yang membimbing mahasiswa PT tersebut
+                $jumlahdpl = User::with(['dpl'])
+                    ->whereHas('dpl', function ($query) {
+                        $query->where('kodept', Auth::user()->email);
+                    })
+                    ->where('role', 'dpl')
+                    ->count();
+
+                // Jumlah data mentoring
+                // $jumlahdplmentoring = Dplmentoring::whereIn('email_mahasiswa', $emailMahasiswa)
+                //     ->count();
+
+                // Jumlah nilai konversi
+                // $jumlahdplnilaikonversi = DB::table('nilai_konversi')
+                //     ->whereIn('id_mahasiswa', $idMahasiswa)
+                //     ->distinct('id_mahasiswa')
+                //     ->count('id_mahasiswa');
+
+                $jumlahlogkegiatan = Logkegiatan::with(['mahasiswa'])
+                    ->whereHas('mahasiswa', function ($query) use ($emailMahasiswa) {
+                        $query->whereIn('email', $emailMahasiswa);
+                    })
+                    ->count();
             }else{
                 $jumlahlaporandpl = Dpllaporan::count();
                 $jumlahlogbulanan = DB::table(DB::raw("(SELECT bulan, email FROM logkegiatan_bulanan GROUP BY bulan, email) as grouped"))
@@ -143,6 +187,7 @@ class HomeController extends Controller
                 ->value('count');
                 $jumlahdpl = User::where("role","dpl")->count();
                 $jumlahdplmentoring = Dplmentoring::count();
+
                 // Subquery untuk mendapatkan id_mahasiswa dari mahasiswa yang terkait dengan email_dpl saat ini
                 $subquery = DB::table('mahasiswa')
                     ->select('id_mahasiswa')
@@ -156,7 +201,6 @@ class HomeController extends Controller
                     ->whereIn('id_mahasiswa', $subquery)
                     ->distinct('id_mahasiswa')
                     ->count('id_mahasiswa');
-            
             }            
             $data = [
                 'jumlahmahasiswa'=>$jumlahmahasiswa,
@@ -165,8 +209,8 @@ class HomeController extends Controller
                 'jumlahlogkegiatan'=>$jumlahlogkegiatan,
                 'jumlahpt'=>$jumlahpt,
                 'jumlahlaporandpl'=>$jumlahlaporandpl,
-                'jumlahdplmentoring'=>$jumlahdplmentoring,
-                'jumlahdplnilaikonversi'=>$jumlahdplnilaikonversi,
+                'jumlahdplmentoring'=>$jumlahdplmentoring ?? null,
+                'jumlahdplnilaikonversi'=>$jumlahdplnilaikonversi ?? null,
                 'saran'=>$saran,
             ];
             return view('index-admin',$data);
