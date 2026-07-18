@@ -15,6 +15,6 @@ class Evaluasikegiatan extends Model
     {
         return $this->hasOne(Evaluasikegiatanjawaban::class, 'id_evaluasi', 'id_evaluasi')
                     ->where('user', $userId)
-                    ->whereYear('tahun', $year);
+                    ->where('tahun', $year);
     }
 }

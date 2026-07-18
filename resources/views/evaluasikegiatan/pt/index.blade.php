@@ -1,20 +1,12 @@
-@extends('layouts/user')
+@extends('layouts.app')
 @section('title','Evaluasi kegiatan')
 @section('container')
-<div class="page-title">
-    <div class="row justify-content-between align-items-center">
-        <div class="col-md-6 d-flex align-items-center justify-content-between justify-content-md-start mb-3 mb-md-0">
-            <!-- Page title + Go Back button -->
-            <div class="d-inline-block">
-                <h5 class="h4 d-inline-block font-weight-400 mb-0 text-white">Evaluasi kegiatan</h5>
-            </div>
-        </div>
-    </div>
-</div>
+
+<x-page-header />
 
 <div class="card">
     <div class="card-body">
-        <p id="resultcontent">loding data</p>
+        <p id="resultcontent">loading data...</p>
     </div>
 </div>
 <script>
@@ -40,26 +32,12 @@
                 },
                 success:function(ret){
                     if(ret.success == true){		
-                        var table = $('#dataTable').DataTable(); // Menginisialisasi objek tabel
                         // Memuat ulang data tabel secara manual
+                        toastr.success(ret.message);		
+                        var table = $('#dataTable').DataTable(); // Menginisialisasi objek tabel
                         table.ajax.reload();
-                        $.notify(ret.message, {
-                            type: 'success',
-                            animate: {
-                                enter: 'animated rollIn',
-                                exit: 'animated rollOut'
-                            },
-                            z_index: 2000
-                        });			
                     }else{                    
-                        $.notify(ret.message, {
-                            type: 'danger',
-                            animate: {
-                                enter: 'animated rollIn',
-                                exit: 'animated rollOut'
-                            },
-                            z_index: 2000
-                        });
+                        toastr.error(ret.message);
                         if (ret.hasOwnProperty('errors')) {
                                     // Ada kesalahan validasi
                             var errors = ret.errors;

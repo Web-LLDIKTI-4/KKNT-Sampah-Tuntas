@@ -13,6 +13,7 @@ use App\Models\Evaluasikegiatan;
 use DB;
 use Validator;
 use App\Support\ActionButtons;
+use App\Models\Satuanpendidikan;
 
 class AdmevaluasikegiatanController extends Controller
 {    
@@ -20,10 +21,12 @@ class AdmevaluasikegiatanController extends Controller
     {  
         return view('evaluasikegiatan.index');
     }
+
     public function hasilevaluasi()
     {
         return view('evaluasikegiatan.hasilevaluasi');
     }
+
     public function listdataserver(Request $request)
     {
 
@@ -31,37 +34,35 @@ class AdmevaluasikegiatanController extends Controller
             $data = Evaluasikegiatanjawaban::get();
             return DataTables::of($data)
                 ->addIndexColumn()
+                ->addColumn('kodept', function($row) {
+                    return $row->kodept ?? 'Tidak ada';
+                })
                 ->addColumn('nm_lemb', function($row) {
-                    if ($row->sp) {
-                        return $row->sp->nm_lemb;
-                    } else {
-                        return 'Tidak ada'; // or any default value you prefer
-                    }
+                    return Satuanpendidikan::where('npsn', $row->kodept)->first()->nm_lemb ?? 'Tidak ada';
                 })
                 ->addColumn('pertanyaan', function($row) {
-                    if ($row->evaluasikegiatan) {
-                        return $row->evaluasikegiatan->pertanyaan;
-                    } else {
-                        return 'Tidak ada'; // or any default value you prefer
-                    }
+                    return $row->evaluasikegiatan->pertanyaan ?? 'Tidak ada';
                 })
                 ->addColumn('action', function($row){
                     return view('components.btn-view', [
                         'url' => url('admlogharian/permhs/'.$row->email.'')
                     ]);
                 })
-                ->rawColumns(['action'])
+                ->rawColumns(['pertanyaan', 'action'])
                 ->make(true);
         }
     }
+
     public function pertanyaanevaluasi()
     {
         return view('evaluasikegiatan.pertanyaanevaluasi');
     }
+
     public function pertanyaanevaluasilistdata()
     {
         return view('evaluasikegiatan.pertanyaanevaluasi_listdata');
     }
+
     public function pertanyaanevaluasiserver(Request $request)
     {
         if ($request->ajax()) { 
@@ -70,10 +71,13 @@ class AdmevaluasikegiatanController extends Controller
             return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('pertanyaan', function($row) {
-                return $row->pertanyaan;
+                return $row->pertanyaan ?? 'Tidak ada';
             })
             ->addColumn('action', function($row){
-                return ActionButtons::editDelete(url('admevaluasikegiatan/pertanyaanevaluasi/destroy'), $row->id_evaluasi);
+                return view('components.action-data', [
+                    'urlEdit' => url('admevaluasikegiatan/edit/'.$row->id_evaluasi.''),
+                    'urlDelete' => $row->id_evaluasi
+                ]);
             })
             ->rawColumns(['pertanyaan', 'action'])
             ->make(true);
@@ -110,12 +114,48 @@ class AdmevaluasikegiatanController extends Controller
         //insert data dan tampilkan pesan
         return response()->json(['success'=>true,'message' => 'Data berhasil disimpan'], 200);
     }
+    public function edit($id_evaluasi)
+    {
+        $data = Evaluasikegiatan::find($id_evaluasi);
+        return view('evaluasikegiatan.pertanyaanevaluasi_edit', compact('data'));
+    }
+    public function update(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'pertanyaan'     => 'required',
+        ], [
+            'pertanyaan.required' => 'pertanyaan desa harus isi.',
+        ]);
+        
+        $validator->after(function($validator) use ($request) {
+            $cekdata = Evaluasikegiatan::where("pertanyaan",$request->pertanyaan)
+            ->exists();
+            if ($cekdata) {
+                $validator->errors()->add('pertanyaan', 'Data pertanyaan sudah ada!');
+            }
+        });
+        
+        if ($validator->fails()) {
+            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
+        }
+        $data=[
+            'pertanyaan'=>$request->pertanyaan,
+            'tahun'=>date('Y'),
+        ];
+
+        $update = Evaluasikegiatan::findOrFail($request->id_evaluasi);
+        $update->update($data);
+        
+        //insert data dan tampilkan pesan
+        return response()->json(['success'=>true,'message' => 'Data berhasil disimpan'], 200);
+    }
+
     public function destroy(Request $request){
         $id_evaluasi = $request->id_evaluasi;
         if (Evaluasikegiatan::where("id_evaluasi", $id_evaluasi)->delete()) {
             return response()->json(['success' => true, 'message' => 'Data berhasil dihapus'], 200);
         } else {
-            return response()->json(['success' => false, 'message' => 'Data gagal dihapus'], 200);
+            return response()->json(['success' => false, 'message' => 'Data gagal dihapus, data tersebut tidak ada atau sudah terhapus!'], 200);
         }
         
     }

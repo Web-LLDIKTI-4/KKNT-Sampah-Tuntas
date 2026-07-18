@@ -218,6 +218,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admevaluasikegiatan/listdataserver', [AdmevaluasikegiatanController::class, 'listdataserver'])->name('admevaluasikegiatan.listdataserver');
     Route::get('admevaluasikegiatan/tambah', [AdmevaluasikegiatanController::class, 'tambah'])->name('admevaluasikegiatan.tambah');
     Route::put('admevaluasikegiatan/insert', [AdmevaluasikegiatanController::class, 'insert']);
+    Route::get('admevaluasikegiatan/edit/{id_evaluasi}', [AdmevaluasikegiatanController::class, 'edit'])->name('admevaluasikegiatan.edit');
+    Route::put('admevaluasikegiatan/update', [AdmevaluasikegiatanController::class, 'update']);
     Route::get('admevaluasikegiatan/pertanyaanevaluasi', [AdmevaluasikegiatanController::class, 'pertanyaanevaluasi'])->name('admevaluasikegiatan.pertanyaanevaluasi');
     Route::get('admevaluasikegiatan/pertanyaanevaluasilistdata', [AdmevaluasikegiatanController::class, 'pertanyaanevaluasilistdata'])->name('admevaluasikegiatan.pertanyaanevaluasilistdata');
     Route::get('admevaluasikegiatan/pertanyaanevaluasiserver', [AdmevaluasikegiatanController::class, 'pertanyaanevaluasiserver'])->name('admevaluasikegiatan.pertanyaanevaluasiserver');
@@ -358,15 +360,15 @@ Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function (
 });
 
 Route::middleware(['auth', 'role:pt'])->group(function () {
-    Route::get('ptevaluasikegiatan', [PtevaluasikegiatanController::class, 'index']);
-    Route::get('ptevaluasikegiatan/tambah', [PtevaluasikegiatanController::class, 'tambah']);
-    Route::put('ptevaluasikegiatan/insert', [PtevaluasikegiatanController::class, 'insert']);
+    Route::get('ptevaluasikegiatan', [PtevaluasikegiatanController::class, 'index'])->name('ptevaluasikegiatan');
+    Route::get('ptevaluasikegiatan/tambah', [PtevaluasikegiatanController::class, 'tambah'])->name('ptevaluasikegiatan.tambah');
+    Route::put('ptevaluasikegiatan/insert', [PtevaluasikegiatanController::class, 'insert'])->name('ptevaluasikegiatan.insert');
 
-    Route::get('ptmahasiswa', [PtmahasiswaController::class, 'index']);
+    Route::get('ptmahasiswa', [PtmahasiswaController::class, 'index'])->name('ptmahasiswa');
     Route::get('ptmahasiswa/listdata', [PtmahasiswaController::class, 'listdata'])->name('ptmahasiswa.listdata');
     Route::get('ptmahasiswa/listdataserver', [PtmahasiswaController::class, 'listdataserver'])->name('ptmahasiswa.listdataserver');
     
-    Route::get('pttugasakhir', [PttugasakhirController::class, 'index']);
-    Route::get('pttugaskahir/listdata', [PttugasakhirController::class, 'listdata'])->name('pttugaskahir.listdata');
-    Route::get('pttugaskahir/listdataserver', [PttugasakhirController::class, 'listdataserver'])->name('pttugaskahir.listdataserver');
+    Route::get('pttugasakhir', [PttugasakhirController::class, 'index'])->name('pttugasakhir');
+    Route::get('pttugasakhir/listdata', [PttugasakhirController::class, 'listdata'])->name('pttugasakhir.listdata');
+    Route::get('pttugasakhir/listdataserver', [PttugasakhirController::class, 'listdataserver'])->name('pttugasakhir.listdataserver');
 });

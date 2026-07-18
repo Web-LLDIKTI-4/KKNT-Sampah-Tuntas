@@ -31,13 +31,14 @@
                             <h4 class="mb-2">{{ $displayName }} [{{ $profile->email }}]</h4>
                             <ul  class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-4">
                                 @if (in_array($profile->role, ['pt']))
-                                        <li class="list-inline-item">
-                                            <i class="ri-building-2-line me-2 ri-24px"></i>
-                                            <span class="fw-medium">{{ 'Instansi : ' . $profile?->pt?->nm_lemb ?? '-' }}</span>
-                                        </li>
+                                    <li class="list-inline-item">
+                                        <i class="ri-building-2-line me-2 ri-24px"></i>
+                                        <span class="fw-medium">{{ 'Instansi : ' . $profile?->pt?->nm_lemb ?? '-' }}</span>
+                                    </li>
                                 @endif
                                 @if ($isDpl || $isMahasiswa)
                                         <li class="list-inline-item">
+                                            <i class="ri-building-2-line me-2 ri-24px"></i>
                                             @isset($dpl)
                                                 <span class="fw-medium">{{ 'Instansi : ' . $dpl->sp->nm_lemb ?? '-' }}</span>
                                             @endisset

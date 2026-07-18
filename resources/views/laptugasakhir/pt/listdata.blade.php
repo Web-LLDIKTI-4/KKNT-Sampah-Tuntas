@@ -28,8 +28,8 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
-            {data: 'nim', name: 'nim'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
+            {data: 'nim', name: 'nim', className: 'text-center'},
             {data: 'nama', name: 'nama'},
             {data: 'tugas_akhir', name: 'tugas_akhir'},
         ],

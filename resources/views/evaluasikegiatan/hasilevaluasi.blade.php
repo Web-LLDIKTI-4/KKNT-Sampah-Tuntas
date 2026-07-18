@@ -2,11 +2,10 @@
     :ajax="route('admevaluasikegiatan.listdataserver')"
     :columns="[
         ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
-        ['data' => 'kodept', 'name' => 'kodept'],
+        ['data' => 'kodept', 'name' => 'kodept', 'className' => 'text-center'],
         ['data' => 'nm_lemb', 'name' => 'nm_lemb'],
         ['data' => 'pertanyaan', 'name' => 'pertanyaan'],
         ['data' => 'jawaban', 'name' => 'jawaban'],
-        ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'orderable' => false, 'searchable' => false, 'visible' => false],
     ]"
 >
     <x-slot:thead>
@@ -16,7 +15,6 @@
             <th>Nama Perguruan Tinggi</th>
             <th>Pertanyaan</th>
             <th>Jawaban</th>
-            <th width="1">Aksi</th>
         </tr>
     </x-slot:thead>
 </x-table>
