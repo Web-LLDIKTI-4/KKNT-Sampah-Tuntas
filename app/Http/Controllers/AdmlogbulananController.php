@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Session;
+use App\Models\User;
 use App\Models\Mahasiswa;
 use DataTables;
 use App\Models\Logbulanan;
@@ -24,17 +25,30 @@ class AdmlogbulananController extends Controller
     public function listdatagrouping(Request $request)
     {
         if ($request->ajax()) {
-            if (Auth::check() && Auth::user()->role == 'dpl') {
-                $data = Mahasiswa::with(['dplmentoring'])
-                    ->whereHas('dplmentoring', function ($query) {
-                        $query->where('email_dpl', Auth::user()->email);
-                    })
-                    ->get();
-            } else {
-                $data = Mahasiswa::all();
-            }           
+            $query = Mahasiswa::query()
+                ->with(['dplmentoring'])
+                ->orderBy('created_at', 'desc');
 
-            return Datatables::of($data)
+            if (in_array(Auth::user()->role, ['dpl'])) {
+                $query->whereHas('dplmentoring', function ($query) {
+                    $query->where('email_dpl', Auth::user()->email);
+                })->get();
+            }
+            
+            if (in_array(Auth::user()->role, ['pt'])) {
+                // Query validasi by lokasi program dan kode pt
+                $emailMahasiswa = User::query()
+                    ->with(['mahasiswa'])
+                    ->where('location_program', Auth::user()->location_program)
+                    ->whereHas('mahasiswa', function ($q) {
+                        $q->where('kodept', Auth::user()->pt->npsn);
+                    })
+                    ->where('role', 'mahasiswa')
+                    ->pluck('email');
+                $query->whereIn('email', $emailMahasiswa)->get();
+            }
+
+            return Datatables::eloquent($query)
                 ->addIndexColumn()
                 ->addColumn('nim', function($row){
                     return $row->nim ?? 'NIM tidak tersedia';

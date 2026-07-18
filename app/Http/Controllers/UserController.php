@@ -305,6 +305,7 @@ class UserController extends Controller
         $data=[
             'name'=>$request->name,
             'email'=>$request->kodept,
+            'location_program' => $request->location_program,
         ];
         if($request->password){
             $data["password"] =Hash::make($request->password);

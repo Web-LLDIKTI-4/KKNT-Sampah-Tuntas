@@ -4,7 +4,7 @@
             <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
-                    <th>Id kpicapaian</th>
+                    {{-- <th>Id kpicapaian</th> --}}
                     <th>Lokasi Kegiatan</th>
                     <th>Ketua Kelompok</th>
                     <th>Nama KPI</th>
@@ -15,7 +15,7 @@
                     <th>Kebutuhan Dukungan</th>
                     <th>Tindak Lanjut</th>
                     <th>Tautan</th>
-                    <th width="1">Aksi</th>
+                    {{-- <th width="1">Aksi</th> --}}
                 </tr>
             </x-slot:thead>
         </x-datatable>
@@ -40,7 +40,7 @@
         },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex' , className: 'text-center', orderable: false, searchable: false},
-            {data: 'id_target', name: 'id_target', visible:false},
+            // {data: 'id_target', name: 'id_target', visible:false},
             {data: 'lokasi', name: 'lokasi'},
             {data: 'pjdesa', name: 'pjdesa'},
             {data: 'nama_kpi', name: 'nama_kpi'},
@@ -95,7 +95,7 @@
             },
             {data: 'status_capaian', name: 'status_capaian'},
             {data: 'tautan', name: 'tautan'},
-            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:false,},
+            // {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],
         layout: {
             top1: {

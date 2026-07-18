@@ -26,7 +26,6 @@ class LogkehadiranController extends Controller
 
         if ($request->ajax()) {
             $data = Kehadiran::where("email",Auth::user()->email)->get();
-
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('status_kehadiran', function($row){

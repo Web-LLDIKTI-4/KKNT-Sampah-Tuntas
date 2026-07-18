@@ -18,11 +18,26 @@ class UserGuardMiddleware
 
     public function handle(Request $request, Closure $next)
     {
-        if (auth()->check()) {
-            // Kalo mahasiswa belum punya mahasiswa lokasi, alihkan ke halaman profile dan tidak bisa akses menu lain
-            $desaExists = Mahasiswa_lokasi::where('id_mahasiswa', auth()->user()->mahasiswa?->id_mahasiswa)->exists();
-            if (in_array(auth()->user()->role, ['mahasiswa']) && !$desaExists) {
-                return redirect(url('mhsprofile'));
+        if (! auth()->check()) {
+            return $next($request);
+        }
+
+        $user = auth()->user();
+
+        if ($user->role === 'mahasiswa') {
+
+            $mahasiswa = $user->mahasiswa;
+
+            // Jika data mahasiswa belum ada
+            if (! $mahasiswa) {
+                return redirect()->route('mhsprofile');
+            }
+
+            // Jika belum memilih lokasi dan bukan sedang di halaman profile
+            $hasLokasi = Mahasiswa_lokasi::where('id_mahasiswa', $mahasiswa->id_mahasiswa)->exists();
+
+            if (! $hasLokasi && ! $request->routeIs('mhsprofile')) {
+                return redirect()->route('mhsprofile');
             }
         }
 

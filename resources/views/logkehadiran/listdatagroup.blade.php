@@ -30,7 +30,7 @@
                 infoEmpty: "Tidak ada data yang ditemukan",
             },
             columns: [
-                {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', searchable: false},
+                {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
                 {data: 'nim', name: 'nim', className: 'text-center'},
                 {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
                 {data: 'nm_lemb', name: 'nm_lemb'},

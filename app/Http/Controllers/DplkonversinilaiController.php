@@ -32,16 +32,16 @@ class DplkonversinilaiController extends Controller
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('nim', function($row){
-                    return $row->mahasiswa->nim;
+                    return $row->mahasiswa->nim ?? 'NIM Tidak Tersedia';
                 })
                 ->addColumn('nama', function($row){
-                    return $row->mahasiswa->nama;
+                    return $row->mahasiswa->nama ?? 'Nama Tidak Tersedia';
                 })
                 ->addColumn('nm_lemb', function($row){
-                    return $row->mahasiswa->sp->nm_lemb;
+                    return $row->mahasiswa->sp->nm_lemb ?? 'Nama Lembaga Tidak Tersedia';
                 })
                 ->addColumn('prodi', function($row){
-                    return $row->mahasiswa->prodi;
+                    return $row->mahasiswa->prodi ?? 'Prodi Tidak Tersedia';
                 })
                 ->addColumn('action', function($row){
                     return ActionButtons::editDelete(

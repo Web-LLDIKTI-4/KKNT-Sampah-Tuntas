@@ -74,7 +74,14 @@ Route::middleware('auth')->group(function () {
     Route::get('setting', [SettingController::class, 'index']);
     Route::put('setting/update', [SettingController::class, 'update']);
 
-    Route::get('mhsprofile', [MhsprofileController::class, 'index']);
+    Route::get('profile', [ProfileController::class, 'index']);
+    Route::get('profile/data', [ProfileController::class, 'data']);
+    Route::get('profile/getPoto', [ProfileController::class, 'getPoto'])->name('profile.getPoto');
+    Route::get('profile/uploadpoto', [ProfileController::class, 'uploadpoto'])->name('profile.uploadpoto');
+    Route::put('profile/prosesuploadpoto', [ProfileController::class, 'prosesuploadpoto']);
+    Route::put('profile/update', [ProfileController::class, 'update']);
+
+    Route::get('mhsprofile', [MhsprofileController::class, 'index'])->name('mhsprofile');
     Route::get('mhsprofile/data', [MhsprofileController::class, 'data']);
     Route::get('mhsprofile/getPoto', [MhsprofileController::class, 'getPoto'])->name('mhsprofile.getPoto');
     Route::get('mhsprofile/uploadpoto', [MhsprofileController::class, 'uploadpoto'])->name('mhsprofile.uploadpoto');
@@ -219,13 +226,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:dpl,admin,pt'])->group(function () {
-    Route::get('profile', [ProfileController::class, 'index']);
-    Route::get('profile/data', [ProfileController::class, 'data']);
-    Route::get('profile/getPoto', [ProfileController::class, 'getPoto'])->name('profile.getPoto');
-    Route::get('profile/uploadpoto', [ProfileController::class, 'uploadpoto'])->name('profile.uploadpoto');
-    Route::put('profile/prosesuploadpoto', [ProfileController::class, 'prosesuploadpoto']);
-    Route::put('profile/update', [ProfileController::class, 'update']);
-    
     Route::get('perguruantinggi', [PerguruantinggiController::class, 'index']);
     Route::get('perguruantinggi/listdata', [PerguruantinggiController::class, 'listdata'])->name('perguruantinggi.listdata');
     Route::get('perguruantinggi/listdataserver', [PerguruantinggiController::class, 'listdataserver'])->name('perguruantinggi.listdataserver');;
@@ -306,7 +306,7 @@ Route::middleware(['auth', 'role:dpl,pt'])->group(function () {
     Route::put('dpllaptugasakhir/nilai', [DpllaptugasakhirController::class, 'nilai']);
 });
 
-Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
+Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function () {
     Route::get('logkehadiran', [LogkehadiranController::class, 'index']);
     Route::get('logkehadiran/listdata', [LogkehadiranController::class, 'listdata'])->name('logkehadiran.listdata');
     Route::get('logkehadiran/listdataserver', [LogkehadiranController::class, 'listdataserver'])->name('logkehadiran.listdataserver');
@@ -356,6 +356,7 @@ Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
     Route::put('tugasakhir/update', [TugasakhirController::class, 'update']);
     Route::put('tugasakhir/destroy', [TugasakhirController::class, 'destroy']);
 });
+
 Route::middleware(['auth', 'role:pt'])->group(function () {
     Route::get('ptevaluasikegiatan', [PtevaluasikegiatanController::class, 'index']);
     Route::get('ptevaluasikegiatan/tambah', [PtevaluasikegiatanController::class, 'tambah']);
