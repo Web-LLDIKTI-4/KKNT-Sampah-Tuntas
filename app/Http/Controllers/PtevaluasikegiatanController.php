@@ -19,6 +19,7 @@ class PtevaluasikegiatanController extends Controller
     {  
         return view('evaluasikegiatan.pt.index');
     }
+
     public function tambah(){
         // Retrieve all instances of Evaluasikegiatan
         $evaluasiList = Evaluasikegiatan::all();
@@ -40,6 +41,8 @@ class PtevaluasikegiatanController extends Controller
                 'evaluasi' => $evaluasi,
                 'jawaban' => $jawabanevaluasi,
             ];
+
+            // dd($jawabanevaluasi);
         }
         // Pass the data to the view
         $data = [
@@ -48,6 +51,7 @@ class PtevaluasikegiatanController extends Controller
 
         return view('evaluasikegiatan.pt.tambah', $data);
     }
+
     public function insert(Request $request){
         $data = $request->jawaban; // This will be an array with evaluation IDs as keys
 

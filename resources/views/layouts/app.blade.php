@@ -228,7 +228,7 @@
 			}
 			$(".modal-title").html(title);
 			//$('.modal').modal();        
-			$('#modalisi').html('Loading, please wait...');
+			$('#modalisi').html('Loading, mohon tunggu...');
 			$('#modalisi').load(src);
 		})
 

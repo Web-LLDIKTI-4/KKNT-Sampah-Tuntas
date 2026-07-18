@@ -96,44 +96,30 @@ $(function(){
         if (confirm('Anda yakin ingin menghapus data ini?')) {
             // Lakukan permintaan AJAX untuk menghapus data
             var csrfToken = $('meta[name="csrf-token"]').attr('content');
-            let id_profile = data.id_profile;
-            const dString = "id_profile="+id_profile;
+            let id_evaluasi = data.id_evaluasi;
+            const dString = "id_evaluasi="+id_evaluasi;
             $.ajax({
-                url: 'desaprofile/destroy',
+                url: "{{ url('admevaluasikegiatan/pertanyaanevaluasi/destroy') }}",
                 method: 'PUT',
                 data:dString,
                 headers: {
                     'X-CSRF-TOKEN': csrfToken // Sertakan CSRF token dalam header
                 },
                 success: function(response) {
-                    if (response && response.message) {
+                    if (response.success) {
                         // Jika pesan sukses, tampilkan pesan berhasil
-                        $.notify(response.message, {
-                            type: 'success',
-                            animate: {
-                                enter: 'animated rollIn',
-                                exit: 'animated rollOut'
-                            },
-                            z_index: 2000
-                        });
+                        toastr.success(response.message);
                         table.ajax.reload();
+                    } else {
+                        toastr.error(response.message);
                     }
-                    
-                    
                 },
                 error: function(xhr, status, error) {
                     // Tangani kesalahan seperti CSRF token mismatch atau kesalahan server
                     console.log(xhr.status); // Kode status HTTP
                     console.log(xhr.responseText); // Pesan kesalahan dari server
                     console.log(error); // Pesan kesalahan bawaan dari jQuery
-                    $.notify('Terjadi kesalahan saat menghapus data', {
-                        type: 'danger',
-                        animate: {
-                            enter: 'animated rollIn',
-                            exit: 'animated rollOut'
-                        },
-                        z_index: 2000
-                    });
+                    toastr.error('Terjadi kesalahan saat menghapus data. Silakan coba lagi.');
                 }
             });
         }

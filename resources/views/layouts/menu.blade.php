@@ -301,28 +301,28 @@
                                 <span class="ps-1">Laporan & Mentoring</span>
                             </div>
                             <ul class="nav flex-column">
-                                <li class="nav-item">
+                                {{-- <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dpllaporan') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Bulanan
                                     </a>
-                                </li>
-                                <li class="nav-item">
+                                </li> --}}
+                                {{-- <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplkonversinilai') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai
                                     </a>
-                                </li>
+                                </li> --}}
                                 {{-- <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplfreeform') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai Free Form
                                     </a>
                                 </li> --}}
                                 <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dpllaptugasakhir') }}">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pttugasakhir') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admevaluasikegiatan') }}">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('ptevaluasikegiatan') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i>
                                         <span data-i18n="Pricing">Data Evaluasi</span>
                                     </a>
