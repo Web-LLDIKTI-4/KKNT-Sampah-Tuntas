@@ -8,13 +8,38 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class LogbulanandplExport implements FromCollection, WithHeadings
 {
+    protected $email;
+    public function __construct(String $email)
+    {
+        $this->email = $email;
+    }
+
+    function bulanToNama($bulan)
+    {
+        $namaBulan = [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember'
+        ];
+
+        return $namaBulan[$bulan] ?? '';
+    }
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
         // Ambil data log bulanan
-        $logbulanan = Dpllaporan::all();
+        $logbulanan = Dpllaporan::where('email', $this->email)->orderBy('created_at', 'desc')->get();
 
         // Lakukan relasi yang diperlukan dan tambahkan judul kolom
         $data = $logbulanan->map(function ($item, $key) {
@@ -45,7 +70,8 @@ class LogbulanandplExport implements FromCollection, WithHeadings
                 'Nama DPL' => $nama, 
                 'NIDN' => $nidn, 
                 'Perguruan Tinggi' => $nama_lemb, 
-                'Bulan' => $item->bulan,
+                'Tahun' => $item->tahun,
+                'Bulan' => $this->bulanToNama($item->bulan),
                 'Deskripsi' => $deskripsi,
                 // Tambahkan kolom lain sesuai kebutuhan
             ];
@@ -65,6 +91,7 @@ class LogbulanandplExport implements FromCollection, WithHeadings
             'Nama DPL',
             'NIDN',
             'Perguruan Tinggi',
+            'Tahun',
             'Bulan',
             'Deskripsi',
             // Tambahkan judul kolom lain sesuai kebutuhan

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Session;
 use App\Models\Mahasiswa;
 use DataTables;
+use App\Models\Dpl;
 use App\Models\Dpllaporan;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
@@ -18,36 +19,71 @@ class AdmlaporandplController extends Controller
     {  
         return view('laporandpl.index');
     }
-    public function listdata()
+    public function listdatagroup()
     {
-        return view('laporandpl.listdata');
+        return view('laporandpl.listdatagroup');
     }
-    public function listdataserver(Request $request)
+    public function listdatagrouping(Request $request)
     {
-
         if ($request->ajax()) {
             
-            $data = Dpllaporan::get();
-            return Datatables::of($data)
+            $query = Dpl::query()
+                ->orderBy('created_at', 'desc')->get();
+
+            return Datatables::of($query)
                 ->addIndexColumn()
                 ->addColumn('deskripsi', function($row){
-                    return $row->deskripsi.'<br><a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
-                })
-                ->addColumn('nama_bulan', function($row){
-                    return Carbon::create()->month($row->bulan)->translatedFormat('F');
+                    return $row->deskripsi.'<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                 })
                 ->addColumn('nama_dpl', function($row){
-                    return $row->user->name ?? '-';
+                    return $row->user->name ?? 'Nama DPL Tidak Tersedia';
+                })
+                ->addColumn('nama_pt', function($row){
+                    return $row->sp->nm_lemb ?? 'Nama PT Tidak Tersedia';
+                })
+                ->addColumn('count_log', function($row){
+                    return $row->dpllaporan()->count() ?? '0';
                 })
                 ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-pencil-square"></i></a> <a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-trash"></i></a></div>';
-                    return $actionBtn;
+                    return view('components.action-data', [
+                        'urlView' => url('/admlaporandpl/listdata/'.$row->email)
+                    ]);
                 })
                 ->rawColumns(['action'])
                 ->make(true);
         }
     }
-    public function export(){
-        return Excel::download(new LogbulanandplExport, 'logbulanan_dpl.xlsx');
+
+    public function listdata()
+    {
+        return view('laporandpl.listdata');
+    }
+    public function listdataserver(Request $request, String $email)
+    {
+
+        if ($request->ajax()) {
+            
+            $query = Dpllaporan::where('email', $email)->orderBy('created_at', 'desc')->get();
+            return Datatables::of($query)
+                ->addIndexColumn()
+                ->addColumn('nama_bulan', function($row){
+                    return Carbon::create()->month($row->bulan)->translatedFormat('F');
+                })
+                ->addColumn('tahun', function($row){
+                    return $row->tahun;
+                })
+                ->addColumn('deskripsi', function($row){
+                    return $row->deskripsi.'<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
+                })
+                // ->addColumn('action', function($row){
+                //     $actionBtn = '<div class="d-felx"><a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-pencil-square"></i></a> <a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-trash"></i></a></div>';
+                //     return $actionBtn;
+                // })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
+    public function export(String $email){
+        return Excel::download(new LogbulanandplExport($email), 'logbulanan_dpl_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

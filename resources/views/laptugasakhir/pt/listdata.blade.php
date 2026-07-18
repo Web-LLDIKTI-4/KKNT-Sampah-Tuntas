@@ -17,7 +17,7 @@
   $(function () {
     var table = $('#dataTable').DataTable({
         searching: true,
-        lengthChange: true,
+        lengthChange: false,
         processing: true,
         serverSide: true,
         ajax: "{{ route('pttugasakhir.listdataserver') }}",

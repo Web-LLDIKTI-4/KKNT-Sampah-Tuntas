@@ -11,6 +11,7 @@ class Dpllaporan extends Model
     {
         return $this->hasOne(Dpl::class,'email','email');
     }
+    
     public function user()
     {
         return $this->hasOne(User::class,'email','email');

@@ -142,9 +142,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     //semua route dalam grup ini hanya bisa diakses oleh operator
     
     Route::get('admlaporandpl', [AdmlaporandplController::class, 'index']);
-    Route::get('admlaporandpl/listdata', [AdmlaporandplController::class, 'listdata'])->name('admlaporandpl.listdata');
-    Route::get('admlaporandpl/listdataserver', [AdmlaporandplController::class, 'listdataserver'])->name('admlaporandpl.listdataserver');;
-    Route::get('admlaporandpl/export', [AdmlaporandplController::class, 'export']);
+    Route::get('admlaporandpl/listdatagroup', [AdmlaporandplController::class, 'listdatagroup'])->name('admlaporandpl.listdatagroup');
+    Route::get('admlaporandpl/listdatagrouping', [AdmlaporandplController::class, 'listdatagrouping'])->name('admlaporandpl.listdatagrouping');;
+    Route::get('admlaporandpl/listdata/{email}', [AdmlaporandplController::class, 'listdata'])->name('admlaporandpl.listdata');
+    Route::get('admlaporandpl/listdataserver/{email}', [AdmlaporandplController::class, 'listdataserver'])->name('admlaporandpl.listdataserver');;
+    Route::get('admlaporandpl/export/{email}', [AdmlaporandplController::class, 'export']);
 
     Route::get('admlogharian', [AdmlogharianController::class, 'index']);
     Route::get('admlogharian/listdata', [AdmlogharianController::class, 'listdata'])->name('admlogharian.listdata');
