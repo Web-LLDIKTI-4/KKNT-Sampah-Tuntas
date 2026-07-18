@@ -58,7 +58,7 @@ class LapcapaiankpiController extends Controller
                     }
                 })
                 ->addColumn('pjdesa', function($row) {
-                    return isset($row->pjdesa->email) ? $row->pjdesa->email . ' ' . Auth::user()->pt->npsn : 'Ketua Kelompok Tidak Tersedia';
+                    return isset($row->pjdesa->email) ? $row->pjdesa->email : 'Ketua Kelompok Tidak Tersedia';
                 })
                 ->addColumn('nama_kpi', function($row) {
                     return isset($row->kpi->nama_kpi) ? $row->kpi->nama_kpi : 'Tidak Diketahui';
