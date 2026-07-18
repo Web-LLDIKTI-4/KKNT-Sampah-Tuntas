@@ -80,11 +80,13 @@ class KpicapaianController extends Controller
                 ->make(true);
         }
     }
+
     public function kpitarget(Request $request)
     {
         $kpitarget = Kpitarget::where("id_kpi",$request->id_kpi)->get();
         return view('kpicapaian.kpitarget',compact('kpitarget'));
     }
+
     public function tambah(){
         $data=[
             'kpi'=>Kpi::get(),
@@ -92,6 +94,7 @@ class KpicapaianController extends Controller
         ];
         return view('kpicapaian.tambah', $data);
     }
+
     public function insert(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -175,6 +178,7 @@ class KpicapaianController extends Controller
         //insert data dan tampilkan pesan
         return response()->json(['success'=>true,'message' => 'Capaian Key performance indicator berhasil disimpan'], 200);
     }
+
     public function edit(Request $request){
         $kpicapaian = Kpicapaian::where("id_capaian",$request->id_capaian)->first();
         $kpi = Kpi::get();
@@ -186,6 +190,7 @@ class KpicapaianController extends Controller
         ];
         return view('kpicapaian.edit',$data);
     }
+
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -266,6 +271,7 @@ class KpicapaianController extends Controller
             'message' => 'Capaian key performance indicator berhasil disimpan'
         ], 200);
     }
+
     public function destroy(Request $request){
         if ($request->has('id_capaian')) {
             // Lakukan tindakan penghapusan di sini

@@ -9,56 +9,61 @@
     @endphp
     <!-- Header -->
     <div class="row">
-      <div class="col-12">
-          <div class="card mb-6">
-          <div class="user-profile-header-banner">
-              <img src="../../assets/img/pages/profile-banner.png" alt="Banner image" class="rounded-top" />
-          </div>
-          <div class="user-profile-header d-flex flex-column flex-sm-row text-sm-start text-center mb-5">
-              <div class="flex-shrink-0 mt-n2 mx-sm-0 mx-auto">
-              <x-btn-modal url="{{ $photoUploadUrl }}" class="modalButton" title="Upload Profile">
-              <img id="showimageprofile"
-              src="{{ $photoRoute }}?rand={{ time() }}"
-              alt="user image"
-              class="d-block h-auto ms-0 ms-sm-5 rounded user-profile-img" />
+        <div class="col-12">
+            <div class="card mb-6">
+                <div class="user-profile-header-banner">
+                    <img src="../../assets/img/pages/profile-banner.png" alt="Banner image" class="rounded-top" />
+                </div>
+                <div class="user-profile-header d-flex flex-column flex-sm-row text-sm-start text-center mb-5">
+                        <div class="flex-shrink-0 mt-n2 mx-sm-0 mx-auto">
+                            <x-btn-modal url="{{ $photoUploadUrl }}" class="modalButton" title="Upload Profile">
+                            <img id="showimageprofile"
+                            src="{{ $photoRoute }}?rand={{ time() }}"
+                            alt="user image"
+                            class="d-block h-auto ms-0 ms-sm-5 rounded user-profile-img" />
 
-              </x-btn-modal>
-              
-              </div>
-              <div class="flex-grow-1 mt-4 mt-sm-12">
-              <div
-                  class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-6">
-                  <div class="user-profile-info">
-                  <h4 class="mb-2">{{ $displayName }} [{{ $profile->email }}]</h4>
-                  <ul  class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-4">
-                      @if ($isDpl || $isMahasiswa)
-                            <li class="list-inline-item">
-                                @isset($dpl)
-                                    <span class="fw-medium">{{ 'Instansi : ' . $dpl->sp->nm_lemb ?? '-' }}</span>
-                                @endisset
+                            </x-btn-modal>
+                        </div>
+                    <div class="flex-grow-1 mt-4 mt-sm-12">
+                        <div
+                            class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-6">
+                            <div class="user-profile-info">
+                            <h4 class="mb-2">{{ $displayName }} [{{ $profile->email }}]</h4>
+                            <ul  class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-4">
+                                @if (in_array($profile->role, ['pt']))
+                                        <li class="list-inline-item">
+                                            <i class="ri-building-2-line me-2 ri-24px"></i>
+                                            <span class="fw-medium">{{ 'Instansi : ' . $profile?->pt?->nm_lemb ?? '-' }}</span>
+                                        </li>
+                                @endif
+                                @if ($isDpl || $isMahasiswa)
+                                        <li class="list-inline-item">
+                                            @isset($dpl)
+                                                <span class="fw-medium">{{ 'Instansi : ' . $dpl->sp->nm_lemb ?? '-' }}</span>
+                                            @endisset
 
-                                @isset($mahasiswa)
-                                    <span class="fw-medium">{{ 'Program Studi : ' . $mahasiswa->prodi ?? '-' }}</span>
-                                @endisset
-                            </li>
-                      @endif
-                      <li class="list-inline-item">
-                        <i class="ri-user-line me-2 ri-24px"></i><span class="fw-medium">Level : {{ Str::upper($profile->role) }}</span>
-                      </li>
-                      <li class="list-inline-item">
-                      <i class="ri-calendar-line me-2 ri-24px"></i>
-                      <span class="fw-medium">Bergabung  {{ \Carbon\Carbon::parse($profile->created_at)->format('d-m-Y H:i:s') }}</span>
-                      </li>
-                  </ul>
-                  </div>
-                  <a href="javascript:void(0)" class="btn btn-primary">
-                  <i class="ri-user-follow-line ri-16px me-2"></i>Terakhir Login {{ $profile->last_login }}
-                  </a>
-              </div>
-              </div>
-          </div>
-          </div>
-      </div>
+                                            @isset($mahasiswa)
+                                                <span class="fw-medium">{{ 'Program Studi : ' . $mahasiswa->prodi ?? '-' }}</span>
+                                            @endisset
+                                        </li>
+                                @endif
+                                <li class="list-inline-item">
+                                    <i class="ri-user-line me-2 ri-24px"></i><span class="fw-medium">Level : {{ Str::upper($profile->role) }}</span>
+                                </li>
+                                <li class="list-inline-item">
+                                <i class="ri-calendar-line me-2 ri-24px"></i>
+                                <span class="fw-medium">Bergabung  {{ \Carbon\Carbon::parse($profile->created_at)->format('d-m-Y H:i:s') }}</span>
+                                </li>
+                            </ul>
+                            </div>
+                            <a href="javascript:void(0)" class="btn btn-primary">
+                            <i class="ri-user-follow-line ri-16px me-2"></i>Terakhir Login {{ $profile->last_login }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     @if (auth()->user()->role == 'mahasiswa' && !auth()->user()->mahasiswa?->lokasi?->exists())
@@ -126,7 +131,7 @@
 
                   <div id="accordionPayment-1" class="accordion-collapse collapse show">
                     <div class="accordion-body">
-                    @if(Auth::user()->role == "admin")
+                    @if(in_array(Auth::user()->role, ['admin', 'pt']))
                         <form method="post" id="form-update" action="{{ $updateUrl }}">
                             @csrf
                             @method('PUT')
