@@ -17,57 +17,55 @@ $(function(){
         $(".modal-dialog").addClass("modal-lg");
     })
     $("#resultcontent").load("{{ url('lokasiprogram/listdata') }}");
-    $("body").on("submit","#form-tambah,#form-ubah",function(e){
-        e.preventDefault();     
+    $("body").on("submit", "#form-tambah,#form-ubah", function(e) {
+        e.preventDefault();
         var action = $(this).attr("action");
         var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
-        var dString = $(this).serialize();
+        var btnHtml = $("#btnSubmit_" + id).html();
+        
+        // Ganti serialize() dengan FormData
+        var formData = new FormData(this);
+
         $.ajax({
-            type:'post',
-            url:action,
-            data:dString,
-            beforeSend:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",true);
-                $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
+            type: 'post',
+            url: action,
+            data: formData,
+            // Wajib ada dua ini kalau pakai FormData
+            contentType: false,
+            processData: false,
+            beforeSend: function() {
+                $("#btnSubmit_" + id).prop("disabled", true);
+                $("#btnSubmit_" + id).html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");
             },
-            complete:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",false);
-                $("#btnSubmit_"+id+"").html(btnHtml);	
+            complete: function() {
+                $("#btnSubmit_" + id).prop("disabled", false);
+                $("#btnSubmit_" + id).html(btnHtml);
             },
-            success:function(ret){
-                if(ret.success == true){		
-                    var table = $('#dataTable').DataTable(); // Menginisialisasi objek tabel
-                    // Memuat ulang data tabel secara manual
+            success: function(ret) {
+                if (ret.success == true) {
+                    var table = $('#dataTable').DataTable();
                     table.ajax.reload();
-                    toastr.success(ret.message)		
-                }else{                    
-                    toastr.warning(ret.message)
+                    toastr.success(ret.message);
+                } else {
+                    toastr.warning(ret.message);
                     if (ret.hasOwnProperty('errors')) {
-                                // Ada kesalahan validasi
                         var errors = ret.errors;
-
-                        // Menghapus pesan error sebelumnya
                         $('.errors-message').remove();
-
-                        // Menampilkan pesan error pada setiap field
                         $.each(errors, function(key, value) {
                             var inputField = $('[name="' + key + '"]');
                             inputField.after('<span class="errors-message text-danger">' + value[0] + '</span>');
-                            // Menambahkan event listener untuk menghapus pesan error saat field mendapatkan fokus
-                            inputField.on('focus', function(){
-                                    $(this).siblings('.errors-message').remove();
-                                });
+                            inputField.on('focus', function() {
+                                $(this).siblings('.errors-message').remove();
+                            });
                         });
                     }
                 }
             },
-            error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
-            }			
-            
-        })
-    })
+            error: function(xhr, ajaxOptions, thrownError) {
+                console.log(xhr.status + "\n" + xhr.responseText + "\n" + thrownError);
+            }
+        });
+    });
     // Menangani klik tombol hapus
     $("body").on('click','[id^=hapus]', function() {
         var table = $('#dataTable').DataTable();

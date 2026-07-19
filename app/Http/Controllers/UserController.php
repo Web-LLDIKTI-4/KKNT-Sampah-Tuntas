@@ -147,8 +147,11 @@ class UserController extends Controller
             'role' => $request->role,
         ];
         
-        if ($request->role == 'dpl') {
+        if (in_array($request->role, ['mahasiswa', 'dpl'])) {
             $data['location_program'] = $request->location_program;
+            if ($request->role === 'mahasiswa' && $request->location_program) {
+                Mahasiswa::where('email', $request->email)->update(['location_program' => $request->location_program]);
+            }
         }
 
         $userHasLokasi = Mahasiswa_lokasi::where('user_in_up', $request->email)->exists();

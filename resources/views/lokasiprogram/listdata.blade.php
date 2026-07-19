@@ -5,6 +5,7 @@
                 <tr>
                     <th width="1">No</th>
                     <th>Id</th>
+                    <th>Gambar</th>
                     <th>Nama Lokasi</th>
                     <th width="1">Aksi</th>
                 </tr>
@@ -29,6 +30,7 @@
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex'},
             {data: 'id', name: 'id', visible:false},
+            {data: 'gambar', name: 'gambar', orderable: false, searchable: false},
             {data: 'nama_lokasi', name: 'nama_lokasi'},
             {data: 'action', name: 'action', orderable: false, searchable: false},
         ],

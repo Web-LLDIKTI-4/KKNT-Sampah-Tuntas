@@ -7,13 +7,43 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Session;
 use App\Models\LokasiProgram;
+use Illuminate\Support\Facades\DB;
 
 class LoginController extends Controller
 {    
-	public function index(){
+	public function index()
+	{
+		$kodeptDpl = DB::table('users')
+			->join('dpl', 'dpl.email', '=', 'users.email')
+			->whereNotNull('users.location_program')
+			->whereNotNull('dpl.kodept')
+			->select('users.location_program', 'dpl.kodept');
+
+		$kodeptMahasiswa = DB::table('users')
+			->join('mahasiswa', 'mahasiswa.email', '=', 'users.email')
+			->whereNotNull('users.location_program')
+			->whereNotNull('mahasiswa.kodept')
+			->select('users.location_program', 'mahasiswa.kodept');
+
+		$union = $kodeptDpl->unionAll($kodeptMahasiswa);
+
+		$jumlahPtPerLokasi = DB::table(DB::raw("({$union->toSql()}) as gabungan"))
+			->mergeBindings($union)
+			->select('location_program', DB::raw('COUNT(DISTINCT kodept) as total'))
+			->groupBy('location_program')
+			->pluck('total', 'location_program');
+
 		$lokasiProgramList = LokasiProgram::query()
+			->withCount([
+				'users as jumlah_dpl' => fn ($q) => $q->where('role', 'dpl'),
+				'users as jumlah_mahasiswa' => fn ($q) => $q->where('role', 'mahasiswa'),
+			])
 			->orderBy('nama_lokasi')
-			->pluck('nama_lokasi');
+			->get()
+			->map(function ($lokasi) use ($jumlahPtPerLokasi) {
+				$lokasi->jumlah_pt = $jumlahPtPerLokasi[$lokasi->id] ?? 0;
+				return $lokasi;
+			});
 
 		return view('login', compact('lokasiProgramList'));
 	}

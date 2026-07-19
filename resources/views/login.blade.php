@@ -14,7 +14,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>GRADASI4 | Login</title>
+    <title>KKNT4 | Login</title>
 
     <meta name="description" content="" />
 
@@ -160,52 +160,145 @@
 
         .lokasi-grid {
           display: grid;
-          gap: 0.75rem;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 1.25rem;
         }
 
         .lokasi-item {
-          background: rgba(255, 255, 255, .9);
-          border: 1px solid rgba(255, 255, 255, 0.25);
-          border-radius: 12px;
-          color: #667eea;
-          min-height: 90px;
-          padding: 0.75rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          gap: 0.35rem;
+          background: #fff;
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 6px 18px rgba(31, 41, 55, 0.08);
+          border: 1px solid rgba(102, 126, 234, 0.12);
+          transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
           cursor: pointer;
-          transition: all 0.2s ease;
+          position: relative;
         }
 
         .lokasi-item:hover {
-          transform: translateY(-2px);
+          transform: translateY(-4px);
+          box-shadow: 0 14px 28px rgba(102, 126, 234, 0.22);
+          border-color: rgba(102, 126, 234, 0.35);
         }
 
+        /* State terpilih — dipakai kalau JS toggle class .active saat lokasi diklik */
         .lokasi-item.active {
-          background: rgba(255, 255, 255, 1);
-          border-color: rgba(255, 255, 255, 0.8);
-          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+          border-color: #667eea;
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.18), 0 14px 28px rgba(102, 126, 234, 0.22);
         }
 
-        .lokasi-item i {
-          font-size: 1rem;
-          opacity: 0.9;
+        .lokasi-item.active::after {
+          content: '\ec8e'; /* ri-check-fill (Remix Icon) */
+          font-family: 'remixicon';
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          width: 22px;
+          height: 22px;
+          background: #667eea;
+          color: #fff;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.75rem;
+          z-index: 2;
         }
 
-        .lokasi-item-name {
-          font-size: 0.9rem;
+        .lokasi-item-img {
+          position: relative;
+          width: 100%;
+          height: 110px;
+          overflow: hidden;
+          background: linear-gradient(135deg, #667eea, #7c8ff0);
+        }
+
+        .lokasi-item-img img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform .35s ease;
+        }
+
+        .lokasi-item:hover .lokasi-item-img img {
+          transform: scale(1.08);
+        }
+
+        .lokasi-item-img::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to top, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 55%);
+          z-index: 1;
+        }
+
+        .lokasi-item-badge {
+          position: absolute;
+          bottom: 8px;
+          left: 10px;
+          right: 10px;
+          color: #fff;
+          font-size: 0.85rem;
           font-weight: 600;
-          line-height: 1.3;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+
+        .lokasi-item-badge i {
+          font-size: 0.9rem;
+        }
+
+        .lokasi-item-body {
+          padding: 10px 12px 12px;
+        }
+
+        /* Nama sudah ditampilkan sebagai badge di atas gambar, jadi ini opsional/disembunyikan */
+        .lokasi-item-name {
+          display: none;
+        }
+
+        .lokasi-item-stats {
+          display: flex;
+          justify-content: space-between;
+          gap: 6px;
+        }
+
+        .lokasi-stat {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          flex: 1;
+          padding: 6px 4px;
+          background: rgba(102, 126, 234, 0.06);
+          border-radius: 8px;
+        }
+
+        .lokasi-stat i {
+          font-size: 0.95rem;
+          color: #667eea;
+          margin-bottom: 2px;
+        }
+
+        .lokasi-stat-value {
+          font-weight: 700;
+          font-size: 0.85rem;
+          color: #1f2937;
+          line-height: 1.2;
+        }
+
+        .lokasi-stat-label {
+          font-size: 0.65rem;
+          color: #6b7280;
         }
 
         .lokasi-empty {
-          color: #fff;
-          background: rgba(255, 255, 255, 0.16);
-          border-radius: 12px;
-          padding: 1rem;
           text-align: center;
+          color: rgba(255, 255, 255, 0.85);
+          padding: 1rem;
         }
 
         .selected-lokasi-label {
@@ -372,7 +465,11 @@
                 </div>
               </div>
               <h2 class="lokasi-panel-title">Program KKN Tematik LLDIKTI Wilayah IV</h2>
-              <p class="lokasi-panel-subtitle">Lokasi Pelaksanaan Program</p>
+              <p class="lokasi-panel-subtitle">
+                <b>LOKASI PELAKSAAN PROGRAM</b>
+                <br />
+                Silahkan pilih Lokasi Program terlebih dahulu sebelum Login ke Aplikasi KKN Tematik
+              </p>
               {{-- <div class="input-group lokasi-search">
                 <span class="input-group-text"><i class="ri-search-line"></i></span>
                 <input type="text" id="lokasiSearch" class="form-control" placeholder="Cari lokasi program..." />
@@ -383,9 +480,44 @@
               @if(isset($lokasiProgramList) && $lokasiProgramList->count())
                 <div class="lokasi-grid" id="lokasiGrid">
                   @foreach($lokasiProgramList as $lokasi)
-                    <div class="lokasi-item" data-lokasi="{{ strtolower($lokasi) }}" data-lokasi-name="{{ $lokasi }}">
-                      <i class="ri-map-pin-2-fill"></i>
-                      <div class="lokasi-item-name">{{ $lokasi }}</div>
+                    <div class="lokasi-item"
+                         data-lokasi="{{ strtolower($lokasi->nama_lokasi) }}"
+                         data-lokasi-name="{{ $lokasi->nama_lokasi }}">
+
+                      <div class="lokasi-item-img">
+                        <img src="{{ $lokasi->gambar ? asset('storage/'.$lokasi->gambar) : asset('images/placeholder.jpg') }}" 
+                             alt="{{ $lokasi->nama_lokasi }}"
+                             loading="lazy">
+                        {{-- <img src="{{ asset('assets/images/placeholder.jpg') }}"
+                             alt="{{ $lokasi->nama_lokasi }}"
+                             loading="lazy"> --}}
+                          <span class="lokasi-item-badge">
+                            <i class="ri-map-pin-2-fill"></i> {{ $lokasi->nama_lokasi }}
+                          </span>
+                      </div>
+
+                      <div class="lokasi-item-body">
+                        <div class="lokasi-item-name">{{ $lokasi->nama_lokasi }}</div>
+
+                        <div class="lokasi-item-stats">
+                          <div class="lokasi-stat">
+                            <i class="ri-user-star-line"></i>
+                            <span class="lokasi-stat-value">{{ $lokasi->jumlah_dpl }}</span>
+                            <span class="lokasi-stat-label">DPL</span>
+                          </div>
+                          <div class="lokasi-stat">
+                            <i class="ri-group-line"></i>
+                            <span class="lokasi-stat-value">{{ $lokasi->jumlah_mahasiswa }}</span>
+                            <span class="lokasi-stat-label">Mahasiswa</span>
+                          </div>
+                          <div class="lokasi-stat">
+                            <i class="ri-building-4-line"></i>
+                            <span class="lokasi-stat-value">{{ $lokasi->jumlah_pt }}</span>
+                            <span class="lokasi-stat-label">PT</span>
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
                   @endforeach
                 </div>

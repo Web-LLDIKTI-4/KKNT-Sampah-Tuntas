@@ -15,7 +15,7 @@
             <span id="email_error" class="text-danger"></span>
         </div>
     </div>
-    @if (in_array($data->role, ['dpl']))
+    @if (in_array($data->role, ['dpl', 'mahasiswa']))
         <div class="form-group form-floating form-floating-outline mb-6">
             <select  id="location_program" class="form-control form-control-sm select2" name="location_program" required>
                 <option value="" selected>--pilih--</option>
