@@ -485,7 +485,7 @@
                          data-lokasi-name="{{ $lokasi->nama_lokasi }}">
 
                       <div class="lokasi-item-img">
-                        <img src="{{ $lokasi->gambar ? asset('storage/'.$lokasi->gambar) : asset('images/placeholder.jpg') }}" 
+                        <img src="{{ $lokasi->gambar ? asset('storage/'.$lokasi->gambar) : asset('assets/images/placeholder.jpg') }}" 
                              alt="{{ $lokasi->nama_lokasi }}"
                              loading="lazy">
                         {{-- <img src="{{ asset('assets/images/placeholder.jpg') }}"
