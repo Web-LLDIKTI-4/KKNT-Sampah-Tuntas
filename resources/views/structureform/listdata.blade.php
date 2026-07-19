@@ -48,7 +48,7 @@
             {data: 'matakuliah', name: 'matakuliah'},
             {data: 'sks', name: 'sks', className: 'text-center'},
             {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center'},
-            {data: 'nilai_dpa', name: 'nilai_dpa', className: 'text-center'},
+            {data: 'nilai_dpa', name: 'nilai_dpa', className: 'text-center', visible:false},
             {data: 'nilai_akhir', name: 'nilai_akhir', className: 'text-center'},
             {data: 'action', name: 'action', orderable: false, searchable: false,visible:false},
         ],

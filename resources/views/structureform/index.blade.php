@@ -2,19 +2,7 @@
 @section('title','Konversi Nilai Structure form')
 @section('container')
 
-<div class="d-flex mb-4 gap-4">
-    <div class="avatar avatar-md">
-        <div class="avatar-initial bg-label-primary rounded-4">
-            <i class="ri-information-2-fill ri-30px"></i>
-        </div>
-    </div>
-    <div>
-        <h5 class="mb-0">
-            <span class="align-middle">Konversi Nilai </span>
-        </h5>
-        <span>Data Konversi Nilai</span>
-    </div>
-</div>
+<x-page-header title="Konversi Nilai" subtitle="Data Konversi Nilai" />
 
 <div class="card">
     <div class="card-body">
