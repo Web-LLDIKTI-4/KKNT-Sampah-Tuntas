@@ -5,12 +5,14 @@
 <x-page-header /> 
 
 <div class="card">
-    <div class="card-header">
-        <x-btn-modal url="{{ url('dplkonversinilai/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Data">
-            <i class="ri-add-fill me-2"></i>
-            Tambah Data
-        </x-btn-modal>
-    </div>
+    @if (in_array(Auth::user()->role, ['dpl']))
+        <div class="card-header">
+            <x-btn-modal url="{{ url('dplkonversinilai/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Data">
+                <i class="ri-add-fill me-2"></i>
+                Tambah Data
+            </x-btn-modal>
+        </div>
+    @endif
     <div class="card-body">
         <p id="resultcontent">Loading data...</p>
     </div>

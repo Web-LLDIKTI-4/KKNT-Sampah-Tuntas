@@ -298,7 +298,7 @@
                                 <div class="avatar avatar-sm flex-shrink-0 me-2">
                                 <span class="avatar-initial rounded bg-label-primary"><i class="ri-lock-unlock-line"></i></span>
                                 </div>
-                                <span class="ps-1">Laporan & Mentoring</span>
+                                <span class="ps-1">Laporan & Evaluasi Kegiatan</span>
                             </div>
                             <ul class="nav flex-column">
                                 {{-- <li class="nav-item">
@@ -306,11 +306,11 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Bulanan
                                     </a>
                                 </li> --}}
-                                {{-- <li class="nav-item">
+                                <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplkonversinilai') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai
                                     </a>
-                                </li> --}}
+                                </li>
                                 {{-- <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplfreeform') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai Free Form
@@ -324,7 +324,7 @@
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('ptevaluasikegiatan') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                        <span data-i18n="Pricing">Data Evaluasi</span>
+                                        <span data-i18n="Pricing">Evaluasi Kegiatan</span>
                                     </a>
                                 </li>
                             </ul>

@@ -25,9 +25,7 @@ class UserGuardMiddleware
         $user = auth()->user();
 
         if ($user->role === 'mahasiswa') {
-
             $mahasiswa = $user->mahasiswa;
-
             // Jika data mahasiswa belum ada
             if (! $mahasiswa) {
                 return redirect()->route('mhsprofile');
@@ -35,7 +33,6 @@ class UserGuardMiddleware
 
             // Jika belum memilih lokasi dan bukan sedang di halaman profile
             $hasLokasi = Mahasiswa_lokasi::where('id_mahasiswa', $mahasiswa->id_mahasiswa)->exists();
-
             if (! $hasLokasi && ! $request->routeIs('mhsprofile')) {
                 return redirect()->route('mhsprofile');
             }
