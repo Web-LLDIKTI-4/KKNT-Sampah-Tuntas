@@ -22,11 +22,10 @@
     <link rel="icon" type="image/x-icon" href="../../assets/images/icon.png" />
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&ampdisplay=swap"
-      rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- Icons -->
     <link rel="stylesheet" href="../../assets/vendor/fonts/remixicon/remixicon.css" />
@@ -123,18 +122,21 @@
           width: 90px;
           height: auto;
           display: block;
+          margin-bottom: 0.1rem;
         }
 
         .lokasi-panel-title {
+          margin-top: 3rem;
           color: #fff;
-          font-size: 1.6rem;
-          font-weight: 700;
-          margin-bottom: 0.25rem;
+          font-family: 'Inter', sans-serif;
+          font-weight: 900;
+          font-size: 64px;
         }
 
         .lokasi-panel-subtitle {
           color: rgba(255, 255, 255, 0.9);
-          margin-bottom: 1rem;
+          font-size: 17pt;
+          margin-bottom: 2rem;
         }
 
         .lokasi-search .input-group-text,
@@ -379,6 +381,13 @@
           .authentication-bg {
               border-radius: 0px;
           }
+
+          .lokasi-panel-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            font-size: 44px;
+          }
+
       }
 
         @media (max-width: 1399px) {
