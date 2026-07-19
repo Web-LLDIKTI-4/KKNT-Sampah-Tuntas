@@ -208,7 +208,7 @@
         .lokasi-item-img {
           position: relative;
           width: 100%;
-          height: 110px;
+          height: 200px;
           overflow: hidden;
           background: linear-gradient(135deg, #667eea, #7c8ff0);
         }
