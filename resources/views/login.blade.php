@@ -131,6 +131,7 @@
           font-family: 'Inter', sans-serif;
           font-weight: 900;
           font-size: 64px;
+          line-height: 1.1;
         }
 
         .lokasi-panel-subtitle {
@@ -473,7 +474,7 @@
                   <img src="../../assets/images/gradasi.png" alt="Gradasi 4" style="width: 110px; height: auto;" />
                 </div>
               </div>
-              <h2 class="lokasi-panel-title">Program KKN Tematik LLDIKTI Wilayah IV</h2>
+              <h2 class="lokasi-panel-title">Program KKN Tematik <br /> LLDIKTI Wilayah IV</h2>
               <p class="lokasi-panel-subtitle">
                 <b>LOKASI PELAKSAAN PROGRAM</b>
                 <br />
