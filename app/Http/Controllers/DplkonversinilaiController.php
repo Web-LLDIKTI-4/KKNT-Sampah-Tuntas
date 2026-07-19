@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Session;
 use DataTables;
+use App\Models\Mahasiswa;
 use App\Models\Kpi;
 use App\Models\Dplmentoring;
 use App\Models\Nilaikonversi;
@@ -27,9 +28,23 @@ class DplkonversinilaiController extends Controller
     {
 
         if ($request->ajax()) {
-            $data = Nilaikonversi::with(['mahasiswa'])->where("email_dpl",Auth::user()->email)->get();
+            $query = Nilaikonversi::with(['mahasiswa'])
+                ->orderBy('created_at', 'desc');
 
-            return Datatables::of($data)
+            if (in_array(Auth::user()->role, ['dpl'])) {
+                $query->where("email_dpl", Auth::user()->email)->get();
+            }
+
+            if (in_array(Auth::user()->role, ['pt'])) {
+                // Query validasi by lokasi program dan kode pt
+                $idMahasiswa = Mahasiswa::query()
+                    ->where('location_program', Auth::user()->location_program)
+                    ->where('kodept', Auth::user()->email)
+                    ->pluck('id_mahasiswa');
+                $query->whereIn('id_mahasiswa', $idMahasiswa)->get();
+            }
+
+            return Datatables::of($query)
                 ->addIndexColumn()
                 ->addColumn('nim', function($row){
                     return $row->mahasiswa->nim ?? 'NIM Tidak Tersedia';

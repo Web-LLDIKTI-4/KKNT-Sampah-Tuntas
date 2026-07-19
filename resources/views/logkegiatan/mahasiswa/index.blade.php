@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title','Log Harian')
 @section('container')
+
 <x-page-header /> 
 
 <div class="card">

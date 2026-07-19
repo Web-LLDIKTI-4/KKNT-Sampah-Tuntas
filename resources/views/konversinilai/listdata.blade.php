@@ -5,7 +5,7 @@
     <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
-                    <th>Aksi</th>
+                    <th width="1">Aksi</th>
                     <th>Nim</th>
                     <th>Nama</th>
                     <th>Perguruan Tinggi</th>
@@ -36,7 +36,7 @@
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible: {{ in_array(Auth::user()->role, ['dpl']) ? 'true' : 'false' }}},
-            {data: 'nim', name: 'nim'},
+            {data: 'nim', name: 'nim', className: 'text-center'},
             {data: 'nama', name: 'nama'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'prodi', name: 'prodi'},

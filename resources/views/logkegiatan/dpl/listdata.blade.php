@@ -1,8 +1,8 @@
 @extends('layouts.app')
-@section('title', 'Kegiatan Mahasiswa')
+@section('title', 'Log Harian')
 @section('container')
 
-<x-page-header title="Kegiatan Mahasiswa" subtitle="Data {{ request()->route('email') }}" />
+<x-page-header title="Log Harian" subtitle="Data Log Harian" />
 
 <div class="card">
     <div class="card-body">

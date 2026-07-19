@@ -100,7 +100,7 @@ class AdmlogkegiatanController extends Controller
                     if (Auth::check() &&  in_array(Auth::user()->role, ['admin', 'dpl'])) {
                         return $row->deskripsi.'<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                     }else{
-                        return 'tidak ditampilkan <a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
+                        return 'tidak ditampilkan <br /> <a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
                     }
                 })
                 ->make(true);
