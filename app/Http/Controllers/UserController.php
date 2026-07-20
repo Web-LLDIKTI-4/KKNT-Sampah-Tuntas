@@ -54,8 +54,8 @@ class UserController extends Controller
                 }
             }
             //insert data baru
-            $create = User::insert($data);
-            return response()->json(['success'=>"user berhasil dibuat", 'data' => $data]);
+            User::insert($data);
+            return response()->json(['success'=>"user berhasil dibuat"]);
         }else{
             return response()->json(['error'=>"user harus dipilih"]);
         }
