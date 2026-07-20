@@ -1,46 +1,50 @@
     <form method="post" id="form-create" action="{{ url('user/insert') }}">
-    @csrf
-    @method('PUT')
-    <div class="table-responsive">
-        <table class="table table-bordered table-sm" id="tabel-data">
-            <thead>
-                <tr>
-                    <th width="1">No</th>
-                    <th>Nim</th>
-                    <th>Nama</th>
-                    <th>Perguruan Tinggi</th>
-                    <th>Lokasi Program KKN</th>
-                    <th class="no-sort text-center" width="1">Aksi <input type="checkbox" id="checkAll"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if($data->isEmpty())
-                    
-                @else
-                    @foreach($data as $mahasiswa)
-                        <tr>
-                            <td class="text-center">{{ $loop->iteration }}</td>
-                            <td>{{ $mahasiswa->nim }}</td>
-                            <td>{{ $mahasiswa->nama }}</td>
-                            <td>
-                                @if($mahasiswa->sp && $mahasiswa->sp->nm_lemb)
-                                    {{ $mahasiswa->sp->nm_lemb }}
-                                @else
-                                    {{ $mahasiswa->kodept }}
-                                @endif
-                            </td>
-                            <td>{{ $mahasiswa->locationProgram->nama_lokasi }}</td>
-                            <td class="text-center">
-                                <input type="checkbox" name="createuser[]" value="{{ $mahasiswa->email }}">
-                            </td>
-                        </tr>
-                    @endforeach
-                @endif
-            </tbody>
-        </table>
-    </div>
-    <hr>
-    <x-btn-save formId="form-create">Tambah User</x-btn-save>
+        <x-btn-save formId="form-create">Tambah User</x-btn-save>
+        <hr>
+        @csrf
+        @method('PUT')
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm" id="tabel-data">
+                <thead>
+                    <tr>
+                        <th width="1">No</th>
+                        <th>Nim</th>
+                        <th>Nama</th>
+                        <th>Email</th>
+                        {{-- <th>Nomor Telepon</th> --}}
+                        <th>Perguruan Tinggi</th>
+                        <th>Lokasi Program KKN</th>
+                        <th class="no-sort text-center" width="1">Aksi <input type="checkbox" id="checkAll"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if($data->isEmpty())
+                        
+                    @else
+                        @foreach($data as $mahasiswa)
+                            <tr>
+                                <td class="text-center">{{ $loop->iteration }}</td>
+                                <td>{{ $mahasiswa->nim }}</td>
+                                <td>{{ $mahasiswa->nama }}</td>
+                                <td>{{ $mahasiswa->email }}</td>
+                                {{-- <td>{{ $mahasiswa->phone }}</td> --}}
+                                <td>
+                                    @if($mahasiswa->sp && $mahasiswa->sp->nm_lemb)
+                                        {{ $mahasiswa->sp->nm_lemb }}
+                                    @else
+                                        {{ $mahasiswa->kodept }}
+                                    @endif
+                                </td>
+                                <td>{{ $mahasiswa->locationProgram->nama_lokasi }}</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="createuser[]" value="{{ $mahasiswa->email }}">
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
+                </tbody>
+            </table>
+        </div>
     </form>
 <script>
     
@@ -75,7 +79,7 @@ $(function () {
     let table = $('#tabel-data').DataTable({
         paging: true,
         searching: true,
-        lengthChange: false,
+        lengthChange: true,
         ordering: true,
         info: true,
         autoWidth: false,
@@ -152,9 +156,10 @@ $(function () {
                 console.log(data.error);
                 if($.isEmptyObject(data.error)){  
                     $("#modalku").modal("hide");
+                    // console.log('data:', data.data); // Log the success message
                     toastr.success(data.success)	
                     var table = $('#table-data').DataTable(); // Menginisialisasi objek tabel
-                    // Memuat ulang data tabel secara manual
+                    // // Memuat ulang data tabel secara manual
                     table.ajax.reload();
                     window.location.reload(); // Redirect to the user page    
                 }else{                    

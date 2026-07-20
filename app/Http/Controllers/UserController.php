@@ -40,12 +40,11 @@ class UserController extends Controller
             $data = [];
             
             foreach($request->createuser as $createuser){
-                
-                $mahasiswa = Mahasiswa::where('email',$createuser)->first();
+                $mahasiswa = Mahasiswa::where('email', $createuser)->first();
                 if($mahasiswa){
                     $data[] = [
                         'name' => $mahasiswa->nama,
-                        'email' => $createuser,
+                        'email' => $mahasiswa->email,
                         'location_program' => $mahasiswa->location_program ?? null,
                         'password' => Hash::make($mahasiswa->nim),
                         'role' => 'mahasiswa',
@@ -55,8 +54,8 @@ class UserController extends Controller
                 }
             }
             //insert data baru
-            User::insert($data);
-            return response()->json(['success'=>"user berhasil dibuat"]);
+            $create = User::insert($data);
+            return response()->json(['success'=>"user berhasil dibuat", 'data' => $data]);
         }else{
             return response()->json(['error'=>"user harus dipilih"]);
         }

@@ -1,6 +1,8 @@
-    <form method="post" id="form-create" action="{{ url('user/insertuser') }}">
+<form method="post" id="form-create" action="{{ url('user/insertuser') }}">
     @csrf
     @method('PUT')
+    <x-btn-save formId="form-create">Tambah User</x-btn-save>
+    <hr>
     <div class="table-responsive">
         <table class="table table-bordered table-sm" id="tabel-data">
             <thead>
@@ -8,6 +10,8 @@
                     <th width="1">No</th>
                     <th>NIDN</th>
                     <th>Nama</th>
+                    <th>Email</th>
+                    <th>Program Studi</th>
                     <th>Perguruan Tinggi</th>
                     <th>Lokasi Program KKN</th>
                     <th class="no-sort text-center" width="1">Aksi <input type="checkbox" id="checkAll"></th>
@@ -22,6 +26,8 @@
                             <td class="text-center">{{ $loop->iteration }}</td>
                             <td>{{ $dpl->nidn }}</td>
                             <td>{{ $dpl->nama }}</td>
+                            <td>{{ $dpl->email }}</td>
+                            <td>{{ $dpl->prodi }}</td>
                             <td>
                                 @if($dpl->sp && $dpl->sp->nm_lemb)
                                     {{ $dpl->sp->nm_lemb }}
@@ -39,9 +45,7 @@
             </tbody>
         </table>
     </div>
-    <hr>
-    <x-btn-save formId="form-create">Tambah User</x-btn-save>
-    </form>
+</form>
 <script>
     
 // Function to uncheck all checkboxes
@@ -75,7 +79,7 @@ $(function () {
     let table = $('#tabel-data').DataTable({
         paging: true,
         searching: true,
-        lengthChange: false,
+        lengthChange: true,
         ordering: true,
         info: true,
         autoWidth: false,
