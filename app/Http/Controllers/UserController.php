@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\Kehadiran;
+use App\Models\Dpl;
 use App\Models\Dplmentoring;
 use App\Models\Dpllaporan;
 use App\Models\Logkegiatan;
@@ -60,51 +61,37 @@ class UserController extends Controller
             return response()->json(['error'=>"user harus dipilih"]);
         }
     }
+
     public function adduser(){
-        $role = array('dpl');
-        $locationPrograms = \App\Models\LokasiProgram::all();
-        return view('user.tambah',compact('role', 'locationPrograms'));
+        $data = Dpl::whereDoesntHave('user')->get();
+        return view('user.listdpl', compact('data'));
     }
     
     public function insertuser(Request $request){
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required|email',
-            'password' => 'required', // Validasi numerik
-            'location_program' => 'required'
-        ], [
-            'name.required' => 'Nama harus di isi.',
-            'email.required' => 'Email harus di isi.',
-            'email.email' => 'Email harus tidak valid.',
-            'password.required' => 'Password harus di isi.',
-            'location_program.required' => 'Lokasi program harus di isi.',
-        ]);
-        
-        $validator->after(function($validator) use ($request) {
-            $cekdata = User::where("email",$request->email)
-                        ->exists(); // Menggunakan exists() untuk mengecek keberadaan data
+        if($request->createuser){
+            $data = [];
             
-            if ($cekdata) {
-                $validator->errors()->add('email', 'Email sudah digunakan!');
+            foreach($request->createuser as $createuser){
+                
+                $dpl = Dpl::where('email',$createuser)->first();
+                if($dpl){
+                    $data[] = [
+                        'name' => $dpl->nama,
+                        'email' => $createuser,
+                        'location_program' => $dpl->location_program ?? null,
+                        'password' => Hash::make($dpl->nidn),
+                        'role' => 'dpl',
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+                }
             }
-        });
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data gagal disimpan!',
-                'errors' => $validator->errors()
-            ], 200); 
-        }
-        $data=[
-            'name'=>$request->name,
-            'email'=>$request->email,
-            'role' =>$request->role,
-            'password'=> Hash::make($request->password),
-            'location_program' => $request->location_program
-        ];
-        User::insert($data);
-        return response()->json(['success' => true,'message'=>"user berhasil dibuat"]);       
+            //insert data baru
+            User::insert($data);
+            return response()->json(['success'=>"user berhasil dibuat"]);
+        }else{
+            return response()->json(['error'=>"user harus dipilih"]);
+        }       
     }
 
     public function edit(Request $request){

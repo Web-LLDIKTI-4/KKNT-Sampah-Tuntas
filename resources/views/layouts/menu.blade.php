@@ -68,6 +68,12 @@
                                         </a>
                                     </li>
                                     <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dpl') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i>
+                                            <span data-i18n="Pricing">Data DPL</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('mahasiswa') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i>
                                             <span data-i18n="Pricing">Data Mahasiswa</span>

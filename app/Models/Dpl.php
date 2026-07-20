@@ -24,5 +24,8 @@ class Dpl extends Model
     {
         return $this->hasMany(Dpllaporan::class,'email','email');
     }
-
+    public function locationProgram()
+    {
+        return $this->hasOne(LokasiProgram::class,'id','location_program');
+    }
 }

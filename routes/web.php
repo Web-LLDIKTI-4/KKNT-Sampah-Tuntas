@@ -28,6 +28,8 @@ use App\Http\Controllers\LogkegiatanController;
 use App\Http\Controllers\AdmlogkegiatanController;
 use App\Http\Controllers\AdmlogkehadiranController;
 use App\Http\Controllers\AdmlogbulananController;
+
+use App\Http\Controllers\DplController;
 use App\Http\Controllers\DpllaporanController;
 use App\Http\Controllers\DplmentoringController;
 use App\Http\Controllers\DplkonversinilaiController;
@@ -113,6 +115,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('user/insertuserpt', [UserController::class, 'insertuserpt']);
     Route::get('user/edituserpt/{id}', [UserController::class, 'edituserpt']);
     Route::put('user/updateuserpt', [UserController::class, 'updateuserpt']);
+
+    Route::get('dpl', [DplController::class, 'index']);
+    Route::get('dpl/listdata', [DplController::class, 'listdata'])->name('dpl.listdata');
+    Route::get('dpl/listdataserver', [DplController::class, 'listdataserver'])->name('dpl.listdataserver');
+    Route::get('dpl/import', [DplController::class, 'import']);
+    Route::put('dpl/prosesimport', [DplController::class, 'prosesimport']);
+    Route::put('dpl/destroy', [DplController::class, 'destroy']);
 
     Route::get('mahasiswa', [MahasiswaController::class, 'index']);
     Route::get('mahasiswa/listdata', [MahasiswaController::class, 'listdata'])->name('mahasiswa.listdata');
