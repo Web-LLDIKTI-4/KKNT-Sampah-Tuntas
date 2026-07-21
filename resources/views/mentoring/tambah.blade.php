@@ -77,7 +77,7 @@ $(function () {
     let table = $('#tabel-data').DataTable({
         paging: true,
         searching: true,
-        lengthChange: false,
+        lengthChange: true,
         ordering: true,
         info: true,
         autoWidth: false,

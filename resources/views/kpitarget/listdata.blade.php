@@ -15,11 +15,14 @@
         </x-datatable>
     </div>
 </div>
+
+<x-btn-export url="{{ route('kpitarget.export') }}" />
+
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({
         searching: true,
-        lengthChange: false,
+        lengthChange: true,
         processing: true,
         serverSide: true,
         ajax: "{{ route('kpitarget.listdataserver') }}",
@@ -33,9 +36,9 @@
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_target', name: 'id_target', visible:false},
             {data: 'nama_kpi', name: 'nama_kpi'},
-            {data: 'tahapan', name: 'tahapan'},               
+            {data: 'tahapan', name: 'tahapan', className: 'text-center'},               
             {data: 'nama_kpitarget', name: 'nama_kpitarget'},
-            {data: 'persen', name: 'persen', width:'10%'},
+            {data: 'persen', name: 'persen', width:'10%', className: 'text-center'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],
         columnDefs: [

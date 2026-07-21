@@ -52,7 +52,7 @@
 $(function(){
     var table = $('#dataTable').DataTable({
         searching: true,
-        lengthChange: false,
+        lengthChange: true,
         processing: true,
         language: {
             search: "",

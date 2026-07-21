@@ -147,6 +147,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('kpitarget/edit/{id_target}', [KpitargetController::class, 'edit']);
     Route::put('kpitarget/update', [KpitargetController::class, 'update']);
     Route::put('kpitarget/destroy', [KpitargetController::class, 'destroy']);
+    Route::get('kpitarget/export', [KpitargetController::class, 'export'])->name('kpitarget.export');
 
     //semua route dalam grup ini hanya bisa diakses oleh operator
     

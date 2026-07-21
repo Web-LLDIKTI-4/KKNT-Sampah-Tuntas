@@ -48,7 +48,7 @@
 $(function(){
     var table = $('#dataTable').DataTable({
         searching: true,
-        lengthChange: false,
+        lengthChange: true,
         processing: true,
         serverSide: false, // Set to true if you're processing on the server
         language: {

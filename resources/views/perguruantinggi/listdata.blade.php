@@ -15,7 +15,7 @@ $(function () {
         processing: true,
         serverSide: true,
         searching: true,
-        lengthChange: false,
+        lengthChange: true,
         ajax: "{{ route('perguruantinggi.listdataserver') }}",
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},

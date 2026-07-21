@@ -26,7 +26,7 @@
   $(function () {
     var table = $('#dataTable').DataTable({
         seaching: true,
-        lengthChange: false,
+        lengthChange: true,
         processing: true,
         serverSide: true,
         ajax: "{{ route('kpicapaian.listdataserver') }}",

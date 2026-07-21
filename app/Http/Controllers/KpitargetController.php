@@ -159,4 +159,9 @@ class KpitargetController extends Controller
         }
     }
 
+    public function export()
+    {
+        $fileName = 'kpi_target_' . date('Y-m-d_H-i-s') . '.xlsx';
+        return Excel::download(new \App\Exports\KPITargetExport, $fileName);
+    }
 }
