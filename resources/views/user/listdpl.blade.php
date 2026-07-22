@@ -10,7 +10,6 @@
                     <th width="1">No</th>
                     <th>NIDN</th>
                     <th>Nama</th>
-                    <th>Email</th>
                     <th>Program Studi</th>
                     <th>Perguruan Tinggi</th>
                     <th>Lokasi Program KKN</th>
@@ -26,7 +25,6 @@
                             <td class="text-center">{{ $loop->iteration }}</td>
                             <td>{{ $dpl->nidn }}</td>
                             <td>{{ $dpl->nama }}</td>
-                            <td>{{ $dpl->email }}</td>
                             <td>{{ $dpl->prodi }}</td>
                             <td>
                                 @if($dpl->sp && $dpl->sp->nm_lemb)
@@ -35,7 +33,7 @@
                                     {{ $dpl->kodept }}
                                 @endif
                             </td>
-                            <td>{{ $dpl->locationProgram->nama_lokasi }}</td>
+                            <td>{{ $dpl->locationProgram->nama_lokasi ?? 'Lokasi Tidak Tersedia' }}</td>
                             <td class="text-center">
                                 <input type="checkbox" name="createuser[]" value="{{ $dpl->email }}">
                             </td>
