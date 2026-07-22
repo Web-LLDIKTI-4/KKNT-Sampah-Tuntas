@@ -2,7 +2,7 @@
 <div class="row">
     <div class="col-12 table-responsive">
         <x-datatable id="dataTable" tableClass="table table-sm">
-    <x-slot:thead>
+            <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
                     <th>Id KPI </th>
@@ -10,9 +10,11 @@
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
-</x-datatable>
+        </x-datatable>
     </div>
 </div>
+
+<x-btn-export url="{{ route('kpi.export') }}" />
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({

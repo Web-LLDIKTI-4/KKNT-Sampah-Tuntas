@@ -5,7 +5,7 @@
     'columns' => [],
     'order' => [[0, 'asc']],
     'searching' => true,
-    'lengthChange' => false,
+    'lengthChange' => true,
 ])
 
 <table

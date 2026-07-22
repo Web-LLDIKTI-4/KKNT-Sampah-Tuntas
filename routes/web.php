@@ -138,6 +138,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('kpi/edit/{id_kpi}', [KpiController::class, 'edit']);
     Route::put('kpi/update', [KpiController::class, 'update']);
     Route::put('kpi/destroy', [KpiController::class, 'destroy']);
+    Route::get('kpi/export', [KpiController::class, 'export'])->name('kpi.export');
 
     Route::get('kpitarget', [KpitargetController::class, 'index']);
     Route::get('kpitarget/listdata', [KpitargetController::class, 'listdata'])->name('kpitarget.listdata');
