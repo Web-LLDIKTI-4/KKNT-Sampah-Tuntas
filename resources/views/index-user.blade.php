@@ -28,6 +28,7 @@
 </div>
 
 <x-alert />
+
 <div class="d-flex flex-column flex-md-row gap-5">
     <!-- Product List Widget -->
     {{-- Left Section --}}
@@ -50,43 +51,43 @@
                 <div class="divider-text"><h4><i class="ri-calendar-todo-line"></i> {{ date("d-m-Y") }}</h4></div>
             </div>
 
-            <div class="d-flex justify-content-center">
-                <div class="row">
-                    <div class="col ">
-                        <form method="post" action="{{ url('logkehadiran/insert') }}" id="form-datang">
-                            @csrf
-                            @method('PUT')
-                            <input type="hidden" name="mode" value="datang">
-                            <input type="hidden" name="latitude_datang" id="latitude-datang">
-                            <input type="hidden" name="longitude_datang" id="longitude-datang">
-                            @php
-                                // Logika: disabled jika izin/sakit/cuti atau waktu_masuk sudah ada
-                                $disableDatang = ($kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional'])) || 
-                                                 ($kehadiran && $kehadiran->waktu_masuk);
-                            @endphp
-                            <button type="submit" id="btnSubmit_form-datang" @if($disableDatang) disabled @endif class="btn btn-sm btn-primary">
-                                <i class="ri-time-line pe-1"></i> Datang
-                            </button>
-                        </form>
-                    </div>
-                    <div class="col">
-                        <form method="post" action="{{ url('logkehadiran/insert') }}" id="form-pulang">
-                            @csrf
-                            @method('PUT')
-                            <input type="hidden" name="mode" value="pulang">
-                            <input type="hidden" name="latitude_pulang" id="latitude-pulang">
-                            <input type="hidden" name="longitude_pulang" id="longitude-pulang">
-                            @php
-                                // Logika: disabled jika izin/sakit/cuti, atau belum absen masuk, atau sudah absen pulang
-                                $disablePulang = ($kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional'])) || 
-                                                 (!$kehadiran || !$kehadiran->waktu_masuk) || 
-                                                 ($kehadiran && $kehadiran->waktu_pulang);
-                            @endphp
-                            <button type="submit" id="btnSubmit_form-pulang" @if($disablePulang) disabled @endif class="btn btn-sm btn-danger">
-                                <i class="ri-time-line pe-1"></i> Pulang
-                            </button>
-                        </form>
-                    </div>
+            <div class="d-flex justify-content-center gap-3 mb-3">
+                <div class="col">
+                    <form method="post" action="{{ url('logkehadiran/insert') }}" id="form-datang">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="mode" value="datang">
+                        <input type="hidden" name="latitude_datang" id="latitude-datang">
+                        <input type="hidden" name="longitude_datang" id="longitude-datang">
+                        @php
+                            $disableDatang = ($kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional'])) ||
+                                            ($kehadiran && $kehadiran->waktu_masuk);
+                        @endphp
+                        <button type="submit" id="btnSubmit_form-datang"
+                            {{ $disableDatang ? 'disabled' : 'disabled' }}
+                            class="btn btn-sm btn-primary w-100">
+                            <i class="ri-time-line pe-1"></i> Datang
+                        </button>
+                    </form>
+                </div>
+                <div class="col">
+                    <form method="post" action="{{ url('logkehadiran/insert') }}" id="form-pulang">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="mode" value="pulang">
+                        <input type="hidden" name="latitude_pulang" id="latitude-pulang">
+                        <input type="hidden" name="longitude_pulang" id="longitude-pulang">
+                        @php
+                            $disablePulang = ($kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional'])) ||
+                                            (!$kehadiran || !$kehadiran->waktu_masuk) ||
+                                            ($kehadiran && $kehadiran->waktu_pulang);
+                        @endphp
+                        <button type="submit" id="btnSubmit_form-pulang"
+                            {{ $disablePulang ? 'disabled' : 'disabled' }}
+                            class="btn btn-sm btn-danger w-100">
+                            <i class="ri-time-line pe-1"></i> Pulang
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -96,6 +97,26 @@
                     <div>Anda sudah mengajukan <strong>{{ ucfirst($kehadiran->status_kehadiran) }}</strong> untuk hari ini.</div>
                 </div>
             @endif
+
+            {{-- Status lokasi --}}
+            <div id="lokasi_status" class="w-100 mb-3">
+                <div id="lokasi_checking" class="alert alert-info d-flex align-items-center gap-2 py-2 mb-0">
+                    <span class="spinner-border spinner-border-sm"></span>
+                    <span>Sedang mendeteksi lokasi Anda...</span>
+                </div>
+                <div id="lokasi_success" class="alert alert-success d-flex align-items-center gap-2 py-2 mb-0 d-none">
+                    <i class="ri-map-pin-line"></i>
+                    <span id="lokasi_coords"></span>
+                </div>
+                <div id="lokasi_error" class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-0 d-none">
+                    <i class="ri-error-warning-line"></i>
+                    <span id="lokasi_error_text"></span>
+                </div>
+                <div id="lokasi_unsupported" class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-0 d-none">
+                    <i class="ri-error-warning-line"></i>
+                    <span>Browser Anda tidak mendukung geolocation.</span>
+                </div>
+            </div>
 
             <div id="map_wrapper" style="display:none; margin-top: 1rem;">
                 <div id="lokasi_text" class="mb-2 small text-muted"></div>
@@ -192,22 +213,58 @@
     // ==========================================
     var btnDatang    = document.getElementById('btnSubmit_form-datang');
     var btnPulang    = document.getElementById('btnSubmit_form-pulang');
-    var btnTambahLog = document.getElementById('btnTambahLog');
+    var formDatang   = document.getElementById('form-datang');
+    var formPulang   = document.getElementById('form-pulang');
 
-    if (!btnDatang || !btnPulang) {
-        return;
-    }
+    var latDatang    = document.getElementById('latitude-datang');
+    var lngDatang    = document.getElementById('longitude-datang');
+    var latPulang    = document.getElementById('latitude-pulang');
+    var lngPulang    = document.getElementById('longitude-pulang');
 
-    var formDatang = document.getElementById('form-datang');
-    var formPulang = document.getElementById('form-pulang');
+    // Status elements
+    var elChecking   = document.getElementById('lokasi_checking');
+    var elSuccess    = document.getElementById('lokasi_success');
+    var elError      = document.getElementById('lokasi_error');
+    var elErrorText  = document.getElementById('lokasi_error_text');
+    var elUnsupported = document.getElementById('lokasi_unsupported');
+    var elCoords     = document.getElementById('lokasi_coords');
 
-    var latDatang = document.getElementById('latitude-datang');
-    var lngDatang = document.getElementById('longitude-datang');
-    var latPulang = document.getElementById('latitude-pulang');
-    var lngPulang = document.getElementById('longitude-pulang');
+    if (!btnDatang || !btnPulang) return;
+
+    // Kondisi disabled dari PHP — tidak boleh diubah JS
+    var disableDatang = {{ $disableDatang ? 'true' : 'false' }};
+    var disablePulang = {{ $disablePulang ? 'true' : 'false' }};
 
     // ==========================================
-    // Ambil lokasi user (hanya untuk dicatat & ditampilkan di peta, tidak untuk validasi)
+    // Helper: tampilkan status lokasi
+    // ==========================================
+    function showStatus(type, message) {
+        // Sembunyikan semua dulu
+        [elChecking, elSuccess, elError, elUnsupported].forEach(function(el) {
+            if (el) {
+                el.classList.add('d-none');
+                el.classList.remove('d-flex');
+            }
+        });
+
+        // Tampilkan yang sesuai
+        var target = null;
+        if (type === 'checking')    target = elChecking;
+        if (type === 'success')     target = elSuccess;
+        if (type === 'error')       target = elError;
+        if (type === 'unsupported') target = elUnsupported;
+
+        if (target) {
+            target.classList.remove('d-none');
+            target.classList.add('d-flex');
+        }
+
+        if (type === 'success' && elCoords)    elCoords.textContent    = message;
+        if (type === 'error'   && elErrorText) elErrorText.textContent = message;
+    }
+
+    // ==========================================
+    // Helper: isi koordinat ke hidden input
     // ==========================================
     function fillCoordinates(lat, lng) {
         if (latDatang) latDatang.value = lat;
@@ -216,42 +273,67 @@
         if (lngPulang) lngPulang.value = lng;
     }
 
+    // ==========================================
+    // Helper: tampilkan peta
+    // ==========================================
     function showMap(lat, lng) {
         var mapWrapper = document.getElementById('map_wrapper');
-        var mapFrame = document.getElementById('map');
-        var lokasiText = document.getElementById('lokasi_text');
+        var mapFrame   = document.getElementById('map');
 
         if (!mapWrapper || !mapFrame) return;
 
-        // Embed tanpa API key: q=lat,lng otomatis menampilkan pin di titik tsb
         mapFrame.src = 'https://maps.google.com/maps?q=' + lat + ',' + lng + '&z=17&output=embed';
         mapWrapper.style.display = 'block';
-
-        if (lokasiText) {
-            lokasiText.innerHTML = '<i class="ri-map-pin-line text-success"></i> Lokasi anda: '
-                + lat.toFixed(6) + ', ' + lng.toFixed(6);
-        }
     }
 
-    function showMapError(message) {
-        var lokasiText = document.getElementById('lokasi_text');
-        if (lokasiText) {
-            lokasiText.innerHTML = '<i class="ri-error-warning-line text-danger"></i> ' + message;
-        }
+    // ==========================================
+    // Helper: enable/disable button berdasarkan kondisi PHP
+    // ==========================================
+    function enableButtons() {
+        if (!disableDatang) btnDatang.disabled = false;
+        if (!disablePulang) btnPulang.disabled = false;
     }
 
+    function disableButtons() {
+        btnDatang.disabled = true;
+        btnPulang.disabled = true;
+    }
+
+    // ==========================================
+    // Geolocation
+    // ==========================================
     if (navigator.geolocation) {
+        showStatus('checking');
+        disableButtons();
+
         navigator.geolocation.getCurrentPosition(
             function(position) {
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
+
                 fillCoordinates(lat, lng);
                 showMap(lat, lng);
+                enableButtons();
+
+                showStatus('success', 'Lokasi terdeteksi: ' + lat.toFixed(6) + ', ' + lng.toFixed(6));
             },
             function(error) {
-                // Gagal ambil lokasi tidak menghalangi absen.
-                // Field latitude/longitude dibiarkan kosong, peta tidak ditampilkan.
-                showMapError('Gagal mengambil lokasi: ' + error.message);
+                var message;
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        message = 'Izin lokasi ditolak. Mohon izinkan akses lokasi di browser Anda, lalu refresh halaman.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        message = 'Informasi lokasi tidak tersedia. Pastikan GPS Anda aktif.';
+                        break;
+                    case error.TIMEOUT:
+                        message = 'Waktu deteksi lokasi habis. Silakan refresh halaman dan coba lagi.';
+                        break;
+                    default:
+                        message = 'Gagal mengambil lokasi. Silakan refresh halaman.';
+                }
+                showStatus('error', message);
+                disableButtons();
             },
             {
                 enableHighAccuracy: true,
@@ -260,36 +342,22 @@
             }
         );
     } else {
-        showMapError('Browser tidak mendukung geolocation.');
+        showStatus('unsupported');
+        disableButtons();
     }
 
     // ==========================================
-    // Validasi sebelum submit (tanpa cek lokasi/radius)
-    // ==========================================
-    function validateBeforeSubmit(btnElement) {
-        return true;
-    }
-
-    // ==========================================
-    // Event Handlers
+    // Submit handler
     // ==========================================
     if (formDatang) {
-        formDatang.addEventListener('submit', function(e) {
-            if (!validateBeforeSubmit(btnDatang)) {
-                e.preventDefault();
-                return false;
-            }
+        formDatang.addEventListener('submit', function() {
             btnDatang.disabled = true;
             btnDatang.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memproses...';
         });
     }
 
     if (formPulang) {
-        formPulang.addEventListener('submit', function(e) {
-            if (!validateBeforeSubmit(btnPulang)) {
-                e.preventDefault();
-                return false;
-            }
+        formPulang.addEventListener('submit', function() {
             btnPulang.disabled = true;
             btnPulang.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memproses...';
         });
