@@ -2,6 +2,10 @@
     <form method="post" id="form-create" action="{{ url('dplmentoring/insert') }}">
         @csrf
         @method('PUT')
+
+        <x-btn-save formId="form-create">Tambah User</x-btn-save>
+        <hr>
+
         <table class="table table-sm" id="tabel-data">
             <thead>
                 <tr>
@@ -41,10 +45,9 @@
                 @endif
             </tbody>
         </table>
-        <hr>
-        <x-btn-save formId="form-create">Tambah User</x-btn-save>
     </form>
 </div>
+
 <script>
 // Function to uncheck all checkboxes
 function uncheckAllCheckboxes() {
