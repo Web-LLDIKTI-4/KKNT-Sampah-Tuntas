@@ -17,15 +17,17 @@ class LogkehadiranController extends Controller
     {  
         return view('kehadiran.index');
     }
+
     public function listdata()
     {
         return view('kehadiran.listdata');
     }
+
     public function listdataserver(Request $request)
     {
 
         if ($request->ajax()) {
-            $data = Kehadiran::where("email",Auth::user()->email)->get();
+            $data = Kehadiran::where("email", Auth::user()->email)->get();
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('status_kehadiran', function($row){
@@ -72,10 +74,12 @@ class LogkehadiranController extends Controller
                 ->make(true);
         }
     }
+
     public function tambah(){
         $data = Kehadiran::where("email",Auth::user()->email)->where("tanggal",date("Y-m-d"))->first();
         return view('kehadiran.tambah',compact('data'));
     }
+
     private function calculateDistance($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371000; 
@@ -188,6 +192,7 @@ class LogkehadiranController extends Controller
         ];
         return view('kehadiran.tambahizin',$data);  
     }
+
     public function insertizin(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -215,6 +220,7 @@ class LogkehadiranController extends Controller
         Kehadiran::create($data);
         return response()->json(['success'=>true,'message' => 'Laporan izin berhasil disimpan.'], 200);
     }
+    
     public function export(){
         $email = Auth::user()->email;
         return Excel::download(new LogkehadiranExport($email), 'kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');

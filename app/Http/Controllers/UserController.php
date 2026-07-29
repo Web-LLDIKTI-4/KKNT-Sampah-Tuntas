@@ -302,4 +302,10 @@ class UserController extends Controller
         User::where("id",$request->id)->update($data);
         return response()->json(['success' => true,'message'=>"user berhasil dibuat"]);       
     }
+
+    public function export(Request $request)
+    {
+        $keyword = $request->input('keyword', ''); // Ambil keyword dari request, default kosong
+        return \Excel::download(new \App\Exports\UserExport(), 'users_' . date('Y-m-d_H-i-s') . '.xlsx');
+    }
 }
