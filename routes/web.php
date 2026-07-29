@@ -115,6 +115,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('user/insertuserpt', [UserController::class, 'insertuserpt']);
     Route::get('user/edituserpt/{id}', [UserController::class, 'edituserpt']);
     Route::put('user/updateuserpt', [UserController::class, 'updateuserpt']);
+    Route::get('user/export', [UserController::class, 'export'])->name('user.export');
 
     Route::get('dpl', [DplController::class, 'index']);
     Route::get('dpl/listdata', [DplController::class, 'listdata'])->name('dpl.listdata');

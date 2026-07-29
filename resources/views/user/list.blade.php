@@ -61,6 +61,9 @@
     </tbody>
 </table>
 </div>
+
+<x-btn-export url="{{ route('user.export') }}" />
+
 <script>
     $(function () {
         let table = $('#dataTable-user').DataTable({
