@@ -21,6 +21,7 @@ class MhsprofileController extends Controller
     {  
         return view('profile.index');
     }
+    
     public function data()
     {
         $sp = Satuanpendidikan::get();
@@ -28,6 +29,7 @@ class MhsprofileController extends Controller
         $mahasiswa = Mahasiswa::where("email", Auth::user()->email)->first();
         return view('profile.data',compact('mahasiswa','profile','sp'));
     }
+
     public function prosesuploadpoto(Request $request){
         $validator = Validator::make($request->all(), [
             'file_upload' => 'required|mimes:jpeg,png|max:2048', // Adjust file types and size limit
@@ -74,9 +76,11 @@ class MhsprofileController extends Controller
         }
         return response()->json(['success'=>false,'error'=>$validator->errors(),'message'=>'Poto gagal di upload'], 200);
     }
+
     public function uploadpoto(){
         return view('profile.uploadpoto');
     }
+
     public function getPoto()
     {
         //$path = storage_path('app/public/photo/' . $filename);
@@ -96,6 +100,7 @@ class MhsprofileController extends Controller
         // Path gambar default jika file tidak ditemukan
         return response()->file('assets/img/avatars/1.png');
     }
+
     public function update(Request $request){
         $validator = Validator::make($request->all(), [
             'nama' => 'required',

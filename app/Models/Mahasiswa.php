@@ -19,7 +19,7 @@ class Mahasiswa extends Model
     }
     public function dplmentoring()
     {
-        return $this->hasOne(Dplmentoring::class,'email_mahasiswa','email');
+        return $this->hasOne(Dplmentoring::class, 'email_mahasiswa', 'email');
     }
     public function logkegiatan()
     {

@@ -46,41 +46,5 @@
     @endif
 </div>
 
-@once
-<script>
-$(function () {
-    $(document).on('click', '.btn-delete', function () {
-        var $btn = $(this);
-        var url = $btn.data('url');
-        var idField = $btn.data('id-field');
-        var idValue = $btn.data('id-value');
-        var confirmMsg = $btn.data('confirm');
-
-        if (!confirm(confirmMsg)) return;
-
-        var csrfToken = $('meta[name="csrf-token"]').attr('content');
-        var payload = {};
-        payload[idField] = idValue;
-
-        $.ajax({
-            url: url,
-            method: 'PUT',
-            data: payload,
-            headers: { 'X-CSRF-TOKEN': csrfToken },
-            success: function (ret) {
-                if (ret.success) {
-                    toastr.success(ret.message);
-                    $btn.closest('tr').remove();
-                } else {
-                    toastr.warning(ret.message);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.log(xhr.status + "\n" + xhr.responseText + "\n" + error);
-                toastr.error('Terjadi kesalahan saat menghapus data');
-            }
-        });
-    });
-});
-</script>
-@endonce
+{{-- Handler .btn-delete dipindah ke table-init.js agar hanya terdaftar sekali,
+     mencegah duplikasi saat komponen ini di-render per-baris oleh DataTables. --}}

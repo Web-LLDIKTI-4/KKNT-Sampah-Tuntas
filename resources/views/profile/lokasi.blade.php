@@ -29,7 +29,7 @@
             <label>Pilih Desa / Kelurahan</label>
         </div>
         <div class="form-group col-md-2 form-floating form-floating-outline">
-            <select name="tahun" class="form-control">
+            <select name="tahun" class="form-control" required>
                 @for($tahun=date('Y')-1; $tahun<=date('Y'); $tahun++)
                     <option value="{{$tahun}}" @if($tahun==date('Y')) selected @endif>{{$tahun}}</option>
                 @endfor

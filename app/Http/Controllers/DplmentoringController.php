@@ -30,7 +30,7 @@ class DplmentoringController extends Controller
     {
 
         if ($request->ajax()) {
-            $data = Dplmentoring::with(['mahasiswa'])->where("email_dpl",Auth::user()->email)->get();
+            $data = Dplmentoring::with(['mahasiswa'])->where("email_dpl", Auth::user()->email)->get();
 
             return Datatables::of($data)
                 ->addIndexColumn()
