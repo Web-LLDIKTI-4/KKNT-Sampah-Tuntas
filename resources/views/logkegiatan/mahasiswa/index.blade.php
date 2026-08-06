@@ -5,12 +5,12 @@
 <x-page-header /> 
 
 <div class="card">
-    <div class="card-header">
+    {{-- <div class="card-header">
         <x-btn-modal url="{{ url('logkegiatan/tambah') }}" title="Tambah Data">
             <i class="ri-add-fill me-2"></i>
             Tambah Data
         </x-btn-modal>
-    </div>
+    </div> --}}
     <div class="card-body">
         <p id="resultcontent">loading data...</p>
     </div>

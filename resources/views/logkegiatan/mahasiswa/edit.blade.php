@@ -7,6 +7,13 @@
         <label>Tanggal</label>
         <span id="tanggal_error" class="text-danger"></span>
     </div>
+    <div class="alert alert-solid-info d-flex align-items-center">
+        <span class="alert-icon rounded">
+            <i class="ri-error-warning-line ri-22px"></i>
+        </span>
+        Catatan: <br />
+        Tidak diisikan gambar/dokumentasi kegitatan, hanya narasi atas kegiatan yang telah dilakukan.
+    </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <textarea name="deskripsi" class="form-control form-control-sm summernote">{{ $data->deskripsi }}</textarea>
         <p id="wordCount">Jumlah kata: 0</p>
@@ -35,6 +42,13 @@
         </select>
         <label>Nama KPI</label>
         <span id="id_kpi_error" class="text-danger"></span>
+    </div>
+    <div class="alert alert-solid-info d-flex align-items-center">
+        <span class="alert-icon rounded">
+            <i class="ri-error-warning-line ri-22px"></i>
+        </span>
+        Catatan : <br />
+        Dokumentasi tautan bisa dalam beluntuk tautan google drive atau media sosial.
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <input type="text" class="form-control" name="tautan" value="{{ $data->tautan }}">

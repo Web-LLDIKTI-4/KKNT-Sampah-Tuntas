@@ -3,7 +3,7 @@
     @method('PUT')
     <div class="form-group form-floating form-floating-outline mb-6">
         <input type="date" name="tanggal" class="form-control form-control-sm">
-        <label>Tanggal</label>
+        <label>Tanggal <span class="text-danger">*</span></label>
         <span id="tanggal_error" class="text-danger"></span>
     </div>
     <div class="alert alert-solid-info d-flex align-items-center">
@@ -15,19 +15,19 @@
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <textarea name="deskripsi" class="form-control form-control-sm summernote"></textarea>
-        <label>Deskripsi</label>
+        <label>Deskripsi <span class="text-danger">*</span></label>
         <p id="wordCount">Jumlah kata: 0</p>
         <span id="deskripsi_error" class="text-danger"></span>
     </div>
     <div class="row">
         <div class="form-group form-floating form-floating-outline mb-6 col">
             <input type="number" name="volume" class="form-control form-control-sm">
-            <label>Volume</label>
+            <label>Volume <span class="text-danger">*</span></label>
             <span id="volume_error" class="text-danger"></span>
         </div>
         <div class="form-group form-floating form-floating-outline mb-6 col">
             <input type="text" name="satuan" class="form-control form-control-sm">
-            <label>Satuan</label>
+            <label>Satuan <span class="text-danger">*</span></label>
             <span id="satuan_error" class="text-danger"></span>
         </div>
     </div>
@@ -99,7 +99,7 @@
         $("#deskripsi_error").html('');
         $("#volume_error").html('');
         $("#satuan_error").html('');
-        $("#id_kpi").html('');
+        $("#id_kpi_error").html('');
         $.ajax({
             dataType:'json',
             type:'post',
