@@ -50,6 +50,8 @@ class LogHarianByMhsExport implements FromCollection, WithHeadings
                 'Perguruan Tinggi' => $item->mahasiswa->sp->nm_lemb, 
                 'Tanggal' => \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y'),
                 'Deskripsi' => $deskripsi,
+                'Volume' => $item->volume,
+                'Satuan' => $item->satuan,
                 'KPI' => $item->kpi->nama_kpi,
                 // Tambahkan kolom lain sesuai kebutuhan
             ];
@@ -71,6 +73,8 @@ class LogHarianByMhsExport implements FromCollection, WithHeadings
             'Perguruan Tinggi',
             'Tanggal',
             'Deskripsi',
+            'Volume',
+            'Satuan',
             'KPI',
             // Tambahkan judul kolom lain sesuai kebutuhan
         ];

@@ -11,10 +11,12 @@
                 <table class="table table-bordered table-sm" id="dataTable">
                     <thead>
                         <tr>
-                            <th class="text-center" width="1">No</th>
-                            <th class="text-center" width="100">Tanggal</th>
-                            <th class="text-center">Deskripsi</th>
-                            <th class="text-center">KPI</th>
+                            <th width="1">No</th>
+                            <th width="100">Tanggal</th>
+                            <th>Deskripsi</th>
+                            <th>Volume</th>
+                            <th>Satuan</th>
+                            <th>KPI</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -55,6 +57,8 @@
                         return strippedText;
                     }
                 },
+                {data: 'volume', name: 'volume', className: 'text-center'},
+                {data: 'satuan', name: 'satuan', className: 'text-center'},
                 {data: 'nama_kpi', name: 'nama_kpi'},
             ]
         });

@@ -5,8 +5,8 @@
             <thead>
                 <tr>
                     <th width="1">No</th>
-                    <th>Id LOG </th>
-                    <th>Tanggal</th>
+                    {{-- <th>Id LOG </th> --}}
+                    <th width="100">Tanggal</th>
                     <th>Deskripsi</th>
                     <th>Volume</th>
                     <th>Satuan</th>
@@ -39,7 +39,7 @@
         },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
-            {data: 'id_log', name: 'id_log', visible: false}, 
+            // {data: 'id_log', name: 'id_log', visible: false}, 
             {data: 'tanggal', name: 'tanggal', className: 'text-center'},
             {
                 data: 'deskripsi',
@@ -54,7 +54,7 @@
                 }
             },
             {data: 'volume', name: 'volume', className: 'text-center'},
-            {data: 'satuan', name: 'satuan'},
+            {data: 'satuan', name: 'satuan', className: 'text-center'},
             {data: 'nama_kpi', name: 'nama_kpi'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],
