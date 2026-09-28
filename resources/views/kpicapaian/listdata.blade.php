@@ -8,7 +8,10 @@
                     <th>Lokasi Kegiatan</th>
                     <th>Nama KPI</th>
                     <th>Tahapan</th>
-                    <th>Target KPI</th>
+                    <th>Kegiatan</th>
+                    <th>Target</th>
+                    <th>Realisasi</th>
+                    <th>Capaian</th>
                     <th>Permasalahan</th>
                     <th>Solusi</th>
                     <th>Kebutuhan Dukungan</th>
@@ -54,6 +57,9 @@
                     return "<div class='text-wrap'>" +strippedText+ "</div>";
                 }
             },
+            {data: 'target_kpi', name: 'target_kpi', className: 'text-center', orderable: false, searchable: false},
+            {data: 'realisasi', name: 'realisasi', className: 'text-center', searchable: false},
+            {data: 'capaian', name: 'capaian', className: 'text-center', orderable: false, searchable: false},
             {
                 data: 'permasalahan',
                 name: 'permasalahan',

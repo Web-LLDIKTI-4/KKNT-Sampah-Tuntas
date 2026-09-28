@@ -20,7 +20,8 @@ class KPITargetExport implements FromCollection, WithHeadings
                 'nama_kpi' => $item->kpi->nama_kpi,
                 'tahapan' => $item->tahapan,
                 'nama_kpitarget' => $item->nama_kpitarget,
-                'persen' => $item->persen,
+                'target' => $item->target,
+                'satuan' => $item->satuan,
             ];
         });
     }
@@ -30,8 +31,9 @@ class KPITargetExport implements FromCollection, WithHeadings
         return [
             'Nama KPI',
             'Tahapan',
-            'Target KPI',
-            'Persentase (%)'
+            'Kegiatan',
+            'Target',
+            'Satuan'
         ];
     }
 }

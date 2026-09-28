@@ -1,9 +1,9 @@
-<form id="form-ubah" method="post" action="{{ url('kpitarget/update') }}">
+<form id="form-ubah" method="post" action="{{ url('kpitarget/update') }}" data-ajax-form>
     @csrf
     @method('PUT')
     <input type="hidden" name="id_target" value="{{$data->id_target}}">
     <div class="form-group form-floating form-floating-outline mb-6">        
-        <select name="id_kpi" class="form-control form-control-sm">
+        <select name="id_kpi" class="form-control form-control-sm" required>
             @if($kpi)
                 @foreach($kpi as $item)
                     <option value="{{$item->id_kpi}}" @if($data->id_kpi == $data->id_kpi) selected @endif>{{$item->nama_kpi}}</option>
@@ -14,17 +14,23 @@
     </div>
     <div class="row">
         <div class="form-group col-md-4 form-floating form-floating-outline mb-6">
-            <input type="text" name="tahapan" class="form-control form-control-sm" value="{{$data->tahapan}}">
+            <input type="text" name="tahapan" class="form-control form-control-sm" required maxlength="50" value="{{$data->tahapan}}">
             <label>Tahapan</label>
         </div>
         <div class="form-group col form-floating form-floating-outline mb-6">
-            <input type="text" name="nama_kpitarget" class="form-control form-control-sm" value="{{$data->nama_kpitarget}}">
-            <label>Target KPI</label>
+            <input type="text" name="nama_kpitarget" class="form-control form-control-sm" required maxlength="200" value="{{$data->nama_kpitarget}}">
+            <label>Kegiatan</label>
         </div>
     </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <input type="text" name="persen" class="form-control form-control-sm" value="{{$data->persen}}">
-        <label>Percentase (%)</label>
+    <div class="row">
+        <div class="form-group col-md-6 form-floating form-floating-outline mb-6">
+            <input type="number" name="target" class="form-control form-control-sm" required min="0" max="999999" step="any" value="{{$data->target}}">
+            <label>Target</label>
+        </div>
+        <div class="form-group col-md-6 form-floating form-floating-outline mb-6">
+            <input type="text" name="satuan" class="form-control form-control-sm" required maxlength="50" placeholder="%, Kegiatan, % titik pemilahan" value="{{$data->satuan}}">
+            <label>Satuan</label>
+        </div>
     </div>
     <hr>
     <x-btn-save formId="form-tambah">Simpan</x-btn-save>

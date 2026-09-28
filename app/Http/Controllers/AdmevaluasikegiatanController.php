@@ -1,24 +1,23 @@
-<?php  
+<?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Session;
-use DataTables;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Str;
-use Illuminate\Support\Collection;
-use App\Models\Evaluasikegiatanjawaban;
+use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Evaluasi\PertanyaanRequest;
 use App\Models\Evaluasikegiatan;
-use DB;
-use Validator;
-use App\Support\ActionButtons;
+use App\Models\Evaluasikegiatanjawaban;
 use App\Models\Satuanpendidikan;
+use App\Support\ActionButtons;
+use App\Support\HtmlSanitizer;
+use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 
 class AdmevaluasikegiatanController extends Controller
-{    
+{
+    use RespondsWithJson;
+
     public function index()
-    {  
+    {
         return view('evaluasikegiatan.index');
     }
 
@@ -29,28 +28,18 @@ class AdmevaluasikegiatanController extends Controller
 
     public function listdataserver(Request $request)
     {
+        abort_unless($request->ajax(), 404);
 
-        if ($request->ajax()) { 
-            $data = Evaluasikegiatanjawaban::get();
-            return DataTables::of($data)
-                ->addIndexColumn()
-                ->addColumn('kodept', function($row) {
-                    return $row->kodept ?? 'Tidak ada';
-                })
-                ->addColumn('nm_lemb', function($row) {
-                    return Satuanpendidikan::where('npsn', $row->kodept)->first()->nm_lemb ?? 'Tidak ada';
-                })
-                ->addColumn('pertanyaan', function($row) {
-                    return $row->evaluasikegiatan->pertanyaan ?? 'Tidak ada';
-                })
-                ->addColumn('action', function($row){
-                    return view('components.btn-view', [
-                        'url' => url('admlogharian/permhs/'.$row->email.'')
-                    ]);
-                })
-                ->rawColumns(['pertanyaan', 'action'])
-                ->make(true);
-        }
+        $data = Evaluasikegiatanjawaban::with('evaluasikegiatan')->get();
+        $namaPt = Satuanpendidikan::whereIn('npsn', $data->pluck('kodept')->filter()->unique())->pluck('nm_lemb', 'npsn');
+
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->addColumn('kodept', fn ($row) => $row->kodept ?? 'Tidak ada')
+            ->addColumn('nm_lemb', fn ($row) => $namaPt[$row->kodept] ?? 'Tidak ada')
+            ->addColumn('pertanyaan', fn ($row) => HtmlSanitizer::clean($row->evaluasikegiatan->pertanyaan ?? 'Tidak ada'))
+            ->rawColumns(['pertanyaan'])
+            ->make(true);
     }
 
     public function pertanyaanevaluasi()
@@ -65,98 +54,59 @@ class AdmevaluasikegiatanController extends Controller
 
     public function pertanyaanevaluasiserver(Request $request)
     {
-        if ($request->ajax()) { 
-            // Menemukan semua mahasiswa dengan kodept yang sesuai
-            $data = Evaluasikegiatan::get();           
-            return DataTables::of($data)
+        abort_unless($request->ajax(), 404);
+
+        return DataTables::of(Evaluasikegiatan::query())
             ->addIndexColumn()
-            ->addColumn('pertanyaan', function($row) {
-                return $row->pertanyaan ?? 'Tidak ada';
-            })
-            ->addColumn('action', function($row){
-                return view('components.action-data', [
-                    'urlEdit' => url('admevaluasikegiatan/edit/'.$row->id_evaluasi.''),
-                    'urlDelete' => $row->id_evaluasi
-                ]);
-            })
+            ->editColumn('pertanyaan', fn (Evaluasikegiatan $row) => HtmlSanitizer::clean($row->pertanyaan) ?? 'Tidak ada')
+            ->addColumn('action', fn (Evaluasikegiatan $row) => ActionButtons::crud(
+                url('admevaluasikegiatan/edit/'.$row->id_evaluasi),
+                route('admevaluasikegiatan.pertanyaanevaluasi.destroy'),
+                'id_evaluasi',
+                $row->id_evaluasi
+            ))
             ->rawColumns(['pertanyaan', 'action'])
             ->make(true);
-        }
     }
+
     public function tambah()
     {
         return view('evaluasikegiatan.pertanyaanevaluasi_tambah');
     }
-    public function insert(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'pertanyaan'     => 'required',
-        ], [
-            'pertanyaan.required' => 'pertanyaan desa harus isi.',
-        ]);
-        
-        $validator->after(function($validator) use ($request) {
-            $cekdata = Evaluasikegiatan::where("pertanyaan",$request->pertanyaan)
-            ->exists();
-            if ($cekdata) {
-                $validator->errors()->add('pertanyaan', 'Data pertanyaan sudah ada!');
-            }
-        });
-        
-        if ($validator->fails()) {
-            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
-        }
-        $data=[
-            'pertanyaan'=>$request->pertanyaan,
-            'tahun'=>date('Y'),
-        ];
-        Evaluasikegiatan::create($data);
-        //insert data dan tampilkan pesan
-        return response()->json(['success'=>true,'message' => 'Data berhasil disimpan'], 200);
-    }
-    public function edit($id_evaluasi)
-    {
-        $data = Evaluasikegiatan::find($id_evaluasi);
-        return view('evaluasikegiatan.pertanyaanevaluasi_edit', compact('data'));
-    }
-    public function update(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'pertanyaan'     => 'required',
-        ], [
-            'pertanyaan.required' => 'pertanyaan desa harus isi.',
-        ]);
-        
-        $validator->after(function($validator) use ($request) {
-            $cekdata = Evaluasikegiatan::where("pertanyaan",$request->pertanyaan)
-            ->exists();
-            if ($cekdata) {
-                $validator->errors()->add('pertanyaan', 'Data pertanyaan sudah ada!');
-            }
-        });
-        
-        if ($validator->fails()) {
-            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
-        }
-        $data=[
-            'pertanyaan'=>$request->pertanyaan,
-            'tahun'=>date('Y'),
-        ];
 
-        $update = Evaluasikegiatan::findOrFail($request->id_evaluasi);
-        $update->update($data);
-        
-        //insert data dan tampilkan pesan
-        return response()->json(['success'=>true,'message' => 'Data berhasil disimpan'], 200);
+    public function insert(PertanyaanRequest $request)
+    {
+        Evaluasikegiatan::create($request->safe()->only('pertanyaan') + ['tahun' => (int) date('Y')]);
+
+        return $this->saved();
     }
 
-    public function destroy(Request $request){
-        $id_evaluasi = $request->id_evaluasi;
-        if (Evaluasikegiatan::where("id_evaluasi", $id_evaluasi)->delete()) {
-            return response()->json(['success' => true, 'message' => 'Data berhasil dihapus'], 200);
-        } else {
-            return response()->json(['success' => false, 'message' => 'Data gagal dihapus, data tersebut tidak ada atau sudah terhapus!'], 200);
+    public function edit(string $id_evaluasi)
+    {
+        return view('evaluasikegiatan.pertanyaanevaluasi_edit', ['data' => Evaluasikegiatan::findOrFail($id_evaluasi)]);
+    }
+
+    public function update(PertanyaanRequest $request)
+    {
+        Evaluasikegiatan::findOrFail($request->validated('id_evaluasi'))
+            ->update($request->safe()->only('pertanyaan') + ['tahun' => (int) date('Y')]);
+
+        return $this->saved();
+    }
+
+    public function destroy(Request $request)
+    {
+        $evaluasi = Evaluasikegiatan::find($request->input('id_evaluasi'));
+        if (! $evaluasi) {
+            return $this->deleteRejected('Data gagal dihapus, data tersebut tidak ada atau sudah terhapus!');
         }
-        
+
+        if (Evaluasikegiatanjawaban::where('id_evaluasi', $evaluasi->id_evaluasi)->exists()) {
+            return $this->deleteRejected('Pertanyaan tidak dapat dihapus karena sudah dijawab');
+        }
+
+        $evaluasi->delete();
+
+        return $this->deleted();
     }
 }

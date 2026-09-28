@@ -14,7 +14,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>KKNT4 | Login</title>
+    <title>PPS Bandung | Login</title>
 
     <meta name="description" content="" />
 
@@ -130,7 +130,7 @@
           color: #fff;
           font-family: 'Inter', sans-serif;
           font-weight: 900;
-          font-size: 64px;
+          font-size: 50px;
           line-height: 1.1;
         }
 
@@ -474,11 +474,11 @@
                   <img src="../../assets/images/gradasi.png" alt="Gradasi 4" style="width: 110px; height: auto;" />
                 </div>
               </div>
-              <h2 class="lokasi-panel-title">Program KKN Tematik <br /> LLDIKTI Wilayah IV</h2>
+              <h2 class="lokasi-panel-title">Pilot Pemungut Sampah Bandung <br /> LLDIKTI Wilayah IV</h2>
               <p class="lokasi-panel-subtitle">
                 <b>LOKASI PELAKSAAN PROGRAM</b>
                 <br />
-                Silahkan pilih Lokasi Program terlebih dahulu sebelum Login ke Aplikasi KKN Tematik
+                Silahkan pilih Lokasi Program terlebih dahulu sebelum Login ke Aplikasi PPS Bandung
               </p>
               {{-- <div class="input-group lokasi-search">
                 <span class="input-group-text"><i class="ri-search-line"></i></span>
@@ -546,7 +546,7 @@
             <div class="mb-4 text-center">
               <img src="../../assets/images/lldikti4_logo.png" alt="LLDIKTI Wilayah IV" style="width: 200px; height: auto; margin-bottom: 30px;" />
               
-              <h4 class="login-title fw-bold">KKN Tematik</h4>
+              <h4 class="login-title fw-bold">PPS Bandung</h4>
               <h4 id="selectedLokasiName" class="selected-lokasi-name fw-bold"></h4>
               <p class="mb-0 text-muted">Silakan login untuk masuk ke Dashboard</p>
             </div>

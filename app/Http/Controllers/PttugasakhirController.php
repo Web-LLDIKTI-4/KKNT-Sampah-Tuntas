@@ -40,7 +40,7 @@ class PttugasakhirController extends Controller
             return Datatables::eloquent($query)
                 ->addIndexColumn()
                 ->addColumn('tugas_akhir', function($row) {
-                    return $row->tugasakhir->tautan ?? '-';
+                    return \App\Support\HtmlSanitizer::link($row->tugasakhir?->tautan) ?: '-';
                 })
                 
                 ->rawColumns(['tugas_akhir'])

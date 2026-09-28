@@ -1,100 +1,70 @@
-<?php  
+<?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Session;
-use DataTables;
-use App\Models\Kpi;
-use App\Models\Tugasakhir;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Validator;
 use App\Exports\LaptugasakhirExport;
+use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Dpl\NilaiTugasakhirRequest;
+use App\Models\Dplmentoring;
+use App\Models\Tugasakhir;
+use App\Support\HtmlSanitizer;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\Facades\DataTables;
 
 class DpllaptugasakhirController extends Controller
-{    
+{
+    use RespondsWithJson;
+
     public function index()
-    {  
+    {
         return view('laptugasakhir.dpl.index');
     }
+
     public function listdata()
     {
         return view('laptugasakhir.dpl.listdata');
     }
+
     public function listdataserver(Request $request)
     {
-        $data = Tugasakhir::with(['mahasiswa', 'dplmentoring'])
-                ->whereHas('dplmentoring', function ($query) {
-                    $query->where('email_dpl', Auth::user()->email);
-                })
-                ->get();
+        abort_unless($request->ajax(), 404);
 
-        if ($request->ajax()) {
-        
-            return Datatables::of($data)
-                ->addIndexColumn()
-                ->addColumn('nim', function($row) {
-                    return '<div class="text-center">'.($row->mahasiswa->nim ?? '-').'</div>';
-                })
-                ->addColumn('nama', function($row) {
-                    return $row->mahasiswa->nama ?? '-';
-                })
-                ->addColumn('nm_lemb', function($row) {
-                    return $row->mahasiswa->sp->nm_lemb ?? '-';
-                })
-                ->addColumn('tautan', function($row) {
-                    return $row->tautan ? '<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>' : null;
-                })
-                ->addColumn('action', function($row) {
-                    $csrf = csrf_field();
-                    $methodField = method_field('PUT');
-                    $actionBtn = '<div class="d-flex">
-                        <form method="post" action="'.url('dpllaptugasakhir/nilai').'" id="form-nilai-'.$row->id_tugasakhir.'">'.
-                            $csrf.
-                            $methodField. 
-                            '<input type="hidden" name="id_tugasakhir" value="'.$row->id_tugasakhir.'">'.                         
-                            '<input type="number" name="nilai_dpl" class="form-control form-control-sm col-md-5 text-center" value="'.$row->nilai_dpl.'">'.
-                        '</form>
-                        </div>';
-                    return $actionBtn;
-                })
-                ->rawColumns(['nim', 'action', 'tautan'])
-                ->make(true);
-        }
-        
+        $email = $request->user()->email;
+        $data = Tugasakhir::with('mahasiswa.sp')
+            ->whereHas('dplmentoring', fn ($q) => $q->where('email_dpl', $email))
+            ->get();
+
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->addColumn('nim', fn ($row) => '<div class="text-center">'.e($row->mahasiswa->nim ?? '-').'</div>')
+            ->addColumn('nama', fn ($row) => $row->mahasiswa->nama ?? '-')
+            ->addColumn('nm_lemb', fn ($row) => $row->mahasiswa->sp->nm_lemb ?? '-')
+            ->editColumn('tautan', fn ($row) => HtmlSanitizer::link($row->tautan))
+            ->addColumn('action', fn ($row) => '<div class="d-flex">'
+                .'<form method="post" action="'.e(url('dpllaptugasakhir/nilai')).'" id="form-nilai-'.e($row->id_tugasakhir).'">'
+                .csrf_field().method_field('PUT')
+                .'<input type="hidden" name="id_tugasakhir" value="'.e($row->id_tugasakhir).'">'
+                .'<input type="number" name="nilai_dpl" min="0" max="100" class="form-control form-control-sm col-md-5 text-center" value="'.e($row->nilai_dpl).'">'
+                .'</form></div>')
+            ->rawColumns(['nim', 'action', 'tautan'])
+            ->make(true);
     }
-    public function nilai(Request $request){
-        $validator = Validator::make($request->all(), [
-            'nilai_dpl' => 'required|numeric',
-        ], [            
-            'nilai_dpl.required' => 'Nilai DPL harus di isi.',
-            'nilai_dpl.numeric' => 'Nilai DPL harus angka.',
-        ]);
-        
-        $validator->after(function ($validator) use ($request) {
-            
-        });
-        
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data gagal disimpan!',
-                'errors' => $validator->errors()
-            ], 200);
+
+    public function nilai(NilaiTugasakhirRequest $request)
+    {
+        $tugas = Tugasakhir::find($request->validated('id_tugasakhir'));
+        if (! $tugas || ! Dplmentoring::isMentor($request->user(), $tugas->email)) {
+            return $this->notFound();
         }
-        
-        $data = [
-            'nilai_dpl' => $request->nilai_dpl,
-            'email_dpl' => Auth::user()->email,
-        ];
-        Tugasakhir::where(['id_tugasakhir'=>$request->id_tugasakhir])->update($data);
-        return response()->json([
-            'success' => true,
-            'message' => 'Data berhasil diupdate!'
-        ], 200);  
+
+        $tugas->update(['nilai_dpl' => (int) $request->validated('nilai_dpl'), 'email_dpl' => $request->user()->email]);
+
+        return $this->saved('Data berhasil diupdate!');
     }
-    public function export(){
+
+    public function export()
+    {
         return Excel::download(new LaptugasakhirExport, 'laporan_akhir_'.date('Y-m-d_H-i-s').'.xlsx');
     }
-
 }

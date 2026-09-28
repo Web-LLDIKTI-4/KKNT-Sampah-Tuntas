@@ -1,13 +1,9 @@
 @extends('layouts.app')
 @section('title','Evaluasi Kegiatan')
 @section('container')
-
-<x-page-header /> 
-
-<!-- Nav -->
-<div class="card">
-    <div class="card-header">
-        <div class="btn-group" role="group" aria-label="Basic example">
+<x-crud-index :list-url="url('admevaluasikegiatan/pertanyaanevaluasilistdata')" :add-url="url('admevaluasikegiatan/tambah')" add-title="Tambah Data Pertanyaan">
+    <x-slot:actions>
+        <div class="btn-group" role="group" aria-label="Navigasi evaluasi">
             <a href="{{ url('admevaluasikegiatan') }}" class="btn btn-secondary btn-sm waves-effect waves-light">
                 <i class="ri-pass-valid-line d-none d-md-block me-2"></i>
                 <span>Data Hasil Evaluasi</span>
@@ -17,113 +13,6 @@
                 <span>Data Pertanyaan</span>
             </a>
         </div>
-        <x-btn-modal url="{{ url('admevaluasikegiatan/tambah') }}" title="Tambah Pertanyaan">
-            <i class="ri-add-line me-1"></i>
-            Tambah Data Pertanyaan
-        </x-btn-modal>
-    </div>
-    <div class="card-body">
-        <p id="resultcontent">loading data...</p>
-    </div>
-</div>
-
-<script>
-$(function(){
-    $("#resultcontent").load("{{ url('admevaluasikegiatan/pertanyaanevaluasilistdata') }}");
-
-    $('#modalku').on('show.bs.modal', function () {
-        $(".modal-dialog").addClass("modal-lg");
-    })
-
-    $("body").on("submit","#form-tambah,#form-ubah",function(e){
-        e.preventDefault();     
-        var action = $(this).attr("action");
-        var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
-        var dString = $(this).serialize();
-        $.ajax({
-            type:'post',
-            url:action,
-            data:dString,
-            beforeSend:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",true);
-                $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
-            },
-            complete:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",false);
-                $("#btnSubmit_"+id+"").html(btnHtml);	
-            },
-            success:function(ret){
-                if(ret.success == true){		
-                    var table = $('#dataTable').DataTable(); // Menginisialisasi objek tabel
-                    // Memuat ulang data tabel secara manual
-                    table.ajax.reload();
-                    toastr.success(ret.message)			
-                }else{                    
-                    toastr.warning(ret.message)
-                    if (ret.hasOwnProperty('errors')) {
-                                // Ada kesalahan validasi
-                        var errors = ret.errors;
-
-                        // Menghapus pesan error sebelumnya
-                        $('.errors-message').remove();
-
-                        // Menampilkan pesan error pada setiap field
-                        $.each(errors, function(key, value) {
-                            var inputField = $('[name="' + key + '"]');
-                            inputField.after('<span class="errors-message text-danger">' + value[0] + '</span>');
-                            // Menambahkan event listener untuk menghapus pesan error saat field mendapatkan fokus
-                            inputField.on('focus', function(){
-                                    $(this).siblings('.errors-message').remove();
-                                });
-                        });
-                    }
-                }
-            },
-            error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
-            }			
-            
-        })
-    })
-    
-    // Menangani klik tombol hapus
-    $("body").on('click','[id^=hapus]', function() {
-        var table = $('#dataTable').DataTable();
-        // Mendapatkan baris yang diklik
-        var data = table.row($(this).parents('tr')).data();
-        // Lakukan apa pun yang diperlukan untuk mengonfirmasi pengguna sebelum menghapus data
-        if (confirm('Anda yakin ingin menghapus data ini?')) {
-            // Lakukan permintaan AJAX untuk menghapus data
-            var csrfToken = $('meta[name="csrf-token"]').attr('content');
-            let id_evaluasi = data.id_evaluasi;
-            const dString = "id_evaluasi="+id_evaluasi;
-            $.ajax({
-                url: "{{ url('admevaluasikegiatan/pertanyaanevaluasi/destroy') }}",
-                method: 'PUT',
-                data:dString,
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken // Sertakan CSRF token dalam header
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Jika pesan sukses, tampilkan pesan berhasil
-                        toastr.success(response.message);
-                        table.ajax.reload();
-                    } else {
-                        toastr.error(response.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    // Tangani kesalahan seperti CSRF token mismatch atau kesalahan server
-                    console.log(xhr.status); // Kode status HTTP
-                    console.log(xhr.responseText); // Pesan kesalahan dari server
-                    console.log(error); // Pesan kesalahan bawaan dari jQuery
-                    toastr.error('Terjadi kesalahan saat menghapus data. Silakan coba lagi.');
-                }
-            });
-        }
-    });
-})
-</script>
-@stop 
+    </x-slot:actions>
+</x-crud-index>
+@stop

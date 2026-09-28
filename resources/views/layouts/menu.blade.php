@@ -171,6 +171,11 @@
                                         </a>
                                     </li>
                                     <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboardkpi') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard KPI
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('laptugasakhir') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
                                         </a>
@@ -363,10 +368,22 @@
                                     <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboardkpi') }}">
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard KPI
+                                </a>
+                            </li>
                         </ul>
                         </div>
                     </div>
                     </div>
+                </li>
+            @elseif (Auth::user()->role === 'kepala')
+                <li class="nav-item">
+                    <a class="nav-link fw-medium" href="{{ route('dashboardkpi') }}">Dashboard KPI</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-medium" href="{{ url('lapcapaiankpi') }}">Laporan Capaian KPI</a>
                 </li>
             @else
                 <li class="nav-item">
@@ -455,10 +472,13 @@
                 </li>
                 <li>
                     <div class="d-grid px-4 pt-2 pb-1">
-                    <a class="btn btn-sm btn-danger d-flex waves-effect waves-light" href="{{ url('logout') }}">
-                        <small class="align-middle">Logout</small>
-                        <i class="ri-logout-box-r-line ms-2 ri-16px"></i>
-                    </a>
+                    <form method="POST" action="{{ route('logout') }}" class="d-grid">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-danger d-flex justify-content-center waves-effect waves-light">
+                            <small class="align-middle">Logout</small>
+                            <i class="ri-logout-box-r-line ms-2 ri-16px"></i>
+                        </button>
+                    </form>
                     </div>
                 </li>
             </ul>

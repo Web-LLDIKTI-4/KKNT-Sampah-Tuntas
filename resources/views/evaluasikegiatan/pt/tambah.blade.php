@@ -1,11 +1,11 @@
-<form id="form-tambah" method="post" action="{{ url('ptevaluasikegiatan/insert') }}">
+<form id="form-tambah" method="post" action="{{ url('ptevaluasikegiatan/insert') }}" data-ajax-form>
     @csrf
     @method('PUT')
 
     @foreach($evaluasi as $item)
         <div class="form-group">
-            <label>{!! $item['evaluasi']->pertanyaan !!}</label>
-            <textarea class="form-control" name="jawaban[{{ $item['evaluasi']->id_evaluasi }}]">{{ $item['jawaban']->jawaban ?? '' }}</textarea>
+            <label>{!! \App\Support\HtmlSanitizer::clean($item['evaluasi']->pertanyaan) !!}</label>
+            <textarea class="form-control" maxlength="5000" name="jawaban[{{ $item['evaluasi']->id_evaluasi }}]">{{ $item['jawaban']->jawaban ?? '' }}</textarea>
         </div>
         <br />
     @endforeach

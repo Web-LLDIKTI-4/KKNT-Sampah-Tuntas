@@ -27,6 +27,7 @@ class LapcapaiankpiController extends Controller
     {
         if ($request->ajax()) {
             $query = Kpicapaian::query()
+                ->with(['kpi', 'target', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
                 ->orderByDesc('id_capaian');
 
             if (in_array(Auth::user()->role, ['dpl'])) {
@@ -69,6 +70,9 @@ class LapcapaiankpiController extends Controller
                 ->addColumn('nama_kpitarget', function($row) {
                     return isset($row->target->nama_kpitarget) ? $row->target->nama_kpitarget : 'Tidak Diketahui';
                 })
+                ->addColumn('target_kpi', fn ($row) => Kpicapaian::formatAngka($row->target?->target).' '.($row->target->satuan ?? ''))
+                ->addColumn('realisasi_kpi', fn ($row) => Kpicapaian::formatAngka($row->realisasi).' '.$row->satuan)
+                ->addColumn('capaian', fn ($row) => Kpicapaian::formatAngka($row->capaianPersen()).'%')
                 ->addColumn('status_capaian', function($row) {
                     if($row->status_capaian == 'Y'){
                         return '<span class="badge bg-success">Sudah Selesai</span>';
@@ -79,7 +83,7 @@ class LapcapaiankpiController extends Controller
                     }
                 })
                 ->addColumn('tautan', function($row) {
-                    return $row->tautan ? '<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>' : 'Tidak Ada';
+                    return \App\Support\HtmlSanitizer::link($row->tautan) ?: 'Tidak Ada';
                 })
                 // ->addColumn('action', function($row) {
                 //     $actionBtn = '<div class="d-flex">

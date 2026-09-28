@@ -7,8 +7,9 @@
                     <th>Id kpitarget</th>
                     <th>Nama KPI</th>
                     <th>Tahapan</th>
-                    <th>Target KPI</th>
-                    <th>Persentase (%)</th>
+                    <th>Kegiatan</th>
+                    <th>Target</th>
+                    <th>Satuan</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
@@ -38,7 +39,8 @@
             {data: 'nama_kpi', name: 'nama_kpi'},
             {data: 'tahapan', name: 'tahapan', className: 'text-center'},               
             {data: 'nama_kpitarget', name: 'nama_kpitarget'},
-            {data: 'persen', name: 'persen', width:'10%', className: 'text-center'},
+            {data: 'target', name: 'target', width:'10%', className: 'text-center'},
+            {data: 'satuan', name: 'satuan', className: 'text-center'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],
         columnDefs: [

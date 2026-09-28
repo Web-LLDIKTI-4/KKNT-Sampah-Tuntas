@@ -1,295 +1,167 @@
-<?php  
+<?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Session;
-use DataTables;
-use App\Models\Kpi;
-use App\Models\Kpitarget;
-use App\Models\Kpicapaian;
-use App\Models\Pjdesa;
-use App\Models\User;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use App\Exports\CapaiankpiExport;
+use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Mahasiswa\KpicapaianRequest;
+use App\Models\Kpi;
+use App\Models\Kpicapaian;
+use App\Models\Kpitarget;
+use App\Models\Pjdesa;
+use App\Services\KpiCapaianService;
+use App\Support\ActionButtons;
+use App\Support\HtmlSanitizer;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\Facades\DataTables;
 
 class KpicapaianController extends Controller
-{    
+{
+    use RespondsWithJson;
+
+    private const FIELDS = ['id_kpi', 'id_target', 'realisasi', 'status_capaian', 'tautan', 'permasalahan', 'solusi', 'kendala'];
+
+    private const BADGE = ['Y' => 'bg-success', 'P' => 'bg-warning', 'N' => 'bg-danger'];
+
+    public function __construct(private KpiCapaianService $service) {}
+
     public function index()
-    {  
+    {
         return view('kpicapaian.index');
     }
+
     public function listdata()
     {
         return view('kpicapaian.listdata');
     }
+
     public function listdataserver(Request $request)
     {
+        abort_unless($request->ajax(), 404);
 
-        if ($request->ajax()) {
-            $data = Kpicapaian::where('email',Auth::user()->email)->orderBy('id_capaian', 'desc')->get();
+        $data = Kpicapaian::ownedBy($request->user())
+            ->with(['kpi', 'target', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
+            ->orderByDesc('created_at')
+            ->get();
 
-            return Datatables::of($data)
-                ->addIndexColumn()
-                ->addColumn('lokasi', function($row) {
-                    if (isset($row->pjdesa->mahasiswa->user->locationProgram->nama_lokasi) && isset($row->pjdesa->desa->kecamatan->kecamatan) && isset($row->pjdesa->desa->desa)) {
-                        return $row->pjdesa->mahasiswa->user->locationProgram->nama_lokasi . '<br /> ' . $row->pjdesa->desa->kecamatan->kecamatan . ', ' . $row->pjdesa->desa->desa;
-                    }
-
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->addColumn('lokasi', function (Kpicapaian $row) {
+                $lokasi = $row->pjdesa?->mahasiswa?->user?->locationProgram?->nama_lokasi;
+                $desa = $row->pjdesa?->desa;
+                if (! $lokasi || ! $desa?->kecamatan) {
                     return 'Tidak Diketahui';
-                })
-                ->addColumn('nama_kpi', function($row){
-                    return $row->kpi->nama_kpi;
-                })
-                ->addColumn('tahapan', function($row){
-                    return $row->target->tahapan;
-                })
-                ->addColumn('nama_kpitarget', function($row){
-                    return $row->target->nama_kpitarget;
-                })
-                ->addColumn('permasalahan', function($row){
-                    return $row->permasalahan;
-                })
-                ->addColumn('solusi', function($row){
-                    return $row->solusi;
-                })
-                ->addColumn('kendala', function($row){
-                    return $row->kendala;
-                })
-                ->addColumn('status_capaian', function($row){
-                    if($row->status_capaian == 'Y'){
-                        return '<span class="badge bg-success">Sudah Selesai</span>';
-                    }elseif ($row->status_capaian == 'P') {
-                        return '<span class="badge bg-warning">Proses</span>';
-                    }else{
-                        return '<span class="badge bg-danger">Belum Ditindaklanjuti</span>';
-                    }
-                })
-                ->addColumn('tautan', function($row){
-                    return '<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
-                })
-                ->addColumn('action', function($row){
-                    return view('components.action-data', [
-                        'urlEdit' => url('kpicapaian/edit/'.$row->id_capaian),
-                        'urlDelete' => $row->id_capaian,
-                    ]);
-                })
-                ->rawColumns(['lokasi', 'action', 'tautan', 'status_capaian', 'permasalahan', 'solusi', 'kendala'])
-                ->make(true);
-        }
+                }
+
+                return e($lokasi).'<br /> '.e($desa->kecamatan->kecamatan).', '.e($desa->desa);
+            })
+            ->addColumn('nama_kpi', fn (Kpicapaian $row) => $row->kpi->nama_kpi ?? '')
+            ->addColumn('tahapan', fn (Kpicapaian $row) => $row->target->tahapan ?? '')
+            ->addColumn('nama_kpitarget', fn (Kpicapaian $row) => $row->target->nama_kpitarget ?? '')
+            ->addColumn('target_kpi', fn (Kpicapaian $row) => Kpicapaian::formatAngka($row->target?->target).' '.($row->target->satuan ?? ''))
+            ->editColumn('realisasi', fn (Kpicapaian $row) => Kpicapaian::formatAngka($row->realisasi).' '.$row->satuan)
+            ->addColumn('capaian', fn (Kpicapaian $row) => Kpicapaian::formatAngka($row->capaianPersen()).'%')
+            ->editColumn('permasalahan', fn (Kpicapaian $row) => nl2br(e($row->permasalahan)))
+            ->editColumn('solusi', fn (Kpicapaian $row) => nl2br(e($row->solusi)))
+            ->editColumn('kendala', fn (Kpicapaian $row) => nl2br(e($row->kendala)))
+            ->editColumn('status_capaian', fn (Kpicapaian $row) => static::statusBadge($row->status_capaian))
+            ->editColumn('tautan', fn (Kpicapaian $row) => HtmlSanitizer::link($row->tautan))
+            ->addColumn('action', fn (Kpicapaian $row) => ActionButtons::crud(
+                url('kpicapaian/edit/'.$row->id_capaian),
+                url('kpicapaian/destroy'),
+                'id_capaian',
+                $row->id_capaian
+            ))
+            ->rawColumns(['lokasi', 'action', 'tautan', 'status_capaian', 'permasalahan', 'solusi', 'kendala'])
+            ->make(true);
     }
 
     public function kpitarget(Request $request)
     {
-        $kpitarget = Kpitarget::where("id_kpi",$request->id_kpi)->get();
-        return view('kpicapaian.kpitarget',compact('kpitarget'));
-    }
+        $request->validate(['id_kpi' => ['nullable', 'uuid']]);
 
-    public function tambah(){
-        $data=[
-            'kpi'=>Kpi::get(),
-            'kpitarget'=> Kpitarget::get(),
-        ];
-        return view('kpicapaian.tambah', $data);
-    }
-
-    public function insert(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'tautan' => 'required',
-            'permasalahan' => 'required',
-            'solusi' => 'required',
-            'kendala' => 'required',
-            'id_kpi' => [
-                'required',
-                function ($attribute, $value, $fail) use ($request) {
-                    if (!isset($request[$attribute]) || $value === 'null') {
-                        $fail('KPI harus dipilih.');
-                    }
-                },
-            ],
-            'id_target' => [
-                'required',
-                function ($attribute, $value, $fail) use ($request) {
-                    if (!isset($request[$attribute]) || $value === 'null') {
-                        $fail('Tahapan harus dipilih.');
-                    }
-                },
-            ],
-        ], [
-            'tautan.required' => 'Tatutan harus isi.',
-            'permasalahan.required' => 'Permasalahan harus isi.',
-            'solusi.required' => 'Solusi harus isi.',
-            'kendala.required' => 'Kendala harus isi.',
-            'id_target.required' => 'Tahapan harus dipilih.',
+        return view('kpicapaian.kpitarget', [
+            'kpitarget' => Kpitarget::where('id_kpi', $request->input('id_kpi'))->orderBy('tahapan')->get(),
         ]);
-        if ($validator->fails()) {
-            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
-        }
-
-        $cekdatatahapan = Kpitarget::where("id_target", $request->id_target)->first();
-        $tahapan = intval(preg_replace('/[^0-9]+/', '', $cekdatatahapan->tahapan));
-
-        $validator->after(function($validator) use ($request, $tahapan) {
-            $cekdata = Kpicapaian::where("id_kpi", $request->id_kpi)
-                ->where("id_target", $request->id_target)
-                ->where("email", Auth::user()->email)
-                ->exists();
-            if ($cekdata) {
-                $validator->errors()->add('id_target', 'Data sudah ada!');
-            }
-
-            if (!$request->id_target || $request->id_target == "null") {
-                $validator->errors()->add('id_target', 'Target KPI harus dipilih!');
-            }
-
-            $tahapansebelumnya = Kpicapaian::where("id_kpi", $request->id_kpi)
-                ->where("email", Auth::user()->email)
-                ->max("tahapan");
-
-            if ($tahapan != 1 && $tahapansebelumnya + 1 != $tahapan) {
-                $validator->errors()->add('id_target', ''.$tahapan.'Tahapan sebelumnya harus di isi!'.$tahapansebelumnya + 1);
-            }
-
-            if (!Pjdesa::where("email", Auth::user()->email)->exists()) {
-                $validator->errors()->add('kendala', 'Anda tidak memiliki akses untuk menyimpan data capaian KPI. Silakan hubungi administrator.');
-            }
-        });
-
-        
-        if ($validator->fails()) {
-            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
-        }
-        $data=[
-            'id_kpi'=>$request->id_kpi,
-            'id_target'=>$request->id_target,
-            'email'=>Auth::user()->email,
-            'status_capaian'=>$request->status_capaian,
-            'tautan'=>$request->tautan,
-            'permasalahan'=>$request->permasalahan,
-            'solusi'=>$request->solusi,
-            'kendala'=>$request->kendala,
-            'tahapan'=>$tahapan,
-            'id_pjdesa'=>Pjdesa::where("email", Auth::user()->email)->first()->id_pjdesa,
-        ];
-        Kpicapaian::create($data);
-        //insert data dan tampilkan pesan
-        return response()->json(['success'=>true,'message' => 'Capaian Key performance indicator berhasil disimpan'], 200);
     }
 
-    public function edit(Request $request){
-        $kpicapaian = Kpicapaian::where("id_capaian",$request->id_capaian)->first();
-        $kpi = Kpi::get();
-        $kpitarget = Kpitarget::where("id_kpi",$kpicapaian->id_kpi)->get();
-        $data=[
-            'kpi'=>$kpi,
-            'data'=>$kpicapaian,
-            'kpitarget'=>$kpitarget,
-        ];
-        return view('kpicapaian.edit',$data);
-    }
-
-    public function update(Request $request)
+    public function tambah()
     {
-        $validator = Validator::make($request->all(), [
-            'tautan' => 'required',
-            'permasalahan' => 'required',
-            'solusi' => 'required',
-            'kendala' => 'required',
-            'id_target' => [
-                'required',
-                function ($attribute, $value, $fail) use ($request) {
-                    if (!isset($request[$attribute]) || $value === 'null') {
-                        $fail('Tahapan harus dipilih.');
-                    }
-                },
-            ],
-        ], [
-            'tautan.required' => 'Tatutan harus isi.',
-            'permasalahan.required' => 'Permasalahan harus isi.',
-            'solusi.required' => 'Solusi harus isi.',
-            'kendala.required' => 'Kendala harus isi.',
-            'id_target.required' => 'Tahapan harus dipilih.',
+        return view('kpicapaian.tambah', [
+            'kpi' => Kpi::orderBy('nama_kpi')->get(),
+            'kpitarget' => collect(),
         ]);
-        if ($validator->fails()) {
-            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
-        }
-        
-        $validator->after(function($validator) use ($request) {
-            $cekdata = Kpicapaian::where("id_kpi",$request->id_kpi)
-            ->where("id_target",$request->id_target)
-            ->where("email",Auth::user()->email)
-            ->where("id_capaian","!=",$request->id_capaian)
-            ->exists();
-            if ($cekdata) {
-                $validator->errors()->add('tautan', 'Data sudah ada!');
-            }
-            if(!$request->id_target || $request->id_target == "null"){
-                $validator->errors()->add('id_target', 'Target KPI harus dipilih!');
-            }
-        });
+    }
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data gagal disimpan!',
-                'errors' => $validator->errors()
-            ], 200); 
+    public function insert(KpicapaianRequest $request)
+    {
+        Kpicapaian::create($this->payload($request));
+
+        return $this->saved('Capaian Key performance indicator berhasil disimpan');
+    }
+
+    public function edit(Request $request, string $id_capaian)
+    {
+        $capaian = Kpicapaian::ownedBy($request->user())->findOrFail($id_capaian);
+
+        return view('kpicapaian.edit', [
+            'data' => $capaian,
+            'kpi' => Kpi::orderBy('nama_kpi')->get(),
+            'kpitarget' => Kpitarget::where('id_kpi', $capaian->id_kpi)->orderBy('tahapan')->get(),
+        ]);
+    }
+
+    public function update(KpicapaianRequest $request)
+    {
+        $capaian = Kpicapaian::ownedBy($request->user())->find($request->validated('id_capaian'));
+        if (! $capaian) {
+            return $this->notFound();
         }
 
-        // Jika validasi berhasil, lanjutkan dengan menyimpan data ke dalam database
-        $kpicapaian = Kpicapaian::find($request->id_capaian); // Temukan data berdasarkan id
-        if (!$kpicapaian) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data tidak ditemukan!'
-            ], 404); // Menggunakan status kode 404 untuk menunjukkan bahwa data tidak ditemukan
-        }
-        $cekdatatahapan = Kpitarget::where("id_target",$request->id_target)->first();
-        $tahapan = intval(preg_replace('/[^0-9]+/', '', $cekdatatahapan->tahapan));
+        $capaian->update($this->payload($request));
 
-        $pjdesa = Pjdesa::where("email",Auth::user()->email)->first();
-        $data=[
-            'id_kpi'=>$request->id_kpi,
-            'id_target'=>$request->id_target,
-            'email'=>Auth::user()->email,
-            'status_capaian'=>$request->status_capaian,
-            'tautan'=>$request->tautan,
-            'permasalahan'=>$request->permasalahan,
-            'solusi'=>$request->solusi,
-            'kendala'=>$request->kendala,
-            'tahapan'=>$tahapan,
-            'id_pjdesa'=>$pjdesa->id_pjdesa,
+        return $this->saved('Capaian key performance indicator berhasil disimpan');
+    }
+
+    public function destroy(Request $request)
+    {
+        $capaian = Kpicapaian::ownedBy($request->user())->find($request->input('id_capaian'));
+        if (! $capaian) {
+            return $this->notFound();
+        }
+
+        $capaian->delete();
+
+        return $this->deleted();
+    }
+
+    public function export(Request $request)
+    {
+        $user = $request->user();
+        $email = $user->role === 'mahasiswa' ? $user->email : null;
+
+        return Excel::download(new CapaiankpiExport($email), 'capaian_kpi_'.date('Y-m-d_H-i-s').'.xlsx');
+    }
+
+    private function payload(KpicapaianRequest $request): array
+    {
+        $email = $request->user()->email;
+        $target = Kpitarget::findOrFail($request->validated('id_target'));
+
+        // Satuan realisasi dikunci mengikuti satuan target
+        return $request->safe()->only(self::FIELDS) + [
+            'email' => $email,
+            'satuan' => $target->satuan,
+            'tahapan' => $this->service->tahapanNumber($target),
+            'id_pjdesa' => Pjdesa::where('email', $email)->value('id_pjdesa'),
         ];
-        $kpicapaian->update($data);
-
-        //insert data dan tampilkan pesan
-        return response()->json([
-            'success' => true,
-            'message' => 'Capaian key performance indicator berhasil disimpan'
-        ], 200);
     }
 
-    public function destroy(Request $request){
-        if ($request->has('id_capaian')) {
-            // Lakukan tindakan penghapusan di sini
-            $id = $request->id_capaian;
-            //cek apakah sudah di gunakan di relasi lain
-            
-            Kpicapaian::where("id_capaian",$id)->where("email",Auth::user()->email)->delete();
-    
-            // Beri respons berhasil
-            return response()->json(['message' => 'Data berhasil dihapus'], 200);
-        } else {
-            // Jika tidak ada id yang diterima, kembalikan pesan kesalahan
-            return response()->json(['error' => 'Tidak ada ID yang diterima'], 400);
-        }
-    }
+    private static function statusBadge(?string $status): string
+    {
+        $status = array_key_exists((string) $status, Kpicapaian::STATUS) ? $status : 'N';
 
-    public function export(){
-        $emailMahasiswa = Auth::user()->role === 'mahasiswa' ? Auth::user()->email : null;
-        return Excel::download(new CapaiankpiExport($emailMahasiswa), 'capaian_kpi_'.date('Y-m-d_H-i-s').'.xlsx');
+        return '<span class="badge '.self::BADGE[$status].'">'.Kpicapaian::STATUS[$status].'</span>';
     }
 }

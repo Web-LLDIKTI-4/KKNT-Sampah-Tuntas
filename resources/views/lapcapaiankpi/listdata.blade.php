@@ -9,7 +9,10 @@
                     <th>Ketua Kelompok</th>
                     <th>Nama KPI</th>
                     <th>Tahapan KPI</th>
-                    <th>Target KPI</th>
+                    <th>Kegiatan</th>
+                    <th>Target</th>
+                    <th>Realisasi</th>
+                    <th>Capaian</th>
                     <th>Permasalahan</th>
                     <th>Solusi</th>
                     <th>Kebutuhan Dukungan</th>
@@ -57,6 +60,9 @@
                     return "<div class='text-wrap'>" +strippedText+ "</div>";
                 }
             },
+            {data: 'target_kpi', name: 'target_kpi', className: 'text-center text-nowrap', orderable: false, searchable: false},
+            {data: 'realisasi_kpi', name: 'realisasi', className: 'text-center text-nowrap', searchable: false},
+            {data: 'capaian', name: 'capaian', className: 'text-center', orderable: false, searchable: false},
             {
                 data: 'permasalahan',
                 name: 'permasalahan',

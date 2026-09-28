@@ -33,7 +33,7 @@ class AdmlaporandplController extends Controller
             return Datatables::of($query)
                 ->addIndexColumn()
                 ->addColumn('deskripsi', function($row){
-                    return $row->deskripsi.'<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
+                    return \App\Support\HtmlSanitizer::clean($row->deskripsi).' '.\App\Support\HtmlSanitizer::link($row->tautan);
                 })
                 ->addColumn('nama_dpl', function($row){
                     return $row->user->name ?? 'Nama DPL Tidak Tersedia';
@@ -49,7 +49,7 @@ class AdmlaporandplController extends Controller
                         'urlView' => url('/admlaporandpl/listdata/'.$row->email)
                     ]);
                 })
-                ->rawColumns(['action'])
+                ->rawColumns(['action', 'deskripsi'])
                 ->make(true);
         }
     }
@@ -73,13 +73,13 @@ class AdmlaporandplController extends Controller
                     return $row->tahun;
                 })
                 ->addColumn('deskripsi', function($row){
-                    return $row->deskripsi.'<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>';
+                    return \App\Support\HtmlSanitizer::clean($row->deskripsi).' '.\App\Support\HtmlSanitizer::link($row->tautan);
                 })
                 // ->addColumn('action', function($row){
                 //     $actionBtn = '<div class="d-felx"><a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-pencil-square"></i></a> <a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-trash"></i></a></div>';
                 //     return $actionBtn;
                 // })
-                ->rawColumns(['action'])
+                ->rawColumns(['action', 'deskripsi'])
                 ->make(true);
         }
     }

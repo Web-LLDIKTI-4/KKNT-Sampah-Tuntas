@@ -3,17 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Exports\KPIExport;
+use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Master\KpiRequest;
 use App\Models\Kpi;
 use App\Models\Kpicapaian;
 use App\Models\Kpitarget;
 use App\Support\ActionButtons;
-use DataTables;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\Facades\DataTables;
 
 class KpiController extends Controller
 {
+    use RespondsWithJson;
+
     public function index()
     {
         return view('kpi.index');
@@ -26,18 +29,18 @@ class KpiController extends Controller
 
     public function listdataserver(Request $request)
     {
+        abort_unless($request->ajax(), 404);
 
-        if ($request->ajax()) {
-            $data = Kpi::get();
-
-            return DataTables::of($data)
-                ->addIndexColumn()
-                ->addColumn('action', function ($row) {
-                    return ActionButtons::editDelete(url('kpi/edit/'.$row->id_kpi), $row->id_kpi);
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-        }
+        return DataTables::of(Kpi::query())
+            ->addIndexColumn()
+            ->addColumn('action', fn (Kpi $row) => ActionButtons::crud(
+                url('kpi/edit/'.$row->id_kpi),
+                url('kpi/destroy'),
+                'id_kpi',
+                $row->id_kpi
+            ))
+            ->rawColumns(['action'])
+            ->make(true);
     }
 
     public function tambah()
@@ -45,107 +48,41 @@ class KpiController extends Controller
         return view('kpi.tambah');
     }
 
-    public function insert(Request $request)
+    public function insert(KpiRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nama_kpi' => 'required|unique:kpi,nama_kpi',
-        ], [
-            'nama_kpi.required' => 'Key performance indicator harus di isi',
-            'nama_kpi.unique' => 'Key performance indicator sudah ada!',
-        ]);
-        /*
-        $validator->after(function($validator) use ($request) {
-            $cekdata = Kpi::where("kpi",$request->kpi)->get();
-            if ($cekdata > 0) {
-                $validator->errors()->add('kpi', 'Key performance indicator sudah ada!');
-            }
-        });
-        */
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Data gagal disimpan!', 'errors' => $validator->errors()], 200);
-        }
+        Kpi::create($request->safe()->only('nama_kpi'));
 
-        // Jika validasi berhasil, lanjutkan dengan menyimpan data ke dalam database
-        $kpi = new Kpi;
-        $kpi->nama_kpi = $request->nama_kpi;
-        $kpi->save();
-
-        // insert data dan tampilkan pesan
-        return response()->json(['success' => true, 'message' => 'Key performance indicator berhasil disimpan'], 200);
+        return $this->saved('Key performance indicator berhasil disimpan');
     }
 
-    public function edit(Request $request)
+    public function edit(string $id_kpi)
     {
-        $data = Kpi::where('id_kpi', $request->id_kpi)->first();
-
-        return view('kpi.edit', compact('data'));
+        return view('kpi.edit', ['data' => Kpi::findOrFail($id_kpi)]);
     }
 
-    public function update(Request $request)
+    public function update(KpiRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nama_kpi' => 'required',
-        ], [
-            'nama_kpi.required' => 'Key performance indicator harus di isi',
-        ]);
+        Kpi::findOrFail($request->validated('id_kpi'))->update($request->safe()->only('nama_kpi'));
 
-        $validator->after(function ($validator) use ($request) {
-            $cekdata = Kpi::where('nama_kpi', $request->nama_kpi)
-                ->where('id_kpi', '!=', $request->id_kpi)
-                ->exists(); // Menggunakan exists() untuk mengecek keberadaan data
-
-            if ($cekdata) {
-                $validator->errors()->add('nama_kpi', 'Key performance indicator sudah digunakan!');
-            }
-        });
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data gagal disimpan!',
-                'errors' => $validator->errors(),
-            ], 200);
-        }
-
-        // Jika validasi berhasil, lanjutkan dengan menyimpan data ke dalam database
-        $kpi = Kpi::find($request->id_kpi); // Temukan data berdasarkan id
-        if (! $kpi) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data tidak ditemukan!',
-            ], 404); // Menggunakan status kode 404 untuk menunjukkan bahwa data tidak ditemukan
-        }
-
-        $kpi->nama_kpi = $request->nama_kpi; // Update data
-        $kpi->save();
-
-        // insert data dan tampilkan pesan
-        return response()->json([
-            'success' => true,
-            'message' => 'Key performance indicator berhasil disimpan',
-        ], 200);
+        return $this->saved('Key performance indicator berhasil disimpan');
     }
 
     public function destroy(Request $request)
     {
-        if ($request->has('id_kpi')) {
-            // Lakukan tindakan penghapusan di sini
-            $id = $request->id_kpi;
-            // cek apakah sudah di gunakan di relasi lain
-            $cek_kpicapaian = Kpicapaian::where('id_kpi', $id)->exists();
-            $cek_kpitarget = Kpitarget::where('id_kpi', $id)->exists();
-            if ($cek_kpicapaian || $cek_kpitarget) {
-                return response()->json(['error' => 'Hapus dulu data terkait'], 400);
-            } else {
-                Kpi::find($id)->delete();
-
-                // Beri respons berhasil
-                return response()->json(['message' => 'Data berhasil dihapus'], 200);
-            }
-        } else {
-            // Jika tidak ada id yang diterima, kembalikan pesan kesalahan
-            return response()->json(['error' => 'Tidak ada ID yang diterima'], 400);
+        $kpi = Kpi::find($request->input('id_kpi'));
+        if (! $kpi) {
+            return $this->notFound();
         }
+
+        $used = Kpicapaian::where('id_kpi', $kpi->id_kpi)->exists()
+            || Kpitarget::where('id_kpi', $kpi->id_kpi)->exists();
+        if ($used) {
+            return $this->deleteRejected('Hapus dulu data terkait');
+        }
+
+        $kpi->delete();
+
+        return $this->deleted();
     }
 
     public function export()

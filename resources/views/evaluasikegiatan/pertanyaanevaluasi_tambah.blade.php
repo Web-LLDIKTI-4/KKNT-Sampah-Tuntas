@@ -1,4 +1,4 @@
-<form id="form-tambah" method="post" action="{{ url('admevaluasikegiatan/insert') }}">
+<form id="form-tambah" method="post" action="{{ url('admevaluasikegiatan/insert') }}" data-ajax-form>
     @csrf
     @method('PUT')    
     <div class="form-group form-floating form-floating-outline mb-6">       

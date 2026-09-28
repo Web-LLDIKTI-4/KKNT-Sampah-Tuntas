@@ -37,7 +37,10 @@
     <article>
         <h1>Oops!</h1>
         <div>
-            <p>Terjadi kesalahan pada server kami. Silakan coba lagi nanti. atau klik <a href="{{ url('logout') }}">disini</a> untuk logout dulu!</p>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <p>Terjadi kesalahan pada server kami. Silakan coba lagi nanti. atau klik <button type="submit" class="btn btn-link p-0 align-baseline">disini</button> untuk logout dulu!</p>
+            </form>
             <p>&mdash; Tim Support</p>
         </div>
     </article>

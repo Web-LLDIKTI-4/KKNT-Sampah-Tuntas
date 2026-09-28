@@ -1,9 +1,9 @@
-<form id="form-ubah" method="post" action="{{ url('pjdesa/update') }}">
+<form id="form-ubah" method="post" action="{{ url('pjdesa/update') }}" data-ajax-form>
     @csrf
     @method('PUT')
     <input type="hidden" name="id_pjdesa" value="{{$data->id_pjdesa}}">
     <div class="form-group form-floating form-floating-outline mb-6">
-        <select class="form-control" name="id_desa">
+        <select class="form-control" name="id_desa" required>
         @if($kecamatan)
             @foreach($kecamatan as $item)
                 <optgroup label="{{$item->kecamatan}}">
@@ -18,7 +18,7 @@
        <!-- <input type="hidden" name="id_desa" value="{{$data->id_desa}}"/> -->
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="email" class="form-control">
+        <select name="email" class="form-control" required>
         @if($user)
             @foreach($user as $item)
              <option value="{{$item->email}}" @if($data->email == $item->email) selected @endif>{{$item->name}} | {{$item->mahasiswa->sp->nm_lemb}}</option>

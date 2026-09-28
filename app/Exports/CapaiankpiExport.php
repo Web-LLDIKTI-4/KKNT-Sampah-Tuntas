@@ -40,12 +40,16 @@ class CapaiankpiExport implements FromCollection, WithHeadings
                     $q->where('email_dpl', auth()->user()->email);
                 })
                 ->get();
+        } elseif (auth()->user()->role === 'pt') {
+            $kpicapaian = Kpicapaian::whereIn('email', \App\Models\Mahasiswa::visibleTo(auth()->user())->select('email'))->get();
         } elseif ($this->emailMahasiswa) {
             $kpicapaian = Kpicapaian::where('email', $this->emailMahasiswa)->get();
         } else {
             $kpicapaian = Kpicapaian::all();
 
         }
+
+        $kpicapaian->load(['kpi', 'target', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram']);
 
         // Lakukan relasi yang diperlukan dan tambahkan judul kolom
         $data = $kpicapaian->map(function ($item, $key) {
@@ -60,9 +64,15 @@ class CapaiankpiExport implements FromCollection, WithHeadings
                 'No' => $key + 1,
                 'Lokasi Kegiatan' => $lokasi,
                 'PJ Desa' => $pjdesa,
+                'Desa' => $desa,
                 'KPI' => $kpi,
                 'Tahapan' => $tahapan,
                 'Target KPI' => $target_kpi,
+                'Target' => $item->target?->target,
+                'Satuan Target' => $item->target?->satuan,
+                'Realisasi' => $item->realisasi,
+                'Satuan Realisasi' => $item->satuan,
+                'Capaian (%)' => $item->capaianPersen(),
                 'Permasalahan' => $item->permasalahan,
                 'Solusi' => $item->solusi,
                 'Kebutuhan Dukungan' => $item->kendala,
@@ -85,7 +95,12 @@ class CapaiankpiExport implements FromCollection, WithHeadings
             'Desa',
             'KPI',
             'Tahapan',
-            'Target KPI',
+            'Kegiatan',
+            'Target',
+            'Satuan',
+            'Realisasi',
+            'Satuan',
+            'Capaian (%)',
             'Permasalahan',
             'Solusi',
             'Kebutuhan Dukungan',

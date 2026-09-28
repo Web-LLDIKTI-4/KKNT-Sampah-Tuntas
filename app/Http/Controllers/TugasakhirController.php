@@ -1,102 +1,63 @@
-<?php  
+<?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Session;
-use DataTables;
-use App\Models\Kpi;
-use App\Models\Logkegiatan;
-use App\Models\Logbulanan;
+use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Mahasiswa\TugasakhirRequest;
 use App\Models\Tugasakhir;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class TugasakhirController extends Controller
-{    
+{
+    use RespondsWithJson;
+
     public function index()
-    {  
+    {
         return view('tugasakhir.index');
     }
-    public function listdata(){
-        $data = Tugasakhir::where('email', Auth::user()->email)->get();
-        return view('tugasakhir.listdata',compact('data'));
+
+    public function listdata(Request $request)
+    {
+        return view('tugasakhir.listdata', ['data' => Tugasakhir::ownedBy($request->user())->get()]);
     }
-    public function tambah(Request $request)
+
+    public function tambah()
     {
         return view('tugasakhir.tambah');
     }
-    public function insert(Request $request){
-        $validator = Validator::make($request->all(), [
-            'tautan' => 'required',
-        ], [
-            'tautan.required' => 'tautan harus di isi.',
-        ]);
-        
-        $validator->after(function($validator) use ($request) {  
-            $exists =  Tugasakhir::where('email',Auth::user()->email)->exists();       
-            if ($exists) {
-                $validator->errors()->add('tautan', 'Tugas akhir sudah ada!');
-            }
-        });
-       
-        
-        if ($validator->fails()) {
-            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
-        }
 
-        $data = [
-            'email' => Auth::user()->email,
-            'tautan' => $request->tautan,
-            'tahun' => date('Y'),
-        ];
-        
-        Tugasakhir::create($data);
-        
-        //insert data dan tampilkan pesan
-        return response()->json(['success'=>true,'message' => 'Data berhasil disimpan'], 200);
-    }
-    public function edit(Request $request)
+    public function insert(TugasakhirRequest $request)
     {
-        $data = Tugasakhir::where("email", Auth::user()->email)->where("id_tugasakhir", $request->id_tugasakhir)->first();
-        return view('tugasakhir.edit',compact('data'));
-    }
-    public function update(Request $request){
-        $validator = Validator::make($request->all(), [
-            'tautan' => 'required',
-        ], [
-            'tautan.required' => 'tautan harus di isi.',
+        Tugasakhir::create([
+            'email' => $request->user()->email,
+            'tautan' => $request->validated('tautan'),
+            'tahun' => (int) date('Y'),
         ]);
-        
-        $validator->after(function($validator) use ($request) {  
-            $exists =  Tugasakhir::where('email',Auth::user()->email)->where("tautan",$request->tautan)->where("id_tugasakhir","!=",$request->id_tugasakhir)->exists();       
-            if ($exists) {
-                $validator->errors()->add('tautan', 'tautan sudah ada!');
-            }
-        });
-       
-        
-        if ($validator->fails()) {
-            return response()->json(['success'=>false,'message'=>'Data gagal diupdate!','errors' => $validator->errors()], 200);
+
+        return $this->saved();
+    }
+
+    public function edit(Request $request, string $id_tugasakhir)
+    {
+        return view('tugasakhir.edit', ['data' => Tugasakhir::ownedBy($request->user())->findOrFail($id_tugasakhir)]);
+    }
+
+    public function update(TugasakhirRequest $request)
+    {
+        $tugas = Tugasakhir::ownedBy($request->user())->find($request->validated('id_tugasakhir'));
+        if (! $tugas) {
+            return $this->notFound();
         }
 
-        $data = [
-            'email' => Auth::user()->email,
-            'tautan' => $request->tautan,
-            'tahun' => date('Y'),
-        ];
-        
-        Tugasakhir::where('email',Auth::user()->email)->where("id_tugasakhir", $request->id_tugasakhir)->update($data);
-        
-        //insert data dan tampilkan pesan
-        return response()->json(['success'=>true,'message' => 'Data berhasil diupdate.'], 200);
+        $tugas->update(['tautan' => $request->validated('tautan'), 'tahun' => (int) date('Y')]);
+
+        return $this->saved('Data berhasil diupdate.');
     }
-    public function destroy(Request $request){
-        if (Tugasakhir::where("email", Auth::user()->email)->where("id_tugasakhir", $request->id_tugasakhir)->delete()) {
-            return response()->json(['success' => true, 'message' => 'Data berhasil dihapus'], 200);
-        } else {
-            return response()->json(['success' => false, 'message' => 'Data gagal dihapus'], 200);
-        }
+
+    public function destroy(Request $request)
+    {
+        $deleted = Tugasakhir::ownedBy($request->user())->whereKey($request->input('id_tugasakhir'))->delete();
+
+        return $deleted ? $this->deleted() : $this->failed('Data gagal dihapus');
     }
 }

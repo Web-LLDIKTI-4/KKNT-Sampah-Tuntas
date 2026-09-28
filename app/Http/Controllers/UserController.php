@@ -1,311 +1,228 @@
-<?php  
+<?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Session;
-use App\Models\User;
+use App\Exports\UserExport;
+use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Admin\KepalaUserRequest;
+use App\Http\Requests\Admin\PtUserRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Models\Dpl;
+use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
-use App\Models\Kehadiran;
-use App\Models\Dpl;
-use App\Models\Dplmentoring;
-use App\Models\Dpllaporan;
-use App\Models\Logkegiatan;
-use App\Models\Logbulanan;
 use App\Models\Pjdesa;
-use App\Models\Nilaikonversi;
-use App\Models\Kpicapaian;
 use App\Models\Satuanpendidikan;
-
+use App\Models\User;
+use App\Services\UserAccountService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
-{    
+{
+    use RespondsWithJson;
+
+    public function __construct(private UserAccountService $accounts) {}
+
     public function index()
-    {  
-        return view('user.index');
-    } 
-    public function listdata(){
-        $data = User::whereIn('role', ['mahasiswa', 'dpl','pt'])->get();
-        return view('user.list',compact('data'));
-    } 
-    public function getdatamember(){
-        $data = Mahasiswa::whereDoesntHave('user')->get();
-        return view('user.listmember',compact('data'));
-    }
-    public function insert(Request $request){
-        if($request->createuser){
-            $data = [];
-            
-            foreach($request->createuser as $createuser){
-                $mahasiswa = Mahasiswa::where('email', $createuser)->first();
-                if($mahasiswa){
-                    $data[] = [
-                        'name' => $mahasiswa->nama,
-                        'email' => $mahasiswa->email,
-                        'location_program' => $mahasiswa->location_program ?? null,
-                        'password' => Hash::make($mahasiswa->nim),
-                        'role' => 'mahasiswa',
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ];
-                }
-            }
-            //insert data baru
-            User::insert($data);
-            return response()->json(['success'=>"user berhasil dibuat"]);
-        }else{
-            return response()->json(['error'=>"user harus dipilih"]);
-        }
-    }
-
-    public function adduser(){
-        $data = Dpl::whereDoesntHave('user')->get();
-        return view('user.listdpl', compact('data'));
-    }
-    
-    public function insertuser(Request $request){
-        if($request->createuser){
-            $data = [];
-            
-            foreach($request->createuser as $createuser){
-                
-                $dpl = Dpl::where('email',$createuser)->first();
-                if($dpl){
-                    $data[] = [
-                        'name' => $dpl->nama,
-                        'email' => $createuser,
-                        'location_program' => $dpl->location_program ?? null,
-                        'password' => Hash::make($dpl->nidn),
-                        'role' => 'dpl',
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ];
-                }
-            }
-            //insert data baru
-            User::insert($data);
-            return response()->json(['success'=>"user berhasil dibuat"]);
-        }else{
-            return response()->json(['error'=>"user harus dipilih"]);
-        }       
-    }
-
-    public function edit(Request $request){
-        $data = User::find($request->id);
-        $locationPrograms = \App\Models\LokasiProgram::all();
-        $role=array('mahasiswa','dpl');
-        $akses=array('pjdesa'=>'Set Ketua Kelompok','hapuspjdesa'=>'Hapus Akses Ketua Kelompok');
-        return view('user.edit',compact('data','role','akses','locationPrograms'));
-    }
-
-    public function updateuser(Request $request){
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required|email',
-            'location_program' => 'nullable|exists:lokasi_program,id'
-        ], [
-            'name.required' => 'Nama harus di isi.',
-            'email.required' => 'Email harus di isi.',
-            'email.email' => 'Email harus tidak valid.',
-            'location_program.exists' => 'Lokasi program tidak valid.'
-        ]);
-        
-        $validator->after(function ($validator) use ($request) {
-            $cekdata = User::where("id", "!=", $request->id)->where("email", $request->email)->exists(); // Menggunakan exists() untuk mengecek keberadaan data
-            if ($cekdata) {
-                $validator->errors()->add('email', 'Email sudah digunakan!');
-            }
-        });
-        
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data gagal disimpan!',
-                'errors' => $validator->errors()
-            ], 200);
-        }
-        
-        $data = [
-            'name' => $request->name,
-            'role' => $request->role,
-        ];
-        
-        if (in_array($request->role, ['mahasiswa', 'dpl'])) {
-            $data['location_program'] = $request->location_program;
-            if ($request->role === 'mahasiswa' && $request->location_program) {
-                Mahasiswa::where('email', $request->email)->update(['location_program' => $request->location_program]);
-            }
-        }
-
-        $userHasLokasi = Mahasiswa_lokasi::where('user_in_up', $request->email)->exists();
-        if (in_array($request->akses, ['pjdesa']) && in_array($request->role, ['mahasiswa']) && !$userHasLokasi) {
-            // Kalo mahasiswa belum set desa tidak bisa add pj desa
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak dapat set sebagai ketua kelompok, mahasiswa harus set lokasi kegiatan KKN terlebih dahulu!'
-            ], 200);
-        }
-
-        if ($request->akses !== null && $request->role == "mahasiswa") {
-            if($request->akses == 'hapuspjdesa'){
-                Pjdesa::where('email', $request->email)->delete();
-                $data['akses'] = null; 
-            }else{
-                Pjdesa::updateOrCreate(
-                    ['email' => $request->email],
-                    ['id_desa' => $userHasLokasi ? Mahasiswa_lokasi::where('user_in_up', $request->email)->value('id_desa') : null]
-                );
-                $data['akses'] = $request->akses; 
-            }
-        }
-
-        if ($request->password) {
-            $data['password'] = Hash::make($request->password); 
-        }
-        //cek data dulu
-        $cekdata = User::where("id",$request->id)->first();
-        if($cekdata){
-            if($cekdata->email != $request->email){//jika email berubah
-                $data['email']=$request->email;
-                $data_up = [
-                    'email'=>$request->email
-                ];
-                if($request->role == "mahasiswa"){
-                    //update table mahasiswa
-                    Mahasiswa::where("email",$cekdata->email)->update($data_up);
-                    //update table kehadiran
-                    Kehadiran::where("email",$cekdata->email)->update($data_up);
-                    //update dpl_mentoring
-                    Dplmentoring::where("email_mahasiswa",$cekdata->email)->update(['email_mahasiswa'=>$request->email]);
-                    //update log harian
-                    Logkegiatan::where("email",$cekdata->email)->update($data_up);
-                    //update log bulanan
-                    Logbulanan::where("email",$cekdata->email)->update($data_up);
-                    //update pj desa
-                    Pjdesa::where("email",$cekdata->email)->update($data_up);
-                    //capaian kpi
-                    Kpicapaian::where("email",$cekdata->email)->update($data_up);
-                    
-                }else{
-                    Dpllaporan::where("email",$cekdata->email)->update($data_up);
-                    //update dpl_mentoring
-                    Dplmentoring::where("email_dpl",$cekdata->email)->update(['email_dpl'=>$request->email]);
-                    // update konversi nilai
-                    Nilaikonversi::where("email_dpl",$cekdata->email)->update(['email_dpl'=>$request->email]);
-                }
-            }
-        } 
-
-        User::where('id', $request->id)->update($data);
-        return response()->json(['success' => true, 'message' => "User berhasil diupdate"]);
-    }
-
-    public function adduserpt(){
-        $role=array('pt');
-        $sp = Satuanpendidikan::get();
-        $locationPrograms = \App\Models\LokasiProgram::all();
-        return view('user.tambah_pt',compact('role','sp','locationPrograms'));
-    }
-    public function insertuserpt(Request $request){
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'kodept' => 'required',
-            'location_program' => 'required',
-            'password' => 'required', // Validasi numerik
-        ], [
-            'name.required' => 'Nama harus di isi.',
-            'kodept.required' => 'Perguruan Tinggi harus di isi.',
-            'location_program.required' => 'Lokasi program harus di isi.',
-            'password.required' => 'Password harus di isi.',
-        ]);
-        
-        $validator->after(function($validator) use ($request) {
-            $cekdata = User::where("email", $request->kodept)
-                        ->exists(); // Menggunakan exists() untuk mengecek keberadaan data
-            
-            if ($cekdata) {
-                $validator->errors()->add('kodept', 'kodept sudah digunakan!');
-            }
-        });
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data gagal disimpan!',
-                'errors' => $validator->errors()
-            ], 200); 
-        }
-        $data=[
-            'name'=>$request->name,
-            'email'=>$request->kodept,
-            'location_program' => $request->location_program,
-            'role' =>$request->role,
-            'password'=> Hash::make($request->password)
-        ];
-        User::insert($data);
-        return response()->json(['success' => true,'message'=>"user berhasil dibuat"]);       
-    }
-    public function edituserpt($id){
-        $role=array('pt');
-        $user = User::find($id);
-        $sp = Satuanpendidikan::orderByRaw("TRIM(nm_lemb) DESC")->get();
-        $locationPrograms = \App\Models\LokasiProgram::all();
-        $data=[
-            'role'=>$role,
-            'user'=>$user,
-            'sp'=>$sp,
-            'locationPrograms'=>$locationPrograms,
-        ];
-        return view('user.edit_pt',$data);
-    }
-    public function updateuserpt(Request $request){
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'kodept' => 'required',
-            'location_program' => 'required',
-        ], [
-            'name.required' => 'Nama harus di isi.',
-            'kodept.required' => 'Perguruan Tinggi harus di isi.',
-            'location_program.required' => 'Lokasi program harus di isi.',
-        ]);
-        
-        $validator->after(function($validator) use ($request) {
-            if (!$request->kodept) {
-                $validator->errors()->add('kodept', 'PT harus dipilih!');
-            } else {
-                $cekdata = User::where("id", "!=", $request->id)->where("email", $request->kodept)->exists();
-                if ($cekdata) {
-                    $validator->errors()->add('kodept', 'PT tersebut sudah digunakan oleh akun lain!');
-                }
-            }
-        });
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data gagal disimpan!',
-                'errors' => $validator->errors()
-            ], 200); 
-        }
-
-        $data=[
-            'name'=>$request->name,
-            'email'=>$request->kodept,
-            'location_program' => $request->location_program,
-        ];
-        if($request->password){
-            $data["password"] =Hash::make($request->password);
-        }
-        User::where("id",$request->id)->update($data);
-        return response()->json(['success' => true,'message'=>"user berhasil dibuat"]);       
-    }
-
-    public function export(Request $request)
     {
-        $keyword = $request->input('keyword', ''); // Ambil keyword dari request, default kosong
-        return \Excel::download(new \App\Exports\UserExport(), 'users_' . date('Y-m-d_H-i-s') . '.xlsx');
+        return view('user.index');
+    }
+
+    public function listdata()
+    {
+        return view('user.list', ['data' => User::whereIn('role', ['mahasiswa', 'dpl', 'pt', 'kepala'])->get()]);
+    }
+
+    public function getdatamember()
+    {
+        return view('user.listmember', ['data' => Mahasiswa::with('sp')->whereDoesntHave('user')->get()]);
+    }
+
+    public function insert(Request $request)
+    {
+        $emails = $this->selectedEmails($request);
+        if (! $emails) {
+            return response()->json(['error' => 'user harus dipilih']);
+        }
+
+        $count = $this->accounts->createForMahasiswa($emails);
+
+        return response()->json(['success' => $count.' user berhasil dibuat']);
+    }
+
+    public function adduser()
+    {
+        return view('user.listdpl', ['data' => Dpl::with('sp')->whereDoesntHave('user')->get()]);
+    }
+
+    public function insertuser(Request $request)
+    {
+        $emails = $this->selectedEmails($request);
+        if (! $emails) {
+            return response()->json(['error' => 'user harus dipilih']);
+        }
+
+        $count = $this->accounts->createForDpl($emails);
+
+        return response()->json(['success' => $count.' user berhasil dibuat']);
+    }
+
+    public function edit(string $id)
+    {
+        return view('user.edit', [
+            'data' => User::whereIn('role', ['mahasiswa', 'dpl'])->findOrFail($id),
+            'role' => ['mahasiswa', 'dpl'],
+            'akses' => ['pjdesa' => 'Set Ketua Kelompok', 'hapuspjdesa' => 'Hapus Akses Ketua Kelompok'],
+            'locationPrograms' => LokasiProgram::orderBy('nama_lokasi')->get(),
+        ]);
+    }
+
+    public function updateuser(UpdateUserRequest $request)
+    {
+        $user = User::findOrFail($request->validated('id'));
+        $role = $request->validated('role');
+        $akses = $request->validated('akses');
+        $mahasiswa = Mahasiswa::where('email', $user->email)->first();
+
+        $lokasiDesa = $mahasiswa
+            ? Mahasiswa_lokasi::where('id_mahasiswa', $mahasiswa->id_mahasiswa)->orderByDesc('tahun')->value('id_desa')
+            : null;
+        if ($akses === 'pjdesa' && $role === 'mahasiswa' && ! $lokasiDesa) {
+            return $this->failed('Tidak dapat set sebagai ketua kelompok, mahasiswa harus set lokasi kegiatan KKN terlebih dahulu!');
+        }
+
+        DB::transaction(function () use ($request, $user, $role, $akses, $lokasiDesa) {
+            $this->accounts->changeEmail($user, $request->validated('email'));
+            $email = $user->email;
+
+            $data = [
+                'name' => $request->validated('name'),
+                'role' => $role,
+                'location_program' => $request->validated('location_program'),
+            ];
+            if ($role === 'mahasiswa' && $data['location_program']) {
+                Mahasiswa::where('email', $email)->update(['location_program' => $data['location_program']]);
+            }
+
+            if ($akses && $role === 'mahasiswa') {
+                if ($akses === 'hapuspjdesa') {
+                    Pjdesa::where('email', $email)->delete();
+                    $data['akses'] = null;
+                } else {
+                    Pjdesa::updateOrCreate(['email' => $email], ['id_desa' => $lokasiDesa]);
+                    $data['akses'] = $akses;
+                }
+            }
+
+            if ($request->filled('password')) {
+                $data['password'] = Hash::make($request->validated('password'));
+            }
+
+            $user->forceFill($data)->save();
+        });
+
+        return $this->saved('User berhasil diupdate');
+    }
+
+    public function adduserpt()
+    {
+        return view('user.tambah_pt', [
+            'role' => ['pt'],
+            'sp' => Satuanpendidikan::orderBy('nm_lemb')->get(),
+            'locationPrograms' => LokasiProgram::orderBy('nama_lokasi')->get(),
+        ]);
+    }
+
+    public function insertuserpt(PtUserRequest $request)
+    {
+        // Role dikunci "pt", tidak diambil dari input
+        (new User)->forceFill([
+            'name' => $request->validated('name'),
+            'email' => $request->validated('kodept'),
+            'location_program' => $request->validated('location_program'),
+            'role' => 'pt',
+            'password' => Hash::make($request->validated('password')),
+        ])->save();
+
+        return $this->saved('user berhasil dibuat');
+    }
+
+    public function edituserpt(string $id)
+    {
+        return view('user.edit_pt', [
+            'role' => ['pt'],
+            'user' => User::where('role', 'pt')->findOrFail($id),
+            'sp' => Satuanpendidikan::orderByRaw('TRIM(nm_lemb) DESC')->get(),
+            'locationPrograms' => LokasiProgram::orderBy('nama_lokasi')->get(),
+        ]);
+    }
+
+    public function updateuserpt(PtUserRequest $request)
+    {
+        $data = [
+            'name' => $request->validated('name'),
+            'email' => $request->validated('kodept'),
+            'location_program' => $request->validated('location_program'),
+        ];
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->validated('password'));
+        }
+
+        User::where('role', 'pt')->findOrFail($request->validated('id'))->forceFill($data)->save();
+
+        return $this->saved('user berhasil diupdate');
+    }
+
+    public function adduserkepala()
+    {
+        return view('user.form_kepala', ['user' => null]);
+    }
+
+    public function insertuserkepala(KepalaUserRequest $request)
+    {
+        // Role dikunci "kepala", tidak diambil dari input
+        (new User)->forceFill([
+            'name' => $request->validated('name'),
+            'email' => $request->validated('email'),
+            'role' => 'kepala',
+            'password' => Hash::make($request->validated('password')),
+        ])->save();
+
+        return $this->saved('User kepala berhasil dibuat');
+    }
+
+    public function edituserkepala(string $id)
+    {
+        return view('user.form_kepala', ['user' => User::where('role', 'kepala')->findOrFail($id)]);
+    }
+
+    public function updateuserkepala(KepalaUserRequest $request)
+    {
+        $data = [
+            'name' => $request->validated('name'),
+            'email' => $request->validated('email'),
+        ];
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->validated('password'));
+        }
+
+        User::where('role', 'kepala')->findOrFail($request->validated('id'))->forceFill($data)->save();
+
+        return $this->saved('User kepala berhasil diupdate');
+    }
+
+    public function export()
+    {
+        return Excel::download(new UserExport, 'users_'.date('Y-m-d_H-i-s').'.xlsx');
+    }
+
+    private function selectedEmails(Request $request): array
+    {
+        $emails = array_values(array_filter((array) $request->input('createuser', []), 'is_string'));
+
+        return array_slice($emails, 0, 1000);
     }
 }

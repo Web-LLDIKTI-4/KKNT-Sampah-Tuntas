@@ -1,10 +1,10 @@
-<form id="form-ubah" method="post" action="{{ url('desaprofile/update') }}">
+<form id="form-ubah" method="post" action="{{ url('desaprofile/update') }}" data-ajax-form>
     @csrf
     @method('PUT')
     <input type="hidden" name="id_profile" value="{{$data->id_profile}}">
     <div class="row">
         <div class="form-group col-md-4 form-floating form-floating-outline mb-6">
-            <select name="tahun" class="form-control">
+            <select name="tahun" class="form-control" required>
                 @for($th=date('Y')-1; $th<=date('Y'); $th++)
                     <option value="{{$th}}" @if($th == $data->tahun) selected @endif>{{$th}}</option>
                 @endfor
@@ -12,7 +12,7 @@
             <label>Tahun</label>
         </div>
         <div class="form-group col form-floating form-floating-outline mb-6">
-            <select name="id_desa" class="form-control">
+            <select name="id_desa" class="form-control" required>
             @if($kecamatan)
                 @foreach($kecamatan as $item)
                     <optgroup label="{{$item->kecamatan}}">

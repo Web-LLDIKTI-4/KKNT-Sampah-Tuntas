@@ -49,7 +49,9 @@
                     @endif
                     <td>{{ $row->role }}</td>
                     <td class="text-center no-sort">
-                        @if($row->role != "pt")
+                        @if($row->role === 'kepala')
+                            <x-action-data urlEdit="{{ url('user/edituserkepala/'.$row->id) }}" />
+                        @elseif($row->role != "pt")
                             <x-action-data urlEdit="{{ url('user/edit/'.$row->id) }}" />
                         @else
                             <x-action-data urlEdit="{{ url('user/edituserpt/'.$row->id) }}" />

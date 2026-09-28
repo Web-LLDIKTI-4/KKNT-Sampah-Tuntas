@@ -45,7 +45,7 @@ class LaptugasakhirController extends Controller
                     return $row->mahasiswa->sp->nm_lemb ?? '-';
                 })
                 ->addColumn('tautan', function($row) {
-                    return $row->tautan ? '<a href="'.$row->tautan.'" target="_blank">'.$row->tautan.'</a>' : null;
+                    return \App\Support\HtmlSanitizer::link($row->tautan) ?: null;
                 })
                 ->addColumn('action', function($row) {
                     return view('components.action-data', [

@@ -1,20 +1,32 @@
-<?php  
+<?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Session;
-use App\Models\Mahasiswa;
-use DataTables;
-use App\Models\Kehadiran;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Validator;
 use App\Exports\LogkehadiranExport;
+use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Mahasiswa\IzinRequest;
+use App\Http\Requests\Mahasiswa\KehadiranRequest;
+use App\Models\Kehadiran;
+use App\Services\AttendanceService;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\Facades\DataTables;
 
 class LogkehadiranController extends Controller
-{    
+{
+    use RespondsWithJson;
+
+    private const BADGE = [
+        'hadir' => ['bg-success', 'Hadir'],
+        'izin' => ['bg-warning', 'Izin'],
+        'sakit' => ['bg-danger', 'Sakit'],
+        'cuti' => ['bg-info', 'Cuti'],
+    ];
+
+    public function __construct(private AttendanceService $attendance) {}
+
     public function index()
-    {  
+    {
         return view('kehadiran.index');
     }
 
@@ -25,204 +37,92 @@ class LogkehadiranController extends Controller
 
     public function listdataserver(Request $request)
     {
+        abort_unless($request->ajax(), 404);
 
-        if ($request->ajax()) {
-            $data = Kehadiran::where("email", Auth::user()->email)->get();
-            return Datatables::of($data)
-                ->addIndexColumn()
-                ->addColumn('status_kehadiran', function($row){
-                    if ($row->status_kehadiran == 'hadir') {
-                        return '<span class="badge bg-success">Hadir</span>';
-                    } elseif ($row->status_kehadiran == 'izin') {
-                        return '<span class="badge bg-warning">Izin</span>';
-                    } elseif ($row->status_kehadiran == 'sakit') {
-                        return '<span class="badge bg-danger">Sakit</span>';
-                    } elseif ($row->status_kehadiran == 'cuti') {
-                        return '<span class="badge bg-info">Cuti</span>';
-                    } else {
-                        return '<span class="badge bg-secondary">Belum Absen</span>';
-                    }
-                })
-                ->addColumn('tanggal', function($row){
-                    return $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-';
-                })
-                ->addColumn('waktu_masuk', function($row){
-                    return $row->waktu_masuk ? date('H:i:s', strtotime($row->waktu_masuk)) . ' WIB' : '-';
-                })
-                ->addColumn('coordinates_datang', function($row){
-                    return '<a href="https://www.google.com/maps?q=' . $row->latitude_datang . ',' . $row->longitude_datang . '" target="_blank" class="btn btn-sm btn-primary">Lihat Map</a>';
-                    // return view('components.embed-map', [
-                    //     'latitude' => $row->latitude_datang,
-                    //     'longitude' => $row->longitude_datang,
-                    // ]);
-                })
-                ->addColumn('waktu_pulang', function($row){
-                    return $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)) . ' WIB' : '-';
-                })
-                ->addColumn('coordinates_pulang', function($row){
-                    return '<a href="https://www.google.com/maps?q=' . $row->latitude_pulang . ',' . $row->longitude_pulang . '" target="_blank" class="btn btn-sm btn-primary">Lihat Map</a>';
-                    // return view('components.embed-map', [
-                    //     'latitude' => $row->latitude_pulang,
-                    //     'longitude' => $row->longitude_pulang,
-                    // ]);
-                })
-                ->addColumn('action', function($row){
-                    $actionBtn = '<div class="d-felx"><a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-pencil-square"></i></a> <a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-trash"></i></a></div>';
-                    return $actionBtn;
-                })
-                ->rawColumns(['action', 'status_kehadiran', 'coordinates_datang', 'coordinates_pulang'])
-                ->make(true);
+        return DataTables::of(Kehadiran::ownedBy($request->user())->orderByDesc('tanggal')->get())
+            ->addIndexColumn()
+            ->editColumn('status_kehadiran', function (Kehadiran $row) {
+                [$class, $label] = self::BADGE[$row->status_kehadiran] ?? ['bg-secondary', 'Belum Absen'];
+
+                return '<span class="badge '.$class.'">'.$label.'</span>';
+            })
+            ->editColumn('tanggal', fn (Kehadiran $row) => $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-')
+            ->editColumn('waktu_masuk', fn (Kehadiran $row) => $row->waktu_masuk ? date('H:i:s', strtotime($row->waktu_masuk)).' WIB' : '-')
+            ->editColumn('waktu_pulang', fn (Kehadiran $row) => $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)).' WIB' : '-')
+            ->addColumn('coordinates_datang', fn (Kehadiran $row) => static::mapButton($row->latitude_datang, $row->longitude_datang))
+            ->addColumn('coordinates_pulang', fn (Kehadiran $row) => static::mapButton($row->latitude_pulang, $row->longitude_pulang))
+            ->addColumn('action', '')
+            ->rawColumns(['status_kehadiran', 'coordinates_datang', 'coordinates_pulang'])
+            ->make(true);
+    }
+
+    public function tambah(Request $request)
+    {
+        return view('kehadiran.tambah', ['data' => $this->today($request)]);
+    }
+
+    public function insert(KehadiranRequest $request)
+    {
+        $mode = $request->validated('mode');
+        $today = $this->today($request);
+        [$lat, $lng] = $request->coordinates();
+
+        $reason = $this->attendance->rejectReason($today, $mode)
+            ?? ($this->attendance->withinRadius($lat, $lng) ? null : 'Lokasi Anda di luar radius absensi yang diizinkan.');
+        if ($reason) {
+            return $request->expectsJson() ? $this->failed($reason) : back()->with('error', $reason);
         }
+
+        $column = $mode === 'datang' ? 'masuk' : 'pulang';
+        Kehadiran::updateOrCreate(
+            ['email' => $request->user()->email, 'tanggal' => today()->toDateString()],
+            [
+                'waktu_'.$column => now(),
+                'latitude_'.$mode => $lat,
+                'longitude_'.$mode => $lng,
+                'status_kehadiran' => 'hadir',
+            ]
+        );
+
+        $message = ($today ? 'Data kehadiran berhasil diupdate' : 'Data kehadiran berhasil ditambahkan')
+            .', anda melakukan absensi pukul '.now()->format('H:i:s');
+
+        return $request->expectsJson() ? $this->saved($message) : back()->with('success', $message);
     }
 
-    public function tambah(){
-        $data = Kehadiran::where("email",Auth::user()->email)->where("tanggal",date("Y-m-d"))->first();
-        return view('kehadiran.tambah',compact('data'));
-    }
-
-    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    public function tambahizin()
     {
-        $earthRadius = 6371000; 
-        $dLat = deg2rad($lat2 - $lat1);
-        $dLon = deg2rad($lon2 - $lon1);
-        
-        $a = sin($dLat / 2) * sin($dLat / 2) +
-            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-            sin($dLon / 2) * sin($dLon / 2);
-            
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-        $distance = $earthRadius * $c;
-        
-        return $distance;
+        return view('kehadiran.tambahizin', ['status_kehadiran' => AttendanceService::IZIN_STATUSES]);
     }
 
-    public function insert(Request $request)
+    public function insertizin(IzinRequest $request)
     {
-        $mode = $request->mode;
-        $validator = Validator::make($request->all(), [
-            'mode' => ['required', 'in:datang,pulang'],
-            'latitude_datang' => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude_datang' => ['nullable', 'numeric', 'between:-180,180'],
-            'latitude_pulang' => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude_pulang' => ['nullable', 'numeric', 'between:-180,180'],
+        Kehadiran::create([
+            'tanggal' => today()->toDateString(),
+            'email' => $request->user()->email,
+            'status_kehadiran' => $request->validated('status_kehadiran'),
+            'keterangan' => $request->validated('keterangan'),
         ]);
 
-        $validator->after(function($validator) use ($request) {
-            $cekdata = Kehadiran::where("email",Auth::user()->email)
-                        ->where("tanggal",date("Y-m-d"))
-                        ->where("status_kehadiran","!=","hadir")
-                        ->exists();
-            if ($cekdata) {
-                $validator->errors()->add('tanggal', 'Data pada tanggal tersebut terisi!');
-            }
-
-            // Validasi lokasi/radius sudah dihapus. Koordinat hanya dicatat, tidak divalidasi.
-        });
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->with('error', 'Data gagal disimpan!');
-        }
-
-        $latitudeDatang  = $request->filled('latitude_datang')  ? (float) $request->latitude_datang  : null;
-        $longitudeDatang = $request->filled('longitude_datang') ? (float) $request->longitude_datang : null;
-        $latitudePulang  = $request->filled('latitude_pulang')  ? (float) $request->latitude_pulang  : null;
-        $longitudePulang = $request->filled('longitude_pulang') ? (float) $request->longitude_pulang : null;
-
-        $cekdata = Kehadiran::where("email", Auth::user()->email)
-                            ->where("tanggal", date("Y-m-d"))
-                            ->first();
-
-        if($cekdata) {
-            //update
-            if($mode === "datang") {
-                $data = [
-                    'tanggal' => date("Y-m-d"),
-                    'email' => Auth::user()->email,
-                    'waktu_masuk' => date("Y-m-d H:i:s"),
-                    'latitude_datang' => $latitudeDatang,
-                    'longitude_datang' => $longitudeDatang,
-                    'status_kehadiran'=> 'hadir',
-                ];
-            } else {
-                $data = [
-                    'tanggal' => date("Y-m-d"),
-                    'email' => Auth::user()->email,
-                    'waktu_pulang' => date("Y-m-d H:i:s"),
-                    'latitude_pulang' => $latitudePulang,
-                    'longitude_pulang' => $longitudePulang,
-                    'status_kehadiran'=> 'hadir',
-                ];
-            }
-
-            $cekdata->update($data);
-            $message = 'Data kehadiran berhasil diupdate, anda melakukan absensi pukul ' . date("H:i:s");
-        } else {
-            //insert
-            if($mode === "datang") {
-                $data = [
-                    'tanggal' => date("Y-m-d"),
-                    'email' => Auth::user()->email,
-                    'waktu_masuk' => date("Y-m-d H:i:s"),
-                    'latitude_datang' => $latitudeDatang,
-                    'longitude_datang' => $longitudeDatang,
-                    'status_kehadiran'=> 'hadir',
-                ];
-            } else {
-                $data = [
-                    'tanggal' => date("Y-m-d"),
-                    'email' => Auth::user()->email,
-                    'waktu_pulang' => date("Y-m-d H:i:s"),
-                    'latitude_pulang' => $latitudePulang,
-                    'longitude_pulang' => $longitudePulang,
-                    'status_kehadiran'=> 'hadir',
-                ];
-            }
-
-            Kehadiran::create($data);
-            $message = 'Data kehadiran berhasil ditambahkan, anda melakukan absensi pukul ' . date("H:i:s");
-        }
-
-        return redirect()->back()->with('success', $message);
+        return $this->saved('Laporan izin berhasil disimpan.');
     }
 
-    public function tambahizin(){
-        $status_kehadiran=array("izin","sakit","cuti");
-        $data = [
-            'status_kehadiran'=>$status_kehadiran
-        ];
-        return view('kehadiran.tambahizin',$data);  
-    }
-
-    public function insertizin(Request $request)
+    public function export(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-           //
-        ], [
-           //
-        ]);
-        $validator->after(function($validator) use ($request) {
-            $cekdata = Kehadiran::where("email",Auth::user()->email)
-                        ->where("tanggal",date("Y-m-d"))
-                        ->exists();
-            if ($cekdata) {
-                $validator->errors()->add('tanggal', 'Data pada tanggal tersebut terisi!');
-            }
-        });
-        if ($validator->fails()) {
-            return response()->json(['success'=>false,'message'=>'Data gagal disimpan!','errors' => $validator->errors()], 200);
-        }
-        $data = [
-            'tanggal' => date("Y-m-d"),
-            'email' => Auth::user()->email,
-            'status_kehadiran'=> $request->status_kehadiran,
-            'keterangan' => $request->keterangan,
-        ];
-        Kehadiran::create($data);
-        return response()->json(['success'=>true,'message' => 'Laporan izin berhasil disimpan.'], 200);
+        return Excel::download(new LogkehadiranExport($request->user()->email), 'kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
     }
-    
-    public function export(){
-        $email = Auth::user()->email;
-        return Excel::download(new LogkehadiranExport($email), 'kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
+
+    private function today(Request $request): ?Kehadiran
+    {
+        return Kehadiran::ownedBy($request->user())->whereDate('tanggal', today())->first();
+    }
+
+    private static function mapButton($lat, $lng): string
+    {
+        if ($lat === null || $lng === null) {
+            return '-';
+        }
+
+        return '<a href="https://www.google.com/maps?q='.(float) $lat.','.(float) $lng.'" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">Lihat Map</a>';
     }
 }

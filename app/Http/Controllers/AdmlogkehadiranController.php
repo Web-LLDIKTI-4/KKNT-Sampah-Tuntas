@@ -1,128 +1,50 @@
-<?php  
+<?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Session;
-use App\Models\User;
-use App\Models\Mahasiswa;
-use DataTables;
-use App\Models\Kehadiran;
-use App\Models\Dplmentoring;
 use App\Exports\LogKehadiranByMhsExport;
-
+use App\Models\Kehadiran;
 use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\DataTableAbstract;
+use Yajra\DataTables\Facades\DataTables;
 
-class AdmlogkehadiranController extends Controller
-{    
-    public function index()
-    {  
-        return view('logkehadiran.index');
-    }
-    public function listdatagroup()
+class AdmlogkehadiranController extends StudentLogReportController
+{
+    protected function viewPrefix(): string
     {
-        return view('logkehadiran.listdatagroup');
-    }
-    
-    public function listdatagrouping(Request $request)
-    {
-        if ($request->ajax()) {
-            $query = Mahasiswa::query()
-                ->with(['dplmentoring'])
-                ->orderBy('created_at', 'desc');
-
-            if (in_array(Auth::user()->role, ['dpl'])) {
-                $query->whereHas('dplmentoring', function ($query) {
-                    $query->where('email_dpl', Auth::user()->email);
-                })->get();
-            }
-
-            if (in_array(Auth::user()->role, ['pt'])) {
-                // Query validasi by lokasi program dan kode pt
-                $emailMahasiswa = User::query()
-                    ->with(['mahasiswa'])
-                    ->where('location_program', Auth::user()->location_program)
-                    ->whereHas('mahasiswa', function ($q) {
-                        $q->where('kodept', Auth::user()->pt->npsn);
-                    })
-                    ->where('role', 'mahasiswa')
-                    ->pluck('email');
-                $query->whereIn('email', $emailMahasiswa)->get();
-            }
-            
-            return Datatables::eloquent($query)
-                ->addIndexColumn()
-                ->addColumn('nim', function($row){
-                    return $row->nim ?? 'NIM tidak tersedia';
-                })
-                ->addColumn('nama_mahasiswa', function($row){
-                    return $row->nama ?? 'Nama tidak tersedia';
-                })
-                ->addColumn('nm_lemb', function($row){
-                    return $row->sp->nm_lemb ?? 'Perguruan Tinggi tidak tersedia';
-                })
-                ->addColumn('count_log', function($row){
-                    return $row->logkehadiran->count() ?? '0';
-                })
-                ->addColumn('action', function($row){
-                    return view('components.action-data', [
-                        'urlView' => url('admlogkehadiran/listdata/' . $row->email ?? ''),
-                    ]);
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-        }
-    }
-    public function listdata()
-    {
-        return view('logkehadiran.listdata');
-    }
-    
-    public function listdataserver(Request $request, String $email)
-    {
-        if ($request->ajax()) {
-            $data = Kehadiran::where('email', $email)->get();
-            
-            return Datatables::of($data)
-                ->addIndexColumn()
-                ->addColumn('nim', function($row){
-                    return $row->mahasiswa->nim ?? 'NIM tidak tersedia';
-                })
-                ->addColumn('nama_mahasiswa', function($row){
-                    return $row->mahasiswa->nama ?? 'Nama tidak tersedia';
-                })
-                ->addColumn('nm_lemb', function($row){
-                    return $row->mahasiswa->sp->nm_lemb ?? 'Perguruan Tinggi tidak tersedia';
-                })
-                ->addColumn('tanggal', function($row){
-                    return $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-';
-                })
-                ->addColumn('waktu_masuk', function($row){
-                    return $row->waktu_masuk ? date('H:i:s', strtotime($row->waktu_masuk)) . ' WIB' : '-';
-                })
-                ->addColumn('coordinates_datang', function($row){
-                    return '<a href="https://www.google.com/maps?q=' . $row->latitude_datang . ',' . $row->longitude_datang . '" target="_blank" class="btn btn-sm btn-primary">Lihat Map</a>';
-                    // return view('components.embed-map', [
-                    //     'latitude' => $row->latitude_datang,
-                    //     'longitude' => $row->longitude_datang,
-                    // ]);
-                })
-                ->addColumn('waktu_pulang', function($row){
-                    return $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)) . ' WIB' : '-';
-                })
-                ->addColumn('coordinates_pulang', function($row){
-                    return '<a href="https://www.google.com/maps?q=' . $row->latitude_pulang . ',' . $row->longitude_pulang . '" target="_blank" class="btn btn-sm btn-primary">Lihat Map</a>';
-                    // return view('components.embed-map', [
-                    //     'latitude' => $row->latitude_pulang,
-                    //     'longitude' => $row->longitude_pulang,
-                    // ]);
-                })
-                ->rawColumns(['coordinates_datang', 'coordinates_pulang'])
-                ->make(true);
-        }
+        return 'logkehadiran';
     }
 
-    public function export(String $email){
+    protected function routePrefix(): string
+    {
+        return 'admlogkehadiran';
+    }
+
+    protected function logRelation(): string
+    {
+        return 'logkehadiran';
+    }
+
+    protected function detailTable(string $email): DataTableAbstract
+    {
+        $map = fn ($lat, $lng) => $lat === null || $lng === null ? '-'
+            : '<a href="https://www.google.com/maps?q='.(float) $lat.','.(float) $lng.'" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">Lihat Map</a>';
+
+        return DataTables::of(Kehadiran::where('email', $email)->with('mahasiswa.sp')->orderByDesc('tanggal')->get())
+            ->addIndexColumn()
+            ->addColumn('nim', fn ($row) => $row->mahasiswa->nim ?? 'NIM tidak tersedia')
+            ->addColumn('nama_mahasiswa', fn ($row) => $row->mahasiswa->nama ?? 'Nama tidak tersedia')
+            ->addColumn('nm_lemb', fn ($row) => $row->mahasiswa->sp->nm_lemb ?? 'Perguruan Tinggi tidak tersedia')
+            ->editColumn('tanggal', fn ($row) => $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-')
+            ->editColumn('waktu_masuk', fn ($row) => $row->waktu_masuk ? date('H:i:s', strtotime($row->waktu_masuk)).' WIB' : '-')
+            ->editColumn('waktu_pulang', fn ($row) => $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)).' WIB' : '-')
+            ->addColumn('coordinates_datang', fn ($row) => $map($row->latitude_datang, $row->longitude_datang))
+            ->addColumn('coordinates_pulang', fn ($row) => $map($row->latitude_pulang, $row->longitude_pulang))
+            ->rawColumns(['coordinates_datang', 'coordinates_pulang']);
+    }
+
+    protected function exportFor(string $email)
+    {
         return Excel::download(new LogKehadiranByMhsExport($email), 'kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

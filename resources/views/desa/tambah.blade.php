@@ -1,8 +1,8 @@
-<form id="form-tambah" method="post" action="{{ url('desa/insert') }}">
+<form id="form-tambah" method="post" action="{{ url('desa/insert') }}" data-ajax-form>
     @csrf
     @method('PUT')
     <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="id_kecamatan" class="form-control">
+        <select name="id_kecamatan" class="form-control" required>
         <option value="">--pilih--</option>
         @if($kecamatan)
             @foreach($kecamatan as $item)
@@ -13,7 +13,7 @@
         <label>Nama Kecamatan</label>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
-        <input type="text" name="desa" class="form-control form-control-sm">
+        <input type="text" name="desa" class="form-control form-control-sm" required maxlength="200">
         <label>Nama Desa / Kelurahan</label>
     </div>
     <hr>

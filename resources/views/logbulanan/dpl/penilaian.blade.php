@@ -1,4 +1,4 @@
-<div>{!! $logbulanan->deskripsi !!}</div>
+<div>{!! \App\Support\HtmlSanitizer::clean($logbulanan->deskripsi) !!}</div>
 <hr>
 <form method="POST" id="form-simpan" action="{{ url('admlogbulanan/updatenilai') }}">
     @csrf

@@ -18,7 +18,7 @@
                     <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $row->tanggal }}</td>
-                    <td>{!! $row->deskripsi !!}</td>
+                    <td>{!! \App\Support\HtmlSanitizer::clean($row->deskripsi) !!}</td>
                     <td><a href="{{ $row->tautan }}" target="_blank">{{ $row->tautan }}</a></td>
                     </tr>
                 @endforeach
@@ -52,7 +52,7 @@
         <span id="deskripsi_error" class="text-danger"></span>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">       
-        <input type="text" class="form-control" name="tautan" value="{{ $isi->tautan ?? '' }}">
+        <input type="url" class="form-control" name="tautan" maxlength="2000" placeholder="https://" value="{{ $isi->tautan ?? '' }}">
         <label>Tautan Laporan</label>
     </div>
     <br>

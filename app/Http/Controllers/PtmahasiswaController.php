@@ -38,7 +38,6 @@ class PtmahasiswaController extends Controller
                     return 'No PT'; // or any default value you prefer
                 }
             })
-            ->rawColumns(['nm_lemb'])
             ->make(true);
         }
     }

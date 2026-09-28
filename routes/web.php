@@ -22,6 +22,7 @@ use App\Http\Controllers\KpiController;
 use App\Http\Controllers\KpitargetController;
 use App\Http\Controllers\KpicapaianController;
 use App\Http\Controllers\LapcapaiankpiController;
+use App\Http\Controllers\KpiDashboardController;
 use App\Http\Controllers\NilaifreeformController;
 
 use App\Http\Controllers\LogkegiatanController;
@@ -74,28 +75,27 @@ Route::middleware('auth')->group(function () {
     Route::get('home', [HomeController::class, 'index'])->name('home');
     Route::get('home/{lokasi}', [HomeController::class, 'index'])->name('home.lokasi')->middleware('user.guard');
     Route::get('setting', [SettingController::class, 'index']);
-    Route::put('setting/update', [SettingController::class, 'update']);
+    Route::put('setting/update', [SettingController::class, 'update'])->middleware('throttle:sensitive');
 
     Route::get('profile', [ProfileController::class, 'index']);
     Route::get('profile/data', [ProfileController::class, 'data']);
     Route::get('profile/getPoto', [ProfileController::class, 'getPoto'])->name('profile.getPoto');
     Route::get('profile/uploadpoto', [ProfileController::class, 'uploadpoto'])->name('profile.uploadpoto');
-    Route::put('profile/prosesuploadpoto', [ProfileController::class, 'prosesuploadpoto']);
-    Route::put('profile/update', [ProfileController::class, 'update']);
+    Route::put('profile/prosesuploadpoto', [ProfileController::class, 'prosesuploadpoto'])->middleware('throttle:sensitive');
+    Route::put('profile/update', [ProfileController::class, 'update'])->middleware('throttle:sensitive');
 
     Route::get('mhsprofile', [MhsprofileController::class, 'index'])->name('mhsprofile');
     Route::get('mhsprofile/data', [MhsprofileController::class, 'data']);
     Route::get('mhsprofile/getPoto', [MhsprofileController::class, 'getPoto'])->name('mhsprofile.getPoto');
     Route::get('mhsprofile/uploadpoto', [MhsprofileController::class, 'uploadpoto'])->name('mhsprofile.uploadpoto');
-    Route::put('mhsprofile/prosesuploadpoto', [MhsprofileController::class, 'prosesuploadpoto']);
-    Route::put('mhsprofile/update', [MhsprofileController::class, 'update']);
+    Route::put('mhsprofile/prosesuploadpoto', [MhsprofileController::class, 'prosesuploadpoto'])->middleware('throttle:sensitive');
+    Route::put('mhsprofile/update', [MhsprofileController::class, 'update'])->middleware('throttle:sensitive');
     Route::get('mhsprofile/formlokasi', [MhsprofileController::class, 'formlokasi']);
-    Route::put('mhsprofile/setlokasi', [MhsprofileController::class, 'setlokasi']);
+    Route::put('mhsprofile/setlokasi', [MhsprofileController::class, 'setlokasi'])->middleware('throttle:sensitive');
 
-    Route::get('logout', [LoginController::class, 'logout']);
+    Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 });
-//Route::get('login/createuser', [LoginController::class, 'createuser']);
-Route::put('saran/insert', [SaranController::class, 'insert']);
+Route::put('saran/insert', [SaranController::class, 'insert'])->middleware('throttle:public-form');
 
 Route::get('ptpeserta', [PtpesertaController::class, 'index']);
 Route::get('ptpeserta/listdata', [PtpesertaController::class, 'listdata'])->name('ptpeserta.listdata');
@@ -115,20 +115,24 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('user/insertuserpt', [UserController::class, 'insertuserpt']);
     Route::get('user/edituserpt/{id}', [UserController::class, 'edituserpt']);
     Route::put('user/updateuserpt', [UserController::class, 'updateuserpt']);
+    Route::get('user/adduserkepala', [UserController::class, 'adduserkepala']);
+    Route::put('user/insertuserkepala', [UserController::class, 'insertuserkepala'])->middleware('throttle:sensitive');
+    Route::get('user/edituserkepala/{id}', [UserController::class, 'edituserkepala']);
+    Route::put('user/updateuserkepala', [UserController::class, 'updateuserkepala'])->middleware('throttle:sensitive');
     Route::get('user/export', [UserController::class, 'export'])->name('user.export');
 
     Route::get('dpl', [DplController::class, 'index']);
     Route::get('dpl/listdata', [DplController::class, 'listdata'])->name('dpl.listdata');
     Route::get('dpl/listdataserver', [DplController::class, 'listdataserver'])->name('dpl.listdataserver');
     Route::get('dpl/import', [DplController::class, 'import']);
-    Route::put('dpl/prosesimport', [DplController::class, 'prosesimport']);
+    Route::put('dpl/prosesimport', [DplController::class, 'prosesimport'])->middleware('throttle:sensitive');
     Route::put('dpl/destroy', [DplController::class, 'destroy']);
 
     Route::get('mahasiswa', [MahasiswaController::class, 'index']);
     Route::get('mahasiswa/listdata', [MahasiswaController::class, 'listdata'])->name('mahasiswa.listdata');
     Route::get('mahasiswa/listdataserver', [MahasiswaController::class, 'listdataserver'])->name('mahasiswa.listdataserver');
     Route::get('mahasiswa/import', [MahasiswaController::class, 'import']);
-    Route::put('mahasiswa/prosesimport', [MahasiswaController::class, 'prosesimport']);
+    Route::put('mahasiswa/prosesimport', [MahasiswaController::class, 'prosesimport'])->middleware('throttle:sensitive');
     Route::put('mahasiswa/destroy', [MahasiswaController::class, 'destroy']);
 
     Route::get('kpi', [KpiController::class, 'index']);
@@ -245,9 +249,9 @@ Route::middleware(['auth', 'role:dpl,admin,pt'])->group(function () {
     Route::get('perguruantinggi', [PerguruantinggiController::class, 'index']);
     Route::get('perguruantinggi/listdata', [PerguruantinggiController::class, 'listdata'])->name('perguruantinggi.listdata');
     Route::get('perguruantinggi/listdataserver', [PerguruantinggiController::class, 'listdataserver'])->name('perguruantinggi.listdataserver');;
-    Route::put('perguruantinggi/getdata', [PerguruantinggiController::class, 'getdata']);
+    Route::put('perguruantinggi/getdata', [PerguruantinggiController::class, 'getdata'])->middleware('throttle:sensitive');
     Route::get('perguruantinggi/tambah', [PerguruantinggiController::class, 'tambah']);
-    Route::put('perguruantinggi/insert', [PerguruantinggiController::class, 'insert']);
+    Route::put('perguruantinggi/insert', [PerguruantinggiController::class, 'insert'])->middleware('throttle:sensitive');
 
     Route::get('admlogkegiatan', [AdmlogkegiatanController::class, 'index']);
     Route::get('admlogkegiatan/listdatagroup', [AdmlogkegiatanController::class, 'listdatagroup'])->name('admlogkegiatan.listdatagroup');
@@ -272,11 +276,17 @@ Route::middleware(['auth', 'role:dpl,admin,pt'])->group(function () {
     Route::get('admlogkehadiran/listdataserver/{email}', [AdmlogkehadiranController::class, 'listdataserver'])->name('admlogkehadiran.listdataserver');
     Route::get('admlogkehadiran/export/{email}', [AdmlogkehadiranController::class, 'export']);
 
+});
+
+Route::middleware(['auth', 'role:dpl,admin,pt,kepala'])->group(function () {
     Route::get('lapcapaiankpi', [LapcapaiankpiController::class, 'index']);
     Route::get('lapcapaiankpi/listdata', [LapcapaiankpiController::class, 'listdata'])->name('lapcapaiankpi.listdata');
     Route::get('lapcapaiankpi/listdataserver', [LapcapaiankpiController::class, 'listdataserver'])->name('lapcapaiankpi.listdataserver');
     Route::get('lapcapaiankpi/export', [LapcapaiankpiController::class, 'export']);
+});
 
+Route::middleware(['auth', 'role:admin,pt,kepala'])->group(function () {
+    Route::get('dashboardkpi', [KpiDashboardController::class, 'index'])->name('dashboardkpi');
 });
 
 Route::middleware(['auth', 'role:dpl,pt'])->group(function () {

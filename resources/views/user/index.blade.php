@@ -16,6 +16,10 @@
             <i class="ri-user-add-fill me-1"></i>
             Tambah User Perguruan Tinggi
         </x-btn-modal>
+        <x-btn-modal url="{{ url('user/adduserkepala') }}" class="btn btn-info btn-sm modalButton" title="Tambah User Kepala">
+            <i class="ri-user-add-fill me-1"></i>
+            Tambah User Kepala
+        </x-btn-modal>
     </div>
     <div class="card-body">
         <p id="resultcontent">loading user...</p>

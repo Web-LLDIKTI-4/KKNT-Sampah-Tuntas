@@ -1,9 +1,14 @@
 <?php
 namespace App\Models;
+use App\Models\Concerns\OwnedByEmail;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon; 
 class Tugasakhir extends Model
 {
+    use HasFactory, HasUuids, OwnedByEmail;
+
     protected $table = 'tugasakhir';
     protected $guarded = ['id_tugasakhir'];
     protected $primaryKey = 'id_tugasakhir'; // Tentukan primary key sesuai dengan struktur tabel

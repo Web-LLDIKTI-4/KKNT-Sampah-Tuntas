@@ -1,4 +1,4 @@
-<form id="form-tambah" method="post" action="{{ url('admevaluasikegiatan/update') }}">
+<form id="form-tambah" method="post" action="{{ url('admevaluasikegiatan/update') }}" data-ajax-form>
     @csrf
     @method('PUT')    
     <input type="hidden" name="id_evaluasi" value="{{ $data->id_evaluasi ?? '' }}">

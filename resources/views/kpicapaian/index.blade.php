@@ -1,150 +1,30 @@
 @extends('layouts.app')
 @section('title','Capaian KPI')
 @section('container')
-
-<div class="d-flex mb-4 gap-4">
-    <div class="avatar avatar-md">
-        <div class="avatar-initial bg-label-primary rounded-4">
-            <i class="ri-information-2-fill ri-30px"></i>
-        </div>
-    </div>
-    <div>
-        <h5 class="mb-0">
-            <span class="align-middle">Capaian Key Performance Indicator (KPI)</span>
-        </h5>
-        <span>Data Capaian KPI</span>
-    </div>
-</div> 
-
-<div class="card">
-    <div class="card-header">
-        @if (in_array(auth()->user()->akses, ['pjdesa']))
-            <x-btn-modal url="{{ url('kpicapaian/tambah') }}" title="Tambah Data">
-                <i class="ri-add-fill me-2"></i> 
-                Tambah Data
-            </x-btn-modal>
-        @endif
-    </div>
-    <div class="card-body">
-        <p id="resultcontent">loading data...</p>
-    </div>
-</div>
+<x-crud-index
+    title="Capaian Key Performance Indicator (KPI)"
+    :list-url="url('kpicapaian/listdata')"
+    :add-url="auth()->user()->akses === 'pjdesa' ? url('kpicapaian/tambah') : null" />
 <script>
-$(function(){
-    $('#modalku').on('show.bs.modal', function () {
-        $(".modal-dialog").addClass("modal-lg");
-    })
-    $("#resultcontent").load("{{ url('kpicapaian/listdata') }}");
-    $("body").on("change","select[name='id_kpi']",function(e){        
-        e.preventDefault();
-        var csrfToken = $('meta[name="csrf-token"]').attr('content');
-        let id_kpi = $(this).val();
-        const dString = "id_kpi="+id_kpi;
+$(function () {
+    // Muat pilihan target sesuai KPI yang dipilih
+    $('body').on('change', "form[data-ajax-form] select[name='id_kpi']", function () {
         $.ajax({
-            url: 'kpicapaian/kpitarget',
+            url: @json(url('kpicapaian/kpitarget')),
             method: 'POST',
-            data:dString,
-            headers: {
-                'X-CSRF-TOKEN': csrfToken // Sertakan CSRF token dalam header
-            },
-            success: function(response) {
-                $("#resulttargetkpi").html(response);               
-            },
-            error: function(xhr, status, error) {
-                console.log(xhr.status); // Kode status HTTP
-                console.log(xhr.responseText); // Pesan kesalahan dari server
-                console.log(error); // Pesan kesalahan bawaan dari jQuery
+            data: { id_kpi: $(this).val() },
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function (html) {
+                $('#resulttargetkpi').html(html);
+                $("form[data-ajax-form] select[name='id_target']").trigger('change');
             }
-        }); 
+        });
     });
-    $("body").on("submit","#form-tambah,#form-ubah",function(e){
-        e.preventDefault();     
-        var action = $(this).attr("action");
-        var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
-        var dString = $(this).serialize();
-        $.ajax({
-            type:'post',
-            url:action,
-            data:dString,
-            beforeSend:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",true);
-                $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
-            },
-            complete:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",false);
-                $("#btnSubmit_"+id+"").html(btnHtml);	
-            },
-            success:function(ret){
-                if(ret.success == true){		
-                    var table = $('#dataTable').DataTable(); // Menginisialisasi objek tabel
-                    // Memuat ulang data tabel secara manual
-                    table.ajax.reload();
-                    toastr.success(ret.message)				
-                }else{                    
-                    toastr.warning(ret.message)		
-                    if (ret.hasOwnProperty('errors')) {
-                                // Ada kesalahan validasi
-                        var errors = ret.errors;
 
-                        // Menghapus pesan error sebelumnya
-                        $('.errors-message').remove();
-
-                        // Menampilkan pesan error pada setiap field
-                        $.each(errors, function(key, value) {
-                            var inputField = $('[name="' + key + '"]');
-                            inputField.after('<span class="errors-message text-danger">' + value[0] + '</span>');
-                            // Menambahkan event listener untuk menghapus pesan error saat field mendapatkan fokus
-                            inputField.on('focus', function(){
-                                    $(this).siblings('.errors-message').remove();
-                                });
-                        });
-                    }
-                }
-            },
-            error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
-            }			
-            
-        })
-    })
-    // Menangani klik tombol hapus
-    $("body").on('click','[id^=hapus]', function() {
-        var table = $('#dataTable').DataTable();
-        // Mendapatkan baris yang diklik
-        var data = table.row($(this).parents('tr')).data();
-        // Lakukan apa pun yang diperlukan untuk mengonfirmasi pengguna sebelum menghapus data
-        if (confirm('Anda yakin ingin menghapus data ini?')) {
-            // Lakukan permintaan AJAX untuk menghapus data
-            var csrfToken = $('meta[name="csrf-token"]').attr('content');
-            let id_capaian = data.id_capaian;
-            const dString = "id_capaian="+id_capaian;
-            $.ajax({
-                url: 'kpicapaian/destroy',
-                method: 'PUT',
-                data:dString,
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken // Sertakan CSRF token dalam header
-                },
-                success: function(response) {
-                    if (response && response.message) {
-                        // Jika pesan sukses, tampilkan pesan berhasil
-                        toastr.success(response.message)		
-                        table.ajax.reload();
-                    }
-                    
-                    
-                },
-                error: function(xhr, status, error) {
-                    // Tangani kesalahan seperti CSRF token mismatch atau kesalahan server
-                    console.log(xhr.status); // Kode status HTTP
-                    console.log(xhr.responseText); // Pesan kesalahan dari server
-                    console.log(error); // Pesan kesalahan bawaan dari jQuery
-                    toastr.success(response.message)		
-                }
-            });
-        }
+    // Satuan realisasi mengikuti satuan target terpilih
+    $('body').on('change', "form[data-ajax-form] select[name='id_target']", function () {
+        $(this).closest('form').find('[data-satuan-realisasi]').val($(this).find('option:selected').data('satuan') || '');
     });
-})
+});
 </script>
-@stop 
+@stop

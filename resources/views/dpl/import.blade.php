@@ -5,7 +5,7 @@
 <form method="post" action="{{ url('dpl/prosesimport') }}" enctype="multipart/form-data">
     @csrf
     @method('PUT')
-    <input type="file" name="file" class="form-control form-control-sm">
+    <input type="file" name="file" class="form-control form-control-sm" required accept=".xlsx,.xls,.csv">
     <hr>
     <x-btn-save formId="form-import" class="btn btn-primary btn-sm">Simpan</x-btn-save>
 </form>

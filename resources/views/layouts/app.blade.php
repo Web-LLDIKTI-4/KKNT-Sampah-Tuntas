@@ -12,7 +12,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>KKNT4 | KKN Tematik</title>
+    <title>PPS Bandung</title>
 
     <meta name="description" content="" />
 
@@ -208,7 +208,8 @@
     <!-- Main JS -->
     <script src="../../assets/js/front-main.js"></script>
     <script src="../../assets/js/ui-toasts.js"></script>
-    
+    <script src="{{ asset('js/crud.js') }}"></script>
+
     <!-- Page JS -->
     <script src="../../assets/js/front-page-landing.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.js"></script>

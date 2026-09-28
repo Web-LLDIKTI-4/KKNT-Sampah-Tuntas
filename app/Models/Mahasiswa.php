@@ -1,13 +1,37 @@
 <?php
 namespace App\Models;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon; 
 class Mahasiswa extends Model
 {
+    use HasFactory, HasUuids;
+
     protected $table = 'mahasiswa';
     protected $guarded = [];
     protected $primaryKey = 'id_mahasiswa';
     //protected $with = ['user','sp','dplmentoring','logkegiatan','logbulanan','lokasi'];
+
+    /**
+     * Mahasiswa yang boleh dilihat user: admin semua, DPL bimbingannya,
+     * PT mahasiswa dari PT & lokasi program yang sama, role lain tidak ada.
+     */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        return match ($user->role) {
+            'admin' => $query,
+            'dpl' => $query->whereHas('dplmentoring', fn ($q) => $q->where('email_dpl', $user->email)),
+            'pt' => $query->where('kodept', $user->email)->where('location_program', $user->location_program),
+            default => $query->whereRaw('1 = 0'),
+        };
+    }
+
+    public static function canBeViewedBy(User $user, ?string $email): bool
+    {
+        return $email !== null && static::visibleTo($user)->where('email', $email)->exists();
+    }
 
     public function user()
     {

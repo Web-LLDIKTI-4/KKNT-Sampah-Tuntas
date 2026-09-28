@@ -5,6 +5,28 @@ namespace App\Support;
 class ActionButtons
 {
     /**
+     * Tombol hapus yang ditangani handler global .btn-delete (public/js/crud.js).
+     */
+    public static function deleteButton(string $url, string $idField, string $idValue): string
+    {
+        return '<a href="javascript:void(0)" class="btn-delete btn-action-delete" title="Hapus Data"'
+            .' data-url="'.e($url).'" data-id-field="'.e($idField).'" data-id-value="'.e($idValue).'">'
+            .'<i class="ri-delete-bin-3-line"></i></a>';
+    }
+
+    /**
+     * Pasangan tombol Edit (modal) + Hapus untuk kolom aksi DataTables.
+     */
+    public static function crud(string $editUrl, string $deleteUrl, string $idField, string $idValue): string
+    {
+        return '<div class="d-flex">'
+            .static::edit(e($editUrl))
+            .' '
+            .static::deleteButton($deleteUrl, $idField, $idValue)
+            .'</div>';
+    }
+
+    /**
      * Build a standalone "Edit" (modal trigger) action button.
      */
     public static function edit(

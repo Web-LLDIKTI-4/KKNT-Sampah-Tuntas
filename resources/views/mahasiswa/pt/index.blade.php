@@ -1,4 +1,4 @@
-@extends('layouts/user')
+@extends('layouts.app')
 @section('title','Daftar Mahasiswa')
 @section('container')
 <div class="page-title">

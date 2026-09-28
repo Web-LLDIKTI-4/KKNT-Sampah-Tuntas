@@ -12,6 +12,9 @@ return [
     */
     'radius_meter' => 100,
 
+    // Tolak absensi di luar radius (default nonaktif sesuai kebijakan saat ini)
+    'enforce_radius' => (bool) env('ATTENDANCE_ENFORCE_RADIUS', false),
+
     /*
     |--------------------------------------------------------------------------
     | Titik Koordinat Lokasi (Multi Koordinat)
