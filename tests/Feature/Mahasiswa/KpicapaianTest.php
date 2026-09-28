@@ -23,8 +23,8 @@ class KpicapaianTest extends TestCase
     {
         parent::setUp();
         $this->kpi = Kpi::factory()->create();
-        foreach ([1, 2] as $tahap) {
-            $this->targets[$tahap] = Kpitarget::factory()->create(['id_kpi' => $this->kpi->id_kpi, 'tahapan' => 'Tahap '.$tahap]);
+        foreach ([1, 2] as $i) {
+            $this->targets[$i] = Kpitarget::factory()->create(['id_kpi' => $this->kpi->id_kpi, 'kegiatan' => 'Kegiatan '.$i]);
         }
     }
 
@@ -50,18 +50,24 @@ class KpicapaianTest extends TestCase
         ];
     }
 
-    public function test_ketua_must_fill_tahapan_in_order(): void
+    public function test_ketua_fills_each_kegiatan_once_in_any_order(): void
     {
         $this->loginKetua();
 
-        $this->put('kpicapaian/insert', $this->payload(2))
-            ->assertJsonPath('errors.id_target.0', 'Tahapan sebelumnya (Tahap 1) harus diisi terlebih dahulu!');
-
+        $this->put('kpicapaian/insert', $this->payload(2))->assertJson(['success' => true]);
         $this->put('kpicapaian/insert', $this->payload(1))->assertJson(['success' => true]);
         $this->put('kpicapaian/insert', $this->payload(1))->assertJsonPath('errors.id_target.0', 'Data sudah ada!');
-        $this->put('kpicapaian/insert', $this->payload(2))->assertJson(['success' => true]);
 
-        $this->assertSame([1, 2], Kpicapaian::orderBy('tahapan')->pluck('tahapan')->all());
+        $this->assertSame(2, Kpicapaian::count());
+    }
+
+    public function test_kegiatan_dropdown_renders_after_choosing_kpi(): void
+    {
+        $this->loginKetua();
+
+        $this->get('kpicapaian/tambah')->assertOk();
+        $this->post('kpicapaian/kpitarget', ['id_kpi' => $this->kpi->id_kpi])
+            ->assertOk()->assertSee('Kegiatan 1')->assertSee('data-satuan="%"', false);
     }
 
     public function test_realisasi_required_and_satuan_follows_target(): void
@@ -71,7 +77,10 @@ class KpicapaianTest extends TestCase
         $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => '']))->assertJsonValidationErrors('realisasi', 'errors');
         $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => -5]))->assertJsonValidationErrors('realisasi', 'errors');
 
-        $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => 90, 'satuan' => 'palsu']))->assertJson(['success' => true]);
+        $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => 90]))
+            ->assertJsonPath('errors.realisasi.0', 'Realisasi tidak boleh melebihi target (25 %).');
+
+        $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => 25, 'satuan' => 'palsu']))->assertJson(['success' => true]);
         $capaian = Kpicapaian::firstOrFail();
         $this->assertSame('%', $capaian->satuan);
         $this->assertEquals(100, $capaian->capaianPersen());
@@ -91,7 +100,7 @@ class KpicapaianTest extends TestCase
         $lain = Kpitarget::factory()->create(['id_kpi' => Kpi::factory()->create()->id_kpi]);
 
         $this->put('kpicapaian/insert', $this->payload(1, ['id_target' => $lain->id_target]))
-            ->assertJsonPath('errors.id_target.0', 'Tahapan tidak sesuai dengan KPI yang dipilih.');
+            ->assertJsonPath('errors.id_target.0', 'Kegiatan tidak sesuai dengan KPI yang dipilih.');
     }
 
     public function test_cannot_edit_or_delete_other_students_capaian(): void

@@ -14,7 +14,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>PPS Bandung | Login</title>
+    <title>KKN Tematik Sampah Tuntas | Login</title>
 
     <meta name="description" content="" />
 
@@ -474,7 +474,10 @@
                   <img src="../../assets/images/gradasi.png" alt="Gradasi 4" style="width: 110px; height: auto;" />
                 </div>
               </div>
-              <h2 class="lokasi-panel-title">Pilot Pemungut Sampah Bandung <br /> LLDIKTI Wilayah IV</h2>
+              <h2 class="lokasi-panel-title">KKN Tematik Sampah Tuntas <br /> LLDIKTI Wilayah IV</h2>
+
+              <img src="../assets/images/kegiatan.jpeg" alt="Kegiatan KKN" style="width: 100%; height: auto; margin-bottom: 1rem;" />
+
               <p class="lokasi-panel-subtitle">
                 <b>LOKASI PELAKSAAN PROGRAM</b>
                 <br />
@@ -654,7 +657,15 @@
 </html>
 <script>
 $(function(){
-    $("#formAuthentication").on("submit",function(){      
+    // Token CSRF diperbarui dari respons server, tanpa reload halaman
+    function setToken(token) {
+      if (!token) return;
+      $("#formAuthentication input[name='_token']").val(token);
+      $('meta[name="csrf-token"]').attr("content", token);
+    }
+
+    $("#formAuthentication").on("submit",function(e, retried){
+      var form = $(this);
       var action = $(this).attr("action");
       var id = $(this).attr("id");
       var btnHtml = $("#btnSubmit_"+id+"").html();
@@ -677,6 +688,7 @@ $(function(){
             toastr.success(ret.messages)
             document.location = ret.redirect_url || "{{ url('home') }}";
           }else{
+            setToken(ret.token)
             toastr.warning(ret.messages)
             if(ret.messages && ret.messages.indexOf("lokasi program") !== -1){
               $(".authentication-inner").addClass("show-lokasi");
@@ -685,9 +697,19 @@ $(function(){
             }
           }
         },
-        error:function(xhr,ajaxOptions,thrownError){
-          alert(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
-        }			
+        error:function(xhr){
+          // 419 = sesi/token kedaluwarsa: ambil token baru lalu kirim ulang sekali
+          if(xhr.status === 419 && !retried){
+            $.getJSON(@json(route('login.token')), function(res){
+              setToken(res.token);
+              form.trigger("submit", [true]);
+            }).fail(function(){
+              toastr.error("Sesi berakhir, silakan muat ulang halaman.");
+            });
+            return;
+          }
+          toastr.error(xhr.status === 429 ? "Terlalu banyak percobaan, coba lagi nanti." : "Terjadi kesalahan, silakan coba lagi.");
+        }
       })
       return false;
     })

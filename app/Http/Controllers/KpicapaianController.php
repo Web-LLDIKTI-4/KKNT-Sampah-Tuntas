@@ -9,7 +9,6 @@ use App\Models\Kpi;
 use App\Models\Kpicapaian;
 use App\Models\Kpitarget;
 use App\Models\Pjdesa;
-use App\Services\KpiCapaianService;
 use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
@@ -23,8 +22,6 @@ class KpicapaianController extends Controller
     private const FIELDS = ['id_kpi', 'id_target', 'realisasi', 'status_capaian', 'tautan', 'permasalahan', 'solusi', 'kendala'];
 
     private const BADGE = ['Y' => 'bg-success', 'P' => 'bg-warning', 'N' => 'bg-danger'];
-
-    public function __construct(private KpiCapaianService $service) {}
 
     public function index()
     {
@@ -57,8 +54,7 @@ class KpicapaianController extends Controller
                 return e($lokasi).'<br /> '.e($desa->kecamatan->kecamatan).', '.e($desa->desa);
             })
             ->addColumn('nama_kpi', fn (Kpicapaian $row) => $row->kpi->nama_kpi ?? '')
-            ->addColumn('tahapan', fn (Kpicapaian $row) => $row->target->tahapan ?? '')
-            ->addColumn('nama_kpitarget', fn (Kpicapaian $row) => $row->target->nama_kpitarget ?? '')
+            ->addColumn('kegiatan', fn (Kpicapaian $row) => $row->target->kegiatan ?? '')
             ->addColumn('target_kpi', fn (Kpicapaian $row) => Kpicapaian::formatAngka($row->target?->target).' '.($row->target->satuan ?? ''))
             ->editColumn('realisasi', fn (Kpicapaian $row) => Kpicapaian::formatAngka($row->realisasi).' '.$row->satuan)
             ->addColumn('capaian', fn (Kpicapaian $row) => Kpicapaian::formatAngka($row->capaianPersen()).'%')
@@ -82,7 +78,7 @@ class KpicapaianController extends Controller
         $request->validate(['id_kpi' => ['nullable', 'uuid']]);
 
         return view('kpicapaian.kpitarget', [
-            'kpitarget' => Kpitarget::where('id_kpi', $request->input('id_kpi'))->orderBy('tahapan')->get(),
+            'kpitarget' => Kpitarget::where('id_kpi', $request->input('id_kpi'))->orderBy('kegiatan')->get(),
         ]);
     }
 
@@ -108,7 +104,7 @@ class KpicapaianController extends Controller
         return view('kpicapaian.edit', [
             'data' => $capaian,
             'kpi' => Kpi::orderBy('nama_kpi')->get(),
-            'kpitarget' => Kpitarget::where('id_kpi', $capaian->id_kpi)->orderBy('tahapan')->get(),
+            'kpitarget' => Kpitarget::where('id_kpi', $capaian->id_kpi)->orderBy('kegiatan')->get(),
         ]);
     }
 
@@ -153,7 +149,6 @@ class KpicapaianController extends Controller
         return $request->safe()->only(self::FIELDS) + [
             'email' => $email,
             'satuan' => $target->satuan,
-            'tahapan' => $this->service->tahapanNumber($target),
             'id_pjdesa' => Pjdesa::where('email', $email)->value('id_pjdesa'),
         ];
     }

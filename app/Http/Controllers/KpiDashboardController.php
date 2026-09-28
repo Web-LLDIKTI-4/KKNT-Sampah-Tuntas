@@ -16,25 +16,24 @@ class KpiDashboardController extends Controller
         $user = $request->user();
         $isPt = $user->role === 'pt';
 
-        // PT dikunci ke PT & lokasinya sendiri, filter dari input diabaikan
+        // PT dikunci ke PT-nya sendiri, filter kodept dari input diabaikan
         $filter = [
-            'lokasi' => $isPt ? $user->location_program : $request->validated('lokasi'),
+            'lokasi' => $request->validated('lokasi'),
             'kodept' => $isPt ? $user->email : $request->validated('kodept'),
             'id_target' => $request->validated('id_target'),
         ];
 
-        $rekapPerPt = $rekap->rekapPerPt($filter);
-
-        return view('kpidashboard.index', [
+        // Filter di halaman memuat ulang bagian isi saja lewat AJAX
+        return view($request->ajax() ? 'kpidashboard._content' : 'kpidashboard.index', [
             'isPt' => $isPt,
             'filter' => $filter,
-            'summary' => $rekap->summary($filter, $rekapPerPt),
-            'rekapPerPt' => $rekapPerPt,
+            'summary' => $rekap->summary($filter),
+            'rekapPerPt' => $rekap->rekapPerPt($filter),
             'isian' => $filter['kodept'] ? $rekap->isianKelompok($filter) : collect(),
             'lokasiList' => LokasiProgram::orderBy('nama_lokasi')->get(['id', 'nama_lokasi']),
             'ptList' => $isPt ? collect() : Satuanpendidikan::whereIn('npsn', Mahasiswa::whereNotNull('kodept')->select('kodept'))
                 ->orderBy('nm_lemb')->get(['npsn', 'nm_lemb']),
-            'kegiatanList' => Kpitarget::with('kpi:id_kpi,nama_kpi')->orderBy('tahapan')->get(),
+            'kegiatanList' => Kpitarget::with('kpi:id_kpi,nama_kpi')->orderBy('kegiatan')->get(),
         ]);
     }
 }

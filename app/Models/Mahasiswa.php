@@ -21,9 +21,9 @@ class Mahasiswa extends Model
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
         return match ($user->role) {
-            'admin' => $query,
+            'admin', 'kepala' => $query,
             'dpl' => $query->whereHas('dplmentoring', fn ($q) => $q->where('email_dpl', $user->email)),
-            'pt' => $query->where('kodept', $user->email)->where('location_program', $user->location_program),
+            'pt' => $query->where('kodept', $user->email),
             default => $query->whereRaw('1 = 0'),
         };
     }

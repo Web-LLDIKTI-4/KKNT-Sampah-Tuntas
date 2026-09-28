@@ -1,4 +1,4 @@
-<div class="container-xxl flex-grow-1 container-p-y">
+<div class="flex-grow-1">
     @php
         $isDpl = Auth::user()->role == 'dpl';
         $isMahasiswa = Auth::user()->role == 'mahasiswa';
@@ -78,7 +78,7 @@
     @endif
 
     <!--/ Header -->
-    <div class="container-xxl flex-grow-1 container-p-y">
+    <div class="flex-grow-1">
       <div class="row">
         <!-- Navigation -->
         <div class="col-lg-3 col-md-4 col-12 mb-md-0 mb-4">
@@ -390,10 +390,6 @@
 </div>
 <script>
 $(function(){
-  $('#select2').select2({
-       // theme: "",
-    });
-
     $("body").on("change","#form-file-upload",function(e){
         e.preventDefault();
         var formData = new FormData($(this)[0]);

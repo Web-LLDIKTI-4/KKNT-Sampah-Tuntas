@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\DB;
  */
 class DashboardService
 {
+    public function __construct(private KpiRekapService $rekap) {}
+
     public function forMahasiswa(User $user): array
     {
         $email = $user->email;
@@ -61,8 +63,30 @@ class DashboardService
             'jumlahmahasiswa' => Mahasiswa::visibleTo($user)->count(),
             'jumlahlogbulanan' => $this->distinctPairs('logkegiatan_bulanan', 'bulan', $emails),
             'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', $emails),
-            'jumlahdpl' => User::where('role', 'dpl')->whereHas('dpl', fn ($q) => $q->where('kodept', $user->email))->count(),
+            'jumlahdpl' => Dpl::where('kodept', $user->email)->count(),
+            'kpiHome' => $this->kpiHome(['kodept' => $user->email], false),
         ] + $this->common();
+    }
+
+    // Tampilan sama dengan PT, tetapi angka ditotal untuk semua PT
+    public function forKepala(): array
+    {
+        return [
+            'jumlahlaporandpl' => Dpllaporan::count(),
+            'jumlahmahasiswa' => Mahasiswa::count(),
+            'jumlahlogbulanan' => $this->distinctPairs('logkegiatan_bulanan', 'bulan'),
+            'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal'),
+            'kpiHome' => $this->kpiHome([], true),
+        ] + $this->common();
+    }
+
+    private function kpiHome(array $filter, bool $perPt): array
+    {
+        return [
+            'perPt' => $perPt,
+            'lokasi' => $this->rekap->lokasiTable($filter),
+            'capaian' => $perPt ? $this->rekap->rekapPerPt($filter) : $this->rekap->rekapPerKegiatan($filter),
+        ];
     }
 
     public function forAdmin(): array
@@ -77,13 +101,14 @@ class DashboardService
                 'id_mahasiswa',
                 Mahasiswa::whereIn('email', Dplmentoring::select('email_mahasiswa'))->select('id_mahasiswa')
             )->distinct()->count('id_mahasiswa'),
+            'kpiHome' => $this->kpiHome([], true),
         ] + $this->common();
     }
 
     private function common(): array
     {
         return [
-            'jumlahdpl' => User::where('role', 'dpl')->count(),
+            'jumlahdpl' => Dpl::count(),
             'jumlahpt' => Mahasiswa::whereNotNull('kodept')->distinct()->count('kodept'),
             'saran' => collect(),
         ];

@@ -18,11 +18,11 @@
                 <option value="">--pilih dulu KPI--</option>
                 @if ($kpitarget)
                     @foreach ($kpitarget as $item)
-                        <option value="{{$item->id_target}}" data-satuan="{{$item->satuan}}">{{$item->tahapan}} | {{$item->nama_kpitarget}} (Target {{ AppModelsKpicapaian::formatAngka($item->target) }} {{$item->satuan}})</option>
+                        <option value="{{$item->id_target}}" data-satuan="{{$item->satuan}}" data-target="{{ (float) $item->target }}">{{$item->kegiatan}} (Target {{ \App\Models\Kpicapaian::formatAngka($item->target) }} {{$item->satuan}})</option>
                     @endforeach
                 @endif
             </select>
-            <label>Tahapan | Kegiatan</label>
+            <label>Kegiatan</label>
         </div>
     </div>
     <div class="row">

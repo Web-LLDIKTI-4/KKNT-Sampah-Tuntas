@@ -23,7 +23,12 @@ class UserSeeder extends Seeder
 
         User::factory()->role('admin')->withPassword($password)->create([
             'name' => 'Administrator',
-            'email' => 'admin@pps.test',
+            'email' => 'admin@kknt.test',
+        ]);
+
+        User::factory()->role('kepala')->withPassword($password)->create([
+            'name' => 'Kepala',
+            'email' => 'kepala@kknt.test',
         ]);
 
         // Akun PT login memakai NPSN sebagai email
@@ -40,7 +45,7 @@ class UserSeeder extends Seeder
             $pt = $ptList[$i % $ptList->count()];
             $lokasiId = $lokasi[$i % $lokasi->count()]->id;
             $dpl = Dpl::factory()->create([
-                'email' => "dpl{$i}@pps.test",
+                'email' => "dpl{$i}@kknt.test",
                 'kodept' => $pt->npsn,
                 'location_program' => $lokasiId,
             ]);
@@ -58,7 +63,7 @@ class UserSeeder extends Seeder
             $isKetua = $i <= $desaList->count();
 
             $mahasiswa = Mahasiswa::factory()->create([
-                'email' => "mhs{$i}@pps.test",
+                'email' => "mhs{$i}@kknt.test",
                 'kodept' => $dpl->kodept,
                 'location_program' => $dpl->location_program,
             ]);

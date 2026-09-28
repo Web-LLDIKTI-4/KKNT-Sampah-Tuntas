@@ -69,6 +69,7 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('login', [LoginController::class, 'index'])->name('login');
     Route::put('login', [LoginController::class, 'proseslogin']);
+    Route::get('login/token', [LoginController::class, 'token'])->middleware('throttle:30,1')->name('login.token');
 });
 
 Route::middleware('auth')->group(function () {
@@ -159,9 +160,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     
     Route::get('admlaporandpl', [AdmlaporandplController::class, 'index']);
     Route::get('admlaporandpl/listdatagroup', [AdmlaporandplController::class, 'listdatagroup'])->name('admlaporandpl.listdatagroup');
-    Route::get('admlaporandpl/listdatagrouping', [AdmlaporandplController::class, 'listdatagrouping'])->name('admlaporandpl.listdatagrouping');;
+    Route::get('admlaporandpl/listdatagrouping', [AdmlaporandplController::class, 'listdatagrouping'])->name('admlaporandpl.listdatagrouping');
     Route::get('admlaporandpl/listdata/{email}', [AdmlaporandplController::class, 'listdata'])->name('admlaporandpl.listdata');
-    Route::get('admlaporandpl/listdataserver/{email}', [AdmlaporandplController::class, 'listdataserver'])->name('admlaporandpl.listdataserver');;
+    Route::get('admlaporandpl/listdataserver/{email}', [AdmlaporandplController::class, 'listdataserver'])->name('admlaporandpl.listdataserver');
     Route::get('admlaporandpl/export/{email}', [AdmlaporandplController::class, 'export']);
 
     Route::get('admlogharian', [AdmlogharianController::class, 'index']);
@@ -231,9 +232,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admfreeform/listdataserver', [AdmfreeformController::class, 'listdataserver'])->name('admfreeform.listdataserver');
     Route::get('admfreeform/export', [AdmfreeformController::class, 'export']);
 
-    Route::get('admevaluasikegiatan', [AdmevaluasikegiatanController::class, 'index']);
-    Route::get('admevaluasikegiatan/hasilevaluasi', [AdmevaluasikegiatanController::class, 'hasilevaluasi'])->name('admevaluasikegiatan.hasilevaluasi');
-    Route::get('admevaluasikegiatan/listdataserver', [AdmevaluasikegiatanController::class, 'listdataserver'])->name('admevaluasikegiatan.listdataserver');
     Route::get('admevaluasikegiatan/tambah', [AdmevaluasikegiatanController::class, 'tambah'])->name('admevaluasikegiatan.tambah');
     Route::put('admevaluasikegiatan/insert', [AdmevaluasikegiatanController::class, 'insert']);
     Route::get('admevaluasikegiatan/edit/{id_evaluasi}', [AdmevaluasikegiatanController::class, 'edit'])->name('admevaluasikegiatan.edit');
@@ -245,7 +243,14 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'role:dpl,admin,pt'])->group(function () {
+// Hasil evaluasi yang juga dipantau kepala (read-only lewat KepalaReadOnly)
+Route::middleware(['auth', 'role:admin,kepala'])->group(function () {
+    Route::get('admevaluasikegiatan', [AdmevaluasikegiatanController::class, 'index']);
+    Route::get('admevaluasikegiatan/hasilevaluasi', [AdmevaluasikegiatanController::class, 'hasilevaluasi'])->name('admevaluasikegiatan.hasilevaluasi');
+    Route::get('admevaluasikegiatan/listdataserver', [AdmevaluasikegiatanController::class, 'listdataserver'])->name('admevaluasikegiatan.listdataserver');
+});
+
+Route::middleware(['auth', 'role:dpl,admin,pt,kepala'])->group(function () {
     Route::get('perguruantinggi', [PerguruantinggiController::class, 'index']);
     Route::get('perguruantinggi/listdata', [PerguruantinggiController::class, 'listdata'])->name('perguruantinggi.listdata');
     Route::get('perguruantinggi/listdataserver', [PerguruantinggiController::class, 'listdataserver'])->name('perguruantinggi.listdataserver');;
@@ -289,7 +294,7 @@ Route::middleware(['auth', 'role:admin,pt,kepala'])->group(function () {
     Route::get('dashboardkpi', [KpiDashboardController::class, 'index'])->name('dashboardkpi');
 });
 
-Route::middleware(['auth', 'role:dpl,pt'])->group(function () {
+Route::middleware(['auth', 'role:dpl,pt,kepala'])->group(function () {
     Route::get('dpllaporan', [DpllaporanController::class, 'index']);
     Route::get('dpllaporan/listdata', [DpllaporanController::class, 'listdata']);
     Route::post('dpllaporan/tambah', [DpllaporanController::class, 'tambah'])->name('dpllaporan.tambah');
@@ -383,7 +388,7 @@ Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function (
     Route::put('tugasakhir/destroy', [TugasakhirController::class, 'destroy']);
 });
 
-Route::middleware(['auth', 'role:pt'])->group(function () {
+Route::middleware(['auth', 'role:pt,kepala'])->group(function () {
     Route::get('ptevaluasikegiatan', [PtevaluasikegiatanController::class, 'index'])->name('ptevaluasikegiatan');
     Route::get('ptevaluasikegiatan/tambah', [PtevaluasikegiatanController::class, 'tambah'])->name('ptevaluasikegiatan.tambah');
     Route::put('ptevaluasikegiatan/insert', [PtevaluasikegiatanController::class, 'insert'])->name('ptevaluasikegiatan.insert');

@@ -6,7 +6,6 @@ use App\Http\Requests\AjaxFormRequest;
 use App\Models\Kpicapaian;
 use App\Models\Kpitarget;
 use App\Models\Pjdesa;
-use App\Services\KpiCapaianService;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -56,12 +55,10 @@ class KpicapaianRequest extends AjaxFormRequest
                 return;
             }
 
-            if (! $this->isUpdate()) {
-                $service = app(KpiCapaianService::class);
-                $tahapan = $service->tahapanNumber(Kpitarget::findOrFail($this->input('id_target')));
-                if ($error = $service->sequenceError($email, $this->input('id_kpi'), $tahapan)) {
-                    $validator->errors()->add('id_target', $error);
-                }
+            $target = Kpitarget::find($this->input('id_target'));
+            if ($target && (float) $this->input('realisasi') > (float) $target->target) {
+                $validator->errors()->add('realisasi', 'Realisasi tidak boleh melebihi target ('
+                    .Kpicapaian::formatAngka($target->target).' '.$target->satuan.').');
             }
         }];
     }
@@ -70,8 +67,8 @@ class KpicapaianRequest extends AjaxFormRequest
     {
         return [
             'id_kpi.required' => 'KPI harus dipilih.',
-            'id_target.required' => 'Tahapan harus dipilih.',
-            'id_target.exists' => 'Tahapan tidak sesuai dengan KPI yang dipilih.',
+            'id_target.required' => 'Kegiatan harus dipilih.',
+            'id_target.exists' => 'Kegiatan tidak sesuai dengan KPI yang dipilih.',
             'tautan.required' => 'Tautan harus isi.',
             'tautan.url' => 'Tautan harus berupa URL http/https yang valid.',
             'permasalahan.required' => 'Permasalahan harus isi.',

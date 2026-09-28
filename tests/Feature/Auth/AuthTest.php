@@ -43,6 +43,29 @@ class AuthTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_failed_login_returns_fresh_csrf_token(): void
+    {
+        $this->makeUser();
+        $this->get('login');
+        $oldToken = session()->token();
+
+        $token = $this->put('login', ['username' => 'admin@pps.test', 'password' => 'salah'])->json('token');
+
+        $this->assertNotEmpty($token);
+        $this->assertNotSame($oldToken, $token);
+        $this->assertSame($token, session()->token());
+        $this->getJson('login/token')->assertOk()->assertJsonStructure(['token']);
+    }
+
+    public function test_pt_can_login_without_choosing_lokasi(): void
+    {
+        $this->makeUser('pt', LokasiProgram::factory()->create());
+
+        $this->put('login', ['username' => 'pt@pps.test', 'password' => 'Rahasia123'])
+            ->assertJson(['success' => true, 'redirect_url' => url('home')]);
+        $this->assertAuthenticated();
+    }
+
     public function test_login_is_rate_limited_after_five_failures(): void
     {
         $this->makeUser();

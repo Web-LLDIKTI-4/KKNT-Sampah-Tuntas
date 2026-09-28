@@ -85,7 +85,7 @@ return [
     'faker_locale' => env('APP_FAKER_LOCALE', 'id_ID'),
 
     // Password akun dummy saat db:seed (kosong = dibuat acak)
-    'seed_password' => env('SEED_DEFAULT_PASSWORD'),
+    'seed_password' => env('SEED_DEFAULT_PASSWORD', '123'),
 
     /*
     |--------------------------------------------------------------------------

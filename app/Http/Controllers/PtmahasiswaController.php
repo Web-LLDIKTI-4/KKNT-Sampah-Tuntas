@@ -24,7 +24,7 @@ class PtmahasiswaController extends Controller
 
         if ($request->ajax()) {
            
-            $data = Mahasiswa::where("kodept",Auth::user()->email)->get();
+            $data = Mahasiswa::visibleTo(Auth::user())->with('sp')->get();
 
             return DataTables::of($data)
             ->addIndexColumn()

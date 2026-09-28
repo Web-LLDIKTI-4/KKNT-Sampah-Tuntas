@@ -6,7 +6,6 @@
                     <th width="1">No</th>
                     <th>Id kpitarget</th>
                     <th>Nama KPI</th>
-                    <th>Tahapan</th>
                     <th>Kegiatan</th>
                     <th>Target</th>
                     <th>Satuan</th>
@@ -37,8 +36,7 @@
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_target', name: 'id_target', visible:false},
             {data: 'nama_kpi', name: 'nama_kpi'},
-            {data: 'tahapan', name: 'tahapan', className: 'text-center'},               
-            {data: 'nama_kpitarget', name: 'nama_kpitarget'},
+            {data: 'kegiatan', name: 'kegiatan'},
             {data: 'target', name: 'target', width:'10%', className: 'text-center'},
             {data: 'satuan', name: 'satuan', className: 'text-center'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
@@ -48,7 +46,7 @@
                 render: function (data, type, full, meta) {
                     return "<div class='text-wrap'>" + data + "</div>";
                 },
-                targets: 4
+                targets: 3
             }
         ],
         layout: {

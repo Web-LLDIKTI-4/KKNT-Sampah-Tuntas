@@ -7,6 +7,7 @@
 <!-- Nav -->
 <div class="card">
     <div class="card-header d-flex flex-column flex-md-row align-items-center gap-3">
+        @if (Auth::user()->role === 'admin')
         <div class="btn-group justify-center" role="group" aria-label="Basic example">
             <a href="{{ url('admevaluasikegiatan') }}" class="btn btn-info btn-sm waves-effect waves-light">
                 <i class="ri-pass-valid-line d-none d-md-block me-2"></i>
@@ -21,6 +22,7 @@
             <i class="ri-add-line me-1"></i>
             Tambah Data Pertanyaan
         </x-btn-modal>
+        @endif
     </div>
     <div class="card-body">
         <p id="resultcontent">loading data...</p>

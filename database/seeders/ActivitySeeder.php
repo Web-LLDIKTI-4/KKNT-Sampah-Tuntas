@@ -61,7 +61,7 @@ class ActivitySeeder extends Seeder
         }
 
         // Capaian KPI diisi oleh ketua kelompok (pj desa)
-        $targets = Kpitarget::where('tahapan', 'Tahap 1')->get();
+        $targets = Kpitarget::all()->unique('id_kpi');
         foreach (Pjdesa::all() as $pj) {
             foreach ($targets as $target) {
                 Kpicapaian::factory()->create([

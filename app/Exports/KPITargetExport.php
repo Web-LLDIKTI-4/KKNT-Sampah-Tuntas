@@ -18,8 +18,7 @@ class KPITargetExport implements FromCollection, WithHeadings
         return $data->map(function ($item) {
             return [
                 'nama_kpi' => $item->kpi->nama_kpi,
-                'tahapan' => $item->tahapan,
-                'nama_kpitarget' => $item->nama_kpitarget,
+                'kegiatan' => $item->kegiatan,
                 'target' => $item->target,
                 'satuan' => $item->satuan,
             ];
@@ -30,7 +29,6 @@ class KPITargetExport implements FromCollection, WithHeadings
     {
         return [
             'Nama KPI',
-            'Tahapan',
             'Kegiatan',
             'Target',
             'Satuan'

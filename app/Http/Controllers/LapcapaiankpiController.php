@@ -5,7 +5,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Session;
 use DataTables;
-use App\Models\User;
 use App\Models\Kpi;
 use App\Models\Kpitarget;
 use App\Models\Kpicapaian;
@@ -36,17 +35,8 @@ class LapcapaiankpiController extends Controller
                 });
             }
 
-            if (in_array(Auth::user()->role, ['pt'])) {
-                // Query validasi by lokasi program dan kode pt
-                $emailMahasiswa = User::query()
-                    ->with(['mahasiswa'])
-                    ->where('location_program', Auth::user()->location_program)
-                    ->whereHas('mahasiswa', function ($q) {
-                        $q->where('kodept', Auth::user()->pt->npsn);
-                    })
-                    ->where('role', 'mahasiswa')
-                    ->pluck('email');
-                $query->whereIn('email', $emailMahasiswa)->get();
+            if (Auth::user()->role === 'pt') {
+                $query->whereIn('email', \App\Models\Mahasiswa::visibleTo(Auth::user())->select('email'));
             }
             
             return Datatables::eloquent($query)
@@ -64,11 +54,8 @@ class LapcapaiankpiController extends Controller
                 ->addColumn('nama_kpi', function($row) {
                     return isset($row->kpi->nama_kpi) ? $row->kpi->nama_kpi : 'Tidak Diketahui';
                 })
-                ->addColumn('tahapan', function($row) {
-                    return isset($row->target->tahapan) ? $row->target->tahapan : 'Tidak Diketahui';
-                })
-                ->addColumn('nama_kpitarget', function($row) {
-                    return isset($row->target->nama_kpitarget) ? $row->target->nama_kpitarget : 'Tidak Diketahui';
+                ->addColumn('kegiatan', function($row) {
+                    return $row->target->kegiatan ?? 'Tidak Diketahui';
                 })
                 ->addColumn('target_kpi', fn ($row) => Kpicapaian::formatAngka($row->target?->target).' '.($row->target->satuan ?? ''))
                 ->addColumn('realisasi_kpi', fn ($row) => Kpicapaian::formatAngka($row->realisasi).' '.$row->satuan)

@@ -13,12 +13,8 @@
         <label>Nama KPI</label>
     </div>
     <div class="row">
-        <div class="form-group col-md-4 form-floating form-floating-outline mb-6">
-            <input type="text" name="tahapan" class="form-control form-control-sm" required maxlength="50" value="{{$data->tahapan}}">
-            <label>Tahapan</label>
-        </div>
         <div class="form-group col form-floating form-floating-outline mb-6">
-            <input type="text" name="nama_kpitarget" class="form-control form-control-sm" required maxlength="200" value="{{$data->nama_kpitarget}}">
+            <input type="text" name="kegiatan" class="form-control form-control-sm" required maxlength="200" value="{{$data->kegiatan}}">
             <label>Kegiatan</label>
         </div>
     </div>

@@ -12,10 +12,9 @@ class KpitargetRequest extends AjaxFormRequest
         return [
             'id_target' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'uuid', 'exists:kpi_target,id_target'],
             'id_kpi' => ['required', 'uuid', 'exists:kpi,id_kpi'],
-            'tahapan' => ['required', 'string', 'max:50'],
-            'nama_kpitarget' => [
+            'kegiatan' => [
                 'required', 'string', 'max:200',
-                Rule::unique('kpi_target', 'nama_kpitarget')
+                Rule::unique('kpi_target', 'kegiatan')
                     ->where('id_kpi', $this->input('id_kpi'))
                     ->ignore($this->input('id_target'), 'id_target'),
             ],
@@ -28,9 +27,8 @@ class KpitargetRequest extends AjaxFormRequest
     {
         return [
             'id_kpi.required' => 'KPI harus dipilih.',
-            'nama_kpitarget.required' => 'Kegiatan harus diisi.',
-            'nama_kpitarget.unique' => 'Kegiatan sudah ada!',
-            'tahapan.required' => 'Tahapan KPI harus diisi.',
+            'kegiatan.required' => 'Kegiatan harus diisi.',
+            'kegiatan.unique' => 'Kegiatan sudah ada!',
             'target.required' => 'Target harus diisi.',
             'target.numeric' => 'Target harus angka.',
             'target.gt' => 'Target harus lebih dari 0.',

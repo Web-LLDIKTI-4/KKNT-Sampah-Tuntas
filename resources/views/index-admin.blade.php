@@ -4,7 +4,7 @@
 
 <x-page-header title="Dashboard" description="Selamat datang di Dashboard."/>
 
-<div class="container-xxl flex-grow-1 container-p-y">
+<div class="flex-grow-1">
     @php
         $userRole = optional(Auth::user())->role;
 
@@ -61,7 +61,7 @@
                         <small>{{$jumlahdpl}} Orang</small>
                     </div>
                 </div>               
-                @if (!in_array($userRole, ['pt']))
+                @if (!in_array($userRole, ['pt', 'kepala']))
                     <div class="d-flex align-items-center mb-6">
                         <div class="avatar">
                             <div class="avatar-initial bg-label-info rounded">
@@ -75,7 +75,7 @@
                     </div>
                 @endif
                 
-                @if (!in_array($userRole, ['pt']))
+                @if (!in_array($userRole, ['pt', 'kepala']))
                     <div class="d-flex align-items-center">
                         <div class="avatar">
                             <div class="avatar-initial bg-label-info rounded">
@@ -190,6 +190,10 @@
     </div>
     <!--/ Project Timeline Chart-->
     </div>
+
+    @isset($kpiHome)
+        @include('kpidashboard._home')
+    @endisset
 </div>
 
 @stop 

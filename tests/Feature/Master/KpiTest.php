@@ -39,11 +39,11 @@ class KpiTest extends TestCase
     {
         $this->loginAs('admin');
         $kpi = Kpi::factory()->create();
-        $payload = ['id_kpi' => $kpi->id_kpi, 'tahapan' => 'Tahap 1', 'nama_kpitarget' => 'Pelatihan', 'target' => 25, 'satuan' => '%'];
+        $payload = ['id_kpi' => $kpi->id_kpi, 'kegiatan' => 'Pelatihan', 'target' => 25, 'satuan' => '%'];
 
         $this->put('kpitarget/insert', $payload)->assertJson(['success' => true]);
         $this->put('kpitarget/insert', $payload)
-            ->assertJsonPath('errors.nama_kpitarget.0', 'Kegiatan sudah ada!');
+            ->assertJsonPath('errors.kegiatan.0', 'Kegiatan sudah ada!');
         $this->put('kpitarget/insert', ['target' => 0] + $payload)->assertJsonValidationErrors('target', 'errors');
         $this->put('kpitarget/insert', ['satuan' => ''] + $payload)->assertJsonValidationErrors('satuan', 'errors');
 

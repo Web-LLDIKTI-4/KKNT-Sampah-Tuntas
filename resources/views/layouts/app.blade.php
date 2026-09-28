@@ -12,7 +12,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>PPS Bandung</title>
+    <title>KKN Tematik Sampah Tuntas</title>
 
     <meta name="description" content="" />
 
@@ -209,6 +209,7 @@
     <script src="../../assets/js/front-main.js"></script>
     <script src="../../assets/js/ui-toasts.js"></script>
     <script src="{{ asset('js/crud.js') }}"></script>
+    <script src="{{ asset('js/search-select.js') }}"></script>
 
     <!-- Page JS -->
     <script src="../../assets/js/front-page-landing.js"></script>

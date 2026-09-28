@@ -16,7 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'user.guard' => \App\Http\Middleware\UserGuardMiddleware::class,
         ]);
 
-        $middleware->web(append: [\App\Http\Middleware\SecurityHeaders::class]);
+        $middleware->web(append: [
+            \App\Http\Middleware\SecurityHeaders::class,
+            \App\Http\Middleware\KepalaReadOnly::class,
+        ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('home'));

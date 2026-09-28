@@ -13,8 +13,7 @@ class KpitargetFactory extends Factory
     public function definition(): array
     {
         return [
-            'tahapan' => 'Tahap 1',
-            'nama_kpitarget' => fake()->sentence(4),
+            'kegiatan' => fake()->unique()->sentence(4),
             'target' => 25,
             'satuan' => '%',
         ];

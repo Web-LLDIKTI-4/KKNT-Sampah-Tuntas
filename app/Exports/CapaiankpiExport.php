@@ -57,8 +57,7 @@ class CapaiankpiExport implements FromCollection, WithHeadings
             $desa = $item?->pjdesa?->desa?->desa ?? '';
             $pjdesa = $item?->email ?? '';
             $kpi = $item->kpi ? $item->kpi->nama_kpi : null;
-            $tahapan = $item->target ? $item->target->tahapan : null;
-            $target_kpi = $item->target ? $item->target->nama_kpitarget : null;
+            $kegiatan = $item->target?->kegiatan;
 
             return [
                 'No' => $key + 1,
@@ -66,8 +65,7 @@ class CapaiankpiExport implements FromCollection, WithHeadings
                 'PJ Desa' => $pjdesa,
                 'Desa' => $desa,
                 'KPI' => $kpi,
-                'Tahapan' => $tahapan,
-                'Target KPI' => $target_kpi,
+                'Kegiatan' => $kegiatan,
                 'Target' => $item->target?->target,
                 'Satuan Target' => $item->target?->satuan,
                 'Realisasi' => $item->realisasi,
@@ -94,7 +92,6 @@ class CapaiankpiExport implements FromCollection, WithHeadings
             'PJ Desa',
             'Desa',
             'KPI',
-            'Tahapan',
             'Kegiatan',
             'Target',
             'Satuan',

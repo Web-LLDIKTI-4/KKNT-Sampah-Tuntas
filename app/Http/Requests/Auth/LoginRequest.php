@@ -5,6 +5,7 @@ namespace App\Http\Requests\Auth;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -60,7 +61,15 @@ class LoginRequest extends FormRequest
 
     public function fail(string $message): never
     {
-        throw new HttpResponseException(response()->json(['success' => false, 'messages' => $message]));
+        throw new HttpResponseException(static::failedResponse($message));
+    }
+
+    // Respons gagal selalu membawa token CSRF baru agar form bisa dikirim ulang tanpa reload
+    public static function failedResponse(string $message): JsonResponse
+    {
+        session()->regenerateToken();
+
+        return response()->json(['success' => false, 'messages' => $message, 'token' => csrf_token()]);
     }
 
     protected function failedValidation(Validator $validator): void

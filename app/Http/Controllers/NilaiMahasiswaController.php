@@ -132,16 +132,12 @@ abstract class NilaiMahasiswaController extends Controller
         return $this->owned($request)->findOrFail($id);
     }
 
-    // DPL melihat input miliknya; PT melihat mahasiswa dari PT & lokasinya
+    // DPL melihat input miliknya; PT melihat mahasiswa PT-nya; kepala melihat semua
     private function visibleTo(Request $request): Builder
     {
         $user = $request->user();
-        if ($user->role === 'pt') {
-            $ids = Mahasiswa::where('location_program', $user->location_program)
-                ->where('kodept', $user->email)
-                ->pluck('id_mahasiswa');
-
-            return $this->model()::whereIn('id_mahasiswa', $ids);
+        if (in_array($user->role, ['pt', 'kepala'], true)) {
+            return $this->model()::whereIn('id_mahasiswa', Mahasiswa::visibleTo($user)->select('id_mahasiswa'));
         }
 
         return $this->owned($request);

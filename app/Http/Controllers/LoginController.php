@@ -18,18 +18,18 @@ class LoginController extends Controller
     public function proseslogin(LoginRequest $request)
     {
         if (! $request->authenticate()) {
-            return response()->json(['success' => false, 'messages' => 'Email atau Password Salah']);
+            return LoginRequest::failedResponse('Email atau Password Salah');
         }
 
         $user = Auth::user();
         $redirect = url('home');
 
-        if (in_array($user->role, ['dpl', 'mahasiswa', 'pt'], true)) {
+        if (in_array($user->role, ['dpl', 'mahasiswa'], true)) {
             $lokasi = $this->resolveLokasi($user, trim((string) $request->input('lokasi')));
             if (is_string($lokasi) === false) {
                 Auth::logout();
 
-                return response()->json(['success' => false, 'messages' => $lokasi['error']]);
+                return LoginRequest::failedResponse($lokasi['error']);
             }
             $redirect = url('home/'.rawurlencode(mb_strtolower($lokasi)));
         }
@@ -41,6 +41,14 @@ class LoginController extends Controller
         $user->forceFill(['last_login' => now()])->save();
 
         return response()->json(['success' => true, 'messages' => 'proses login...', 'redirect_url' => $redirect]);
+    }
+
+    // Token CSRF baru untuk form login yang sesinya sudah kedaluwarsa (419)
+    public function token(Request $request)
+    {
+        $request->session()->regenerateToken();
+
+        return response()->json(['token' => csrf_token()]);
     }
 
     public function logout(Request $request)

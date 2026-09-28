@@ -40,7 +40,6 @@
         <li class="nav-item">
             <a class="nav-link fw-medium" aria-current="page" href="{{ url('/home') }}">Beranda</a>
         </li>
-
             @if(in_array(Auth::user()->role, ['admin']))
                 <li class="nav-item mega-dropdown">
                     <a
@@ -292,7 +291,7 @@
                     </div>
                     </div>
                 </li>
-            @elseif (in_array(Auth::user()->role, ['pt']))
+            @elseif (in_array(Auth::user()->role, ['pt', 'kepala']))
                 <li class="nav-item mega-dropdown">
                     <a
                         href="javascript:void(0);"
@@ -333,7 +332,7 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('ptevaluasikegiatan') }}">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url(Auth::user()->role === 'kepala' ? 'admevaluasikegiatan' : 'ptevaluasikegiatan') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i>
                                         <span data-i18n="Pricing">Evaluasi Kegiatan</span>
                                     </a>
@@ -368,22 +367,15 @@
                                     <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            {{-- <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboardkpi') }}">
                                     <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard KPI
                                 </a>
-                            </li>
+                            </li> --}}
                         </ul>
                         </div>
                     </div>
                     </div>
-                </li>
-            @elseif (Auth::user()->role === 'kepala')
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ route('dashboardkpi') }}">Dashboard KPI</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('lapcapaiankpi') }}">Laporan Capaian KPI</a>
                 </li>
             @else
                 <li class="nav-item">
@@ -408,34 +400,6 @@
     <!-- Menu wrapper: End -->
     <!-- Toolbar: Start -->
     <ul class="navbar-nav flex-row align-items-center ms-auto">
-        <!-- Style Switcher -->
-        <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
-        <a
-            class="nav-link btn btn-text-secondary rounded-pill btn-icon dropdown-toggle hide-arrow me-sm-4"
-            href="javascript:void(0);"
-            data-bs-toggle="dropdown">
-            <i class="ri-22px text-heading"></i>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
-            <li>
-            <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
-                <span class="align-middle"><i class="ri-sun-line ri-22px me-3"></i>Terang</span>
-            </a>
-            </li>
-            <li>
-            <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
-                <span class="align-middle"><i class="ri-moon-clear-line ri-22px me-3"></i>Gelap</span>
-            </a>
-            </li>
-            <li>
-            <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
-                <span class="align-middle"><i class="ri-computer-line ri-22px me-3"></i>Sistem</span>
-            </a>
-            </li>
-        </ul>
-        </li>
-        <!-- / Style Switcher-->
-
         <!-- navbar button: Start -->
         <li class="nav-item navbar-dropdown dropdown-user dropdown">
             <a class="dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown" aria-expanded="true">

@@ -28,10 +28,9 @@ class MasterDataSeeder extends Seeder
         });
 
         Kpi::factory()->count(4)->create()->each(function (Kpi $kpi) {
-            foreach ([1 => '25', 2 => '50', 3 => '75', 4 => '100'] as $tahap => $persen) {
+            foreach (['25', '50', '75', '100'] as $persen) {
                 Kpitarget::factory()->create([
                     'id_kpi' => $kpi->id_kpi,
-                    'tahapan' => 'Tahap '.$tahap,
                     'target' => $persen,
                     'satuan' => '%',
                 ]);

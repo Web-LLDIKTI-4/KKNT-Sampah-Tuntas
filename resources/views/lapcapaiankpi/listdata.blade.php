@@ -8,7 +8,6 @@
                     <th>Lokasi Kegiatan</th>
                     <th>Ketua Kelompok</th>
                     <th>Nama KPI</th>
-                    <th>Tahapan KPI</th>
                     <th>Kegiatan</th>
                     <th>Target</th>
                     <th>Realisasi</th>
@@ -47,10 +46,10 @@
             {data: 'lokasi', name: 'lokasi'},
             {data: 'pjdesa', name: 'pjdesa'},
             {data: 'nama_kpi', name: 'nama_kpi'},
-            {data: 'tahapan', name: 'tahapan', className: 'text-center'},
             {
-                data: 'nama_kpitarget',
-                name: 'nama_kpitarget',
+                data: 'kegiatan',
+                name: 'kegiatan',
+                searchable: false,
                 render: function (data, type, row) {
                     // Membuat sebuah div sementara untuk membersihkan tag HTML
                     var tempDiv = document.createElement('div');

@@ -16,20 +16,112 @@ use Illuminate\Support\Facades\DB;
  */
 class KpiRekapService
 {
-    public function summary(array $filter, ?Collection $rekap = null): array
+    private const PERSEN_SQL = 'COALESCE(LEAST(100, c.realisasi / NULLIF(t.target, 0) * 100), 0)';
+
+    public function summary(array $filter): array
     {
-        $kelompok = $this->kelompokQuery($filter);
-        $rekap ??= $this->rekapPerPt($filter);
-        $sel = $rekap->sum('jumlah_kelompok');
+        $total = $this->lokasiTable($filter)['total'];
 
         return [
-            'jumlah_pt' => $this->mahasiswaQuery($filter)->distinct()->count('m.kodept'),
-            'total_kecamatan' => (clone $kelompok)->whereNotNull('d.id_kecamatan')->distinct()->count('d.id_kecamatan'),
-            'total_kelurahan' => (clone $kelompok)->whereNotNull('pj.id_desa')->distinct()->count('pj.id_desa'),
-            'total_mahasiswa' => $this->mahasiswaQuery($filter)->count(),
-            'total_kelompok' => (clone $kelompok)->distinct()->count('pj.id_pjdesa'),
-            'rata_capaian' => $sel > 0 ? round($rekap->sum('total_persen') / $sel, 2) : 0.0,
+            'jumlah_pt' => $total['pt'],
+            'total_kecamatan' => $total['kecamatan'],
+            'total_kelurahan' => $total['kelurahan'],
+            'total_mahasiswa' => $total['mahasiswa'],
+            'total_dpl' => $total['dpl'],
+            'total_kelompok' => $total['kelompok'],
         ];
+    }
+
+    /**
+     * Satu baris per lokasi program dari penempatan mahasiswa (mahasiswa_lokasi),
+     * ditambah jumlah mahasiswa yang belum memilih lokasi dan baris total.
+     */
+    public function lokasiTable(array $filter): array
+    {
+        $placed = fn (Builder $q) => $q->whereExists(fn ($s) => $s->from('mahasiswa_lokasi as ml')->whereColumn('ml.id_mahasiswa', 'm.id_mahasiswa'));
+
+        $perLokasi = $placed($this->mahasiswaQuery($filter))
+            ->groupBy('m.location_program')
+            ->selectRaw('m.location_program, COUNT(*) as jumlah, COUNT(DISTINCT m.kodept) as pt')
+            ->get()->keyBy('location_program');
+        $mahasiswa = $perLokasi->map(fn ($r) => $r->jumlah);
+
+        $wilayahQuery = fn () => $this->mahasiswaQuery($filter)
+            ->join('mahasiswa_lokasi as ml', 'ml.id_mahasiswa', '=', 'm.id_mahasiswa')
+            ->leftJoin('desa as d', 'd.id_desa', '=', 'ml.id_desa');
+        $wilayah = $wilayahQuery()
+            ->groupBy('m.location_program')
+            ->selectRaw('m.location_program, COUNT(DISTINCT d.id_kecamatan) as kecamatan, COUNT(DISTINCT ml.id_desa) as kelurahan')
+            ->get()->keyBy('location_program');
+
+        $kelompok = $this->kelompokQuery($filter)
+            ->groupBy('m.location_program')
+            ->selectRaw('m.location_program, COUNT(DISTINCT pj.id_pjdesa) as jumlah')
+            ->pluck('jumlah', 'location_program');
+
+        $dpl = DB::table('dpl')
+            ->whereNotNull('kodept')
+            ->when($filter['lokasi'] ?? null, fn (Builder $q, $v) => $q->where('location_program', $v))
+            ->when($filter['kodept'] ?? null, fn (Builder $q, $v) => $q->where('kodept', $v))
+            ->groupBy('location_program')
+            ->selectRaw('location_program, COUNT(*) as jumlah')
+            ->pluck('jumlah', 'location_program');
+
+        $ids = $mahasiswa->keys()->merge($kelompok->keys())->merge($dpl->keys())->unique();
+        $namaLokasi = DB::table('lokasi_program')->whereIn('id', $ids->filter())->pluck('nama_lokasi', 'id');
+
+        $rows = $ids->map(fn ($id) => [
+            'lokasi' => $namaLokasi[$id] ?? 'Tanpa Lokasi Program',
+            'pt' => (int) ($perLokasi[$id]->pt ?? 0),
+            'kecamatan' => (int) ($wilayah[$id]->kecamatan ?? 0),
+            'kelurahan' => (int) ($wilayah[$id]->kelurahan ?? 0),
+            'mahasiswa' => (int) ($mahasiswa[$id] ?? 0),
+            'dpl' => (int) ($dpl[$id] ?? 0),
+            'kelompok' => (int) ($kelompok[$id] ?? 0),
+        ])->sortBy('lokasi')->values();
+
+        $belumLokasi = $this->mahasiswaQuery($filter)
+            ->whereNotExists(fn ($s) => $s->from('mahasiswa_lokasi as ml')->whereColumn('ml.id_mahasiswa', 'm.id_mahasiswa'))
+            ->count();
+
+        return [
+            'rows' => $rows,
+            'belum_lokasi' => $belumLokasi,
+            'total' => [
+                'pt' => $this->mahasiswaQuery($filter)->distinct()->count('m.kodept'),
+                'kecamatan' => $wilayahQuery()->whereNotNull('d.id_kecamatan')->distinct()->count('d.id_kecamatan'),
+                'kelurahan' => $wilayahQuery()->whereNotNull('ml.id_desa')->distinct()->count('ml.id_desa'),
+                'mahasiswa' => $rows->sum('mahasiswa') + $belumLokasi,
+                'dpl' => $rows->sum('dpl'),
+                'kelompok' => $rows->sum('kelompok'),
+            ],
+        ];
+    }
+
+    /**
+     * Satu baris per kegiatan: rata-rata capaian seluruh kelompok (yang belum mengisi = 0%).
+     */
+    public function rekapPerKegiatan(array $filter): Collection
+    {
+        $agregat = $this->withCapaian($this->kelompokQuery($filter), $filter)
+            ->groupBy('t.id_target')
+            ->selectRaw('t.id_target, COUNT(DISTINCT pj.id_pjdesa) as jumlah_kelompok, COUNT(c.id_capaian) as jumlah_mengisi')
+            ->selectRaw('SUM('.self::PERSEN_SQL.') as total_persen')
+            ->get()->keyBy('id_target');
+
+        return DB::table('kpi_target as t')
+            ->leftJoin('kpi as k', 'k.id_kpi', '=', 't.id_kpi')
+            ->when($filter['id_target'] ?? null, fn (Builder $q, $id) => $q->where('t.id_target', $id))
+            ->orderBy('k.nama_kpi')->orderBy('t.kegiatan')
+            ->select('t.id_target', 'k.nama_kpi', 't.kegiatan', 't.target', 't.satuan')
+            ->get()
+            ->each(function ($row) use ($agregat) {
+                $agg = $agregat[$row->id_target] ?? null;
+                $n = (int) ($agg->jumlah_kelompok ?? 0);
+                $row->jumlah_kelompok = $n;
+                $row->jumlah_mengisi = (int) ($agg->jumlah_mengisi ?? 0);
+                $row->capaian = $n > 0 ? round($agg->total_persen / $n, 2) : 0.0;
+            });
     }
 
     /**
@@ -37,17 +129,16 @@ class KpiRekapService
      */
     public function rekapPerPt(array $filter): Collection
     {
-        $persen = 'COALESCE(LEAST(100, c.realisasi / NULLIF(t.target, 0) * 100), 0)';
-
         $rows = $this->withCapaian($this->kelompokQuery($filter), $filter)
             ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', 'm.kodept')
-            ->groupBy('m.kodept', 'sp.nm_lemb', 't.id_target', 'k.nama_kpi', 't.tahapan', 't.nama_kpitarget', 't.target', 't.satuan')
-            ->orderBy('sp.nm_lemb')->orderBy('k.nama_kpi')->orderBy('t.tahapan')
-            ->selectRaw('m.kodept, sp.nm_lemb, t.id_target, k.nama_kpi, t.tahapan, t.nama_kpitarget, t.target, t.satuan')
+            ->groupBy('m.kodept', 'sp.nm_lemb', 't.id_target', 'k.nama_kpi', 't.kegiatan', 't.target', 't.satuan')
+            ->orderBy('sp.nm_lemb')->orderBy('k.nama_kpi')->orderBy('t.kegiatan')
+            ->selectRaw('m.kodept, sp.nm_lemb, t.id_target, k.nama_kpi, t.kegiatan, t.target, t.satuan')
             ->selectRaw('COUNT(DISTINCT pj.id_pjdesa) as jumlah_kelompok')
             ->selectRaw('COUNT(c.id_capaian) as jumlah_mengisi')
-            ->selectRaw('SUM(COALESCE(c.realisasi, 0)) as total_realisasi')
-            ->selectRaw("SUM({$persen}) as total_persen")
+            // Realisasi dibatasi target agar rata-rata tidak melebihi target
+            ->selectRaw('SUM(COALESCE(LEAST(c.realisasi, t.target), 0)) as total_realisasi')
+            ->selectRaw('SUM('.self::PERSEN_SQL.') as total_persen')
             ->get();
 
         $mahasiswa = $this->mahasiswaQuery($filter)
@@ -74,8 +165,8 @@ class KpiRekapService
         return $this->withCapaian($this->kelompokQuery($filter), $filter)
             ->leftJoin('kecamatan as kc', 'kc.id_kecamatan', '=', 'd.id_kecamatan')
             ->leftJoin('lokasi_program as lp', 'lp.id', '=', 'm.location_program')
-            ->orderBy('m.nama')->orderBy('k.nama_kpi')->orderBy('t.tahapan')
-            ->select('m.nama', 'pj.email', 'lp.nama_lokasi', 'kc.kecamatan', 'd.desa', 'k.nama_kpi', 't.nama_kpitarget', 't.target', 't.satuan', 'c.realisasi', 'c.id_capaian')
+            ->orderBy('m.nama')->orderBy('k.nama_kpi')->orderBy('t.kegiatan')
+            ->select('m.nama', 'pj.email', 'lp.nama_lokasi', 'kc.kecamatan', 'd.desa', 'k.nama_kpi', 't.kegiatan', 't.target', 't.satuan', 'c.realisasi', 'c.id_capaian')
             ->get()
             ->each(fn ($row) => $row->capaian = Kpicapaian::persen($row->realisasi, $row->target));
     }

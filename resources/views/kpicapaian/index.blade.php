@@ -21,9 +21,12 @@ $(function () {
         });
     });
 
-    // Satuan realisasi mengikuti satuan target terpilih
+    // Satuan & batas maksimal realisasi mengikuti target terpilih
     $('body').on('change', "form[data-ajax-form] select[name='id_target']", function () {
-        $(this).closest('form').find('[data-satuan-realisasi]').val($(this).find('option:selected').data('satuan') || '');
+        var opsi = $(this).find('option:selected');
+        var form = $(this).closest('form');
+        form.find('[data-satuan-realisasi]').val(opsi.data('satuan') || '');
+        form.find("input[name='realisasi']").attr('max', opsi.data('target') || 999999);
     });
 });
 </script>

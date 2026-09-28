@@ -13,7 +13,6 @@ class KpicapaianFactory extends Factory
     public function definition(): array
     {
         return [
-            'tahapan' => 1,
             'realisasi' => fake()->numberBetween(0, 100),
             'status_capaian' => fake()->randomElement(['Y', 'P']),
             'tautan' => fake()->url(),
