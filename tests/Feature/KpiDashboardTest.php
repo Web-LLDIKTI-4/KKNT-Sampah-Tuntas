@@ -231,16 +231,21 @@ class KpiDashboardTest extends TestCase
     {
         $this->loginAs('kepala');
 
-        foreach (['lapcapaiankpi', 'dplkonversinilai', 'pttugasakhir', 'admlogkegiatan', 'admlogbulanan', 'admlogkehadiran', 'admevaluasikegiatan'] as $url) {
+        foreach (['lapcapaiankpi', 'ptdpl', 'ptmahasiswa', 'admlogkegiatan', 'admlogbulanan', 'admlogkehadiran', 'admevaluasikegiatan'] as $url) {
             $this->get($url)->assertOk();
         }
-        $this->getJson('pttugasakhir/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
+        $this->getJson('ptmahasiswa/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertJsonPath('recordsTotal', 3);
+
+        // Konversi nilai & laporan akhir dicabut untuk kepala
+        $this->get('dplkonversinilai')->assertRedirect(route('home'));
+        $this->get('pttugasakhir')->assertRedirect(route('home'));
 
         $this->put('admlogbulanan/updatenilai', [])->assertForbidden();
         $this->put('ptevaluasikegiatan/insert', [])->assertForbidden();
         $this->put('dplkonversinilai/destroy', [])->assertForbidden();
         $this->put('profile/update', [])->assertStatus(200);
+        $this->put('setting/update', [])->assertJsonValidationErrors('plama', 'errors');
     }
 
     public function test_only_admin_can_export_kpi_rekap(): void

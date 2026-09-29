@@ -1,10 +1,10 @@
 @extends('layouts.app')
-@section('title', 'Dasbor KPI')
+@section('title', 'Dashboard KPI')
 @section('container')
 
 <x-page-header
     icon="ri-line-chart-line"
-    :title="$isPt ? 'Dasbor KPI Perguruan Tinggi' : 'Dasbor KPI'"
+    :title="$isPt ? 'Dashboard KPI Perguruan Tinggi' : 'Dashboard KPI'"
     subtitle="Rekap capaian KPI ketua kelompok. Hanya isian dengan tindak lanjut Sudah Selesai yang dihitung, maksimal 100%." />
 
 <div class="card mb-6">

@@ -59,11 +59,11 @@ class AdmevaluasikegiatanController extends Controller
         return DataTables::of(Evaluasikegiatan::query())
             ->addIndexColumn()
             ->editColumn('pertanyaan', fn (Evaluasikegiatan $row) => HtmlSanitizer::clean($row->pertanyaan) ?? 'Tidak ada')
-            ->addColumn('action', fn (Evaluasikegiatan $row) => ActionButtons::crud(
-                url('admevaluasikegiatan/edit/'.$row->id_evaluasi),
-                route('admevaluasikegiatan.pertanyaanevaluasi.destroy'),
-                'id_evaluasi',
-                $row->id_evaluasi
+            ->addColumn('action', fn (Evaluasikegiatan $row) => ActionButtons::make(
+                urlEdit: url('admevaluasikegiatan/edit/'.$row->id_evaluasi),
+                urlDelete: route('admevaluasikegiatan.pertanyaanevaluasi.destroy'),
+                idField: 'id_evaluasi',
+                idValue: $row->id_evaluasi,
             ))
             ->rawColumns(['pertanyaan', 'action'])
             ->make(true);

@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class KepalaReadOnly
 {
-    private const ALLOWED = ['logout', 'profile/update', 'profile/prosesuploadpoto'];
+    private const ALLOWED = ['logout', 'profile/update', 'profile/prosesuploadpoto', 'setting/update'];
 
     public function handle(Request $request, Closure $next): Response
     {

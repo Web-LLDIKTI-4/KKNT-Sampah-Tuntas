@@ -10,7 +10,7 @@
                         <th width="1">No</th>
                         <th>Nim</th>
                         <th>Nama</th>
-                        <th>Surel</th>
+                        <th>Email</th>
                         {{-- <th>Nomor Telepon</th> --}}
                         <th>Perguruan Tinggi</th>
                         <th>Lokasi Program KKN</th>

@@ -53,10 +53,10 @@ class DplmentoringController extends Controller
                 ? '<a href="'.e(url('dplmentoring/nilaifreeform/'.$row->mahasiswa->id_mahasiswa)).'" title="Nilai konversi dan Free form">lihat data</a>'
                 : 'tidak ada - '.e($row->email_mahasiswa))
             ->addColumn('tugasakhir', fn ($row) => HtmlSanitizer::link($row->tugasakhir?->tautan) ?: '-')
-            ->addColumn('action', fn ($row) => ActionButtons::deleteButton(
-                url('dplmentoring/destroy/'.$row->id_mentoring),
-                'id_mentoring',
-                $row->id_mentoring
+            ->addColumn('action', fn ($row) => ActionButtons::make(
+                urlDelete: url('dplmentoring/destroy/'.$row->id_mentoring),
+                idField: 'id_mentoring',
+                idValue: $row->id_mentoring,
             ))
             ->rawColumns(['action', 'rekapnilai', 'nilai_freeform', 'tugasakhir'])
             ->make(true);

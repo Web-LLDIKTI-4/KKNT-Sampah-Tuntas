@@ -58,6 +58,7 @@ use App\Http\Controllers\AdmfreeformController;
 use App\Http\Controllers\AdmevaluasikegiatanController;
 use App\Http\Controllers\PtevaluasikegiatanController;
 use App\Http\Controllers\PtmahasiswaController;
+use App\Http\Controllers\PtdplController;
 use App\Http\Controllers\PttugasakhirController;
 
 use App\Http\Controllers\SaranController;
@@ -313,15 +314,6 @@ Route::middleware(['auth', 'role:dpl,pt,kepala'])->group(function () {
     Route::get('dplmentoring/nilaikonversi/{id_mahasiswa}', [DplmentoringController::class, 'nilaikonversi']);
     Route::get('dplmentoring/freeform/{id_mahasiswa}', [DplmentoringController::class, 'freeform']);
     
-    Route::get('dplkonversinilai', [DplkonversinilaiController::class, 'index']);
-    Route::get('dplkonversinilai/listdata', [DplkonversinilaiController::class, 'listdata'])->name('dplkonversinilai.listdata');
-    Route::get('dplkonversinilai/listdataserver', [DplkonversinilaiController::class, 'listdataserver'])->name('dplkonversinilai.listdataserver');
-    Route::get('dplkonversinilai/tambah', [DplkonversinilaiController::class, 'tambah']);
-    Route::put('dplkonversinilai/insert', [DplkonversinilaiController::class, 'insert']);
-    Route::get('dplkonversinilai/edit/{id_konversi}', [DplkonversinilaiController::class, 'edit']);
-    Route::put('dplkonversinilai/update', [DplkonversinilaiController::class, 'update']);
-    Route::put('dplkonversinilai/destroy', [DplkonversinilaiController::class, 'destroy']);
-
     Route::get('dplfreeform', [DplfreeformController::class, 'index']);
     Route::get('dplfreeform/listdata', [DplfreeformController::class, 'listdata'])->name('dplfreeform.listdata');
     Route::get('dplfreeform/listdataserver', [DplfreeformController::class, 'listdataserver'])->name('dplfreeform.listdataserver');
@@ -336,6 +328,18 @@ Route::middleware(['auth', 'role:dpl,pt,kepala'])->group(function () {
     Route::get('dpllaptugasakhir/listdataserver', [DpllaptugasakhirController::class, 'listdataserver'])->name('dpllaptugasakhir.listdataserver');
     Route::get('dpllaptugasakhir/export', [DpllaptugasakhirController::class, 'export']);
     Route::put('dpllaptugasakhir/nilai', [DpllaptugasakhirController::class, 'nilai']);
+});
+
+// Konversi nilai tidak untuk kepala
+Route::middleware(['auth', 'role:dpl,pt'])->group(function () {
+    Route::get('dplkonversinilai', [DplkonversinilaiController::class, 'index']);
+    Route::get('dplkonversinilai/listdata', [DplkonversinilaiController::class, 'listdata'])->name('dplkonversinilai.listdata');
+    Route::get('dplkonversinilai/listdataserver', [DplkonversinilaiController::class, 'listdataserver'])->name('dplkonversinilai.listdataserver');
+    Route::get('dplkonversinilai/tambah', [DplkonversinilaiController::class, 'tambah']);
+    Route::put('dplkonversinilai/insert', [DplkonversinilaiController::class, 'insert']);
+    Route::get('dplkonversinilai/edit/{id_konversi}', [DplkonversinilaiController::class, 'edit']);
+    Route::put('dplkonversinilai/update', [DplkonversinilaiController::class, 'update']);
+    Route::put('dplkonversinilai/destroy', [DplkonversinilaiController::class, 'destroy']);
 });
 
 Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function () {
@@ -397,7 +401,14 @@ Route::middleware(['auth', 'role:pt,kepala'])->group(function () {
     Route::get('ptmahasiswa', [PtmahasiswaController::class, 'index'])->name('ptmahasiswa');
     Route::get('ptmahasiswa/listdata', [PtmahasiswaController::class, 'listdata'])->name('ptmahasiswa.listdata');
     Route::get('ptmahasiswa/listdataserver', [PtmahasiswaController::class, 'listdataserver'])->name('ptmahasiswa.listdataserver');
-    
+
+    Route::get('ptdpl', [PtdplController::class, 'index'])->name('ptdpl');
+    Route::get('ptdpl/listdata', [PtdplController::class, 'listdata'])->name('ptdpl.listdata');
+    Route::get('ptdpl/listdataserver', [PtdplController::class, 'listdataserver'])->name('ptdpl.listdataserver');
+});
+
+// Laporan akhir tidak untuk kepala
+Route::middleware(['auth', 'role:pt'])->group(function () {
     Route::get('pttugasakhir', [PttugasakhirController::class, 'index'])->name('pttugasakhir');
     Route::get('pttugasakhir/listdata', [PttugasakhirController::class, 'listdata'])->name('pttugasakhir.listdata');
     Route::get('pttugasakhir/listdataserver', [PttugasakhirController::class, 'listdataserver'])->name('pttugasakhir.listdataserver');

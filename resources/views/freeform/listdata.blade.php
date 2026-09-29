@@ -14,7 +14,6 @@
                     <th>Nilai DPL</th>
                     <th>Nilai DPA</th>
                     <th>Nilai Akhir</th>
-                    <th>Aksi</th>
                 </tr>
             </x-slot:thead>
         </x-datatable>
@@ -47,8 +46,7 @@
             {data: 'freeform', name: 'freeform'},
             {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center'},
             {data: 'nilai_dpa', name: 'nilai_dpa', className: 'text-center'},
-            {data: 'nilai_akhir', name: 'nilai_akhir', className: 'text-center'},
-            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false,visible:false},
+            {data: 'nilai_akhir', name: 'nilai_akhir', className: 'text-center'}
         ],
         layout: {
             top1: {
@@ -59,58 +57,6 @@
         },
         // Menambahkan opsi untuk mencegah escape HTML oleh DataTables
         decodeEntities: false
-    });
-
-
-    // Menangani klik tombol hapus
-    $("body").on('click','[id^=hapus]', function() {
-        // Mendapatkan baris yang diklik
-        var data = table.row($(this).parents('tr')).data();
-        // Lakukan apa pun yang diperlukan untuk mengonfirmasi pengguna sebelum menghapus data
-        if (confirm('Anda yakin ingin menghapus data ini?')) {
-            // Lakukan permintaan AJAX untuk menghapus data
-            var csrfToken = $('meta[name="csrf-token"]').attr('content');
-            let id_freeform = data.id_freeform;
-            const dString = "id_freeform="+id_freeform;
-            $.ajax({
-                url: 'dplfreeform/destroy',
-                method: 'PUT',
-                data:dString,
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken // Sertakan CSRF token dalam header
-                },
-                success: function(response) {
-                    if (response && response.message) {
-                        // Jika pesan sukses, tampilkan pesan berhasil
-                        $.notify(response.message, {
-                            type: 'success',
-                            animate: {
-                                enter: 'animated rollIn',
-                                exit: 'animated rollOut'
-                            },
-                            z_index: 2000
-                        });
-                        table.ajax.reload();
-                    }
-                    
-                    
-                },
-                error: function(xhr, status, error) {
-                    // Tangani kesalahan seperti CSRF token mismatch atau kesalahan server
-                    console.log(xhr.status); // Kode status HTTP
-                    console.log(xhr.responseText); // Pesan kesalahan dari server
-                    console.log(error); // Pesan kesalahan bawaan dari jQuery
-                    $.notify('Terjadi kesalahan saat menghapus data', {
-                        type: 'danger',
-                        animate: {
-                            enter: 'animated rollIn',
-                            exit: 'animated rollOut'
-                        },
-                        z_index: 2000
-                    });
-                }
-            });
-        }
     });
   });
 </script>

@@ -643,7 +643,7 @@
                 <i class="ri-map-pin-2-fill"></i>
                 <span id="selectedLokasiName"></span>
               </div>
-              <p class="mb-0 text-muted">Silakan masuk untuk membuka Dasbor</p>
+              <p class="mb-0 text-muted">Silakan masuk untuk membuka Dashboard</p>
             </div>
 
             <form id="formAuthentication" class="mb-5" action="{{ url('login') }}" method="POST">

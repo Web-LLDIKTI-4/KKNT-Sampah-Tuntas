@@ -34,11 +34,11 @@ class DesaController extends Controller
         return DataTables::of(Desa::with('kecamatan')->get())
             ->addIndexColumn()
             ->addColumn('kecamatan', fn (Desa $row) => $row->kecamatan->kecamatan ?? '')
-            ->addColumn('action', fn (Desa $row) => ActionButtons::crud(
-                url('desa/edit/'.$row->id_desa),
-                url('desa/destroy'),
-                'id_desa',
-                $row->id_desa
+            ->addColumn('action', fn (Desa $row) => ActionButtons::make(
+                urlEdit: url('desa/edit/'.$row->id_desa),
+                urlDelete: url('desa/destroy'),
+                idField: 'id_desa',
+                idValue: $row->id_desa,
             ))
             ->rawColumns(['action'])
             ->make(true);

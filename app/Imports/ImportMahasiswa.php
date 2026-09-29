@@ -41,14 +41,17 @@ class ImportMahasiswa implements ToModel, WithStartRow, WithCalculatedFormulas
 
         $email = $this->cleanEmail($row[3]);
         $nim   = $this->cleanText($row[0]);
+        $phone = $this->cleanText($row[6]);
 
-        $existingMahasiswa = Mahasiswa::where('nim', $nim)
-                                        ->where('kodept', $row[5])
-                                        ->first();
-        $existingEmailMahasiswa = Mahasiswa::where('email', $email)->first();
+        // Cek duplikat, sebutkan kolom yang sudah terdaftar
+        $duplicates = array_filter([
+            "NIM {$nim}" => Mahasiswa::where('nim', $nim)->where('kodept', $row[5]),
+            "Email {$email}" => Mahasiswa::where('email', $email),
+            "No HP {$phone}" => Mahasiswa::where('phone', $phone),
+        ], fn ($query) => $query->exists());
 
-        if ($existingMahasiswa || $existingEmailMahasiswa) {
-            $this->errors[] = "Baris NIM {$nim}: duplikat entri, dilewati.";
+        if ($duplicates) {
+            $this->errors[] = "Baris NIM {$nim}: ".implode(', ', array_keys($duplicates)).' sudah terdaftar, dilewati.';
             return null;
         }
 

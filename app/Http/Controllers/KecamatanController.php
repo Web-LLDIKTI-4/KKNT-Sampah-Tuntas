@@ -30,11 +30,11 @@ class KecamatanController extends Controller
 
         return DataTables::of(Kecamatan::query())
             ->addIndexColumn()
-            ->addColumn('action', fn (Kecamatan $row) => ActionButtons::crud(
-                url('kecamatan/edit/'.$row->id_kecamatan),
-                url('kecamatan/destroy'),
-                'id_kecamatan',
-                $row->id_kecamatan
+            ->addColumn('action', fn (Kecamatan $row) => ActionButtons::make(
+                urlEdit: url('kecamatan/edit/'.$row->id_kecamatan),
+                urlDelete: url('kecamatan/destroy'),
+                idField: 'id_kecamatan',
+                idValue: $row->id_kecamatan,
             ))
             ->rawColumns(['action'])
             ->make(true);

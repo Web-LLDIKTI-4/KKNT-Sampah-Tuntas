@@ -1,5 +1,6 @@
 <?php
 namespace App\Models;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,17 @@ class Dpl extends Model
     protected $table = 'dpl';
     protected $guarded = [];
     protected $primaryKey = 'id_dpl';
-    
+
+    // DPL yang boleh dilihat: admin/kepala semua, PT sesuai kodept akunnya
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        return match ($user->role) {
+            'admin', 'kepala' => $query,
+            'pt' => $query->where('kodept', $user->email),
+            default => $query->whereRaw('1 = 0'),
+        };
+    }
+
     public function user()
     {
         return $this->hasOne(User::class,'email','email');

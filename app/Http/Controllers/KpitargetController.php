@@ -37,11 +37,11 @@ class KpitargetController extends Controller
             ->addIndexColumn()
             ->addColumn('nama_kpi', fn (Kpitarget $row) => $row->kpi->nama_kpi ?? '')
             ->editColumn('target', fn (Kpitarget $row) => Kpicapaian::formatAngka($row->target))
-            ->addColumn('action', fn (Kpitarget $row) => ActionButtons::crud(
-                url('kpitarget/edit/'.$row->id_target),
-                url('kpitarget/destroy'),
-                'id_target',
-                $row->id_target
+            ->addColumn('action', fn (Kpitarget $row) => ActionButtons::make(
+                urlEdit: url('kpitarget/edit/'.$row->id_target),
+                urlDelete: url('kpitarget/destroy'),
+                idField: 'id_target',
+                idValue: $row->id_target,
             ))
             ->rawColumns(['action'])
             ->make(true);

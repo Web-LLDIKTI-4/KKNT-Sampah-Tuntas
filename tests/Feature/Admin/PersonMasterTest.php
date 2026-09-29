@@ -6,12 +6,16 @@ use App\Models\Dpl;
 use App\Models\Dplmentoring;
 use App\Models\Kpicapaian;
 use App\Models\Logkegiatan;
+use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Nilaikonversi;
 use App\Models\Tugasakhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Excel as ExcelFormat;
+use Maatwebsite\Excel\Facades\Excel;
 use Tests\TestCase;
 
 class PersonMasterTest extends TestCase
@@ -54,8 +58,107 @@ class PersonMasterTest extends TestCase
     {
         $this->loginAs('admin');
 
-        $this->from('mahasiswa')->put('mahasiswa/prosesimport', ['file' => UploadedFile::fake()->create('x.php', 5, 'text/x-php')])
-            ->assertSessionHasErrors('file');
+        $this->put('mahasiswa/prosesimport', ['file' => UploadedFile::fake()->create('x.php', 5, 'text/x-php')])
+            ->assertJsonValidationErrors('file', 'errors');
+    }
+
+    public function test_import_returns_json_with_skipped_rows(): void
+    {
+        $this->loginAs('admin');
+        $lokasi = LokasiProgram::factory()->create();
+        $rows = [
+            ['NIM', 'Tahun', 'Nama', 'Email', 'Prodi', 'Kode PT', 'HP', 'Lokasi'],
+            ['1001', '2023', 'Ani', 'ani@pps.test', 'TI', '041001', '0811', $lokasi->nama_lokasi],
+            ['1002', '2023', 'Budi', 'budi@pps.test', 'TI', '041001', '0812', 'Lokasi Tidak Ada'],
+        ];
+
+        $this->put('mahasiswa/prosesimport', ['file' => $this->xlsx($rows)])
+            ->assertJson(['success' => true, 'toast' => 'warning', 'message' => '1 data berhasil diimpor, 1 baris dilewati.'])
+            ->assertJsonPath('import_errors.0', 'Baris NIM 1002: Lokasi Program "Lokasi Tidak Ada" tidak ditemukan.');
+
+        $this->assertDatabaseHas('mahasiswa', ['nim' => '1001']);
+        $this->assertDatabaseMissing('mahasiswa', ['nim' => '1002']);
+    }
+
+    public function test_dpl_import_with_no_valid_rows_uses_error_toast(): void
+    {
+        $this->loginAs('admin');
+        $rows = [
+            ['NIDN', 'Nama', 'Email', 'Lokasi', 'Prodi', 'Kode PT', 'HP'],
+            ['19820219', 'Dosen A', 'a@pps.test', 'Karawang', 'TI', '041001', '0811'],
+            ['19820218', 'Dosen B', 'b@pps.test', 'Tanjung Pinang', 'TI', '041001', '0812'],
+        ];
+
+        $this->put('dpl/prosesimport', ['file' => $this->xlsx($rows)])
+            ->assertJson(['toast' => 'error', 'message' => 'Tidak ada data yang diimpor, 2 baris dilewati.'])
+            ->assertJsonCount(2, 'import_errors');
+
+        $this->assertDatabaseCount('dpl', 0);
+    }
+
+    public function test_dpl_import_names_duplicate_columns(): void
+    {
+        $this->loginAs('admin');
+        $lokasi = LokasiProgram::factory()->create();
+        Dpl::factory()->create(['nidn' => '111', 'kodept' => '041001', 'email' => 'lama@pps.test', 'phone' => '08111']);
+        $rows = [
+            ['NIDN', 'Nama', 'Email', 'Lokasi', 'Prodi', 'Kode PT', 'HP'],
+            ['111', 'Dosen A', 'baru@pps.test', $lokasi->nama_lokasi, 'TI', '041001', '08111'],
+            ['222', 'Dosen B', 'b@pps.test', $lokasi->nama_lokasi, 'TI', '041001', '08222'],
+            ['333', 'Dosen C', 'b@pps.test', $lokasi->nama_lokasi, 'TI', '041001', '08333'],
+        ];
+
+        $this->put('dpl/prosesimport', ['file' => $this->xlsx($rows)])
+            ->assertJsonPath('import_errors', [
+                'Baris NIDN 111: NIDN 111, No HP 08111 sudah terdaftar, dilewati.',
+                'Baris NIDN 333: Email b@pps.test sudah terdaftar, dilewati.',
+            ]);
+
+        $this->assertDatabaseHas('dpl', ['nidn' => '222']);
+    }
+
+    public function test_mahasiswa_import_names_duplicate_columns(): void
+    {
+        $this->loginAs('admin');
+        $lokasi = LokasiProgram::factory()->create();
+        Mahasiswa::factory()->create(['nim' => '1001', 'kodept' => '041001', 'email' => 'ani@pps.test', 'phone' => '08111']);
+        $rows = [
+            ['NIM', 'Tahun', 'Nama', 'Email', 'Prodi', 'Kode PT', 'HP', 'Lokasi'],
+            ['1002', '2023', 'Ani', 'ani@pps.test', 'TI', '041001', '08111', $lokasi->nama_lokasi],
+        ];
+
+        $this->put('mahasiswa/prosesimport', ['file' => $this->xlsx($rows)])
+            ->assertJsonPath('import_errors.0', 'Baris NIM 1002: Email ani@pps.test, No HP 08111 sudah terdaftar, dilewati.');
+    }
+
+    public function test_import_all_rows_valid_returns_success_without_errors(): void
+    {
+        $this->loginAs('admin');
+        $lokasi = LokasiProgram::factory()->create();
+        $rows = [
+            ['NIM', 'Tahun', 'Nama', 'Email', 'Prodi', 'Kode PT', 'HP', 'Lokasi'],
+            ['2001', '2023', 'Cici', 'cici@pps.test', 'SI', '041001', '0813', $lokasi->nama_lokasi],
+        ];
+
+        $this->put('mahasiswa/prosesimport', ['file' => $this->xlsx($rows)])
+            ->assertJson(['success' => true])
+            ->assertJsonMissingPath('toast')
+            ->assertJsonMissingPath('import_errors');
+    }
+
+    private function xlsx(array $rows): UploadedFile
+    {
+        $content = Excel::raw(new class($rows) implements FromArray
+        {
+            public function __construct(private array $rows) {}
+
+            public function array(): array
+            {
+                return $this->rows;
+            }
+        }, ExcelFormat::XLSX);
+
+        return UploadedFile::fake()->createWithContent('import.xlsx', $content);
     }
 
     public function test_listing_shows_pt_and_lokasi(): void

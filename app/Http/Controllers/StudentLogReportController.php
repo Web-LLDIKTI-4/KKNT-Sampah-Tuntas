@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Models\Mahasiswa;
+use App\Support\ActionButtons;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTableAbstract;
 use Yajra\DataTables\Facades\DataTables;
@@ -55,9 +56,9 @@ abstract class StudentLogReportController extends Controller
             ->addColumn('email', fn ($row) => $row->email ?? 'Email tidak tersedia')
             ->addColumn('nm_lemb', fn ($row) => $row->sp->nm_lemb ?? 'Perguruan Tinggi tidak tersedia')
             ->addColumn('count_log', fn ($row) => $row->{$countColumn})
-            ->addColumn('action', fn ($row) => view('components.action-data', [
-                'urlView' => url($this->routePrefix().'/listdata/'.rawurlencode($row->email)),
-            ])->render())
+            ->addColumn('action', fn ($row) => ActionButtons::make(
+                urlView: url($this->routePrefix().'/listdata/'.rawurlencode($row->email)),
+            ))
             ->rawColumns(['action'])
             ->make(true);
     }

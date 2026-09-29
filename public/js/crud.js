@@ -58,7 +58,8 @@
             return;
         }
 
-        var $btn = $('#btnSubmit_' + form.id);
+        // Pakai attr: form.id tertimpa oleh <input name="id">
+        var $btn = $('#btnSubmit_' + $form.attr('id'));
         var btnHtml = $btn.html();
         var hasFile = $form.find('input[type="file"]').length > 0;
 
@@ -78,7 +79,9 @@
             },
             success: function (ret) {
                 if (ret.success) {
-                    toastr.success(ret.message);
+                    // Server boleh menentukan jenis toast, mis. import yang sebagian barisnya gagal
+                    var toastType = ['success', 'warning', 'error', 'info'].indexOf(ret.toast) >= 0 ? ret.toast : 'success';
+                    toastr[toastType](ret.message);
                     clearFieldErrors($form);
                     if ($form.is('[data-reload-page]')) {
                         $('#modalku').modal('hide');
@@ -130,7 +133,13 @@
                 toastr.success(ret.message);
                 var $table = $btn.closest('table');
                 if ($table.length && $.fn.DataTable.isDataTable($table)) {
-                    $table.DataTable().ajax.reload(null, false);
+                    var dt = $table.DataTable();
+                    // Tabel server-side di-reload, tabel client-side cukup hapus barisnya
+                    if (dt.ajax.url()) {
+                        dt.ajax.reload(null, false);
+                    } else {
+                        dt.row($btn.closest('tr')).remove().draw(false);
+                    }
                 } else {
                     $btn.closest('tr').fadeOut(300, function () { $(this).remove(); });
                 }

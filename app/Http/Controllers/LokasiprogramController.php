@@ -34,11 +34,11 @@ class LokasiprogramController extends Controller
             ->addColumn('gambar', fn (LokasiProgram $row) => $row->gambar
                 ? '<img src="'.e(asset('storage/'.$row->gambar)).'" alt="Gambar" width="100">'
                 : 'Tidak ada gambar')
-            ->addColumn('action', fn (LokasiProgram $row) => ActionButtons::crud(
-                url('lokasiprogram/edit/'.$row->id),
-                url('lokasiprogram/destroy'),
-                'id',
-                $row->id
+            ->addColumn('action', fn (LokasiProgram $row) => ActionButtons::make(
+                urlEdit: url('lokasiprogram/edit/'.$row->id),
+                urlDelete: url('lokasiprogram/destroy'),
+                idField: 'id',
+                idValue: $row->id,
             ))
             ->rawColumns(['action', 'gambar'])
             ->make(true);

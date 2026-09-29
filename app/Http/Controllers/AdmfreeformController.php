@@ -11,7 +11,6 @@ use App\Models\Freeform;
 
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
-use App\Support\ActionButtons;
 
 use App\Exports\FreeformExport;
 
@@ -50,10 +49,7 @@ class AdmfreeformController extends Controller
                     $nilai_dpa = is_numeric($row->nilai_dpa) ? $row->nilai_dpa : 0;
                     return ($nilai_dpl + $nilai_dpa)/2;
                 })
-                ->addColumn('action', function($row){
-                    return ActionButtons::delete($row->id_freeform);
-                })
-                ->rawColumns(['action','nilai_akhir'])
+                ->rawColumns(['nilai_akhir'])
                 ->make(true);
         }
     }

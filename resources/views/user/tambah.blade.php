@@ -9,7 +9,7 @@
         </div>
         <div class="form-group col form-floating form-floating-outline mb-6">
             <input type="text" name="email" class="form-control form-control-sm">
-            <label>Surel</label>
+            <label>Email</label>
             <span id="email_error" class="text-danger"></span>
         </div>
     </div>

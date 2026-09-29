@@ -6,7 +6,7 @@
                     <th class="text-center" width="1">No</th>
                     <th class="text-center">NIM</th>
                     <th class="text-center">Nama</th>
-                    <th class="text-center">Surel</th>
+                    <th class="text-center">Email</th>
                     <th class="text-center">Perguruan Tinggi</th>
                     <th class="text-center">Jumlah</th>
                     <th class="text-center" width="1">Aksi</th>

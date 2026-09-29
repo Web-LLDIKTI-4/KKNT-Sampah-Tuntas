@@ -1,50 +1,32 @@
 @props([
-    'urlModal' => null,
-    'titleModal' => "Modal Title",
     'urlView' => null,
     'urlEdit' => null,
     'urlDelete' => null,
-    'classModal' => 'btn-action-view',
-    'classView' => 'btn-action-view',
-    'classEdit' => 'btn-action-edit',
-    'classDelete' => 'btn-action-delete',
-    'idField' => null,
+    'idField' => 'id',
     'idValue' => null,
     'confirm' => 'Anda yakin ingin menghapus data ini?',
+    'titleView' => 'Lihat Data',
+    'titleEdit' => 'Ubah Data',
+    'titleDelete' => 'Hapus Data',
 ])
-
-<div class="d-flex gap-2">
-    @if ($urlModal)
-        <a class="{{ $classModal }}" href="#modalku" data-bs-toggle="modal" data-src="{{ $urlModal }}" title="{{ $titleModal }}">
-            <i class="ri-award-line fs-4"></i>
-        </a>
-    @endif
-
+{{-- Hapus ditangani handler global .btn-delete di public/js/crud.js --}}
+<div class="d-flex justify-content-center gap-2">
     @if ($urlView)
-        <a href="{{ $urlView }}" class="{{ $classView }}">
-            <i class="ri-eye-line fs-4"></i>
+        <a href="{{ $urlView }}" class="btn-action-view" title="{{ $titleView }}">
+            <i class="ri-eye-line"></i>
         </a>
     @endif
 
     @if ($urlEdit)
-        <a href="#modalku" data-bs-toggle="modal" class="modalButton {{ $classEdit }}" data-src="{{ $urlEdit }}" title="Ubah Data">
-            <i class="ri-edit-box-line fs-4"></i>
-        </a>
-    @endif 
-    
-    @if ($urlDelete && empty($idField) && empty($idValue))
-        <a href="javascript:void(0)" id="hapus_{{ $urlDelete }}"  class="{{ $classDelete }}">
-            <i class="ri-delete-bin-3-line fs-4"></i>
+        <a href="#modalku" data-bs-toggle="modal" class="modalButton btn-action-edit" data-src="{{ $urlEdit }}" title="{{ $titleEdit }}">
+            <i class="ri-edit-box-line"></i>
         </a>
     @endif
 
-    @if ($urlDelete && $idField && $idValue)
-        <a href="javascript:void(0)" class="btn-delete {{ $classDelete }}" title="Hapus Data"
+    @if ($urlDelete && filled($idValue))
+        <a href="javascript:void(0)" class="btn-delete btn-action-delete" title="{{ $titleDelete }}"
             data-url="{{ $urlDelete }}" data-id-field="{{ $idField }}" data-id-value="{{ $idValue }}" data-confirm="{{ $confirm }}">
-            <i class="ri-delete-bin-3-line fs-4"></i>
+            <i class="ri-delete-bin-3-line"></i>
         </a>
     @endif
 </div>
-
-{{-- Handler .btn-delete dipindah ke table-init.js agar hanya terdaftar sekali,
-     mencegah duplikasi saat komponen ini di-render per-baris oleh DataTables. --}}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Admin\ImportFileRequest;
+use App\Support\ActionButtons;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -49,11 +50,11 @@ abstract class PersonMasterController extends Controller
             ->addIndexColumn()
             ->addColumn('nm_lemb', fn ($row) => $row->sp->nm_lemb ?? 'Belum Terdata')
             ->addColumn('location_program', fn ($row) => $row->locationProgram->nama_lokasi ?? 'Belum Terdata')
-            ->addColumn('action', fn ($row) => view('components.action-data', [
-                'urlDelete' => url($this->viewPrefix().'/destroy'),
-                'idField' => $key,
-                'idValue' => $row->{$key},
-            ])->render())
+            ->addColumn('action', fn ($row) => ActionButtons::make(
+                urlDelete: url($this->viewPrefix().'/destroy'),
+                idField: $key,
+                idValue: $row->{$key},
+            ))
             ->rawColumns(['action'])
             ->make(true);
     }
@@ -71,16 +72,28 @@ abstract class PersonMasterController extends Controller
         } catch (Throwable $e) {
             Log::error('Import '.$this->label().' gagal', ['exception' => $e]);
 
-            return back()->with('error', 'Terjadi kesalahan saat mengimpor data. Periksa format file sesuai template.');
+            return $this->failed('Terjadi kesalahan saat mengimpor data. Periksa format file sesuai template.');
         }
 
-        if (count($import->errors) > 0) {
-            return back()
-                ->with('warning', "{$import->imported} data berhasil diimpor.")
-                ->with('import_errors', $import->errors);
+        $failed = count($import->errors);
+        if ($failed > 0) {
+            // Batasi agar respons tetap kecil untuk file besar
+            $errors = array_slice($import->errors, 0, 100);
+            if ($failed > 100) {
+                $errors[] = 'dan '.($failed - 100).' baris lainnya.';
+            }
+
+            return response()->json([
+                'success' => true,
+                'toast' => $import->imported > 0 ? 'warning' : 'error',
+                'message' => $import->imported > 0
+                    ? "{$import->imported} data berhasil diimpor, {$failed} baris dilewati."
+                    : "Tidak ada data yang diimpor, {$failed} baris dilewati.",
+                'import_errors' => $errors,
+            ]);
         }
 
-        return back()->with('success', 'Data '.$this->label().' berhasil diimpor.');
+        return $this->saved("{$import->imported} data ".$this->label().' berhasil diimpor.');
     }
 
     public function destroy(Request $request)

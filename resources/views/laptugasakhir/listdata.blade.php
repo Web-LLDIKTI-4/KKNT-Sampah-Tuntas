@@ -39,8 +39,7 @@
             {data: 'nama', name: 'nama'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'tautan', name: 'tautan'},
-            {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center', orderable: false, searchable: false},
-            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false,visible:false,},
+            {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center', orderable: false, searchable: false}
         ],
         layout: {
             top1: {

@@ -2,27 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Mahasiswa;
+use App\Models\Dpl;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
-class PtmahasiswaController extends Controller
+class PtdplController extends Controller
 {
     public function index()
     {
-        return view('mahasiswa.pt.index');
+        return view('dpl.pt.index');
     }
 
     public function listdata()
     {
-        return view('mahasiswa.pt.listdata');
+        return view('dpl.pt.listdata');
     }
 
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
 
-        $data = Mahasiswa::visibleTo($request->user())->with(['sp', 'locationProgram'])->get();
+        $data = Dpl::visibleTo($request->user())->with(['sp', 'locationProgram'])->get();
 
         return DataTables::of($data)
             ->addIndexColumn()

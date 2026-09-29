@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use App\Exports\LogkegiatanExport;
 use DB;
+use App\Support\ActionButtons;
 class AdmlogharianController extends Controller
 {    
     public function index()
@@ -44,9 +45,7 @@ class AdmlogharianController extends Controller
                 return $log_mhs;
             })
             ->addColumn('action', function($row){
-                return view('components.btn-view', [
-                    'url' => url('admlogharian/permhs/'.$row->email)
-                ])->render();
+                return ActionButtons::make(urlView: url('admlogharian/permhs/'.rawurlencode($row->email)));
             })
             ->rawColumns(['action'])
             ->make(true);
@@ -64,11 +63,6 @@ class AdmlogharianController extends Controller
             $data = Logkegiatan::where("email", $request->email)->get();           
             return DataTables::of($data)
             ->addIndexColumn()
-            ->addColumn('action', function($row){
-                $actionBtn = '<div class="d-felx"><a href="'.url('admlogharian/#').'" class="btn btn-sm p-0 m-0">lihat data</a> </div>';
-                return $actionBtn;
-            })
-            ->rawColumns(['action'])
             ->make(true);
         }
     }

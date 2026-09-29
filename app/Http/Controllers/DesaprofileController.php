@@ -31,11 +31,11 @@ class DesaprofileController extends Controller
         return DataTables::of(Desaprofile::with('desa')->get())
             ->addIndexColumn()
             ->addColumn('desa', fn (Desaprofile $row) => $row->desa->desa ?? '')
-            ->addColumn('action', fn (Desaprofile $row) => ActionButtons::crud(
-                url('desaprofile/edit/'.$row->id_profile),
-                url('desaprofile/destroy'),
-                'id_profile',
-                $row->id_profile
+            ->addColumn('action', fn (Desaprofile $row) => ActionButtons::make(
+                urlEdit: url('desaprofile/edit/'.$row->id_profile),
+                urlDelete: url('desaprofile/destroy'),
+                idField: 'id_profile',
+                idValue: $row->id_profile,
             ))
             ->rawColumns(['action'])
             ->make(true);

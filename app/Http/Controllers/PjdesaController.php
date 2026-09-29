@@ -38,11 +38,11 @@ class PjdesaController extends Controller
             ->addColumn('desa', fn (Pjdesa $row) => $row->desa->desa ?? '')
             ->addColumn('pjdesa', fn (Pjdesa $row) => $row->mahasiswa->nama ?? 'Data tidak tersedia')
             ->addColumn('instansi', fn (Pjdesa $row) => $row->mahasiswa->sp->nm_lemb ?? 'Data tidak tersedia')
-            ->addColumn('action', fn (Pjdesa $row) => ActionButtons::crud(
-                url('pjdesa/edit/'.$row->id_pjdesa),
-                url('pjdesa/destroy'),
-                'id_pjdesa',
-                $row->id_pjdesa
+            ->addColumn('action', fn (Pjdesa $row) => ActionButtons::make(
+                urlEdit: url('pjdesa/edit/'.$row->id_pjdesa),
+                urlDelete: url('pjdesa/destroy'),
+                idField: 'id_pjdesa',
+                idValue: $row->id_pjdesa,
             ))
             ->rawColumns(['action'])
             ->make(true);

@@ -2,7 +2,7 @@
 @section('title','Beranda')
 @section('container')
 
-<x-page-header title="Dasbor" description="Selamat datang di Dasbor."/>
+<x-page-header title="Dashboard" description="Selamat datang di Dashboard."/>
 
 <div class="flex-grow-1">
     @php

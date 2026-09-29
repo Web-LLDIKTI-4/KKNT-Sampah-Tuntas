@@ -42,15 +42,11 @@ $(function(){
                 data: 'deskripsi',
                 name: 'deskripsi',
                 render: function (data, type, row) {
-                    // Membuat sebuah div sementara untuk membersihkan tag HTML
-                    var tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = data;
-                    // Mengambil teks dari div tersebut yang sudah bersih dari tag HTML
-                    var strippedText = tempDiv.textContent || tempDiv.innerText || '';
-                    return "<div class='text-wrap width-200'>" +strippedText+ "</div>";
+                    // DOMParser tidak mengeksekusi script/onerror; hasil teks di-escape ulang
+                    var text = new DOMParser().parseFromString(data || '', 'text/html').body.textContent || '';
+                    return $('<div class="text-wrap width-200"></div>').text(text).prop('outerHTML');
                 }
-            },           
-            {data: 'action', name: 'action', orderable: false, searchable: false, visible:false},
+            },
         ],
         layout: {
             top1: {

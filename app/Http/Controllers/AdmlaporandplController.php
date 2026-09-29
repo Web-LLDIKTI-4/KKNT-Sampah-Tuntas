@@ -11,6 +11,7 @@ use App\Models\Dpllaporan;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use App\Exports\LogbulanandplExport;
+use App\Support\ActionButtons;
 
 
 class AdmlaporandplController extends Controller
@@ -45,9 +46,7 @@ class AdmlaporandplController extends Controller
                     return $row->dpllaporan()->count() ?? '0';
                 })
                 ->addColumn('action', function($row){
-                    return view('components.action-data', [
-                        'urlView' => url('/admlaporandpl/listdata/'.$row->email)
-                    ]);
+                    return ActionButtons::make(urlView: url('admlaporandpl/listdata/'.rawurlencode($row->email)));
                 })
                 ->rawColumns(['action', 'deskripsi'])
                 ->make(true);

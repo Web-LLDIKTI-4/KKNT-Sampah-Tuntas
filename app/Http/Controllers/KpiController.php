@@ -33,11 +33,11 @@ class KpiController extends Controller
 
         return DataTables::of(Kpi::query())
             ->addIndexColumn()
-            ->addColumn('action', fn (Kpi $row) => ActionButtons::crud(
-                url('kpi/edit/'.$row->id_kpi),
-                url('kpi/destroy'),
-                'id_kpi',
-                $row->id_kpi
+            ->addColumn('action', fn (Kpi $row) => ActionButtons::make(
+                urlEdit: url('kpi/edit/'.$row->id_kpi),
+                urlDelete: url('kpi/destroy'),
+                idField: 'id_kpi',
+                idValue: $row->id_kpi,
             ))
             ->rawColumns(['action'])
             ->make(true);

@@ -43,15 +43,17 @@ class DPLImport implements ToModel, WithStartRow, WithCalculatedFormulas
         $nidnClean  = $this->cleanText($row[0]);
         $namaClean  = $this->cleanText($row[1]);
         $email      = $this->cleanEmail($row[2]);
+        $phone      = $this->cleanText($row[6]);
 
-        // 2. Cek duplikat
-        $existingMahasiswa = Dpl::where('nidn', $nidnClean)
-                                        ->where('kodept', $row[5])
-                                        ->first();
-        $existingEmailMahasiswa = Dpl::where('email', $email)->first();
+        // 2. Cek duplikat, sebutkan kolom yang sudah terdaftar
+        $duplicates = array_filter([
+            "NIDN {$nidnClean}" => Dpl::where('nidn', $nidnClean)->where('kodept', $row[5]),
+            "Email {$email}" => Dpl::where('email', $email),
+            "No HP {$phone}" => Dpl::where('phone', $phone),
+        ], fn ($query) => $query->exists());
 
-        if ($existingMahasiswa || $existingEmailMahasiswa) {
-            $this->errors[] = "Baris NIDN {$nidnClean}: duplikat entri, dilewati.";
+        if ($duplicates) {
+            $this->errors[] = "Baris NIDN {$nidnClean}: ".implode(', ', array_keys($duplicates)).' sudah terdaftar, dilewati.';
             return null;
         }
 

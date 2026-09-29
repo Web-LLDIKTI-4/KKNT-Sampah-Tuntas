@@ -39,7 +39,7 @@ class AuthTest extends TestCase
         $this->makeUser();
 
         $this->put('login', ['username' => 'admin@pps.test', 'password' => 'salah'])
-            ->assertJson(['success' => false, 'messages' => 'Surel atau Kata Sandi Salah']);
+            ->assertJson(['success' => false, 'messages' => 'Email atau Kata Sandi Salah']);
         $this->assertGuest();
     }
 

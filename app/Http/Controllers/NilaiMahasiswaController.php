@@ -57,11 +57,11 @@ abstract class NilaiMahasiswaController extends Controller
             ->addColumn('nama', fn ($row) => $row->mahasiswa->nama ?? 'Nama Tidak Tersedia')
             ->addColumn('nm_lemb', fn ($row) => $row->mahasiswa->sp->nm_lemb ?? 'Nama Lembaga Tidak Tersedia')
             ->addColumn('prodi', fn ($row) => $row->mahasiswa->prodi ?? 'Prodi Tidak Tersedia')
-            ->addColumn('action', fn ($row) => ActionButtons::crud(
-                url($this->routePrefix().'/edit/'.$row->{$key}),
-                url($this->routePrefix().'/destroy'),
-                $key,
-                $row->{$key}
+            ->addColumn('action', fn ($row) => ActionButtons::make(
+                urlEdit: url($this->routePrefix().'/edit/'.$row->{$key}),
+                urlDelete: url($this->routePrefix().'/destroy'),
+                idField: $key,
+                idValue: $row->{$key},
             ))
             ->rawColumns(['action'])
             ->make(true);

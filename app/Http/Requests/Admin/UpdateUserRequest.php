@@ -26,9 +26,9 @@ class UpdateUserRequest extends AjaxFormRequest
         return [
             'id.exists' => 'Pengguna tidak ditemukan.',
             'name.required' => 'Nama harus di isi.',
-            'email.required' => 'Surel harus diisi.',
-            'email.email' => 'Surel tidak valid.',
-            'email.unique' => 'Surel sudah digunakan!',
+            'email.required' => 'Email harus diisi.',
+            'email.email' => 'Email tidak valid.',
+            'email.unique' => 'Email sudah digunakan!',
             'location_program.exists' => 'Lokasi program tidak valid.',
             'password.min' => 'Kata sandi minimal 8 karakter.',
         ];

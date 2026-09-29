@@ -63,11 +63,11 @@ class KpicapaianController extends Controller
             ->editColumn('kendala', fn (Kpicapaian $row) => nl2br(e($row->kendala)))
             ->editColumn('status_capaian', fn (Kpicapaian $row) => static::statusBadge($row->status_capaian))
             ->editColumn('tautan', fn (Kpicapaian $row) => HtmlSanitizer::link($row->tautan))
-            ->addColumn('action', fn (Kpicapaian $row) => ActionButtons::crud(
-                url('kpicapaian/edit/'.$row->id_capaian),
-                url('kpicapaian/destroy'),
-                'id_capaian',
-                $row->id_capaian
+            ->addColumn('action', fn (Kpicapaian $row) => ActionButtons::make(
+                urlEdit: url('kpicapaian/edit/'.$row->id_capaian),
+                urlDelete: url('kpicapaian/destroy'),
+                idField: 'id_capaian',
+                idValue: $row->id_capaian,
             ))
             ->rawColumns(['lokasi', 'action', 'tautan', 'status_capaian', 'permasalahan', 'solusi', 'kendala'])
             ->make(true);

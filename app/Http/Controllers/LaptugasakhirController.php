@@ -47,19 +47,7 @@ class LaptugasakhirController extends Controller
                 ->addColumn('tautan', function($row) {
                     return \App\Support\HtmlSanitizer::link($row->tautan) ?: null;
                 })
-                ->addColumn('action', function($row) {
-                    return view('components.action-data', [
-                        'urlDelete' => $row->id_tugasakhir,
-                    ]);
-                })
-                // ->addColumn('action', function($row) {
-                //     return view('components.btn-delete', [
-                //         'idField' => 'hapus_'.$row->id_tugasakhir,
-                //         'idValue' => $row->id_tugasakhir,
-                //         'url' => url('tugasakhir/delete/'.$row->id_tugasakhir)
-                //     ])->render();
-                // })
-                ->rawColumns(['action', 'tautan'])
+                ->rawColumns(['tautan'])
                 ->make(true);
         }
         

@@ -17,8 +17,8 @@ class SaranRequest extends AjaxFormRequest
     {
         return [
             'nama.required' => 'Nama harus diisi.',
-            'email.required' => 'Surel harus diisi.',
-            'email.email' => 'Format surel tidak valid.',
+            'email.required' => 'Email harus diisi.',
+            'email.email' => 'Format Email tidak valid.',
             'email.unique' => 'Pesan anda sudah ada!',
             'saran.required' => 'Saran harus isi.',
             'saran.max' => 'Saran maksimal 2000 karakter.',

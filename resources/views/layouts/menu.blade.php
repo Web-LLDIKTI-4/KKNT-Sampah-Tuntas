@@ -169,11 +169,11 @@
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
                                         </a>
                                     </li>
-                                    <li class="nav-item">
+                                    {{-- <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboardkpi') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dasbor KPI
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard KPI
                                         </a>
-                                    </li>
+                                    </li> --}}
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('laptugasakhir') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
@@ -317,20 +317,27 @@
                                     </a>
                                 </li> --}}
                                 <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplkonversinilai') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('ptdpl') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data DPL
                                     </a>
                                 </li>
-                                {{-- <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplfreeform') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai Free Form
-                                    </a>
-                                </li> --}}
                                 <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pttugasakhir') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('ptmahasiswa') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Mahasiswa
                                     </a>
                                 </li>
+                                @if (Auth::user()->role === 'pt')
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplkonversinilai') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pttugasakhir') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
+                                        </a>
+                                    </li>
+                                @endif
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url(Auth::user()->role === 'kepala' ? 'admevaluasikegiatan' : 'ptevaluasikegiatan') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i>
@@ -369,7 +376,7 @@
                             </li>
                             {{-- <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboardkpi') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dasbor KPI
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard KPI
                                 </a>
                             </li> --}}
                         </ul>

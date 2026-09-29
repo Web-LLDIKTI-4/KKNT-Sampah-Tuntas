@@ -39,11 +39,11 @@ class LogkegiatanController extends Controller
             ->addIndexColumn()
             ->addColumn('nama_kpi', fn (Logkegiatan $row) => $row->kpi->nama_kpi ?? '')
             ->editColumn('deskripsi', fn (Logkegiatan $row) => HtmlSanitizer::clean($row->deskripsi).' '.HtmlSanitizer::link($row->tautan))
-            ->addColumn('action', fn (Logkegiatan $row) => ActionButtons::crud(
-                url('logkegiatan/edit/'.$row->id_log),
-                url('logkegiatan/destroy'),
-                'id_log',
-                $row->id_log
+            ->addColumn('action', fn (Logkegiatan $row) => ActionButtons::make(
+                urlEdit: url('logkegiatan/edit/'.$row->id_log),
+                urlDelete: url('logkegiatan/destroy'),
+                idField: 'id_log',
+                idValue: $row->id_log,
             ))
             ->rawColumns(['deskripsi', 'action'])
             ->make(true);
