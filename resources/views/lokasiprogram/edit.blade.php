@@ -11,7 +11,7 @@
         @if($data->gambar)
             <div class="mb-2">
                 <img src="{{ asset('storage/'.$data->gambar) }}" alt="Gambar lokasi" style="height:80px;border-radius:8px;object-fit:cover;">
-                <small class="d-block text-muted mt-1">Upload baru untuk mengganti gambar.</small>
+                <small class="d-block text-muted mt-1">Unggah gambar baru untuk menggantinya.</small>
             </div>
         @endif
         <input type="file" name="gambar" class="form-control" accept="image/jpg,image/jpeg,image/png,image/webp">

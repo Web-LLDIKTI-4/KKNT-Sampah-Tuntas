@@ -3,7 +3,7 @@
         @csrf
         @method('PUT')
 
-        <x-btn-save formId="form-create">Tambah User</x-btn-save>
+        <x-btn-save formId="form-create">Tambah Pengguna</x-btn-save>
         <hr>
 
         <table class="table table-sm" id="tabel-data">

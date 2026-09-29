@@ -1,8 +1,8 @@
 @extends('layouts.app')
-@section('title','Home')
+@section('title','Beranda')
 @section('container')
 
-<x-page-header title="Dashboard" description="Selamat datang di Dashboard."/>
+<x-page-header title="Dasbor" description="Selamat datang di Dasbor."/>
 
 <div class="flex-grow-1">
     @php
@@ -130,9 +130,9 @@
                             <i class="ri-more-2-line ri-20px"></i>
                             </button>
                             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="projectTimeline">
-                            <a class="dropdown-item" href="javascript:void(0);">Refresh</a>
+                            <a class="dropdown-item" href="javascript:void(0);">Muat Ulang</a>
                             <a class="dropdown-item" href="javascript:void(0);">Share</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Update</a>
+                            <a class="dropdown-item" href="javascript:void(0);">Perbarui</a>
                             </div>              
                         </div> --}}
                     </div>

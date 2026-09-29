@@ -25,14 +25,14 @@ class UpdateUserRequest extends AjaxFormRequest
     public function messages(): array
     {
         return [
-            'id.exists' => 'User tidak ditemukan.',
+            'id.exists' => 'Pengguna tidak ditemukan.',
             'name.required' => 'Nama harus di isi.',
-            'email.required' => 'Email harus di isi.',
-            'email.email' => 'Email tidak valid.',
-            'email.unique' => 'Email sudah digunakan!',
-            'role.in' => 'Role tidak valid.',
+            'email.required' => 'Surel harus diisi.',
+            'email.email' => 'Surel tidak valid.',
+            'email.unique' => 'Surel sudah digunakan!',
+            'role.in' => 'Peran tidak valid.',
             'location_program.exists' => 'Lokasi program tidak valid.',
-            'password.min' => 'Password minimal 8 karakter.',
+            'password.min' => 'Kata sandi minimal 8 karakter.',
         ];
     }
 }

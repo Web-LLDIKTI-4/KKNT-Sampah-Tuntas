@@ -31,8 +31,8 @@
     </div>
     <div class="row">   
         <div class="form-group col form-floating form-floating-outline mb-6">
-            <input type="text" name="password" class="form-control" placeholder="Password">
-            <label>Password</label>
+            <input type="text" name="password" class="form-control" placeholder="Kata Sandi">
+            <label>Kata Sandi</label>
             <span id="password_error" class="text-danger"></span>
         </div>
         <div class="form-group col form-floating form-floating-outline mb-6">
@@ -43,7 +43,7 @@
                     @endforeach
                 @endif
             </select>
-            <label>Role</label>
+            <label>Peran</label>
             <span id="role_error" class="text-danger"></span>
         </div>
     </div>

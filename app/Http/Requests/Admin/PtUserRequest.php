@@ -33,8 +33,8 @@ class PtUserRequest extends AjaxFormRequest
             'kodept.unique' => 'PT tersebut sudah digunakan oleh akun lain!',
             'location_program.required' => 'Lokasi program harus di isi.',
             'location_program.exists' => 'Lokasi program tidak valid.',
-            'password.required' => 'Password harus di isi.',
-            'password.min' => 'Password minimal 8 karakter.',
+            'password.required' => 'Kata sandi harus diisi.',
+            'password.min' => 'Kata sandi minimal 8 karakter.',
         ];
     }
 }

@@ -11,7 +11,7 @@
         </div>
         <div class="form-group col form-floating form-floating-outline mb-6">
             <input type="text" name="email" class="form-control form-control-sm" value="{{ $data->email }}" required readonly>
-            <label>Email</label>
+            <label>Surel</label>
             <span id="email_error" class="text-danger"></span>
         </div>
     </div>
@@ -30,7 +30,7 @@
     <div class="row">   
         <div class="form-group col form-floating form-floating-outline mb-6">
             <input type="text" name="password" class="form-control form-control-sm">
-            <label>Password</label>
+            <label>Kata Sandi</label>
             <span id="password_error" class="text-danger"></span>
         </div>
         <div class="form-group col form-floating form-floating-outline mb-6">
@@ -39,7 +39,7 @@
                     <option value="{{ trim($row) }}" @if($data->role == $row) selected @endif>{{$row}}</option>
                 @endforeach
             </select>
-            <label>Role</label>
+            <label>Peran</label>
             <input type="hidden" name="role" value="{{$data->role}}"/>           
             <span id="role_error" class="text-danger"></span>
         </div>

@@ -32,7 +32,7 @@ class PhotoUploadRequest extends AjaxFormRequest
         throw new HttpResponseException(response()->json([
             'success' => false,
             'error' => $validator->errors(),
-            'message' => 'Poto gagal di upload',
+            'message' => 'Foto gagal diunggah',
         ]));
     }
 }

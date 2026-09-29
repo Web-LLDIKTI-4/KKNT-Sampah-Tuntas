@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Data Profile')
+@section('title','Data Profil')
 @section('container')
 
 <p id="resultcontent">Loading data...</p>    

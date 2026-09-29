@@ -3,11 +3,11 @@
     <thead>
         <tr>
             <th width="1">No</th>
-            <th>Username</th>
+            <th>Nama Pengguna</th>
             <th>Nama</th>
             <th>Nim/NIDN</th>
             <th>Perguruan Tinggi</th>
-            <th>Role</th>
+            <th>Peran</th>
             <th width="1">Aksi</th>
         </tr>
     </thead>

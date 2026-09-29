@@ -27,7 +27,7 @@
     @endif
 
     @if ($urlEdit)
-        <a href="#modalku" data-bs-toggle="modal" class="modalButton {{ $classEdit }}" data-src="{{ $urlEdit }}" title="Edit Data">
+        <a href="#modalku" data-bs-toggle="modal" class="modalButton {{ $classEdit }}" data-src="{{ $urlEdit }}" title="Ubah Data">
             <i class="ri-edit-box-line fs-4"></i>
         </a>
     @endif 

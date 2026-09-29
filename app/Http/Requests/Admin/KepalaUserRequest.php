@@ -24,11 +24,11 @@ class KepalaUserRequest extends AjaxFormRequest
     {
         return [
             'name.required' => 'Nama harus di isi.',
-            'email.required' => 'Email harus di isi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email sudah digunakan oleh akun lain!',
-            'password.required' => 'Password harus di isi.',
-            'password.min' => 'Password minimal 8 karakter.',
+            'email.required' => 'Surel harus diisi.',
+            'email.email' => 'Format surel tidak valid.',
+            'email.unique' => 'Surel sudah digunakan oleh akun lain!',
+            'password.required' => 'Kata sandi harus diisi.',
+            'password.min' => 'Kata sandi minimal 8 karakter.',
         ];
     }
 }

@@ -39,7 +39,7 @@ class AuthTest extends TestCase
         $this->makeUser();
 
         $this->put('login', ['username' => 'admin@pps.test', 'password' => 'salah'])
-            ->assertJson(['success' => false, 'messages' => 'Email atau Password Salah']);
+            ->assertJson(['success' => false, 'messages' => 'Surel atau Kata Sandi Salah']);
         $this->assertGuest();
     }
 
@@ -110,7 +110,7 @@ class AuthTest extends TestCase
         $this->actingAs($user);
 
         $this->put('setting/update', ['plama' => 'salah', 'pbaru' => 'Baru12345', 'pbaruulangi' => 'Baru12345'])
-            ->assertJsonPath('errors.plama.0', 'Password lama salah!');
+            ->assertJsonPath('errors.plama.0', 'Kata sandi lama salah!');
         $this->put('setting/update', ['plama' => 'Rahasia123', 'pbaru' => 'pendek', 'pbaruulangi' => 'pendek'])
             ->assertJsonValidationErrors('pbaru', 'errors');
 

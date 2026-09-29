@@ -1,5 +1,5 @@
     <form method="post" id="form-create" action="{{ url('user/insert') }}">
-        <x-btn-save formId="form-create">Tambah User</x-btn-save>
+        <x-btn-save formId="form-create">Tambah Pengguna</x-btn-save>
         <hr>
         @csrf
         @method('PUT')
@@ -10,7 +10,7 @@
                         <th width="1">No</th>
                         <th>Nim</th>
                         <th>Nama</th>
-                        <th>Email</th>
+                        <th>Surel</th>
                         {{-- <th>Nomor Telepon</th> --}}
                         <th>Perguruan Tinggi</th>
                         <th>Lokasi Program KKN</th>

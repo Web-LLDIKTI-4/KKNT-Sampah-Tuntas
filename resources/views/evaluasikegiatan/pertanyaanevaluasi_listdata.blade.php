@@ -1,9 +1,9 @@
 <x-table
     :ajax="route('admevaluasikegiatan.pertanyaanevaluasiserver')"
     :columns="[
-        ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'searchable' => false],
+        ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
         ['data' => 'pertanyaan', 'name' => 'pertanyaan'],
-        ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'searchable' => false],
+        ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
     ]"
 >
     <x-slot:thead>

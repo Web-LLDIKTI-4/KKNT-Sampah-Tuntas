@@ -28,7 +28,7 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id', name: 'id', visible:false},
             {data: 'gambar', name: 'gambar', orderable: false, searchable: false},
             {data: 'nama_lokasi', name: 'nama_lokasi'},

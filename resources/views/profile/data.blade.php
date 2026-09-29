@@ -16,7 +16,7 @@
                 </div>
                 <div class="user-profile-header d-flex flex-column flex-sm-row text-sm-start text-center mb-5">
                         <div class="flex-shrink-0 mt-n2 mx-sm-0 mx-auto">
-                            <x-btn-modal url="{{ $photoUploadUrl }}" class="modalButton" title="Upload Profile">
+                            <x-btn-modal url="{{ $photoUploadUrl }}" class="modalButton" title="Unggah Foto Profil">
                             <img id="showimageprofile"
                             src="{{ $photoRoute }}?rand={{ time() }}"
                             alt="user image"
@@ -58,7 +58,7 @@
                             </ul>
                             </div>
                             <a href="javascript:void(0)" class="btn btn-primary">
-                            <i class="ri-user-follow-line ri-16px me-2"></i>Terakhir Login {{ $profile->last_login }}
+                            <i class="ri-user-follow-line ri-16px me-2"></i>Terakhir Masuk {{ $profile->last_login }}
                             </a>
                         </div>
                     </div>
@@ -304,16 +304,16 @@
                         @method('PUT')
                         <div class="form-group form-floating form-floating-outline mb-6 mt-5">
                             <input type="text" name="plama" class="form-control">
-                            <label for="plama">Masukan Password Lama</label>
+                            <label for="plama">Masukkan Kata Sandi Lama</label>
                         </div>
                         <div class="row">
                           <div class="form-group form-floating form-floating-outline col mb-6">
                               <input type="password" name="pbaru" class="form-control">
-                              <label for="pbaru">Password Baru</label>
+                              <label for="pbaru">Kata Sandi Baru</label>
                           </div>
                           <div class="form-group form-floating form-floating-outline col mb-6">
                           <input type="password" name="pbaruulangi" class="form-control">
-                              <label for="pbaruulangi">Ulangi Password Baru</label>
+                              <label for="pbaruulangi">Ulangi Kata Sandi Baru</label>
                           </div>
                         </div>
                         <x-btn-save formId="form-updatepassword" class="btn btn-primary" name="kirim">Simpan</x-btn-save>

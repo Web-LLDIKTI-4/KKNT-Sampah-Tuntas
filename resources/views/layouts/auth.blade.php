@@ -12,7 +12,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>KKN Tematik Sampah Tuntas | Login</title>
+    <title>KKN Tematik Sampah Tuntas | Masuk</title>
 
     <meta name="description" content="" />
 
@@ -97,14 +97,14 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup">
               </button>
           </div>
           <div class="modal-body">
             <p id="modalisi">loading content...</p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
           </div>
         </div>
       </div>

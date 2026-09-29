@@ -31,8 +31,8 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'username.required' => 'Username harus diisi',
-            'password.required' => 'Password harus diisi',
+            'username.required' => 'Nama pengguna harus diisi',
+            'password.required' => 'Kata sandi harus diisi',
         ];
     }
 

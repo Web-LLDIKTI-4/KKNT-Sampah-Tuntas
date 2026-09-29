@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Dashboard')
+@section('title','Dasbor')
 @section('container')
 <style>
 @keyframes spin {
@@ -21,9 +21,9 @@
     </div>
     <div>
         <h5 class="mb-0">
-            <span class="align-middle">Dashboard</span>
+            <span class="align-middle">Dasbor</span>
         </h5>
-        <span>Dashboard Mahasiswa</span>
+        <span>Dasbor Mahasiswa</span>
     </div>
 </div>
 

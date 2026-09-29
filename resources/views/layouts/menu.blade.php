@@ -81,7 +81,7 @@
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('user') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                            <span data-i18n="Pricing">Kelola User</span>
+                                            <span data-i18n="Pricing">Kelola Pengguna</span>
                                         </a>
                                     </li>
                                     
@@ -171,7 +171,7 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboardkpi') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard KPI
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dasbor KPI
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -369,7 +369,7 @@
                             </li>
                             {{-- <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboardkpi') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard KPI
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dasbor KPI
                                 </a>
                             </li> --}}
                         </ul>
@@ -439,7 +439,7 @@
                     <form method="POST" action="{{ route('logout') }}" class="d-grid">
                         @csrf
                         <button type="submit" class="btn btn-sm btn-danger d-flex justify-content-center waves-effect waves-light">
-                            <small class="align-middle">Logout</small>
+                            <small class="align-middle">Keluar</small>
                             <i class="ri-logout-box-r-line ms-2 ri-16px"></i>
                         </button>
                     </form>

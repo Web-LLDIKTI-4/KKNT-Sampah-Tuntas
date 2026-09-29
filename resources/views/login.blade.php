@@ -14,7 +14,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0" />
 
-    <title>KKN Tematik Sampah Tuntas | Login</title>
+    <title>KKN Tematik Sampah Tuntas | Masuk</title>
 
     <meta name="description" content="" />
 
@@ -115,12 +115,9 @@
 
         .lokasi-header-logo {
           display: inline-flex;
-          align-items: flex-start;
-          justify-content: left;
-          background: #fff;
-          border-radius: 14px;
-          padding: 0.55rem 0.95rem;
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem;
           margin-bottom: 0.9rem;
         }
 
@@ -154,22 +151,10 @@
 
         .lokasi-panel-subtitle {
           color: rgba(255, 255, 255, 0.88);
-          font-size: 1.15rem;
+          font-size: 1.1rem;
           line-height: 1.6;
           margin-bottom: 2rem;
           max-width: 46rem;
-        }
-
-        .lokasi-panel-subtitle b {
-          display: inline-block;
-          margin-bottom: 0.6rem;
-          padding: 0.3rem 0.8rem;
-          font-size: 0.78rem;
-          letter-spacing: 0.08em;
-          color: #fff;
-          background: rgba(255, 255, 255, 0.16);
-          border: 1px solid rgba(255, 255, 255, 0.28);
-          border-radius: 999px;
         }
 
         .lokasi-search .input-group-text,
@@ -369,7 +354,7 @@
         .login-title {
           margin-bottom: 0.2rem;
           line-height: 1.1;
-          font-size: 1.6rem;
+          font-size: 1.2rem;
           color: #1f2937;
           letter-spacing: -0.01em;
         }
@@ -566,21 +551,11 @@
         <div class="auth-left-panel d-lg-flex col-lg-7 col-xl-8 p-0">
           <div class="lokasi-panel">
             <div class="lokasi-panel-header">
-              {{-- Logo Header --}}
-              {{-- <div class="d-flex justify-content-start">
-                <div class="lokasi-header-logo">
-                  <img src="../../assets/images/logo-kkn-berdampak.jpeg" alt="KKN Tematik Berdampak" />
-                  <img src="../../assets/images/gradasi.png" alt="Gradasi 4" style="width: 110px; height: auto;" />
-                </div>
-              </div> --}}
-
               <img src="../assets/images/kegiatan.jpeg" alt="Kegiatan KKN" class="lokasi-hero-img" />
               <h2 class="lokasi-panel-title">KKN Tematik Sampah Tuntas <br /> LLDIKTI Wilayah IV</h2>
 
               <p class="lokasi-panel-subtitle">
-                <b>LOKASI PELAKSANAAN PROGRAM</b>
-                <br />
-                Silahkan pilih Lokasi Program terlebih dahulu sebelum Login ke Aplikasi KKN Tematik Sampah Tuntas
+                Silahkan <b>pilih Lokasi</b> terlebih dahulu sebelum Anda Login
               </p>
               {{-- <div class="input-group lokasi-search">
                 <span class="input-group-text"><i class="ri-search-line"></i></span>
@@ -649,14 +624,21 @@
         <div class="auth-right-panel d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg py-5 px-4 px-sm-5">
           <div class="w-100 mx-auto" style="max-width: 400px;">
             <div class="mb-4 text-center">
-              <img src="../../assets/images/lldikti4_logo.png" alt="LLDIKTI Wilayah IV" style="width: 200px; height: auto; margin-bottom: 30px;" />
+              {{-- Logo Header --}}
+              <div class="d-flex justify-content-center">
+                <div class="lokasi-header-logo">
+                  <img src="../../assets/images/logo-kkn-berdampak.jpeg" alt="KKN Tematik Berdampak" />
+                  <img src="../../assets/images/gradasi.png" alt="Gradasi 4" style="width: 110px; height: auto;" />
+                </div>
+              </div>
+              <img src="../../assets/images/lldikti4_logo.png" alt="LLDIKTI Wilayah IV" style="width: 250px; height: auto; margin-bottom: 30px;" />
               
-              <h4 class="login-title fw-bold">PPS Bandung</h4>
+              <h4 class="login-title fw-bold">KKNT Sampah Tuntas</h4>
               <div id="selectedLokasiLabel" class="selected-lokasi-label d-none" aria-live="polite">
                 <i class="ri-map-pin-2-fill"></i>
                 <span id="selectedLokasiName"></span>
               </div>
-              <p class="mb-0 text-muted">Silakan login untuk masuk ke Dashboard</p>
+              <p class="mb-0 text-muted">Silakan masuk untuk membuka Dasbor</p>
             </div>
 
             <form id="formAuthentication" class="mb-5" action="{{ url('login') }}" method="POST">
@@ -669,9 +651,9 @@
                   class="form-control"
                   id="email"
                   name="username"
-                  placeholder="Enter your email or username"
+                  placeholder="Masukkan surel atau nama pengguna"
                   autofocus />
-                <label for="email">Email</label>
+                <label for="email">Surel</label>
               </div>
               <div class="mb-5">
                 <div class="form-password-toggle">
@@ -684,7 +666,7 @@
                         name="password"
                         placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
                         aria-describedby="password" />
-                      <label for="password">Password</label>
+                      <label for="password">Kata Sandi</label>
                     </div>
                     <span class="input-group-text cursor-pointer"><i class="ri-eye-off-line"></i></span>
                   </div>
@@ -797,7 +779,7 @@ $(function(){
             toastr.warning(ret.messages)
             if(ret.messages && ret.messages.indexOf("lokasi program") !== -1){
               $(".authentication-inner").addClass("show-lokasi");
-              $("#authMobileToggleText").text("Kembali ke Login");
+              $("#authMobileToggleText").text("Kembali ke Formulir Masuk");
               $("#authMobileToggle i").removeClass("ri-map-pin-2-line").addClass("ri-arrow-left-line");
             }
           }
@@ -855,7 +837,7 @@ $(function(){
         var $inner = $(".authentication-inner");
         $inner.toggleClass("show-lokasi");
         var showingLokasi = $inner.hasClass("show-lokasi");
-        $("#authMobileToggleText").text(showingLokasi ? "Kembali ke Login" : "Lihat Lokasi Program");
+        $("#authMobileToggleText").text(showingLokasi ? "Kembali ke Formulir Masuk" : "Lihat Lokasi Program");
         $(this).find("i").toggleClass("ri-map-pin-2-line ri-arrow-left-line");
       });
     

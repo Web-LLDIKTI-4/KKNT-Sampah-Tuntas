@@ -30,7 +30,7 @@
     <div class="row">   
         <div class="form-group col form-floating form-floating-outline mb-6">
             <input type="text" name="password" class="form-control form-control-sm">
-            <label>Password</label>
+            <label>Kata Sandi</label>
             <span id="password_error" class="text-danger"></span>
         </div>
         <div class="form-group col form-floating form-floating-outline mb-6">
@@ -41,7 +41,7 @@
                     @endforeach
                 @endif
             </select>
-            <label>Role</label>
+            <label>Peran</label>
             <span id="role_error" class="text-danger"></span>
         </div>
     </div>

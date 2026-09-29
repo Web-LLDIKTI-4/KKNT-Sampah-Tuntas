@@ -1,7 +1,7 @@
 @extends('layouts.app')
-@section('title','Setting Akun')
+@section('title','Pengaturan Akun')
 @section('container')
-<x-page-header icon="ri-lock-line" title="Setting Akun" subtitle="Kelola Password Akun" />
+<x-page-header icon="ri-lock-line" title="Pengaturan Akun" subtitle="Kelola Kata Sandi Akun" />
 <div class="card">
     <div class="card-body">
         <form method="post" id="form-update" action="{{ url('setting/update') }}" data-ajax-form>
@@ -9,18 +9,18 @@
             @method('PUT')
             <div class="form-group form-floating form-floating-outline mb-6">
                 <input type="password" name="plama" class="form-control" required autocomplete="current-password">
-                <label>Masukan Password Lama</label>
+                <label>Masukkan Kata Sandi Lama</label>
                 <span id="plama_error" class="text-danger"></span>
             </div>
             <div class="row">
                 <div class="form-group col form-floating form-floating-outline mb-6">
                     <input type="password" name="pbaru" class="form-control" required minlength="8" autocomplete="new-password">
-                    <label>Masukan Password Baru</label>
+                    <label>Masukkan Kata Sandi Baru</label>
                     <span id="pbaru_error" class="text-danger"></span>
                 </div>
                 <div class="form-group col form-floating form-floating-outline mb-6">
                     <input type="password" name="pbaruulangi" class="form-control" required minlength="8" autocomplete="new-password">
-                    <label>Ulangi Password Baru</label>
+                    <label>Ulangi Kata Sandi Baru</label>
                     <span id="pbaruulangi_error" class="text-danger"></span>
                 </div>
             </div>

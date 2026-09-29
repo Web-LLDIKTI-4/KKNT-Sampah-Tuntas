@@ -1,7 +1,7 @@
 <form method="post" id="form-create" action="{{ url('user/insertuser') }}">
     @csrf
     @method('PUT')
-    <x-btn-save formId="form-create">Tambah User</x-btn-save>
+    <x-btn-save formId="form-create">Tambah Pengguna</x-btn-save>
     <hr>
     <div class="table-responsive">
         <table class="table table-bordered table-sm" id="tabel-data">

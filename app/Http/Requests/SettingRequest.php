@@ -18,15 +18,15 @@ class SettingRequest extends AjaxFormRequest
     public function messages(): array
     {
         return [
-            'plama.required' => 'Password lama harus di isi.',
-            'plama.current_password' => 'Password lama salah!',
-            'pbaru.required' => 'Password baru harus di isi.',
-            'pbaru.different' => 'Password baru harus berbeda dengan password lama.',
-            'pbaru.min' => 'Password baru minimal 8 karakter.',
-            'pbaru.letters' => 'Password baru harus mengandung huruf.',
-            'pbaru.numbers' => 'Password baru harus mengandung angka.',
-            'pbaruulangi.required' => 'Konfirmasi password baru harus di isi.',
-            'pbaruulangi.same' => 'Password baru harus sama dengan konfirmasinya!',
+            'plama.required' => 'Kata sandi lama harus diisi.',
+            'plama.current_password' => 'Kata sandi lama salah!',
+            'pbaru.required' => 'Kata sandi baru harus diisi.',
+            'pbaru.different' => 'Kata sandi baru harus berbeda dengan kata sandi lama.',
+            'pbaru.min' => 'Kata sandi baru minimal 8 karakter.',
+            'pbaru.letters' => 'Kata sandi baru harus mengandung huruf.',
+            'pbaru.numbers' => 'Kata sandi baru harus mengandung angka.',
+            'pbaruulangi.required' => 'Konfirmasi kata sandi baru harus diisi.',
+            'pbaruulangi.same' => 'Kata sandi baru harus sama dengan konfirmasinya!',
         ];
     }
 }

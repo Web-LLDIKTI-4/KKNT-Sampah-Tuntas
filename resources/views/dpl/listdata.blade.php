@@ -17,7 +17,7 @@
             <th width="1">No</th>
             <th>NIDN</th>
             <th>Nama</th>
-            <th>Email</th>
+            <th>Surel</th>
             <th>Hp</th>
             <th>Perguruan Tinggi</th>
             <th>Lokasi Program KKN</th>

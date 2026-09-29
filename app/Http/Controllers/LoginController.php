@@ -18,7 +18,7 @@ class LoginController extends Controller
     public function proseslogin(LoginRequest $request)
     {
         if (! $request->authenticate()) {
-            return LoginRequest::failedResponse('Email atau Password Salah');
+            return LoginRequest::failedResponse('Surel atau Kata Sandi Salah');
         }
 
         $user = Auth::user();

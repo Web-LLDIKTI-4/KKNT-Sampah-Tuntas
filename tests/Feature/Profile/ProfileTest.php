@@ -46,7 +46,7 @@ class ProfileTest extends TestCase
         $this->loginAs('dpl');
 
         $this->put('profile/prosesuploadpoto', ['file_upload' => UploadedFile::fake()->create('shell.php', 1, 'application/x-php')])
-            ->assertJson(['success' => false, 'message' => 'Poto gagal di upload']);
+            ->assertJson(['success' => false, 'message' => 'Foto gagal diunggah']);
     }
 
     public function test_dpl_profile_update_creates_dpl_record(): void
