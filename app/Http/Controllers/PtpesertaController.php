@@ -28,7 +28,7 @@ class PtpesertaController extends Controller
 
         return DataTables::of($data)
             ->addIndexColumn()
-            ->addColumn('nm_lemb', fn ($row) => $nama[$row->kodept] ?? 'No PT')
+            ->addColumn('nm_lemb', fn ($row) => $nama[$row->kodept] ?? 'Perguruan Tinggi tidak ditemukan')
             ->make(true);
     }
 }

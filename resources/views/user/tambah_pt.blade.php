@@ -33,17 +33,6 @@
             <label>Kata Sandi</label>
             <span id="password_error" class="text-danger"></span>
         </div>
-        <div class="form-group col form-floating form-floating-outline mb-6">
-            <select name="role" class="form-control form-control-sm">
-                @if($role)
-                    @foreach($role as $val)
-                        <option value="{{$val}}">{{$val}}</option>
-                    @endforeach
-                @endif
-            </select>
-            <label>Peran</label>
-            <span id="role_error" class="text-danger"></span>
-        </div>
     </div>
     
     <x-btn-save formId="form-tambah">

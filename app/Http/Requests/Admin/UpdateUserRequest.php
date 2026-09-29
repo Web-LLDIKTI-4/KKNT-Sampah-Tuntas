@@ -15,7 +15,6 @@ class UpdateUserRequest extends AjaxFormRequest
             'id' => ['required', 'uuid', Rule::exists('users', 'id')->whereIn('role', ['mahasiswa', 'dpl'])],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->input('id'))],
-            'role' => ['required', Rule::in(['mahasiswa', 'dpl'])],
             'location_program' => ['nullable', 'uuid', 'exists:lokasi_program,id'],
             'akses' => ['nullable', Rule::in(['pjdesa', 'hapuspjdesa'])],
             'password' => ['nullable', 'string', 'max:255', Password::min(8)],
@@ -30,7 +29,6 @@ class UpdateUserRequest extends AjaxFormRequest
             'email.required' => 'Surel harus diisi.',
             'email.email' => 'Surel tidak valid.',
             'email.unique' => 'Surel sudah digunakan!',
-            'role.in' => 'Peran tidak valid.',
             'location_program.exists' => 'Lokasi program tidak valid.',
             'password.min' => 'Kata sandi minimal 8 karakter.',
         ];

@@ -27,7 +27,7 @@ class Kpicapaian extends Model
             return '-';
         }
 
-        return rtrim(rtrim(number_format((float) $value, 2, ',', '.'), '0'), ',');
+        return number_format(round((float) $value), 0, ',', '.');
     }
 
     public function capaianPersen(): float

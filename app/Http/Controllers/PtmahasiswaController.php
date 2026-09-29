@@ -35,7 +35,7 @@ class PtmahasiswaController extends Controller
                     return $row->sp->nm_lemb;
                 } else {
                     // Handle the case where 'sp' relation is null
-                    return 'No PT'; // or any default value you prefer
+                    return 'Perguruan Tinggi tidak ditemukan'; // or any default value you prefer
                 }
             })
             ->make(true);

@@ -8,7 +8,7 @@
                     <th>ID KONVERSI</th>
                     <th>Nim</th>
                     <th>Nama</th>
-                    <th>Nama PT</th>
+                    <th>Nama Perguruan Tinggi</th>
                     <th>Prodi.</th>
                     <th>Mata Kuliah</th>
                     <th>SKS</th>

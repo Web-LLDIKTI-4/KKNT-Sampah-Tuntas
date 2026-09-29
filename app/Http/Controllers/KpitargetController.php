@@ -36,6 +36,7 @@ class KpitargetController extends Controller
         return DataTables::of(Kpitarget::with('kpi')->get())
             ->addIndexColumn()
             ->addColumn('nama_kpi', fn (Kpitarget $row) => $row->kpi->nama_kpi ?? '')
+            ->editColumn('target', fn (Kpitarget $row) => Kpicapaian::formatAngka($row->target))
             ->addColumn('action', fn (Kpitarget $row) => ActionButtons::crud(
                 url('kpitarget/edit/'.$row->id_target),
                 url('kpitarget/destroy'),

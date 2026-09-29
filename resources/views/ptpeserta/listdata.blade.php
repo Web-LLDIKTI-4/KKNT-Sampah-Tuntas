@@ -5,8 +5,8 @@
             <thead>
                 <tr>
                     <th width="1">No</th>
-                    <th>Kode PT</th>
-                    <th>Nama PT</th>
+                    <th>Kode Perguruan Tinggi</th>
+                    <th>Nama Perguruan Tinggi</th>
                     <th>Jumlah Mahasiswa</th>
                 </tr>
             </thead>

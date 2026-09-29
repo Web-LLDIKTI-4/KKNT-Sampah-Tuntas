@@ -23,7 +23,7 @@
                 <div class="col-md-3">
                     <label class="form-label" for="f-pt">Perguruan Tinggi</label>
                     <select name="kodept" id="f-pt" class="form-select form-select-sm">
-                        <option value="">Semua PT</option>
+                        <option value="">Semua Perguruan Tinggi</option>
                         @foreach ($ptList as $item)
                             <option value="{{ $item->npsn }}" @selected($filter['kodept'] === $item->npsn)>{{ $item->nm_lemb }}</option>
                         @endforeach

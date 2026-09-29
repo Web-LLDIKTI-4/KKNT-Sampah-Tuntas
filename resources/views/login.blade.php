@@ -608,7 +608,7 @@
                           <div class="lokasi-stat">
                             <i class="ri-building-4-line"></i>
                             <span class="lokasi-stat-value">{{ $lokasi->jumlah_pt }}</span>
-                            <span class="lokasi-stat-label">PT</span>
+                            <span class="lokasi-stat-label">Perguruan Tinggi</span>
                           </div>
                         </div>
                       </div>

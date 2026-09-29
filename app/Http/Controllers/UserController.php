@@ -74,7 +74,6 @@ class UserController extends Controller
     {
         return view('user.edit', [
             'data' => User::whereIn('role', ['mahasiswa', 'dpl'])->findOrFail($id),
-            'role' => ['mahasiswa', 'dpl'],
             'akses' => ['pjdesa' => 'Set Ketua Kelompok', 'hapuspjdesa' => 'Hapus Akses Ketua Kelompok'],
             'locationPrograms' => LokasiProgram::orderBy('nama_lokasi')->get(),
         ]);
@@ -83,7 +82,7 @@ class UserController extends Controller
     public function updateuser(UpdateUserRequest $request)
     {
         $user = User::findOrFail($request->validated('id'));
-        $role = $request->validated('role');
+        $role = $user->role;
         $akses = $request->validated('akses');
         $mahasiswa = Mahasiswa::where('email', $user->email)->first();
 
@@ -100,7 +99,6 @@ class UserController extends Controller
 
             $data = [
                 'name' => $request->validated('name'),
-                'role' => $role,
                 'location_program' => $request->validated('location_program'),
             ];
             if ($role === 'mahasiswa' && $data['location_program']) {
@@ -130,7 +128,6 @@ class UserController extends Controller
     public function adduserpt()
     {
         return view('user.tambah_pt', [
-            'role' => ['pt'],
             'sp' => Satuanpendidikan::orderBy('nm_lemb')->get(),
             'locationPrograms' => LokasiProgram::orderBy('nama_lokasi')->get(),
         ]);
@@ -153,7 +150,6 @@ class UserController extends Controller
     public function edituserpt(string $id)
     {
         return view('user.edit_pt', [
-            'role' => ['pt'],
             'user' => User::where('role', 'pt')->findOrFail($id),
             'sp' => Satuanpendidikan::orderByRaw('TRIM(nm_lemb) DESC')->get(),
             'locationPrograms' => LokasiProgram::orderBy('nama_lokasi')->get(),

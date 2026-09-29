@@ -33,16 +33,6 @@
             <label>Kata Sandi</label>
             <span id="password_error" class="text-danger"></span>
         </div>
-        <div class="form-group col form-floating form-floating-outline mb-6">
-            <select id="role" class="form-control form-control-sm" disabled>
-                @foreach($role as $row)
-                    <option value="{{ trim($row) }}" @if($data->role == $row) selected @endif>{{$row}}</option>
-                @endforeach
-            </select>
-            <label>Peran</label>
-            <input type="hidden" name="role" value="{{$data->role}}"/>           
-            <span id="role_error" class="text-danger"></span>
-        </div>
     </div>
 
     @if ($data->role == 'mahasiswa')

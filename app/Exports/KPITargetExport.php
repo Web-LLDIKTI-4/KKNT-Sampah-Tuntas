@@ -19,7 +19,7 @@ class KPITargetExport implements FromCollection, WithHeadings
             return [
                 'nama_kpi' => $item->kpi->nama_kpi,
                 'kegiatan' => $item->kegiatan,
-                'target' => $item->target,
+                'target' => round((float) $item->target),
                 'satuan' => $item->satuan,
             ];
         });

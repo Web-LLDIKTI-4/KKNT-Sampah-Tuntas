@@ -12,7 +12,7 @@
                     <i class="ri-loop-left-line me-2"></i> Sync PDDIKTI
                 </button>
             </form>&nbsp;
-            <x-btn-modal url="{{ url('perguruantinggi/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Perguruan Tinggi"><i class="ri-play-list-add-line me-2"></i> Tambah PT</x-btn-modal>
+            <x-btn-modal url="{{ url('perguruantinggi/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Perguruan Tinggi"><i class="ri-play-list-add-line me-2"></i> Tambah Perguruan Tinggi</x-btn-modal>
         </div>
     </div>
     <div class="card-body">

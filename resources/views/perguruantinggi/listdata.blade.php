@@ -2,7 +2,7 @@
     <x-slot:thead>
         <tr>
             <th width="1">No</th>              <!-- 1 -->
-            <th>Kode pt</th>                     <!-- 2 -->
+            <th>Kode Perguruan Tinggi</th>                     <!-- 2 -->
             <th>Nama Perguruan Tinggi</th>      <!-- 3 -->
             {{-- <th>Alamat</th>                     <!-- 4 --> --}}
         </tr>

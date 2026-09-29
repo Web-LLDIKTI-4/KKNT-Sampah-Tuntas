@@ -20,7 +20,7 @@
     </div>
     <div class="row">
         <div class="form-group col-md-6 form-floating form-floating-outline mb-6">
-            <input type="number" name="target" class="form-control form-control-sm" required min="0" max="999999" step="any" value="{{$data->target}}">
+            <input type="number" name="target" class="form-control form-control-sm" required min="0" max="999999" step="any" value="{{ (float) $data->target }}">
             <label>Target</label>
         </div>
         <div class="form-group col-md-6 form-floating form-floating-outline mb-6">

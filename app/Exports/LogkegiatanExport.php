@@ -25,7 +25,7 @@ class LogkegiatanExport implements FromCollection, WithHeadings
                 'No' => $key + 1, 
                 'Nama Mahasiswa' => $item->mahasiswa->nama, 
                 'NIM' => strval($item->mahasiswa->nim),
-                'Kode PT' => $item->mahasiswa->kodept, 
+                'Kode Perguruan Tinggi' => $item->mahasiswa->kodept, 
                 'Jumlah Hari' => Logkegiatan::where('email', $item->email)
                 ->select(DB::raw('count(distinct tanggal) as count'))
                 ->value('count'),
@@ -45,7 +45,7 @@ class LogkegiatanExport implements FromCollection, WithHeadings
             'No',
             'Nama Mahasiswa',
             'NIM',
-            'Kode PT',
+            'Kode Perguruan Tinggi',
             'Jumlah Hari',
             // Tambahkan judul kolom lain sesuai kebutuhan
         ];

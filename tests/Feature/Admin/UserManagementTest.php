@@ -45,15 +45,15 @@ class UserManagementTest extends TestCase
         $this->assertSame('pt', User::where('email', $sp->npsn)->value('role'));
     }
 
-    public function test_update_user_rejects_admin_target_and_invalid_role(): void
+    public function test_update_user_rejects_admin_target_and_ignores_role_input(): void
     {
         $admin = $this->loginAs('admin');
         $target = User::factory()->role('mahasiswa')->create();
 
-        $this->put('user/updateuser', ['id' => $admin->id, 'name' => 'x', 'email' => 'x@pps.test', 'role' => 'mahasiswa'])
+        $this->put('user/updateuser', ['id' => $admin->id, 'name' => 'x', 'email' => 'x@pps.test'])
             ->assertJsonValidationErrors('id', 'errors');
         $this->put('user/updateuser', ['id' => $target->id, 'name' => 'x', 'email' => $target->email, 'role' => 'admin'])
-            ->assertJsonValidationErrors('role', 'errors');
+            ->assertJson(['success' => true]);
         $this->assertSame('mahasiswa', $target->fresh()->role);
     }
 
@@ -65,7 +65,7 @@ class UserManagementTest extends TestCase
         Logkegiatan::factory()->create(['email' => 'lama@pps.test']);
         Dplmentoring::create(['email_mahasiswa' => 'lama@pps.test', 'email_dpl' => 'dpl@pps.test']);
 
-        $this->put('user/updateuser', ['id' => $user->id, 'name' => 'Baru', 'email' => 'baru@pps.test', 'role' => 'mahasiswa'])
+        $this->put('user/updateuser', ['id' => $user->id, 'name' => 'Baru', 'email' => 'baru@pps.test'])
             ->assertJson(['success' => true]);
 
         $this->assertSame('baru@pps.test', $user->fresh()->email);

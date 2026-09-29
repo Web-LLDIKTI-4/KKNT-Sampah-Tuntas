@@ -15,7 +15,7 @@
                 <thead>
                     <tr>
                         @unless ($isPt)
-                            <th class="text-center">Jumlah PT</th>
+                            <th class="text-center">Jumlah Perguruan Tinggi</th>
                         @endunless
                         <th>Lokasi Kegiatan</th>
                         <th class="text-center">Kecamatan</th>
@@ -46,13 +46,13 @@
 <div class="card mb-6">
     <div class="card-header">
         <h5 class="mb-1">Capaian per Perguruan Tinggi</h5>
-        <p class="mb-0 card-subtitle">Realisasi dan capaian per kegiatan = rata-rata seluruh kelompok PT (maksimal target)</p>
+        <p class="mb-0 card-subtitle">Realisasi dan capaian per kegiatan = rata-rata seluruh kelompok perguruan tinggi (maksimal target)</p>
     </div>
     <div class="card-body">
         <table class="table table-sm table-bordered text-nowrap w-100" id="tabel-rekap-pt">
             <thead>
                 <tr>
-                    <th>Kampus</th>
+                    <th>Perguruan Tinggi</th>
                     <th class="text-center">Mahasiswa</th>
                     <th class="text-center">Kelompok</th>
                     <th>KPI</th>

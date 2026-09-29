@@ -35,7 +35,7 @@ class UserExport implements FromCollection, WithHeadings
             return [
                 'No' => $key + 1,
                 'Nama' => $data->name,
-                'NIM/NIDN/Kode PT' => $dataNim,
+                'NIM/NIDN/Kode Perguruan Tinggi' => $dataNim,
                 'Surel' => $data->email,
                 'Perguruan Tinggi' => $dataPt,
                 'Peran' => ucfirst($data->role),
@@ -50,7 +50,7 @@ class UserExport implements FromCollection, WithHeadings
         return [
             'No.',
             'Nama',
-            'NIM/NIDN/Kode PT',
+            'NIM/NIDN/Kode Perguruan Tinggi',
             'Surel',
             'Perguruan Tinggi',
             'Peran',

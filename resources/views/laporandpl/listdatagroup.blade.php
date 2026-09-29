@@ -9,7 +9,7 @@
                 <tr>
                     <th width="1">No</th>
                     <th>Nama DPL</th>
-                    <th>Nama PT</th>
+                    <th>Nama Perguruan Tinggi</th>
                     <th>Jumlah</th>
                     <th width="1">Aksi</th>
                 </tr>

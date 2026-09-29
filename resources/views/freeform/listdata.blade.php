@@ -8,7 +8,7 @@
                     <th>ID FREEFORM</th>
                     <th>Nim</th>
                     <th>Nama</th>
-                    <th>Nama PT</th>
+                    <th>Nama Perguruan Tinggi</th>
                     <th>Prodi.</th>
                     <th>Free Form</th>
                     <th>Nilai DPL</th>

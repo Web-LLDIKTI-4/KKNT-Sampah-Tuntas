@@ -34,7 +34,7 @@ class AdmlogharianController extends Controller
                 if ($row->sp) {
                     return $row->sp->nm_lemb;
                 } else {
-                    return 'No PT'; // or any default value you prefer
+                    return 'Perguruan Tinggi tidak ditemukan'; // or any default value you prefer
                 }
             })
             ->addColumn('jumlah_log', function($row) {

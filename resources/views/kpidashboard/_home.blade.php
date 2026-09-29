@@ -22,7 +22,7 @@
                                 <th class="text-center">Kecamatan</th>
                                 <th class="text-center">Kelurahan</th>
                                 @if ($perPt)
-                                    <th class="text-center">PT</th>
+                                    <th class="text-center">Perguruan Tinggi</th>
                                 @endif
                                 <th class="text-center">Mahasiswa</th>
                                 <th class="text-center">DPL</th>
@@ -95,7 +95,7 @@
                     <thead>
                         <tr>
                             @if ($perPt)
-                                <th>Kampus</th>
+                                <th>Perguruan Tinggi</th>
                                 <th class="text-center">Mahasiswa</th>
                                 <th class="text-center">Kelompok</th>
                             @endif

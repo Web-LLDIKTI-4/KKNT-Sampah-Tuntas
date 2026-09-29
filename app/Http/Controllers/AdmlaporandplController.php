@@ -39,7 +39,7 @@ class AdmlaporandplController extends Controller
                     return $row->user->name ?? 'Nama DPL Tidak Tersedia';
                 })
                 ->addColumn('nama_pt', function($row){
-                    return $row->sp->nm_lemb ?? 'Nama PT Tidak Tersedia';
+                    return $row->sp->nm_lemb ?? 'Nama Perguruan Tinggi Tidak Tersedia';
                 })
                 ->addColumn('count_log', function($row){
                     return $row->dpllaporan()->count() ?? '0';
