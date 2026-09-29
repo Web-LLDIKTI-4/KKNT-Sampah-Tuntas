@@ -454,15 +454,16 @@
 
       }
 
-        @media (max-width: 1399px) {
+        @media (max-width: 1300px) {
           .lokasi-grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
           }
         }
 
-        @media (max-width: 1199px) {
+        @media (max-width: 750px) {
           .lokasi-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+
           }
         }
 
@@ -492,7 +493,7 @@
           display: none;
         }
 
-        @media (max-width: 991.98px) {
+        @media (max-width: 750px) {
           .auth-mobile-toggle {
             display: inline-flex;
             align-items: center;
@@ -529,6 +530,10 @@
 
           .authentication-inner.show-lokasi .auth-right-panel {
             display: none;
+          }
+
+          .lokasi-hero-img {
+            margin-top: 3rem;
           }
         }
       </style>
