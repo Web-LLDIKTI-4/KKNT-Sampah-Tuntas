@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Exports\KpiRekapExport;
 use App\Models\Desa;
 use App\Models\Dpl;
 use App\Models\Kpi;
@@ -15,6 +16,7 @@ use App\Models\Satuanpendidikan;
 use App\Models\User;
 use App\Services\KpiRekapService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Maatwebsite\Excel\Facades\Excel;
 use Tests\TestCase;
 
 class KpiDashboardTest extends TestCase
@@ -41,7 +43,7 @@ class KpiDashboardTest extends TestCase
             'satuan' => '%',
         ]);
 
-        // PT1: 2 kelompok (Selesai => 100%, belum isi => 0%), PT2: 1 kelompok (Proses => 0%)
+        // PT1: 2 kelompok (Selesai 90/80 => 100%, belum isi => tidak dihitung), PT2: 1 kelompok (Proses => tidak dihitung)
         $this->ketua($this->pt1, 90, 'Y');
         $this->ketua($this->pt1, null);
         $this->ketua($this->pt2, 40, 'P');
@@ -65,21 +67,53 @@ class KpiDashboardTest extends TestCase
         return $mhs;
     }
 
-    public function test_capaian_counts_only_selesai_and_unfilled_groups_count_as_zero(): void
+    public function test_capaian_counts_only_filled_and_selesai_groups(): void
     {
         $service = app(KpiRekapService::class);
         $rows = $service->rekapPerPt([])->keyBy('kodept');
 
-        $this->assertSame(2, (int) $rows[$this->pt1->npsn]->jumlah_kelompok);
-        $this->assertSame(1, (int) $rows[$this->pt1->npsn]->jumlah_mengisi);
-        $this->assertEquals(50, $rows[$this->pt1->npsn]->capaian);
-        $this->assertEquals(0, $rows[$this->pt2->npsn]->capaian);
+        $this->assertSame(2, $rows[$this->pt1->npsn]->jumlah_kelompok);
+        $this->assertSame(1, $rows[$this->pt1->npsn]->jumlah_selesai);
+        $this->assertEquals(90, $rows[$this->pt1->npsn]->realisasi);
+        $this->assertEquals(100, $rows[$this->pt1->npsn]->capaian);
+        $this->assertNull($rows[$this->pt2->npsn]->realisasi);
+        $this->assertNull($rows[$this->pt2->npsn]->capaian);
 
         $summary = $service->summary([]);
         $this->assertSame(2, $summary['jumlah_pt']);
         $this->assertSame(3, $summary['total_kelompok']);
         $this->assertArrayNotHasKey('rata_capaian', $summary);
-        $this->assertEquals(33.33, $service->rekapPerKegiatan([])->first()->capaian);
+        $this->assertEquals(100, $service->rekapPerKegiatan([])->first()->capaian);
+    }
+
+    public function test_capaian_is_average_realisasi_against_target_capped_at_100(): void
+    {
+        $this->ketua($this->pt1, 50, 'Y');
+
+        $row = app(KpiRekapService::class)->rekapPerPt(['kodept' => $this->pt1->npsn])->first();
+
+        // Rata-rata (90 + 50) / 2 = 70 dari target 80
+        $this->assertEquals(70, $row->realisasi);
+        $this->assertEquals(87.5, $row->capaian);
+        $this->assertSame(2, $row->jumlah_selesai);
+    }
+
+    public function test_rekap_per_kpi_averages_only_kegiatan_with_data(): void
+    {
+        $kegiatan2 = Kpitarget::factory()->create(['id_kpi' => $this->target->id_kpi, 'target' => 100]);
+        Kpitarget::factory()->create(['id_kpi' => $this->target->id_kpi]);
+        $ketua = Mahasiswa::where('kodept', $this->pt1->npsn)->firstOrFail();
+        Kpicapaian::factory()->create([
+            'email' => $ketua->email, 'id_kpi' => $this->target->id_kpi, 'id_target' => $kegiatan2->id_target,
+            'realisasi' => 40, 'status_capaian' => 'Y',
+        ]);
+
+        $kpi = app(KpiRekapService::class)->rekapPerKpi([])->first();
+
+        // (100 + 40) / 2; kegiatan ketiga tanpa data tidak ikut
+        $this->assertSame(3, $kpi->jumlah_kegiatan);
+        $this->assertSame(2, $kpi->kegiatan_berdata);
+        $this->assertEquals(70, $kpi->capaian);
     }
 
     public function test_lokasi_table_uses_student_placement_and_counts_unplaced(): void
@@ -103,14 +137,18 @@ class KpiDashboardTest extends TestCase
         $this->assertSame(1, $rows[$this->lokasi->nama_lokasi]['pt']);
     }
 
-    public function test_realisasi_is_not_capped_and_does_not_affect_capaian(): void
+    public function test_realisasi_is_not_capped_and_non_selesai_is_ignored(): void
     {
         Kpicapaian::query()->update(['realisasi' => 500]);
+        $service = app(KpiRekapService::class);
 
-        $row = app(KpiRekapService::class)->rekapPerPt(['kodept' => $this->pt2->npsn])->first();
+        $pt1 = $service->rekapPerPt(['kodept' => $this->pt1->npsn])->first();
+        $this->assertEquals(500, $pt1->realisasi);
+        $this->assertEquals(100, $pt1->capaian);
 
-        $this->assertEquals(500, $row->realisasi);
-        $this->assertEquals(0, $row->capaian);
+        $pt2 = $service->rekapPerPt(['kodept' => $this->pt2->npsn])->first();
+        $this->assertNull($pt2->realisasi);
+        $this->assertNull($pt2->capaian);
     }
 
     public function test_admin_home_matches_kepala_and_keeps_admin_cards(): void
@@ -157,7 +195,8 @@ class KpiDashboardTest extends TestCase
         $this->loginAs('pt', ['email' => $this->pt1->npsn, 'location_program' => $this->lokasi->id]);
 
         $this->get('home')->assertOk()
-            ->assertViewHas('kpiHome', fn ($k) => $k['perPt'] === false && $k['capaian']->first()->capaian == 50);
+            ->assertViewHas('kpiHome', fn ($k) => $k['perPt'] === false && $k['capaian']->first()->capaian == 100)
+            ->assertSee('Capaian per KPI');
     }
 
     public function test_pt_is_locked_to_its_own_pt_but_not_to_account_lokasi(): void
@@ -202,6 +241,28 @@ class KpiDashboardTest extends TestCase
         $this->put('ptevaluasikegiatan/insert', [])->assertForbidden();
         $this->put('dplkonversinilai/destroy', [])->assertForbidden();
         $this->put('profile/update', [])->assertStatus(200);
+    }
+
+    public function test_only_admin_can_export_kpi_rekap(): void
+    {
+        Excel::fake();
+        Excel::matchByRegex();
+        $this->loginAs('admin');
+
+        $this->get('dashboardkpi')->assertOk()->assertSee('id="kpi-export"', false);
+        $this->get('dashboardkpi/export?kodept='.$this->pt1->npsn)->assertOk();
+        Excel::assertDownloaded(
+            '/^rekap_kpi_.+\.xlsx$/',
+            fn (KpiRekapExport $export) => count($export->sheets()) === 4
+                && $export->sheets()[2]->collection()->pluck(0)->unique()->all() === ['Universitas Satu']
+        );
+
+        $this->loginAs('kepala');
+        $this->get('dashboardkpi')->assertOk()->assertDontSee('id="kpi-export"', false);
+        $this->get('dashboardkpi/export')->assertRedirect(route('home'));
+
+        $this->loginAs('pt', ['email' => $this->pt1->npsn]);
+        $this->get('dashboardkpi/export')->assertRedirect(route('home'));
     }
 
     public function test_dpl_and_mahasiswa_cannot_open_dashboard(): void

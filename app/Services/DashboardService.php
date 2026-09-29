@@ -85,6 +85,7 @@ class DashboardService
         return [
             'perPt' => $perPt,
             'lokasi' => $this->rekap->lokasiTable($filter),
+            'perKpi' => $this->rekap->rekapPerKpi($filter),
             'capaian' => $perPt ? $this->rekap->rekapPerPt($filter) : $this->rekap->rekapPerKegiatan($filter),
         ];
     }

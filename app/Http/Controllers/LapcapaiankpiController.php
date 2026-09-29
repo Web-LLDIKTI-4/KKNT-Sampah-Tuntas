@@ -59,7 +59,7 @@ class LapcapaiankpiController extends Controller
                 })
                 ->addColumn('target_kpi', fn ($row) => Kpicapaian::formatAngka($row->target?->target).' '.($row->target->satuan ?? ''))
                 ->addColumn('realisasi_kpi', fn ($row) => Kpicapaian::formatAngka($row->realisasi).' '.$row->satuan)
-                ->addColumn('capaian', fn ($row) => Kpicapaian::formatAngka($row->capaianPersen()).'%')
+                ->addColumn('capaian', fn ($row) => Kpicapaian::formatPersen($row->capaianPersen()))
                 ->addColumn('status_capaian', function($row) {
                     if($row->status_capaian == 'Y'){
                         return '<span class="badge bg-success">Sudah Selesai</span>';

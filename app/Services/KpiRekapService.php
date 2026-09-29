@@ -9,14 +9,15 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Rekap capaian KPI: 1 kelompok = 1 ketua (pj_desa), PT diambil dari mahasiswa.kodept ketua.
- * Capaian kelompok = 100% bila tindak lanjut Sudah Selesai, selain itu (termasuk belum mengisi) 0%.
- * Capaian PT = rata-rata capaian seluruh kelompoknya.
+ * Hanya isian yang realisasinya terisi dan tindak lanjut Sudah Selesai yang dihitung.
+ * Capaian kegiatan = min(rata-rata realisasi / target × 100, 100); tanpa data = null ("-").
+ * Capaian KPI = rata-rata capaian kegiatannya yang punya data.
  *
  * Filter: lokasi (id lokasi_program), kodept (npsn), id_target (kegiatan).
  */
 class KpiRekapService
 {
-    private const PERSEN_SQL = "CASE WHEN c.status_capaian = 'Y' THEN 100 ELSE 0 END";
+    private const SELESAI_SQL = "c.status_capaian = 'Y' AND c.realisasi IS NOT NULL";
 
     public function summary(array $filter): array
     {
@@ -99,29 +100,43 @@ class KpiRekapService
     }
 
     /**
-     * Satu baris per kegiatan: rata-rata capaian seluruh kelompok (yang belum mengisi = 0%).
+     * Satu baris per kegiatan: rata-rata realisasi kelompok yang selesai dibanding target.
      */
     public function rekapPerKegiatan(array $filter): Collection
     {
-        $agregat = $this->withCapaian($this->kelompokQuery($filter), $filter)
+        $agregat = $this->withAgregat($this->withCapaian($this->kelompokQuery($filter), $filter))
             ->groupBy('t.id_target')
-            ->selectRaw('t.id_target, COUNT(DISTINCT pj.id_pjdesa) as jumlah_kelompok, COUNT(c.id_capaian) as jumlah_mengisi')
-            ->selectRaw('SUM('.self::PERSEN_SQL.') as total_persen')
+            ->selectRaw('t.id_target')
             ->get()->keyBy('id_target');
 
         return DB::table('kpi_target as t')
             ->leftJoin('kpi as k', 'k.id_kpi', '=', 't.id_kpi')
             ->when($filter['id_target'] ?? null, fn (Builder $q, $id) => $q->where('t.id_target', $id))
             ->orderBy('k.nama_kpi')->orderBy('t.kegiatan')
-            ->select('t.id_target', 'k.nama_kpi', 't.kegiatan', 't.target', 't.satuan')
+            ->select('t.id_target', 't.id_kpi', 'k.nama_kpi', 't.kegiatan', 't.target', 't.satuan')
             ->get()
-            ->each(function ($row) use ($agregat) {
-                $agg = $agregat[$row->id_target] ?? null;
-                $n = (int) ($agg->jumlah_kelompok ?? 0);
-                $row->jumlah_kelompok = $n;
-                $row->jumlah_mengisi = (int) ($agg->jumlah_mengisi ?? 0);
-                $row->capaian = $n > 0 ? round($agg->total_persen / $n, 2) : 0.0;
-            });
+            ->each(fn ($row) => $this->isiCapaian($row, $agregat[$row->id_target] ?? null));
+    }
+
+    /**
+     * Satu baris per KPI: rata-rata capaian kegiatan yang sudah punya data.
+     */
+    public function rekapPerKpi(array $filter): Collection
+    {
+        return $this->rekapPerKegiatan($filter)
+            ->groupBy('id_kpi')
+            ->map(function (Collection $kegiatan) {
+                $berdata = $kegiatan->whereNotNull('capaian');
+
+                return (object) [
+                    'id_kpi' => $kegiatan->first()->id_kpi,
+                    'nama_kpi' => $kegiatan->first()->nama_kpi ?? '-',
+                    'jumlah_kegiatan' => $kegiatan->count(),
+                    'kegiatan_berdata' => $berdata->count(),
+                    'capaian' => $berdata->isEmpty() ? null : round($berdata->avg('capaian'), 2),
+                ];
+            })
+            ->sortBy('nama_kpi')->values();
     }
 
     /**
@@ -129,15 +144,11 @@ class KpiRekapService
      */
     public function rekapPerPt(array $filter): Collection
     {
-        $rows = $this->withCapaian($this->kelompokQuery($filter), $filter)
+        $rows = $this->withAgregat($this->withCapaian($this->kelompokQuery($filter), $filter))
             ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', 'm.kodept')
             ->groupBy('m.kodept', 'sp.nm_lemb', 't.id_target', 'k.nama_kpi', 't.kegiatan', 't.target', 't.satuan')
             ->orderBy('sp.nm_lemb')->orderBy('k.nama_kpi')->orderBy('t.kegiatan')
             ->selectRaw('m.kodept, sp.nm_lemb, t.id_target, k.nama_kpi, t.kegiatan, t.target, t.satuan')
-            ->selectRaw('COUNT(DISTINCT pj.id_pjdesa) as jumlah_kelompok')
-            ->selectRaw('COUNT(c.id_capaian) as jumlah_mengisi')
-            ->selectRaw('SUM(COALESCE(c.realisasi, 0)) as total_realisasi')
-            ->selectRaw('SUM('.self::PERSEN_SQL.') as total_persen')
             ->get();
 
         $mahasiswa = $this->mahasiswaQuery($filter)
@@ -146,13 +157,10 @@ class KpiRekapService
             ->pluck('jumlah', 'kodept');
 
         return $rows->map(function ($row) use ($mahasiswa) {
-            $n = (int) $row->jumlah_kelompok;
             $row->nama_pt = $row->nm_lemb ?: $row->kodept;
             $row->jumlah_mahasiswa = (int) ($mahasiswa[$row->kodept] ?? 0);
-            $row->realisasi = $n > 0 ? round($row->total_realisasi / $n, 2) : 0.0;
-            $row->capaian = $n > 0 ? round($row->total_persen / $n, 2) : 0.0;
 
-            return $row;
+            return $this->isiCapaian($row, $row);
         });
     }
 
@@ -167,7 +175,28 @@ class KpiRekapService
             ->orderBy('m.nama')->orderBy('k.nama_kpi')->orderBy('t.kegiatan')
             ->select('m.nama', 'pj.email', 'lp.nama_lokasi', 'kc.kecamatan', 'd.desa', 'k.nama_kpi', 't.kegiatan', 't.target', 't.satuan', 'c.realisasi', 'c.status_capaian', 'c.id_capaian')
             ->get()
-            ->each(fn ($row) => $row->capaian = Kpicapaian::persen($row->status_capaian));
+            ->each(fn ($row) => $row->capaian = Kpicapaian::persen($row->status_capaian, $row->realisasi, $row->target));
+    }
+
+    private function withAgregat(Builder $query): Builder
+    {
+        return $query
+            ->selectRaw('COUNT(DISTINCT pj.id_pjdesa) as jumlah_kelompok')
+            ->selectRaw('COUNT(DISTINCT CASE WHEN '.self::SELESAI_SQL.' THEN pj.id_pjdesa END) as jumlah_selesai')
+            ->selectRaw('AVG(CASE WHEN '.self::SELESAI_SQL.' THEN c.realisasi END) as rata_realisasi');
+    }
+
+    private function isiCapaian(object $row, ?object $agg): object
+    {
+        $rata = $agg?->rata_realisasi;
+        $capaian = Kpicapaian::capaianRata($rata, $row->target);
+
+        $row->jumlah_kelompok = (int) ($agg->jumlah_kelompok ?? 0);
+        $row->jumlah_selesai = (int) ($agg->jumlah_selesai ?? 0);
+        $row->realisasi = $rata !== null ? round((float) $rata, 2) : null;
+        $row->capaian = $capaian !== null ? round($capaian, 2) : null;
+
+        return $row;
     }
 
     // Setiap kelompok dipasangkan dengan setiap kegiatan agar yang belum mengisi tetap terhitung

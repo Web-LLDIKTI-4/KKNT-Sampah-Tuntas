@@ -1,6 +1,7 @@
 @php
     $angka = fn ($v) => \App\Models\Kpicapaian::formatAngka($v);
     $badge = fn ($p) => $p >= 100 ? 'bg-label-success' : ($p >= 50 ? 'bg-label-warning' : 'bg-label-danger');
+    $capaian = fn ($p) => $p === null ? '-' : '<span class="badge rounded-pill '.$badge($p).'">'.\App\Models\Kpicapaian::formatPersen($p).'</span>';
     $num = fn ($v) => number_format($v, 0, ',', '.');
     $namaLokasi = $filter['lokasi'] ? ($lokasiList->firstWhere('id', $filter['lokasi'])->nama_lokasi ?? '-') : 'Semua Lokasi';
 @endphp
@@ -44,9 +45,13 @@
 </div>
 
 <div class="card mb-6">
+    @include('kpidashboard._per_kpi', ['perKpi' => $rekapPerKpi])
+</div>
+
+<div class="card mb-6">
     <div class="card-header">
         <h5 class="mb-1">Capaian per Perguruan Tinggi</h5>
-        <p class="mb-0 card-subtitle">Realisasi dan capaian per kegiatan = rata-rata seluruh kelompok perguruan tinggi (maksimal target)</p>
+        <p class="mb-0 card-subtitle">Realisasi = rata-rata ketua kelompok yang mengisi dan tindak lanjut Sudah Selesai; capaian maksimal 100%</p>
     </div>
     <div class="card-body">
         <table class="table table-sm table-bordered text-nowrap w-100" id="tabel-rekap-pt">
@@ -59,7 +64,7 @@
                     <th>Kegiatan</th>
                     <th class="text-center">Target</th>
                     <th class="text-center">Realisasi</th>
-                    <th class="text-center">Mengisi</th>
+                    <th class="text-center">Selesai</th>
                     <th class="text-center">Capaian</th>
                 </tr>
             </thead>
@@ -72,9 +77,9 @@
                         <td>{{ $row->nama_kpi }}</td>
                         <td>{{ $row->kegiatan }}</td>
                         <td class="text-center">{{ $angka($row->target) }} {{ $row->satuan }}</td>
-                        <td class="text-center">{{ $angka($row->realisasi) }} {{ $row->satuan }}</td>
-                        <td class="text-center">{{ $row->jumlah_mengisi }}/{{ $row->jumlah_kelompok }}</td>
-                        <td class="text-center" data-order="{{ $row->capaian }}"><span class="badge rounded-pill {{ $badge($row->capaian) }}">{{ $angka($row->capaian) }}%</span></td>
+                        <td class="text-center">{{ $row->realisasi === null ? '-' : $angka($row->realisasi).' '.$row->satuan }}</td>
+                        <td class="text-center">{{ $row->jumlah_selesai }}/{{ $row->jumlah_kelompok }}</td>
+                        <td class="text-center" data-order="{{ $row->capaian ?? -1 }}">{!! $capaian($row->capaian) !!}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -86,7 +91,7 @@
     <div class="card">
         <div class="card-header">
             <h5 class="mb-1">Isian Capaian KPI oleh Ketua Kelompok</h5>
-            <p class="mb-0 card-subtitle">Baris tanpa realisasi = belum diisi (dihitung 0%)</p>
+            <p class="mb-0 card-subtitle">Capaian hanya dihitung untuk isian dengan tindak lanjut Sudah Selesai</p>
         </div>
         <div class="card-body">
             <table class="table table-sm table-bordered text-nowrap w-100" id="tabel-isian">
@@ -120,7 +125,7 @@
                                     {{ $angka($row->realisasi) }} {{ $row->satuan }}
                                 @endif
                             </td>
-                            <td class="text-center" data-order="{{ $row->capaian }}"><span class="badge rounded-pill {{ $badge($row->capaian) }}">{{ $angka($row->capaian) }}%</span></td>
+                            <td class="text-center" data-order="{{ $row->capaian ?? -1 }}">{!! $capaian($row->capaian) !!}</td>
                         </tr>
                     @endforeach
                 </tbody>

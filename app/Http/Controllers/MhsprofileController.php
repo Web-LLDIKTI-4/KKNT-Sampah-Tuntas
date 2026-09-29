@@ -43,10 +43,22 @@ class MhsprofileController extends Controller
         return $this->saved('Profile berhasil disimpan');
     }
 
-    public function formlokasi()
+    public function formlokasi(Request $request)
     {
+        $lokasi = Mahasiswa_lokasi::where('id_mahasiswa', $request->user()->mahasiswa?->id_mahasiswa)
+            ->orderByDesc('tahun')
+            ->first();
+
+        // Tahun history dipakai bila masih bisa dipilih, selain itu tahun sekarang
+        $tahun = (int) $lokasi?->tahun;
+        if ($tahun < date('Y') - 1 || $tahun > date('Y')) {
+            $tahun = (int) date('Y');
+        }
+
         return view('profile.lokasi', [
             'desa' => Kecamatan::with(['desa' => fn ($q) => $q->orderBy('desa')])->orderBy('kecamatan')->get(),
+            'desaTerpilih' => $lokasi?->id_desa,
+            'tahunTerpilih' => $tahun,
         ]);
     }
 

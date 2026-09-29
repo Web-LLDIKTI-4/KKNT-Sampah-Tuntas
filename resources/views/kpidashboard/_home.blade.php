@@ -78,10 +78,16 @@
 
     <div class="col-12">
         <div class="card">
+            @include('kpidashboard._per_kpi', ['perKpi' => $kpiHome['perKpi']])
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
             <div class="card-header d-flex justify-content-between align-items-start gap-4">
                 <div>
                     <h5 class="mb-1">Rata-rata Capaian KPI</h5>
-                    <p class="mb-0 card-subtitle">Per kegiatan, kelompok yang belum mengisi dihitung 0%</p>
+                    <p class="mb-0 card-subtitle">Per kegiatan, hanya ketua kelompok yang mengisi dan tindak lanjut Sudah Selesai; maksimal 100%</p>
                 </div>
                 <a href="{{ route('dashboardkpi') }}" class="btn btn-sm btn-outline-primary">Detail</a>
             </div>
@@ -115,8 +121,12 @@
                                     {{ $row->kegiatan }}
                                     <small class="d-block text-muted">{{ $row->nama_kpi }} · target {{ $angka($row->target) }} {{ $row->satuan }}</small>
                                 </td>
-                                <td class="text-center" data-order="{{ $row->capaian }}">
-                                    <span class="badge rounded-pill {{ $badge($row->capaian) }}">{{ $angka($row->capaian) }}%</span>
+                                <td class="text-center" data-order="{{ $row->capaian ?? -1 }}">
+                                    @if ($row->capaian === null)
+                                        -
+                                    @else
+                                        <span class="badge rounded-pill {{ $badge($row->capaian) }}">{{ \App\Models\Kpicapaian::formatPersen($row->capaian) }}</span>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

@@ -20,7 +20,7 @@
                 @foreach($desa as $item)
                     <optgroup label="Kecamatan : {{$item->kecamatan}}">
                         @foreach($item->desa as $row)
-                            <option value="{{$row->id_desa}}" @if(auth()->user()->mahasiswa?->lokasi?->desa?->id_desa == $row->id_desa) selected @endif>Desa / Kelurahan : {{$row->desa}}</option>
+                            <option value="{{$row->id_desa}}" @selected($desaTerpilih === $row->id_desa)>Desa / Kelurahan : {{$row->desa}}</option>
                         @endforeach
                     </optgroup>
                 @endforeach
@@ -29,9 +29,9 @@
             <label>Pilih Desa / Kelurahan</label>
         </div>
         <div class="form-group col-md-2 form-floating form-floating-outline">
-            <select name="tahun" class="form-control" required>
+            <select name="tahun" class="form-control" required data-no-search>
                 @for($tahun=date('Y')-1; $tahun<=date('Y'); $tahun++)
-                    <option value="{{$tahun}}" @if($tahun==date('Y')) selected @endif>{{$tahun}}</option>
+                    <option value="{{$tahun}}" @selected($tahun == $tahunTerpilih)>{{$tahun}}</option>
                 @endfor
             </select>
             <label>Tahun</label>

@@ -77,6 +77,29 @@ class ProfileTest extends TestCase
         $this->get('mhsprofile/data')->assertOk();
     }
 
+    public function test_form_lokasi_defaults_year_to_history_or_current_year(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $idMahasiswa = $user->mahasiswa->id_mahasiswa;
+        Mahasiswa_lokasi::where('id_mahasiswa', $idMahasiswa)->delete();
+
+        $this->get('mhsprofile/formlokasi')->assertOk()
+            ->assertViewHas('tahunTerpilih', (int) date('Y'))
+            ->assertViewHas('desaTerpilih', null);
+
+        $desa = Desa::factory()->create();
+        $lokasi = Mahasiswa_lokasi::create(['id_mahasiswa' => $idMahasiswa, 'id_desa' => $desa->id_desa, 'tahun' => date('Y') - 1]);
+        $this->get('mhsprofile/formlokasi')
+            ->assertViewHas('tahunTerpilih', (int) date('Y') - 1)
+            ->assertViewHas('desaTerpilih', $desa->id_desa);
+
+        // Tahun kosong atau di luar pilihan kembali ke tahun sekarang
+        foreach ([null, date('Y') - 5] as $tahun) {
+            $lokasi->update(['tahun' => $tahun]);
+            $this->get('mhsprofile/formlokasi')->assertViewHas('tahunTerpilih', (int) date('Y'));
+        }
+    }
+
     public function test_dpl_cannot_set_mahasiswa_lokasi(): void
     {
         $this->loginAs('dpl');

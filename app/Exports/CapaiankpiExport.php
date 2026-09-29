@@ -70,7 +70,7 @@ class CapaiankpiExport implements FromCollection, WithHeadings
                 'Satuan Target' => $item->target?->satuan,
                 'Realisasi' => $item->realisasi !== null ? round((float) $item->realisasi) : null,
                 'Satuan Realisasi' => $item->satuan,
-                'Capaian (%)' => round($item->capaianPersen()),
+                'Capaian (%)' => $item->capaianPersen() !== null ? round($item->capaianPersen()) : null,
                 'Permasalahan' => $item->permasalahan,
                 'Solusi' => $item->solusi,
                 'Kebutuhan Dukungan' => $item->kendala,

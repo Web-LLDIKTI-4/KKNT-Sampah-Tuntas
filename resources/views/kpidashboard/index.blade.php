@@ -5,7 +5,7 @@
 <x-page-header
     icon="ri-line-chart-line"
     :title="$isPt ? 'Dasbor KPI Perguruan Tinggi' : 'Dasbor KPI'"
-    subtitle="Rekap capaian KPI ketua kelompok. Kelompok yang belum mengisi dihitung 0%." />
+    subtitle="Rekap capaian KPI ketua kelompok. Hanya isian dengan tindak lanjut Sudah Selesai yang dihitung, maksimal 100%." />
 
 <div class="card mb-6">
     <div class="card-body">
@@ -43,6 +43,11 @@
             </div>
             <div class="col-md-2 d-flex align-items-center gap-2">
                 <button type="button" id="kpi-reset" class="btn btn-sm btn-outline-secondary">Reset</button>
+                @if (auth()->user()->role === 'admin')
+                    <a href="{{ route('dashboardkpi.export', array_filter($filter)) }}" id="kpi-export" class="btn btn-sm btn-success text-nowrap">
+                        <i class="ri-file-excel-2-line me-1"></i> Export
+                    </a>
+                @endif
                 <span id="kpi-loading" class="spinner-border spinner-border-sm text-primary" role="status" hidden></span>
             </div>
         </form>
@@ -62,6 +67,8 @@ $(function () {
     function muat() {
         if (xhr) xhr.abort();
         var query = form.serialize();
+        // Export mengikuti filter yang sedang aktif
+        $('#kpi-export').attr('href', @json(route('dashboardkpi.export')) + (query ? '?' + query : ''));
         $('#kpi-loading').prop('hidden', false);
         xhr = $.ajax({
             url: form.attr('action'),

@@ -15,10 +15,20 @@ class Kpicapaian extends Model
     protected $guarded = ['id_capaian'];
     protected $primaryKey = 'id_capaian'; // Tentukan primary key sesuai dengan struktur tabel
 
-    // Capaian % dihitung dari tindak lanjut: Sudah Selesai = 100, selain itu 0
-    public static function persen(?string $status): float
+    // Capaian % hanya untuk isian dengan tindak lanjut Sudah Selesai; null = tidak dihitung
+    public static function persen(?string $status, $realisasi, $target): ?float
     {
-        return $status === 'Y' ? 100.0 : 0.0;
+        return $status === 'Y' ? static::capaianRata($realisasi, $target) : null;
+    }
+
+    // min(realisasi / target × 100, 100); null bila realisasi kosong atau target tidak valid
+    public static function capaianRata($realisasi, $target): ?float
+    {
+        if ($realisasi === null || (float) $target <= 0) {
+            return null;
+        }
+
+        return min((float) $realisasi / (float) $target * 100, 100.0);
     }
 
     public static function formatAngka($value): string
@@ -30,9 +40,14 @@ class Kpicapaian extends Model
         return number_format(round((float) $value), 0, ',', '.');
     }
 
-    public function capaianPersen(): float
+    public static function formatPersen(?float $value): string
     {
-        return static::persen($this->status_capaian);
+        return $value === null ? '-' : static::formatAngka($value).'%';
+    }
+
+    public function capaianPersen(): ?float
+    {
+        return static::persen($this->status_capaian, $this->realisasi, $this->target?->target);
     }
 
     public function pjdesa()

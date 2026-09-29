@@ -390,7 +390,8 @@
 </div>
 <script>
 $(function(){
-    $("body").on("change","#form-file-upload",function(e){
+    // Lepas handler lama (dari index / load sebelumnya) agar submit tidak terkirim dobel
+    $("body").off("change","#form-file-upload").on("change","#form-file-upload",function(e){
         e.preventDefault();
         var formData = new FormData($(this)[0]);
         var action = $(this).attr("action");
@@ -442,7 +443,7 @@ $(function(){
 
 		  });
 	});
-    $("body").on("submit","#form-update,#form-updatepassword",function(){       
+    $("body").off("submit","#form-update,#form-updatepassword").on("submit","#form-update,#form-updatepassword",function(){       
         var action = $(this).attr("action");
         var id = $(this).attr("id");
         var btnHtml = $("#btnSubmit_"+id+"").html();

@@ -77,15 +77,18 @@ class KpicapaianTest extends TestCase
         $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => '']))->assertJsonValidationErrors('realisasi', 'errors');
         $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => -5]))->assertJsonValidationErrors('realisasi', 'errors');
 
-        // Realisasi boleh melebihi target; capaian hanya dari tindak lanjut Sudah Selesai
+        // Realisasi boleh melebihi target; capaian hanya dihitung bila tindak lanjut Sudah Selesai, maks 100%
         $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => 90, 'satuan' => 'palsu']))->assertJson(['success' => true]);
         $capaian = Kpicapaian::firstOrFail();
         $this->assertSame('%', $capaian->satuan);
         $this->assertEquals(90, $capaian->realisasi);
-        $this->assertEquals(0, $capaian->capaianPersen());
+        $this->assertNull($capaian->capaianPersen());
 
         $capaian->update(['status_capaian' => 'Y']);
-        $this->assertEquals(100, $capaian->capaianPersen());
+        $this->assertEquals(100, $capaian->fresh()->capaianPersen());
+
+        $capaian->update(['realisasi' => 10]);
+        $this->assertEquals(40, $capaian->fresh()->capaianPersen());
     }
 
     public function test_non_ketua_cannot_create_capaian(): void

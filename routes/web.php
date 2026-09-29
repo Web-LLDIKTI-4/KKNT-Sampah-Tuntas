@@ -103,6 +103,7 @@ Route::get('ptpeserta/listdata', [PtpesertaController::class, 'listdata'])->name
 Route::get('ptpeserta/listdataserver', [PtpesertaController::class, 'listdataserver'])->name('ptpeserta.listdataserver');
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('dashboardkpi/export', [KpiDashboardController::class, 'export'])->name('dashboardkpi.export');
     Route::get('user', [UserController::class, 'index']);
     Route::get('user/listdata', [UserController::class, 'listdata']);
     Route::get('user/getdatamember', [UserController::class, 'getdatamember']);

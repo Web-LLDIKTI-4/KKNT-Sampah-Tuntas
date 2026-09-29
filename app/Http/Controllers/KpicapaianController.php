@@ -57,7 +57,7 @@ class KpicapaianController extends Controller
             ->addColumn('kegiatan', fn (Kpicapaian $row) => $row->target->kegiatan ?? '')
             ->addColumn('target_kpi', fn (Kpicapaian $row) => Kpicapaian::formatAngka($row->target?->target).' '.($row->target->satuan ?? ''))
             ->editColumn('realisasi', fn (Kpicapaian $row) => Kpicapaian::formatAngka($row->realisasi).' '.$row->satuan)
-            ->addColumn('capaian', fn (Kpicapaian $row) => Kpicapaian::formatAngka($row->capaianPersen()).'%')
+            ->addColumn('capaian', fn (Kpicapaian $row) => Kpicapaian::formatPersen($row->capaianPersen()))
             ->editColumn('permasalahan', fn (Kpicapaian $row) => nl2br(e($row->permasalahan)))
             ->editColumn('solusi', fn (Kpicapaian $row) => nl2br(e($row->solusi)))
             ->editColumn('kendala', fn (Kpicapaian $row) => nl2br(e($row->kendala)))
