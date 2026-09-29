@@ -38,12 +38,12 @@
     @if ($data->role == 'mahasiswa')
         <div class="form-group form-floating form-floating-outline mb-6">
             <select  id="akses" class="form-control form-control-sm select2" name="akses">
-                <option value="null" selected>--pilih--</option>
+                <option value="">-- Tidak diubah --</option>
                 @foreach($akses as $key=>$val)
                     <option value="{{ trim($key) }}" @if($data->akses == $key) selected @endif>{{$val}}</option>
                 @endforeach
             </select>  
-            <label>Tambah akses (<span class="text-danger">Hanya role mahasiswa yang bisa jadi Ketua Kelompok</span>)</label>
+            <label>Tambah akses (opsional) (<span class="text-danger">Hanya role mahasiswa yang bisa jadi Ketua Kelompok</span>)</label>
             <span id="akses_error" class="text-danger"></span>
         </div>
     @endif

@@ -57,6 +57,18 @@ class UserManagementTest extends TestCase
         $this->assertSame('mahasiswa', $target->fresh()->role);
     }
 
+    public function test_update_mahasiswa_without_akses_keeps_existing_akses(): void
+    {
+        $this->loginAs('admin');
+        $target = User::factory()->role('mahasiswa')->create(['akses' => 'pjdesa']);
+
+        $this->put('user/updateuser', ['id' => $target->id, 'name' => 'Nama Baru', 'email' => $target->email, 'akses' => ''])
+            ->assertJson(['success' => true]);
+
+        $this->assertSame('Nama Baru', $target->fresh()->name);
+        $this->assertSame('pjdesa', $target->fresh()->akses);
+    }
+
     public function test_email_change_cascades_to_related_data(): void
     {
         $this->loginAs('admin');
