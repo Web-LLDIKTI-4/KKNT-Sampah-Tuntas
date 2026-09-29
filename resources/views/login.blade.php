@@ -580,7 +580,7 @@
               <p class="lokasi-panel-subtitle">
                 <b>LOKASI PELAKSANAAN PROGRAM</b>
                 <br />
-                Silahkan pilih Lokasi Program terlebih dahulu sebelum Login ke Aplikasi PPS Bandung
+                Silahkan pilih Lokasi Program terlebih dahulu sebelum Login ke Aplikasi KKN Tematik Sampah Tuntas
               </p>
               {{-- <div class="input-group lokasi-search">
                 <span class="input-group-text"><i class="ri-search-line"></i></span>
