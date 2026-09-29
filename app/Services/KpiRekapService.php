@@ -9,14 +9,14 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Rekap capaian KPI: 1 kelompok = 1 ketua (pj_desa), PT diambil dari mahasiswa.kodept ketua.
- * Capaian kelompok = min(100, realisasi / target); kelompok yang belum mengisi dihitung 0%.
+ * Capaian kelompok = 100% bila tindak lanjut Sudah Selesai, selain itu (termasuk belum mengisi) 0%.
  * Capaian PT = rata-rata capaian seluruh kelompoknya.
  *
  * Filter: lokasi (id lokasi_program), kodept (npsn), id_target (kegiatan).
  */
 class KpiRekapService
 {
-    private const PERSEN_SQL = 'COALESCE(LEAST(100, c.realisasi / NULLIF(t.target, 0) * 100), 0)';
+    private const PERSEN_SQL = "CASE WHEN c.status_capaian = 'Y' THEN 100 ELSE 0 END";
 
     public function summary(array $filter): array
     {
@@ -136,8 +136,7 @@ class KpiRekapService
             ->selectRaw('m.kodept, sp.nm_lemb, t.id_target, k.nama_kpi, t.kegiatan, t.target, t.satuan')
             ->selectRaw('COUNT(DISTINCT pj.id_pjdesa) as jumlah_kelompok')
             ->selectRaw('COUNT(c.id_capaian) as jumlah_mengisi')
-            // Realisasi dibatasi target agar rata-rata tidak melebihi target
-            ->selectRaw('SUM(COALESCE(LEAST(c.realisasi, t.target), 0)) as total_realisasi')
+            ->selectRaw('SUM(COALESCE(c.realisasi, 0)) as total_realisasi')
             ->selectRaw('SUM('.self::PERSEN_SQL.') as total_persen')
             ->get();
 
@@ -166,9 +165,9 @@ class KpiRekapService
             ->leftJoin('kecamatan as kc', 'kc.id_kecamatan', '=', 'd.id_kecamatan')
             ->leftJoin('lokasi_program as lp', 'lp.id', '=', 'm.location_program')
             ->orderBy('m.nama')->orderBy('k.nama_kpi')->orderBy('t.kegiatan')
-            ->select('m.nama', 'pj.email', 'lp.nama_lokasi', 'kc.kecamatan', 'd.desa', 'k.nama_kpi', 't.kegiatan', 't.target', 't.satuan', 'c.realisasi', 'c.id_capaian')
+            ->select('m.nama', 'pj.email', 'lp.nama_lokasi', 'kc.kecamatan', 'd.desa', 'k.nama_kpi', 't.kegiatan', 't.target', 't.satuan', 'c.realisasi', 'c.status_capaian', 'c.id_capaian')
             ->get()
-            ->each(fn ($row) => $row->capaian = Kpicapaian::persen($row->realisasi, $row->target));
+            ->each(fn ($row) => $row->capaian = Kpicapaian::persen($row->status_capaian));
     }
 
     // Setiap kelompok dipasangkan dengan setiap kegiatan agar yang belum mengisi tetap terhitung

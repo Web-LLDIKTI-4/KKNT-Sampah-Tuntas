@@ -4,7 +4,6 @@ namespace App\Http\Requests\Mahasiswa;
 
 use App\Http\Requests\AjaxFormRequest;
 use App\Models\Kpicapaian;
-use App\Models\Kpitarget;
 use App\Models\Pjdesa;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -20,7 +19,7 @@ class KpicapaianRequest extends AjaxFormRequest
                 'required', 'uuid',
                 Rule::exists('kpi_target', 'id_target')->where('id_kpi', $this->input('id_kpi')),
             ],
-            'realisasi' => ['required', 'numeric', 'min:0', 'max:999999'],
+            'realisasi' => ['required', 'numeric', 'min:0', 'max:9999999999'],
             'status_capaian' => ['required', Rule::in(array_keys(Kpicapaian::STATUS))],
             'tautan' => ['required', 'url:http,https', 'max:2000'],
             'permasalahan' => ['required', 'string', 'max:5000'],
@@ -51,14 +50,6 @@ class KpicapaianRequest extends AjaxFormRequest
                 ->exists();
             if ($duplikat) {
                 $validator->errors()->add('id_target', 'Data sudah ada!');
-
-                return;
-            }
-
-            $target = Kpitarget::find($this->input('id_target'));
-            if ($target && (float) $this->input('realisasi') > (float) $target->target) {
-                $validator->errors()->add('realisasi', 'Realisasi tidak boleh melebihi target ('
-                    .Kpicapaian::formatAngka($target->target).' '.$target->satuan.').');
             }
         }];
     }

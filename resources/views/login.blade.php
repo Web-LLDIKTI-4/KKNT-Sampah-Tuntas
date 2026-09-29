@@ -12,7 +12,7 @@
     <meta charset="utf-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+      content="width=device-width, initial-scale=1.0" />
 
     <title>KKN Tematik Sampah Tuntas | Login</title>
 
@@ -64,7 +64,7 @@
           background: #667eea;
           position: relative;
       }
-      
+
       .authentication-wrapper::before {
           content: '';
           position: absolute;
@@ -74,7 +74,13 @@
           bottom: 0;
           background: url('../../assets/images/bg-image.jpg') no-repeat center center;
           background-size: cover;
-          opacity: 0.1;
+          opacity: 0.08;
+          pointer-events: none;
+      }
+
+      .authentication-inner {
+          position: relative;
+          z-index: 1;
       }
       
         /* Panel Lokasi Kiri */
@@ -125,6 +131,16 @@
           margin-bottom: 0.1rem;
         }
 
+        .lokasi-hero-img {
+          width: 100%;
+          height: auto;
+          display: block;
+          margin-bottom: 1rem;
+          border-radius: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          box-shadow: 0 18px 40px rgba(20, 24, 70, 0.3);
+        }
+
         .lokasi-panel-title {
           margin-top: 3rem;
           color: #fff;
@@ -132,12 +148,28 @@
           font-weight: 900;
           font-size: 50px;
           line-height: 1.1;
+          letter-spacing: -0.02em;
+          text-shadow: 0 2px 16px rgba(20, 24, 70, 0.25);
         }
 
         .lokasi-panel-subtitle {
-          color: rgba(255, 255, 255, 0.9);
-          font-size: 17pt;
+          color: rgba(255, 255, 255, 0.88);
+          font-size: 1.15rem;
+          line-height: 1.6;
           margin-bottom: 2rem;
+          max-width: 46rem;
+        }
+
+        .lokasi-panel-subtitle b {
+          display: inline-block;
+          margin-bottom: 0.6rem;
+          padding: 0.3rem 0.8rem;
+          font-size: 0.78rem;
+          letter-spacing: 0.08em;
+          color: #fff;
+          background: rgba(255, 255, 255, 0.16);
+          border: 1px solid rgba(255, 255, 255, 0.28);
+          border-radius: 999px;
         }
 
         .lokasi-search .input-group-text,
@@ -169,10 +201,10 @@
 
         .lokasi-item {
           background: #fff;
-          border-radius: 10px;
+          border-radius: 14px;
           overflow: hidden;
-          box-shadow: 0 6px 18px rgba(31, 41, 55, 0.08);
-          border: 1px solid rgba(102, 126, 234, 0.12);
+          box-shadow: 0 8px 22px rgba(20, 24, 70, 0.14);
+          border: 1px solid rgba(255, 255, 255, 0.6);
           transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
           cursor: pointer;
           position: relative;
@@ -180,31 +212,37 @@
 
         .lokasi-item:hover {
           transform: translateY(-4px);
-          box-shadow: 0 14px 28px rgba(102, 126, 234, 0.22);
-          border-color: rgba(102, 126, 234, 0.35);
+          box-shadow: 0 18px 36px rgba(20, 24, 70, 0.28);
+        }
+
+        .lokasi-item:focus-visible {
+          outline: 3px solid #fff;
+          outline-offset: 3px;
         }
 
         /* State terpilih — dipakai kalau JS toggle class .active saat lokasi diklik */
         .lokasi-item.active {
           border-color: #667eea;
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.18), 0 14px 28px rgba(102, 126, 234, 0.22);
+          box-shadow: 0 0 0 3px #fff, 0 0 0 6px rgba(102, 126, 234, 0.55), 0 18px 36px rgba(20, 24, 70, 0.28);
         }
 
         .lokasi-item.active::after {
-          content: '\ec8e'; /* ri-check-fill (Remix Icon) */
+          content: '\eb7a'; /* ri-check-fill (Remix Icon) */
           font-family: 'remixicon';
           position: absolute;
-          top: 8px;
-          right: 8px;
-          width: 22px;
-          height: 22px;
+          top: 10px;
+          right: 10px;
+          width: 28px;
+          height: 28px;
           background: #667eea;
           color: #fff;
+          border: 2px solid #fff;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 0.75rem;
+          font-size: 0.9rem;
+          box-shadow: 0 4px 12px rgba(20, 24, 70, 0.3);
           z-index: 2;
         }
 
@@ -256,7 +294,7 @@
         }
 
         .lokasi-item-body {
-          padding: 10px 12px 12px;
+          padding: 12px;
         }
 
         /* Nama sudah ditampilkan sebagai badge di atas gambar, jadi ini opsional/disembunyikan */
@@ -275,9 +313,10 @@
           flex-direction: column;
           align-items: center;
           flex: 1;
-          padding: 6px 4px;
-          background: rgba(102, 126, 234, 0.06);
-          border-radius: 8px;
+          padding: 8px 4px;
+          background: rgba(102, 126, 234, 0.07);
+          border: 1px solid rgba(102, 126, 234, 0.1);
+          border-radius: 10px;
         }
 
         .lokasi-stat i {
@@ -288,14 +327,16 @@
 
         .lokasi-stat-value {
           font-weight: 700;
-          font-size: 0.85rem;
+          font-size: 0.95rem;
           color: #1f2937;
           line-height: 1.2;
         }
 
         .lokasi-stat-label {
-          font-size: 0.65rem;
+          font-size: 0.68rem;
           color: #6b7280;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
         }
 
         .lokasi-empty {
@@ -308,55 +349,71 @@
           display: inline-flex;
           align-items: center;
           gap: 0.35rem;
-          font-size: 0.78rem;
+          max-width: 100%;
+          font-size: 0.8rem;
           font-weight: 600;
-          color: #667eea;
+          color: #4f5fd8;
           background: rgba(102, 126, 234, 0.12);
-          padding: 0.35rem 0.75rem;
+          border: 1px solid rgba(102, 126, 234, 0.3);
+          padding: 0.4rem 0.85rem;
           border-radius: 999px;
-          margin-bottom: 0.75rem;
+          margin: 0.5rem 0 0.75rem;
         }
 
-        .selected-lokasi-name {
-          color: #3b4663;
-          font-weight: 600;
-          margin-top: -0.15rem;
-          margin-bottom: 0.35rem;
-          line-height: 1.15;
+        .selected-lokasi-label span {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .login-title {
           margin-bottom: 0.2rem;
           line-height: 1.1;
+          font-size: 1.6rem;
+          color: #1f2937;
+          letter-spacing: -0.01em;
         }
-      
+
       /* Form Section */
       .authentication-bg {
           background-color: rgba(255, 255, 255, 0.98);
           backdrop-filter: blur(20px);
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+          box-shadow: 0 20px 60px rgba(20, 24, 70, 0.25);
           border-radius: 24px 0px 0px 24px;
       }
-      
+
       .form-control:focus {
-          border-color: #696cff;
-          box-shadow: 0 0 0 0.2rem rgba(105, 108, 255, 0.25);
+          border-color: #667eea;
+          box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.2);
       }
-      
+
       .btn-primary {
-          padding: 0.75rem 1.5rem;
-          font-weight: 500;
+          padding: 0.8rem 1.5rem;
+          font-weight: 600;
+          letter-spacing: 0.01em;
           width: 100%;
           background: #667eea;
           border: none;
+          border-radius: 10px;
+          box-shadow: 0 6px 18px rgba(102, 126, 234, 0.3);
           transition: all 0.3s ease;
       }
-      
+
       .btn-primary:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+          box-shadow: 0 10px 28px rgba(102, 126, 234, 0.45);
       }
-      
+
+      .btn-primary:focus-visible {
+          outline: 3px solid rgba(102, 126, 234, 0.45);
+          outline-offset: 2px;
+      }
+
+      .btn-primary:disabled {
+          transform: none;
+          opacity: 0.8;
+      }
+
       .btn-icon {
           width: 38px;
           height: 38px;
@@ -364,13 +421,34 @@
           align-items: center;
           justify-content: center;
           transition: all 0.3s ease;
-          border: 2px solid #e7e7ff;
+          color: #667eea;
+          background: #f4f5ff;
+          border: 1px solid #e7e7ff;
       }
-      
-      .btn-icon:hover {
+
+      .btn-icon:hover,
+      .btn-icon:focus-visible {
           transform: translateY(-3px);
+          color: #fff;
+          background: #667eea;
           box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
           border-color: #667eea;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+          .lokasi-item,
+          .lokasi-item-img img,
+          .btn-primary,
+          .btn-icon {
+              transition: none;
+          }
+
+          .lokasi-item:hover,
+          .lokasi-item:hover .lokasi-item-img img,
+          .btn-primary:hover,
+          .btn-icon:hover {
+              transform: none;
+          }
       }
       
       .form-floating-outline .form-control {
@@ -403,6 +481,27 @@
           }
         }
 
+        .auth-right-panel {
+          position: relative;
+        }
+
+        /* Desktop: form tetap di tempat, hanya panel lokasi yang di-scroll */
+        @media (min-width: 992px) {
+          .auth-right-panel {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            align-self: flex-start;
+            align-items: flex-start !important;
+            overflow-y: auto;
+          }
+
+          .auth-right-panel > div {
+            margin-top: auto;
+            margin-bottom: auto;
+          }
+        }
+
         /* Mobile switch button (left/right view) */
         .auth-mobile-toggle {
           display: none;
@@ -419,7 +518,7 @@
             z-index: 1050;
             background: #667eea;
             color: #fff;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.35);
             border-radius: 999px;
             padding: 0.55rem 1.1rem;
             font-size: 0.8rem;
@@ -468,18 +567,18 @@
           <div class="lokasi-panel">
             <div class="lokasi-panel-header">
               {{-- Logo Header --}}
-              <div class="d-flex justify-content-start">
+              {{-- <div class="d-flex justify-content-start">
                 <div class="lokasi-header-logo">
                   <img src="../../assets/images/logo-kkn-berdampak.jpeg" alt="KKN Tematik Berdampak" />
                   <img src="../../assets/images/gradasi.png" alt="Gradasi 4" style="width: 110px; height: auto;" />
                 </div>
-              </div>
+              </div> --}}
+
+              <img src="../assets/images/kegiatan.jpeg" alt="Kegiatan KKN" class="lokasi-hero-img" />
               <h2 class="lokasi-panel-title">KKN Tematik Sampah Tuntas <br /> LLDIKTI Wilayah IV</h2>
 
-              <img src="../assets/images/kegiatan.jpeg" alt="Kegiatan KKN" style="width: 100%; height: auto; margin-bottom: 1rem;" />
-
               <p class="lokasi-panel-subtitle">
-                <b>LOKASI PELAKSAAN PROGRAM</b>
+                <b>LOKASI PELAKSANAAN PROGRAM</b>
                 <br />
                 Silahkan pilih Lokasi Program terlebih dahulu sebelum Login ke Aplikasi PPS Bandung
               </p>
@@ -494,6 +593,9 @@
                 <div class="lokasi-grid" id="lokasiGrid">
                   @foreach($lokasiProgramList as $lokasi)
                     <div class="lokasi-item"
+                         tabindex="0"
+                         role="button"
+                         aria-pressed="false"
                          data-lokasi="{{ strtolower($lokasi->nama_lokasi) }}"
                          data-lokasi-name="{{ $lokasi->nama_lokasi }}">
 
@@ -544,13 +646,16 @@
         <!-- /Left Section -->
 
         <!-- Login Form -->
-        <div class="auth-right-panel d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-5 px-4 px-sm-5">
+        <div class="auth-right-panel d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg py-5 px-4 px-sm-5">
           <div class="w-100 mx-auto" style="max-width: 400px;">
             <div class="mb-4 text-center">
               <img src="../../assets/images/lldikti4_logo.png" alt="LLDIKTI Wilayah IV" style="width: 200px; height: auto; margin-bottom: 30px;" />
               
               <h4 class="login-title fw-bold">PPS Bandung</h4>
-              <h4 id="selectedLokasiName" class="selected-lokasi-name fw-bold"></h4>
+              <div id="selectedLokasiLabel" class="selected-lokasi-label d-none" aria-live="polite">
+                <i class="ri-map-pin-2-fill"></i>
+                <span id="selectedLokasiName"></span>
+              </div>
               <p class="mb-0 text-muted">Silakan login untuk masuk ke Dashboard</p>
             </div>
 
@@ -602,22 +707,22 @@
             <div class="text-center mt-4">
               <p class="mb-0">
                 <span class="text-muted">Belum Punya Akun? Kontak </span>
-                <a href="https://wa.me/082244121226?text=Halo%20saya%20ingin%20bertanya" class="fw-semibold">LLDIKTI Wilayah IV</a>
+                <a href="https://wa.me/6282244121226?text=Halo%20saya%20ingin%20bertanya" class="fw-semibold">LLDIKTI Wilayah IV</a>
               </p>
             </div>
 
             <div class="text-center mt-4">
               <div class="d-flex justify-content-center gap-2">
-                <a href="https://www.facebook.com/lldiktiwilayah4/?tsid=0.24115179413463506&source=result" target="_blank" class="btn btn-icon rounded-circle btn-text-facebook" title="Facebook">
+                <a href="https://www.facebook.com/lldiktiwilayah4/?tsid=0.24115179413463506&source=result" target="_blank" rel="noopener noreferrer" class="btn btn-icon rounded-circle btn-text-facebook" title="Facebook">
                   <i class="ri-facebook-fill"></i>
                 </a>
-                <a href="https://x.com/lldiktiwilayah4?s=09" target="_blank" class="btn btn-icon rounded-circle btn-text-twitter" title="Twitter">
+                <a href="https://x.com/lldiktiwilayah4?s=09" target="_blank" rel="noopener noreferrer" class="btn btn-icon rounded-circle btn-text-twitter" title="Twitter">
                   <i class="ri-twitter-fill"></i>
                 </a>
-                <a href="https://www.youtube.com/c/LLDIKTIWILAYAH4" target="_blank" class="btn btn-icon rounded-circle btn-text-google-plus" title="YouTube">
+                <a href="https://www.youtube.com/c/LLDIKTIWILAYAH4" target="_blank" rel="noopener noreferrer" class="btn btn-icon rounded-circle btn-text-google-plus" title="YouTube">
                   <i class="ri-youtube-fill"></i>
                 </a>
-                <a href="https://www.instagram.com/lldiktiwilayah4?utm_medium=copy_link" target="_blank" class="btn btn-icon rounded-circle btn-text-google-plus" title="Instagram">
+                <a href="https://www.instagram.com/lldiktiwilayah4?utm_medium=copy_link" target="_blank" rel="noopener noreferrer" class="btn btn-icon rounded-circle btn-text-google-plus" title="Instagram">
                   <i class="ri-instagram-fill"></i>
                 </a>
               </div>
@@ -732,10 +837,18 @@ $(function(){
 
       $("#lokasiGrid").on("click", ".lokasi-item", function () {
         var lokasiName = $(this).data("lokasi-name");
-        $("#lokasiGrid .lokasi-item").removeClass("active");
-        $(this).addClass("active");
+        $("#lokasiGrid .lokasi-item").removeClass("active").attr("aria-pressed", "false");
+        $(this).addClass("active").attr("aria-pressed", "true");
         $("#selectedLokasiName").text(lokasiName);
+        $("#selectedLokasiLabel").removeClass("d-none");
         $("#lokasi").val(lokasiName);
+      });
+
+      $("#lokasiGrid").on("keydown", ".lokasi-item", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          $(this).trigger("click");
+        }
       });
 
       $("#authMobileToggle").on("click", function () {

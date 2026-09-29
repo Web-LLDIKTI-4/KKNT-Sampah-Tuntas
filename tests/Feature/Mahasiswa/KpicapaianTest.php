@@ -77,12 +77,14 @@ class KpicapaianTest extends TestCase
         $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => '']))->assertJsonValidationErrors('realisasi', 'errors');
         $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => -5]))->assertJsonValidationErrors('realisasi', 'errors');
 
-        $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => 90]))
-            ->assertJsonPath('errors.realisasi.0', 'Realisasi tidak boleh melebihi target (25 %).');
-
-        $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => 25, 'satuan' => 'palsu']))->assertJson(['success' => true]);
+        // Realisasi boleh melebihi target; capaian hanya dari tindak lanjut Sudah Selesai
+        $this->put('kpicapaian/insert', $this->payload(1, ['realisasi' => 90, 'satuan' => 'palsu']))->assertJson(['success' => true]);
         $capaian = Kpicapaian::firstOrFail();
         $this->assertSame('%', $capaian->satuan);
+        $this->assertEquals(90, $capaian->realisasi);
+        $this->assertEquals(0, $capaian->capaianPersen());
+
+        $capaian->update(['status_capaian' => 'Y']);
         $this->assertEquals(100, $capaian->capaianPersen());
     }
 

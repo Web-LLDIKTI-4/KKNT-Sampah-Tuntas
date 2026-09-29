@@ -27,7 +27,7 @@
     </div>
     <div class="row">
         <div class="form-group col-8 form-floating form-floating-outline mb-6">
-            <input type="number" name="realisasi" class="form-control form-control-sm" required min="0" max="999999" step="any">
+            <input type="number" name="realisasi" class="form-control form-control-sm" required min="0" max="9999999999" step="any">
             <label>Realisasi</label>
         </div>
         <div class="form-group col-4 form-floating form-floating-outline mb-6">

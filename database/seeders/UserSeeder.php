@@ -15,11 +15,12 @@ use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
 {
+    // Satu akun dummy per role
     public function run(string $password): void
     {
-        $lokasi = LokasiProgram::orderBy('nama_lokasi')->get();
-        $ptList = Satuanpendidikan::all();
-        $desaList = Desa::all();
+        $lokasi = LokasiProgram::orderBy('nama_lokasi')->firstOrFail();
+        $pt = Satuanpendidikan::firstOrFail();
+        $desa = Desa::firstOrFail();
 
         User::factory()->role('admin')->withPassword($password)->create([
             'name' => 'Administrator',
@@ -32,63 +33,46 @@ class UserSeeder extends Seeder
         ]);
 
         // Akun PT login memakai NPSN sebagai email
-        foreach ($ptList as $i => $pt) {
-            User::factory()->role('pt')->withPassword($password)->create([
-                'name' => $pt->nm_lemb,
-                'email' => $pt->npsn,
-                'location_program' => $lokasi[$i % $lokasi->count()]->id,
-            ]);
-        }
+        User::factory()->role('pt')->withPassword($password)->create([
+            'name' => $pt->nm_lemb,
+            'email' => $pt->npsn,
+            'location_program' => $lokasi->id,
+        ]);
 
-        $dplList = collect();
-        foreach (range(1, 6) as $i) {
-            $pt = $ptList[$i % $ptList->count()];
-            $lokasiId = $lokasi[$i % $lokasi->count()]->id;
-            $dpl = Dpl::factory()->create([
-                'email' => "dpl{$i}@kknt.test",
-                'kodept' => $pt->npsn,
-                'location_program' => $lokasiId,
-            ]);
-            User::factory()->role('dpl')->withPassword($password)->create([
-                'name' => $dpl->nama,
-                'email' => $dpl->email,
-                'location_program' => $lokasiId,
-            ]);
-            $dplList->push($dpl);
-        }
+        $dpl = Dpl::factory()->create([
+            'email' => 'dpl@kknt.test',
+            'kodept' => $pt->npsn,
+            'location_program' => $lokasi->id,
+        ]);
+        User::factory()->role('dpl')->withPassword($password)->create([
+            'name' => $dpl->nama,
+            'email' => $dpl->email,
+            'location_program' => $lokasi->id,
+        ]);
 
-        foreach (range(1, 30) as $i) {
-            $dpl = $dplList[$i % $dplList->count()];
-            $desa = $desaList[$i % $desaList->count()];
-            $isKetua = $i <= $desaList->count();
+        // Mahasiswa sekaligus ketua kelompok agar fitur capaian KPI bisa dicoba
+        $mahasiswa = Mahasiswa::factory()->create([
+            'email' => 'mahasiswa@kknt.test',
+            'kodept' => $pt->npsn,
+            'location_program' => $lokasi->id,
+        ]);
+        User::factory()->role('mahasiswa')->withPassword($password)->create([
+            'name' => $mahasiswa->nama,
+            'email' => $mahasiswa->email,
+            'location_program' => $lokasi->id,
+            'akses' => 'pjdesa',
+        ]);
 
-            $mahasiswa = Mahasiswa::factory()->create([
-                'email' => "mhs{$i}@kknt.test",
-                'kodept' => $dpl->kodept,
-                'location_program' => $dpl->location_program,
-            ]);
-            User::factory()->role('mahasiswa')->withPassword($password)->create([
-                'name' => $mahasiswa->nama,
-                'email' => $mahasiswa->email,
-                'location_program' => $dpl->location_program,
-                'akses' => $isKetua ? 'pjdesa' : null,
-            ]);
-
-            Mahasiswa_lokasi::create([
-                'tahun' => (int) date('Y'),
-                'id_mahasiswa' => $mahasiswa->id_mahasiswa,
-                'id_desa' => $desa->id_desa,
-                'user_in_up' => $mahasiswa->email,
-            ]);
-            Dplmentoring::create([
-                'email_mahasiswa' => $mahasiswa->email,
-                'email_dpl' => $dpl->email,
-            ]);
-
-            // Mahasiswa pertama di tiap desa jadi ketua kelompok
-            if ($isKetua) {
-                Pjdesa::create(['email' => $mahasiswa->email, 'id_desa' => $desa->id_desa]);
-            }
-        }
+        Mahasiswa_lokasi::create([
+            'tahun' => (int) date('Y'),
+            'id_mahasiswa' => $mahasiswa->id_mahasiswa,
+            'id_desa' => $desa->id_desa,
+            'user_in_up' => $mahasiswa->email,
+        ]);
+        Dplmentoring::create([
+            'email_mahasiswa' => $mahasiswa->email,
+            'email_dpl' => $dpl->email,
+        ]);
+        Pjdesa::create(['email' => $mahasiswa->email, 'id_desa' => $desa->id_desa]);
     }
 }

@@ -19,11 +19,11 @@
                         <thead>
                             <tr>
                                 <th>Lokasi Kegiatan</th>
+                                <th class="text-center">Kecamatan</th>
+                                <th class="text-center">Kelurahan</th>
                                 @if ($perPt)
                                     <th class="text-center">PT</th>
                                 @endif
-                                <th class="text-center">Kecamatan</th>
-                                <th class="text-center">Kelurahan</th>
                                 <th class="text-center">Mahasiswa</th>
                                 <th class="text-center">DPL</th>
                                 <th class="text-center">Kelompok</th>

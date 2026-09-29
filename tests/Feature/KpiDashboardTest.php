@@ -41,13 +41,13 @@ class KpiDashboardTest extends TestCase
             'satuan' => '%',
         ]);
 
-        // PT1: 2 kelompok (90 => 100%, belum isi => 0%), PT2: 1 kelompok (40 => 50%)
-        $this->ketua($this->pt1, 90);
+        // PT1: 2 kelompok (Selesai => 100%, belum isi => 0%), PT2: 1 kelompok (Proses => 0%)
+        $this->ketua($this->pt1, 90, 'Y');
         $this->ketua($this->pt1, null);
-        $this->ketua($this->pt2, 40);
+        $this->ketua($this->pt2, 40, 'P');
     }
 
-    private function ketua(Satuanpendidikan $pt, ?float $realisasi): Mahasiswa
+    private function ketua(Satuanpendidikan $pt, ?float $realisasi, string $status = 'Y'): Mahasiswa
     {
         $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'location_program' => $this->lokasi->id]);
         Pjdesa::create(['email' => $mhs->email, 'id_desa' => Desa::factory()->create()->id_desa]);
@@ -57,6 +57,7 @@ class KpiDashboardTest extends TestCase
                 'id_kpi' => $this->target->id_kpi,
                 'id_target' => $this->target->id_target,
                 'realisasi' => $realisasi,
+                'status_capaian' => $status,
                 'satuan' => '%',
             ]);
         }
@@ -64,7 +65,7 @@ class KpiDashboardTest extends TestCase
         return $mhs;
     }
 
-    public function test_capaian_is_capped_and_unfilled_groups_count_as_zero(): void
+    public function test_capaian_counts_only_selesai_and_unfilled_groups_count_as_zero(): void
     {
         $service = app(KpiRekapService::class);
         $rows = $service->rekapPerPt([])->keyBy('kodept');
@@ -72,13 +73,13 @@ class KpiDashboardTest extends TestCase
         $this->assertSame(2, (int) $rows[$this->pt1->npsn]->jumlah_kelompok);
         $this->assertSame(1, (int) $rows[$this->pt1->npsn]->jumlah_mengisi);
         $this->assertEquals(50, $rows[$this->pt1->npsn]->capaian);
-        $this->assertEquals(50, $rows[$this->pt2->npsn]->capaian);
+        $this->assertEquals(0, $rows[$this->pt2->npsn]->capaian);
 
         $summary = $service->summary([]);
         $this->assertSame(2, $summary['jumlah_pt']);
         $this->assertSame(3, $summary['total_kelompok']);
         $this->assertArrayNotHasKey('rata_capaian', $summary);
-        $this->assertEquals(50, $service->rekapPerKegiatan([])->first()->capaian);
+        $this->assertEquals(33.33, $service->rekapPerKegiatan([])->first()->capaian);
     }
 
     public function test_lokasi_table_uses_student_placement_and_counts_unplaced(): void
@@ -102,15 +103,14 @@ class KpiDashboardTest extends TestCase
         $this->assertSame(1, $rows[$this->lokasi->nama_lokasi]['pt']);
     }
 
-    public function test_average_realisasi_never_exceeds_target(): void
+    public function test_realisasi_is_not_capped_and_does_not_affect_capaian(): void
     {
-        // Data lama yang terlanjur melebihi target tetap dibatasi di rekap
         Kpicapaian::query()->update(['realisasi' => 500]);
 
         $row = app(KpiRekapService::class)->rekapPerPt(['kodept' => $this->pt2->npsn])->first();
 
-        $this->assertEquals(80, $row->realisasi);
-        $this->assertEquals(100, $row->capaian);
+        $this->assertEquals(500, $row->realisasi);
+        $this->assertEquals(0, $row->capaian);
     }
 
     public function test_admin_home_matches_kepala_and_keeps_admin_cards(): void

@@ -1,5 +1,5 @@
 <div class="row">
-    <div class="col-12 table-responsive">
+    <div class="col-12">
         <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
             <x-slot:thead>
                 <tr>
@@ -31,6 +31,7 @@
         lengthChange: true,
         processing: true,
         serverSide: true,
+        scrollX: true,
         ajax: "{{ route('kpicapaian.listdataserver') }}",
         language: {
             search: "",
