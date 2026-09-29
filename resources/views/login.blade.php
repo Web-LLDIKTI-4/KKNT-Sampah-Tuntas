@@ -551,7 +551,7 @@
         <div class="auth-left-panel d-lg-flex col-lg-7 col-xl-8 p-0">
           <div class="lokasi-panel">
             <div class="lokasi-panel-header">
-              <img src="../assets/images/kegiatan.jpeg" alt="Kegiatan KKN" class="lokasi-hero-img" />
+              <img src="../assets/images/sampah.png" alt="Kegiatan KKN" class="lokasi-hero-img" />
               <h2 class="lokasi-panel-title">KKN Tematik Sampah Tuntas <br /> LLDIKTI Wilayah IV</h2>
 
               <p class="lokasi-panel-subtitle">
