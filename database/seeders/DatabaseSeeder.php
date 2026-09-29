@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call(MasterDataSeeder::class);
         $this->callWith(UserSeeder::class, ['password' => $password]);
+        $this->call(KpiSeeder::class);
         // Data aktivitas dummy dinonaktifkan sementara; aktifkan lagi bila perlu:
         // $this->call(ActivitySeeder::class);
 
