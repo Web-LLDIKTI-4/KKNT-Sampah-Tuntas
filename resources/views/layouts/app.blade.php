@@ -208,8 +208,9 @@
     <!-- Main JS -->
     <script src="../../assets/js/front-main.js"></script>
     <script src="../../assets/js/ui-toasts.js"></script>
-    <script src="{{ asset('js/crud.js') }}"></script>
-    <script src="{{ asset('js/search-select.js') }}"></script>
+    {{-- ?v= berganti tiap file berubah agar browser tidak memakai cache lama --}}
+    <script src="{{ asset('js/crud.js') }}?v={{ filemtime(public_path('js/crud.js')) }}"></script>
+    <script src="{{ asset('js/search-select.js') }}?v={{ filemtime(public_path('js/search-select.js')) }}"></script>
 
     <!-- Page JS -->
     <script src="../../assets/js/front-page-landing.js"></script>

@@ -24,4 +24,4 @@
     <tbody></tbody>
 </table>
 
-<script src="{{ asset('js/table-init.js') }}"></script>
+<script src="{{ asset('js/table-init.js') }}?v={{ filemtime(public_path('js/table-init.js')) }}"></script>
