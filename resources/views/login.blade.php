@@ -651,9 +651,9 @@
                   class="form-control"
                   id="email"
                   name="username"
-                  placeholder="Masukkan surel atau nama pengguna"
+                  placeholder="Masukkan email atau nama pengguna"
                   autofocus />
-                <label for="email">Surel</label>
+                <label for="email">Email</label>
               </div>
               <div class="mb-5">
                 <div class="form-password-toggle">
