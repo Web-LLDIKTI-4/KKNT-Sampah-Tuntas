@@ -234,12 +234,14 @@ class KpiRekapService
                 $berdata = $kegiatan->whereNotNull('capaian');
 
                 return (object) [
+                    'kodept' => $kegiatan->first()->kodept,
                     'nama_pt' => $kegiatan->first()->nama_pt,
                     'jumlah_mahasiswa' => $kegiatan->first()->jumlah_mahasiswa,
                     'jumlah_kelompok' => $kegiatan->max('jumlah_kelompok'),
                     'jumlah_kegiatan' => $kegiatan->count(),
                     'kegiatan_berdata' => $berdata->count(),
                     'capaian' => $berdata->isEmpty() ? null : round($berdata->avg('capaian'), 2),
+                    'kegiatan' => $kegiatan->values(),
                 ];
             })
             ->sortBy('nama_pt')->values();

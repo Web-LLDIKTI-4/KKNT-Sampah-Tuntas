@@ -25,7 +25,7 @@ class KpiDashboardController extends Controller
             'summary' => $rekap->summary($filter),
             'rekapPerKpi' => $rekap->rekapPerKpi($filter),
             'rekapPerDaerah' => $isPt ? collect() : $rekap->rekapPerDaerah($filter),
-            'rekapPerPt' => $rekap->rekapPerPt($filter),
+            'rekapPerPt' => $rekap->rekapPerPtRingkas($filter),
             'isian' => $filter['kodept'] ? $rekap->isianKelompok($filter) : collect(),
             'lokasiList' => LokasiProgram::orderBy('nama_lokasi')->get(['id', 'nama_lokasi']),
             'ptList' => $isPt ? collect() : Satuanpendidikan::whereIn('npsn', Mahasiswa::whereNotNull('kodept')->select('kodept'))

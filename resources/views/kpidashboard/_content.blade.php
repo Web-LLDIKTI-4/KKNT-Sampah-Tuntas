@@ -60,36 +60,7 @@
         <p class="mb-0 card-subtitle">Realisasi = rata-rata ketua kelompok yang mengisi dan tindak lanjut Sudah Selesai; capaian maksimal 100%</p>
     </div>
     <div class="card-body">
-        <table class="table table-sm table-bordered text-nowrap w-100" id="tabel-rekap-pt">
-            <thead>
-                <tr>
-                    <th>Perguruan Tinggi</th>
-                    <th class="text-center">Mahasiswa</th>
-                    <th class="text-center">Kelompok</th>
-                    <th>KPI</th>
-                    <th>Kegiatan</th>
-                    <th class="text-center">Target</th>
-                    <th class="text-center">Realisasi</th>
-                    <th class="text-center">Selesai</th>
-                    <th class="text-center">Capaian</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($rekapPerPt as $row)
-                    <tr>
-                        <td>{{ $row->nama_pt }}</td>
-                        <td class="text-center">{{ $num($row->jumlah_mahasiswa) }}</td>
-                        <td class="text-center">{{ $row->jumlah_kelompok }}</td>
-                        <td>{{ $row->nama_kpi }}</td>
-                        <td>{{ $row->kegiatan }}</td>
-                        <td class="text-center">{{ $angka($row->target) }} {{ $row->satuan }}</td>
-                        <td class="text-center">{{ $row->realisasi === null ? '-' : $angka($row->realisasi).' '.$row->satuan }}</td>
-                        <td class="text-center">{{ $row->jumlah_selesai }}/{{ $row->jumlah_kelompok }}</td>
-                        <td class="text-center" data-order="{{ $row->capaian ?? -1 }}">{!! $capaian($row->capaian) !!}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+        @include('kpidashboard._per_pt', ['perPt' => $rekapPerPt, 'detail' => true])
     </div>
 </div>
 
@@ -154,7 +125,6 @@ $(function () {
             infoEmpty: 'Tidak ada data yang ditemukan',
         },
     };
-    $('#tabel-rekap-pt').DataTable(opsi);
     $('#tabel-isian').DataTable(opsi);
 });
 </script>

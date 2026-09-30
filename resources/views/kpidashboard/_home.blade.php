@@ -103,38 +103,23 @@
             </div>
             <div class="card-body">
                 @if ($perPt)
-                    <table class="table table-sm table-bordered mb-0 text-nowrap w-100" id="tabel-home-capaian">
+                    @include('kpidashboard._per_pt', ['perPt' => $kpiHome['capaian']])
                 @else
                     <div class="table-responsive">
                     <table class="table table-sm table-bordered mb-0">
-                @endif
                     <thead>
                         <tr>
-                            @if ($perPt)
-                                <th>Perguruan Tinggi</th>
-                                <th class="text-center">Mahasiswa</th>
-                                <th class="text-center">Kelompok</th>
-                                <th class="text-center">Kegiatan Berdata</th>
-                            @else
-                                <th>Kegiatan</th>
-                            @endif
+                            <th>Kegiatan</th>
                             <th class="text-center">Rata-rata Capaian</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($kpiHome['capaian'] as $row)
                             <tr>
-                                @if ($perPt)
-                                    <td>{{ $row->nama_pt }}</td>
-                                    <td class="text-center">{{ $num($row->jumlah_mahasiswa) }}</td>
-                                    <td class="text-center">{{ $row->jumlah_kelompok }}</td>
-                                    <td class="text-center">{{ $row->kegiatan_berdata }}/{{ $row->jumlah_kegiatan }}</td>
-                                @else
-                                    <td>
-                                        {{ $row->kegiatan }}
-                                        <small class="d-block text-muted">{{ $row->nama_kpi }} · target {{ $angka($row->target) }} {{ $row->satuan }}</small>
-                                    </td>
-                                @endif
+                                <td>
+                                    {{ $row->kegiatan }}
+                                    <small class="d-block text-muted">{{ $row->nama_kpi }} · target {{ $angka($row->target) }} {{ $row->satuan }}</small>
+                                </td>
                                 <td class="text-center" data-order="{{ $row->capaian ?? -1 }}">
                                     @if ($row->capaian === null)
                                         -
@@ -144,34 +129,14 @@
                                 </td>
                             </tr>
                         @endforeach
-                        @if ($kpiHome['capaian']->isEmpty() && ! $perPt)
+                        @if ($kpiHome['capaian']->isEmpty())
                             <tr><td colspan="2" class="text-center text-muted">Belum ada kegiatan KPI</td></tr>
                         @endif
                     </tbody>
-                </table>
-                @unless ($perPt)
+                    </table>
                     </div>
-                @endunless
+                @endif
             </div>
         </div>
     </div>
 </div>
-
-@if ($perPt)
-<script>
-$(function () {
-    // scrollX: hanya tabel yang bisa digeser, kontrol pencarian & paging tetap di card
-    $('#tabel-home-capaian').DataTable({
-        pageLength: 10,
-        scrollX: true,
-        language: {
-            search: '',
-            searchPlaceholder: 'Cari...',
-            zeroRecords: 'Tidak ada data yang tersedia',
-            emptyTable: 'Tidak ada data yang tersedia',
-            infoEmpty: 'Tidak ada data yang ditemukan',
-        },
-    });
-});
-</script>
-@endif
