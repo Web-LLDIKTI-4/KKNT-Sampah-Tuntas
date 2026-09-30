@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\LogHarianExport;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\LogkegiatanRequest;
+use App\Models\Kehadiran;
 use App\Models\Kpi;
 use App\Models\Logkegiatan;
 use App\Support\ActionButtons;
@@ -19,9 +20,11 @@ class LogkegiatanController extends Controller
 
     private const FIELDS = ['tanggal', 'deskripsi', 'volume', 'satuan', 'id_kpi', 'tautan'];
 
-    public function index()
+    public function index(Request $request)
     {
-        return view('logkegiatan.mahasiswa.index');
+        return view('logkegiatan.mahasiswa.index', [
+            'kehadiran' => Kehadiran::where('email', $request->user()->email)->whereDate('tanggal', today())->first(),
+        ]);
     }
 
     public function listdata()
