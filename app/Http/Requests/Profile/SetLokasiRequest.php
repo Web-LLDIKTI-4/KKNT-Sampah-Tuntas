@@ -14,7 +14,7 @@ class SetLokasiRequest extends AjaxFormRequest
     public function rules(): array
     {
         return [
-            'id_desa' => ['required', 'uuid', 'exists:desa,id_desa'],
+            'id_desa' => ['required', 'string', 'max:36', 'exists:desa,id_desa'],
             'tahun' => ['required', 'integer', 'between:'.(date('Y') - 1).','.(date('Y') + 1)],
         ];
     }

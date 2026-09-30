@@ -72,7 +72,7 @@ $(function(){
                     $("#resultcontent").load("{{ url('mhsprofile/data') }}");
 		
                 }else{
-                    toastr.warning(ret.message)
+                    toastr.warning(ret.errors ? Object.values(ret.errors).flat().join('<br>') : ret.message)
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
