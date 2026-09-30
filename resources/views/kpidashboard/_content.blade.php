@@ -48,6 +48,12 @@
     @include('kpidashboard._per_kpi', ['perKpi' => $rekapPerKpi])
 </div>
 
+@unless ($isPt)
+    <div class="card mb-6">
+        @include('kpidashboard._per_daerah', ['perDaerah' => $rekapPerDaerah])
+    </div>
+@endunless
+
 <div class="card mb-6">
     <div class="card-header">
         <h5 class="mb-1">Capaian per Perguruan Tinggi</h5>

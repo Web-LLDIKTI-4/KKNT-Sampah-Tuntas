@@ -82,11 +82,21 @@
         </div>
     </div>
 
+    @if ($perPt)
+        <div class="col-12">
+            <div class="card">
+                @include('kpidashboard._per_daerah', ['perDaerah' => $kpiHome['perDaerah']])
+            </div>
+        </div>
+    @endif
+
+    @include('kpidashboard._chart_kpi', ['chartKpi' => $kpiHome['chartKpi']])
+
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-start gap-4">
                 <div>
-                    <h5 class="mb-1">Rata-rata Capaian KPI</h5>
+                    <h5 class="mb-1">Rata-rata Capaian KPI per Program</h5>
                     <p class="mb-0 card-subtitle">Per kegiatan, hanya ketua kelompok yang mengisi dan tindak lanjut Sudah Selesai; maksimal 100%</p>
                 </div>
                 <a href="{{ route('dashboardkpi') }}" class="btn btn-sm btn-outline-primary">Detail</a>
@@ -104,8 +114,10 @@
                                 <th>Perguruan Tinggi</th>
                                 <th class="text-center">Mahasiswa</th>
                                 <th class="text-center">Kelompok</th>
+                                <th class="text-center">Kegiatan Berdata</th>
+                            @else
+                                <th>Kegiatan</th>
                             @endif
-                            <th>Kegiatan</th>
                             <th class="text-center">Rata-rata Capaian</th>
                         </tr>
                     </thead>
@@ -116,11 +128,13 @@
                                     <td>{{ $row->nama_pt }}</td>
                                     <td class="text-center">{{ $num($row->jumlah_mahasiswa) }}</td>
                                     <td class="text-center">{{ $row->jumlah_kelompok }}</td>
+                                    <td class="text-center">{{ $row->kegiatan_berdata }}/{{ $row->jumlah_kegiatan }}</td>
+                                @else
+                                    <td>
+                                        {{ $row->kegiatan }}
+                                        <small class="d-block text-muted">{{ $row->nama_kpi }} · target {{ $angka($row->target) }} {{ $row->satuan }}</small>
+                                    </td>
                                 @endif
-                                <td>
-                                    {{ $row->kegiatan }}
-                                    <small class="d-block text-muted">{{ $row->nama_kpi }} · target {{ $angka($row->target) }} {{ $row->satuan }}</small>
-                                </td>
                                 <td class="text-center" data-order="{{ $row->capaian ?? -1 }}">
                                     @if ($row->capaian === null)
                                         -

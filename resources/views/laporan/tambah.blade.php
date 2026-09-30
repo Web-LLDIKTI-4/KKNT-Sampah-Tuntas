@@ -1,6 +1,6 @@
 <p>
   <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-    Data log bulanan bulan <b class="ms-1 me-1"> {{ Carbon\Carbon::create()->month($bulan)->translatedFormat('F')}}</b> tahun <b class="ms-1 me-1"> {{ $tahun }}</b>
+    Data log bulanan bulan <b class="ms-1 me-1"> {{ Carbon\Carbon::create()->month((int) $bulan)->translatedFormat('F')}}</b> tahun <b class="ms-1 me-1"> {{ $tahun }}</b>
   </button>
 </p>
 

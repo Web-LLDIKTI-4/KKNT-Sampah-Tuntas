@@ -16,11 +16,7 @@ class DatabaseSeeder extends Seeder
 
         $password = config('app.seed_password') ?: Str::password(12, symbols: false);
 
-        $this->call(MasterDataSeeder::class);
-        $this->callWith(UserSeeder::class, ['password' => $password]);
-        $this->call(KpiSeeder::class);
-        // Data aktivitas dummy dinonaktifkan sementara; aktifkan lagi bila perlu:
-        // $this->call(ActivitySeeder::class);
+        $this->callWith(SimulasiSeeder::class, ['password' => $password]);
 
         $this->command->warn('Password semua akun dummy: '.$password);
     }

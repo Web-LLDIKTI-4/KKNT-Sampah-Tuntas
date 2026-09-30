@@ -86,7 +86,9 @@ class DashboardService
             'perPt' => $perPt,
             'lokasi' => $this->rekap->lokasiTable($filter),
             'perKpi' => $this->rekap->rekapPerKpi($filter),
-            'capaian' => $perPt ? $this->rekap->rekapPerPt($filter) : $this->rekap->rekapPerKegiatan($filter),
+            'perDaerah' => $perPt ? $this->rekap->rekapPerDaerah($filter) : collect(),
+            'chartKpi' => $this->rekap->chartKpi($filter),
+            'capaian' => $perPt ? $this->rekap->rekapPerPtRingkas($filter) : $this->rekap->rekapPerKegiatan($filter),
         ];
     }
 

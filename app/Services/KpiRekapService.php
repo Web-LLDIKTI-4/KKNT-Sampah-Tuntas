@@ -140,6 +140,65 @@ class KpiRekapService
     }
 
     /**
+     * Capaian per KPI untuk setiap lokasi program (daerah).
+     */
+    public function rekapPerDaerah(array $filter): Collection
+    {
+        return DB::table('lokasi_program')
+            ->when($filter['lokasi'] ?? null, fn (Builder $q, $v) => $q->where('id', $v))
+            ->orderBy('nama_lokasi')
+            ->get(['id', 'nama_lokasi'])
+            ->map(fn ($lokasi) => (object) [
+                'nama_lokasi' => $lokasi->nama_lokasi,
+                'perKpi' => $this->rekapPerKpi(['lokasi' => $lokasi->id] + $filter),
+            ]);
+    }
+
+    /**
+     * Data chart KPI, satu series per lokasi program (null = belum ada data):
+     * ringkasan = kategori KPI, detail = kategori kegiatan per KPI.
+     */
+    public function chartKpi(array $filter): array
+    {
+        $perLokasi = DB::table('lokasi_program')
+            ->when($filter['lokasi'] ?? null, fn (Builder $q, $v) => $q->where('id', $v))
+            ->orderBy('nama_lokasi')
+            ->get(['id', 'nama_lokasi'])
+            ->mapWithKeys(fn ($l) => [$l->nama_lokasi => $this->rekapPerKegiatan(['lokasi' => $l->id] + $filter)->keyBy('id_target')]);
+
+        if ($perLokasi->isEmpty()) {
+            return ['ringkasan' => null, 'detail' => collect()];
+        }
+
+        $detail = $perLokasi->first()->values()
+            ->groupBy('id_kpi')
+            ->map(fn (Collection $kegiatan) => [
+                'nama_kpi' => $kegiatan->first()->nama_kpi ?? '-',
+                'kegiatan' => $kegiatan->pluck('kegiatan')->values(),
+                'series' => $perLokasi->map(fn (Collection $rekap, $nama) => [
+                    'name' => $nama,
+                    'data' => $kegiatan->map(fn ($k) => $rekap[$k->id_target]->capaian)->values(),
+                ])->values(),
+            ])
+            ->sortBy('nama_kpi')->values();
+
+        // Capaian KPI per lokasi = rata-rata kegiatan yang punya data, sama dengan rekapPerKpi()
+        $ringkasan = [
+            'kpi' => $detail->pluck('nama_kpi'),
+            'series' => $perLokasi->keys()->values()->map(fn ($nama, $i) => [
+                'name' => $nama,
+                'data' => $detail->map(function ($kpi) use ($i) {
+                    $berdata = collect($kpi['series'][$i]['data'])->filter(fn ($v) => $v !== null);
+
+                    return $berdata->isEmpty() ? null : round($berdata->avg(), 2);
+                })->values(),
+            ]),
+        ];
+
+        return ['ringkasan' => $ringkasan, 'detail' => $detail];
+    }
+
+    /**
      * Satu baris per PT per kegiatan.
      */
     public function rekapPerPt(array $filter): Collection
@@ -162,6 +221,28 @@ class KpiRekapService
 
             return $this->isiCapaian($row, $row);
         });
+    }
+
+    /**
+     * Satu baris per PT: rata-rata capaian kegiatan yang sudah punya data.
+     */
+    public function rekapPerPtRingkas(array $filter): Collection
+    {
+        return $this->rekapPerPt($filter)
+            ->groupBy('kodept')
+            ->map(function (Collection $kegiatan) {
+                $berdata = $kegiatan->whereNotNull('capaian');
+
+                return (object) [
+                    'nama_pt' => $kegiatan->first()->nama_pt,
+                    'jumlah_mahasiswa' => $kegiatan->first()->jumlah_mahasiswa,
+                    'jumlah_kelompok' => $kegiatan->max('jumlah_kelompok'),
+                    'jumlah_kegiatan' => $kegiatan->count(),
+                    'kegiatan_berdata' => $berdata->count(),
+                    'capaian' => $berdata->isEmpty() ? null : round($berdata->avg('capaian'), 2),
+                ];
+            })
+            ->sortBy('nama_pt')->values();
     }
 
     /**

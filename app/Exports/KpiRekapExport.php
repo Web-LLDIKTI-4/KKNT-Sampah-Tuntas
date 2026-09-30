@@ -22,6 +22,11 @@ class KpiRekapExport implements WithMultipleSheets
                     $r->nama_kpi, $r->jumlah_kegiatan, $r->kegiatan_berdata, $this->bulat($r->capaian),
                 ])),
 
+            new ArraySheet('Per Daerah', ['Daerah', 'KPI', 'Jumlah Kegiatan', 'Kegiatan Berdata', 'Rata-rata Capaian (%)'],
+                $this->rekap->rekapPerDaerah($this->filter)->flatMap(fn ($d) => $d->perKpi->map(fn ($r) => [
+                    $d->nama_lokasi, $r->nama_kpi, $r->jumlah_kegiatan, $r->kegiatan_berdata, $this->bulat($r->capaian),
+                ]))),
+
             new ArraySheet('Per Kegiatan', ['KPI', 'Kegiatan', 'Target', 'Satuan', 'Rata-rata Realisasi', 'Kelompok Selesai', 'Jumlah Kelompok', 'Capaian (%)'],
                 $this->rekap->rekapPerKegiatan($this->filter)->map(fn ($r) => [
                     $r->nama_kpi, $r->kegiatan, $this->bulat($r->target), $r->satuan, $this->bulat($r->realisasi),

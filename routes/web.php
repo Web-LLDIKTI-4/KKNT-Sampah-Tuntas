@@ -104,8 +104,7 @@ Route::get('ptpeserta/listdata', [PtpesertaController::class, 'listdata'])->name
 Route::get('ptpeserta/listdataserver', [PtpesertaController::class, 'listdataserver'])->name('ptpeserta.listdataserver');
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('dashboardkpi/export', [KpiDashboardController::class, 'export'])->name('dashboardkpi.export');
-    Route::get('user', [UserController::class, 'index']);
+    Route::get('user',[UserController::class, 'index']);
     Route::get('user/listdata', [UserController::class, 'listdata']);
     Route::get('user/getdatamember', [UserController::class, 'getdatamember']);
     Route::put('user/insert', [UserController::class, 'insert']);
@@ -294,6 +293,10 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala'])->group(function () {
 
 Route::middleware(['auth', 'role:admin,pt,kepala'])->group(function () {
     Route::get('dashboardkpi', [KpiDashboardController::class, 'index'])->name('dashboardkpi');
+});
+
+Route::middleware(['auth', 'role:admin,kepala'])->group(function () {
+    Route::get('dashboardkpi/export', [KpiDashboardController::class, 'export'])->name('dashboardkpi.export');
 });
 
 Route::middleware(['auth', 'role:dpl,pt,kepala'])->group(function () {

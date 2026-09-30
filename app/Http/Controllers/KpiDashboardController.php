@@ -24,6 +24,7 @@ class KpiDashboardController extends Controller
             'filter' => $filter,
             'summary' => $rekap->summary($filter),
             'rekapPerKpi' => $rekap->rekapPerKpi($filter),
+            'rekapPerDaerah' => $isPt ? collect() : $rekap->rekapPerDaerah($filter),
             'rekapPerPt' => $rekap->rekapPerPt($filter),
             'isian' => $filter['kodept'] ? $rekap->isianKelompok($filter) : collect(),
             'lokasiList' => LokasiProgram::orderBy('nama_lokasi')->get(['id', 'nama_lokasi']),
