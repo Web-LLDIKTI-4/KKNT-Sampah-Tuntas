@@ -134,9 +134,64 @@ class KpiRekapService
                     'jumlah_kegiatan' => $kegiatan->count(),
                     'kegiatan_berdata' => $berdata->count(),
                     'capaian' => $berdata->isEmpty() ? null : round($berdata->avg('capaian'), 2),
+                    'kegiatan' => $kegiatan->values(),
                 ];
             })
             ->sortBy('nama_kpi')->values();
+    }
+
+    /**
+     * Satu baris per lokasi program per PT, dikelompokkan per nama lokasi.
+     */
+    public function rekapPerLokasiPt(): Collection
+    {
+        $key = fn ($r) => $r->location_program.'|'.$r->kodept;
+
+        $mahasiswa = $this->mahasiswaQuery([])
+            ->whereNotNull('m.location_program')
+            ->groupBy('m.location_program', 'm.kodept')
+            ->selectRaw('m.location_program, m.kodept, COUNT(*) as jumlah')
+            ->get()->keyBy($key);
+
+        $wilayah = $this->mahasiswaQuery([])
+            ->join('mahasiswa_lokasi as ml', 'ml.id_mahasiswa', '=', 'm.id_mahasiswa')
+            ->leftJoin('desa as d', 'd.id_desa', '=', 'ml.id_desa')
+            ->groupBy('m.location_program', 'm.kodept')
+            ->selectRaw('m.location_program, m.kodept, COUNT(DISTINCT d.id_kecamatan) as kecamatan, COUNT(DISTINCT ml.id_desa) as kelurahan')
+            ->get()->keyBy($key);
+
+        $kelompok = $this->kelompokQuery([])
+            ->groupBy('m.location_program', 'm.kodept')
+            ->selectRaw('m.location_program, m.kodept, COUNT(DISTINCT pj.id_pjdesa) as jumlah')
+            ->get()->keyBy($key);
+
+        $dpl = DB::table('dpl')
+            ->whereNotNull('kodept')->whereNotNull('location_program')
+            ->groupBy('location_program', 'kodept')
+            ->selectRaw('location_program, kodept, COUNT(*) as jumlah')
+            ->get()->keyBy($key);
+
+        $keys = $mahasiswa->keys()->merge($dpl->keys())->unique();
+        $namaLokasi = DB::table('lokasi_program')->pluck('nama_lokasi', 'id');
+        $namaPt = DB::table('ref_satuanpendidikan')
+            ->whereIn('npsn', $keys->map(fn ($k) => explode('|', $k, 2)[1])->unique())
+            ->pluck('nm_lemb', 'npsn');
+
+        return $keys->map(function ($k) use ($mahasiswa, $wilayah, $kelompok, $dpl, $namaLokasi, $namaPt) {
+            [$lokasi, $kodept] = explode('|', $k, 2);
+
+            return (object) [
+                'nama_lokasi' => $namaLokasi[$lokasi] ?? 'Tanpa Lokasi Program',
+                'nama_pt' => $namaPt[$kodept] ?? $kodept,
+                'jumlah_mahasiswa' => (int) ($mahasiswa[$k]->jumlah ?? 0),
+                'jumlah_kelompok' => (int) ($kelompok[$k]->jumlah ?? 0),
+                'jumlah_dpl' => (int) ($dpl[$k]->jumlah ?? 0),
+                'kecamatan' => (int) ($wilayah[$k]->kecamatan ?? 0),
+                'kelurahan' => (int) ($wilayah[$k]->kelurahan ?? 0),
+            ];
+        })
+            ->sortBy([['nama_lokasi', 'asc'], ['nama_pt', 'asc']])
+            ->groupBy('nama_lokasi');
     }
 
     /**

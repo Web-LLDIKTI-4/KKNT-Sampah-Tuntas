@@ -302,4 +302,18 @@ class KpiDashboardTest extends TestCase
             ->assertJson(['success' => true]);
         $this->assertSame('Kepala Baru', $kepala->fresh()->name);
     }
+
+    public function test_login_page_shows_laporan_kegiatan(): void
+    {
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('Laporan Kegiatan')
+            ->assertViewHas('laporan', function ($laporan) {
+                $pt = $laporan['perLokasiPt'][$this->lokasi->nama_lokasi]->keyBy('nama_pt');
+
+                return $pt->keys()->sort()->values()->all() === ['Politeknik Dua', 'Universitas Satu']
+                    && $pt['Universitas Satu']->jumlah_kelompok === 2
+                    && $laporan['perKpi']->first()->kegiatan->first()->capaian == 100;
+            });
+    }
 }

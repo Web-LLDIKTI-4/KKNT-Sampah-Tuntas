@@ -533,7 +533,89 @@
           }
 
           .lokasi-hero-img {
-            margin-top: 3rem;
+            margin-top: 1rem;
+          }
+        }
+
+        /* Toggle Home / Laporan Kegiatan di panel kiri */
+        .panel-switch-wrap {
+          padding: 1.5rem 1.75rem 0;
+        }
+
+        .panel-switch {
+          display: inline-flex;
+          gap: 0.25rem;
+          padding: 0.3rem;
+          background: rgba(255, 255, 255, 0.16);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 999px;
+        }
+
+        .panel-switch .nav-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          color: #fff;
+          font-weight: 600;
+          font-size: 0.9rem;
+          padding: 0.5rem 1.1rem;
+          border-radius: 999px;
+          background: transparent;
+          border: 0;
+          transition: background-color .2s ease, color .2s ease;
+        }
+
+        .panel-switch .nav-link:hover {
+          background: rgba(255, 255, 255, 0.14);
+        }
+
+        .panel-switch .nav-link.active {
+          background: #fff;
+          color: #4f5fd8;
+          box-shadow: 0 4px 12px rgba(20, 24, 70, 0.18);
+        }
+
+        .panel-switch .nav-link:focus-visible {
+          outline: 3px solid #fff;
+          outline-offset: 2px;
+        }
+
+        .laporan-wrap {
+          padding: 1.5rem 1.75rem;
+        }
+
+        .laporan-title {
+          color: #fff;
+          font-family: 'Inter', sans-serif;
+          font-weight: 800;
+          font-size: 2rem;
+          letter-spacing: -0.02em;
+          margin-bottom: 0.35rem;
+        }
+
+        .laporan-card {
+          border: 0;
+          border-radius: 14px;
+          box-shadow: 0 8px 22px rgba(20, 24, 70, 0.14);
+        }
+
+        .laporan-card .table th {
+          white-space: nowrap;
+        }
+
+        .laporan-kpi-name {
+          font-weight: 600;
+          color: #1f2937;
+        }
+
+        @media (max-width: 750px) {
+          /* beri ruang untuk tombol mobile yang fixed di kanan atas */
+          .panel-switch-wrap {
+            padding: 4.25rem 1rem 0;
+          }
+
+          .laporan-wrap {
+            padding: 1.25rem 1rem;
           }
         }
       </style>
@@ -555,6 +637,19 @@
         <!-- Left Section -->
         <div class="auth-left-panel d-lg-flex col-lg-7 col-xl-8 p-0">
           <div class="lokasi-panel">
+            <div class="panel-switch-wrap">
+              <div class="nav panel-switch" role="tablist" aria-label="Tampilan panel">
+                <button type="button" class="nav-link active" id="tabHome" data-bs-toggle="pill" data-bs-target="#paneHome" role="tab" aria-controls="paneHome" aria-selected="true">
+                  <i class="ri-home-4-line"></i> Home
+                </button>
+                <button type="button" class="nav-link" id="tabLaporan" data-bs-toggle="pill" data-bs-target="#paneLaporan" role="tab" aria-controls="paneLaporan" aria-selected="false">
+                  <i class="ri-file-chart-line"></i> Laporan Kegiatan
+                </button>
+              </div>
+            </div>
+
+            <div class="tab-content p-0 bg-transparent shadow-none">
+            <div class="tab-pane fade show active" id="paneHome" role="tabpanel" aria-labelledby="tabHome">
             <div class="lokasi-panel-header">
               <img src="../assets/images/sampah.png" alt="Kegiatan KKN" class="lokasi-hero-img" />
               <h2 class="lokasi-panel-title">KKN Tematik Sampah Tuntas <br /> LLDIKTI Wilayah IV</h2>
@@ -620,6 +715,109 @@
               @else
                 <p class="lokasi-empty mb-0">Data lokasi kegiatan belum tersedia.</p>
               @endif
+            </div>
+            </div>
+
+            @php
+              $num = fn ($v) => number_format($v, 0, ',', '.');
+              $badge = fn ($p) => $p >= 100 ? 'bg-label-success' : ($p >= 50 ? 'bg-label-warning' : 'bg-label-danger');
+            @endphp
+            <div class="tab-pane fade" id="paneLaporan" role="tabpanel" aria-labelledby="tabLaporan">
+              <div class="laporan-wrap">
+                <h2 class="laporan-title">Laporan Kegiatan</h2>
+                <p class="lokasi-panel-subtitle mb-4">Rekap peserta dan capaian KPI KKN Tematik Sampah Tuntas</p>
+
+                <div class="card laporan-card mb-4">
+                  <div class="card-header">
+                    <h5 class="mb-0">Sebaran Perguruan Tinggi</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table class="table table-sm table-bordered mb-0">
+                        <thead>
+                          <tr>
+                            <th>Lokasi Program</th>
+                            <th>Perguruan Tinggi</th>
+                            <th class="text-center">Mahasiswa</th>
+                            <th class="text-center">Kelompok</th>
+                            <th class="text-center">DPL</th>
+                            <th class="text-center">Sebaran Kecamatan</th>
+                            <th class="text-center">Sebaran Kelurahan/Desa</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @forelse ($laporan['perLokasiPt'] as $namaLokasi => $ptList)
+                            @foreach ($ptList as $pt)
+                              <tr>
+                                @if ($loop->first)
+                                  <td rowspan="{{ $loop->count }}" class="align-top fw-medium">{{ $namaLokasi }}</td>
+                                @endif
+                                <td>{{ $pt->nama_pt }}</td>
+                                <td class="text-center">{{ $num($pt->jumlah_mahasiswa) }}</td>
+                                <td class="text-center">{{ $num($pt->jumlah_kelompok) }}</td>
+                                <td class="text-center">{{ $num($pt->jumlah_dpl) }}</td>
+                                <td class="text-center">{{ $num($pt->kecamatan) }}</td>
+                                <td class="text-center">{{ $num($pt->kelurahan) }}</td>
+                              </tr>
+                            @endforeach
+                          @empty
+                            <tr><td colspan="7" class="text-center text-muted">Belum ada data perguruan tinggi</td></tr>
+                          @endforelse
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card laporan-card">
+                  <div class="card-header">
+                    <h5 class="mb-1">Capaian KPI</h5>
+                    <p class="mb-0 card-subtitle">Capaian KPI = rata-rata capaian kegiatan yang sudah punya data</p>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table class="table table-sm table-bordered mb-0">
+                        <thead>
+                          <tr>
+                            <th>KPI</th>
+                            <th>Kegiatan</th>
+                            <th class="text-center">Capaian Kegiatan</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @forelse ($laporan['perKpi'] as $kpi)
+                            @foreach ($kpi->kegiatan as $row)
+                              <tr>
+                                @if ($loop->first)
+                                  <td rowspan="{{ $loop->count }}" class="align-top">
+                                    <div class="laporan-kpi-name">{{ $kpi->nama_kpi }}</div>
+                                    @if ($kpi->capaian === null)
+                                      <span class="text-muted small">Belum ada data</span>
+                                    @else
+                                      <span class="badge rounded-pill {{ $badge($kpi->capaian) }} mt-1">{{ \App\Models\Kpicapaian::formatPersen($kpi->capaian) }}</span>
+                                    @endif
+                                  </td>
+                                @endif
+                                <td>{{ $row->kegiatan }}</td>
+                                <td class="text-center">
+                                  @if ($row->capaian === null)
+                                    -
+                                  @else
+                                    <span class="badge rounded-pill {{ $badge($row->capaian) }}">{{ \App\Models\Kpicapaian::formatPersen($row->capaian) }}</span>
+                                  @endif
+                                </td>
+                              </tr>
+                            @endforeach
+                          @empty
+                            <tr><td colspan="3" class="text-center text-muted">Belum ada KPI</td></tr>
+                          @endforelse
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             </div>
           </div>
         </div>

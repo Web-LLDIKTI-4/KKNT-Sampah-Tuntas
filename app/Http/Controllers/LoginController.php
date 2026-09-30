@@ -4,15 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\LokasiProgram;
+use App\Services\KpiRekapService;
 use App\Services\LokasiProgramSummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
 {
-    public function index(LokasiProgramSummary $summary)
+    public function index(LokasiProgramSummary $summary, KpiRekapService $rekap)
     {
-        return view('login', ['lokasiProgramList' => $summary->all()]);
+        // Halaman publik: rekap di-cache agar query berat tidak jalan di setiap kunjungan
+        $laporan = Cache::remember('login.laporan_kegiatan', now()->addMinutes(10), fn () => [
+            'perLokasiPt' => $rekap->rekapPerLokasiPt(),
+            'perKpi' => $rekap->rekapPerKpi([]),
+        ]);
+
+        return view('login', ['lokasiProgramList' => $summary->all(), 'laporan' => $laporan]);
     }
 
     public function proseslogin(LoginRequest $request)
