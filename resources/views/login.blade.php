@@ -733,7 +733,7 @@
                   </div>
                   <div class="card-body">
                     <div class="table-responsive">
-                      <table class="table table-sm table-bordered mb-0">
+                      <table class="table table-sm table-bordered mb-0" id="tabelLaporanPt" data-group-label="PT">
                         <thead>
                           <tr>
                             <th>Lokasi Program</th>
@@ -748,10 +748,8 @@
                         <tbody>
                           @forelse ($laporan['perLokasiPt'] as $namaLokasi => $ptList)
                             @foreach ($ptList as $pt)
-                              <tr>
-                                @if ($loop->first)
-                                  <td rowspan="{{ $loop->count }}" class="align-top fw-medium">{{ $namaLokasi }}</td>
-                                @endif
+                              <tr data-group="{{ $namaLokasi }}|{{ $pt->nama_pt }}">
+                                <td data-merge="{{ $namaLokasi }}" class="align-top fw-medium">{{ $namaLokasi }}</td>
                                 <td>{{ $pt->nama_pt }}</td>
                                 <td class="text-center">{{ $num($pt->jumlah_mahasiswa) }}</td>
                                 <td class="text-center">{{ $num($pt->jumlah_kelompok) }}</td>
@@ -943,10 +941,13 @@
     <script src="../../assets/js/main.js"></script>
 
     <script src="../../assets/vendor/libs/toastr/toastr.js"></script>
+    <script src="{{ asset('js/grouped-table.js') }}?v={{ filemtime(public_path('js/grouped-table.js')) }}"></script>
   </body>
 </html>
 <script>
 $(function(){
+    GroupedTable.init(document.getElementById("tabelLaporanPt"));
+
     // Token CSRF diperbarui dari respons server, tanpa reload halaman
     function setToken(token) {
       if (!token) return;

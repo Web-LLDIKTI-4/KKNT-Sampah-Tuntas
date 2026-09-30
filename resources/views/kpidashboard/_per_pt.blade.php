@@ -7,7 +7,7 @@
 @endphp
 
 <div class="table-responsive">
-    <table class="table table-sm table-bordered mb-0">
+    <table class="table table-sm table-bordered mb-0" id="tabel-per-pt" data-group-label="PT">
         <thead>
             <tr>
                 <th>Perguruan Tinggi</th>
@@ -26,10 +26,8 @@
         <tbody>
             @forelse ($perPt as $pt)
                 @foreach ($pt->kegiatan as $row)
-                    <tr>
-                        @if ($loop->first)
-                            <td rowspan="{{ $loop->count }}" class="align-top">{{ $pt->nama_pt }}</td>
-                        @endif
+                    <tr data-group="{{ $pt->kodept }}">
+                        <td data-merge="{{ $pt->kodept }}" class="align-top">{{ $pt->nama_pt }}</td>
                         <td>
                             {{ $row->kegiatan }}
                             <small class="d-block text-muted">{{ $row->nama_kpi }}@unless ($detail) · target {{ $angka($row->target) }} {{ $row->satuan }}@endunless</small>
@@ -39,17 +37,13 @@
                             <td class="text-center text-nowrap">{{ $row->realisasi === null ? '-' : $angka($row->realisasi).' '.$row->satuan }}</td>
                             <td class="text-center">{{ $row->jumlah_selesai }}/{{ $row->jumlah_kelompok }}</td>
                         @endif
-                        @if ($loop->first)
-                            <td rowspan="{{ $loop->count }}" class="text-center align-top">{{ $num($pt->jumlah_mahasiswa) }}</td>
-                            <td rowspan="{{ $loop->count }}" class="text-center align-top">{{ $num($pt->jumlah_kelompok) }}</td>
-                        @endif
+                        <td data-merge="{{ $pt->kodept }}" class="text-center align-top">{{ $num($pt->jumlah_mahasiswa) }}</td>
+                        <td data-merge="{{ $pt->kodept }}" class="text-center align-top">{{ $num($pt->jumlah_kelompok) }}</td>
                         <td class="text-center">{!! $capaian($row->capaian) !!}</td>
-                        @if ($loop->first)
-                            <td rowspan="{{ $loop->count }}" class="text-center align-top">
-                                {!! $capaian($pt->capaian) !!}
-                                <small class="d-block text-muted mt-1">{{ $pt->kegiatan_berdata }}/{{ $pt->jumlah_kegiatan }} berdata</small>
-                            </td>
-                        @endif
+                        <td data-merge="{{ $pt->kodept }}" class="text-center align-top">
+                            {!! $capaian($pt->capaian) !!}
+                            <small class="d-block text-muted mt-1">{{ $pt->kegiatan_berdata }}/{{ $pt->jumlah_kegiatan }} berdata</small>
+                        </td>
                     </tr>
                 @endforeach
             @empty
@@ -58,3 +52,9 @@
         </tbody>
     </table>
 </div>
+
+<script>
+$(function () {
+    GroupedTable.init(document.getElementById('tabel-per-pt'));
+});
+</script>
