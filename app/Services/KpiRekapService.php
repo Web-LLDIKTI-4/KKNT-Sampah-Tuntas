@@ -161,9 +161,14 @@ class KpiRekapService
         $wilayah = $this->mahasiswaQuery([])
             ->join('mahasiswa_lokasi as ml', 'ml.id_mahasiswa', '=', 'm.id_mahasiswa')
             ->leftJoin('desa as d', 'd.id_desa', '=', 'ml.id_desa')
-            ->groupBy('m.location_program', 'm.kodept')
-            ->selectRaw('m.location_program, m.kodept, COUNT(DISTINCT d.id_kecamatan) as kecamatan, COUNT(DISTINCT ml.id_desa) as kelurahan')
-            ->get()->keyBy($key);
+            ->leftJoin('kecamatan as kc', 'kc.id_kecamatan', '=', 'd.id_kecamatan')
+            ->where('ml.tahun', now()->year)
+            ->distinct()
+            ->select('m.location_program', 'm.kodept', 'kc.kecamatan', 'd.desa')
+            ->get()->groupBy($key);
+        $daftarNama = fn (?Collection $rows, string $kolom) => $rows
+            ? $rows->pluck($kolom)->filter()->unique()->sort()->implode(', ')
+            : '';
 
         $kelompok = $this->kelompokQuery([])
             ->groupBy('m.location_program', 'm.kodept')
@@ -194,7 +199,7 @@ class KpiRekapService
             ->whereIn('npsn', $keys->map(fn ($k) => explode('|', $k, 2)[1])->unique())
             ->pluck('nm_lemb', 'npsn');
 
-        return $keys->map(function ($k) use ($mahasiswa, $wilayah, $kelompok, $dpl, $namaLokasi, $namaPt, $agregat, $targets) {
+        return $keys->map(function ($k) use ($mahasiswa, $wilayah, $daftarNama, $kelompok, $dpl, $namaLokasi, $namaPt, $agregat, $targets) {
             [$lokasi, $kodept] = explode('|', $k, 2);
             $perKegiatan = $targets->map(fn ($t) => $this->isiCapaian(clone $t, $agregat[$k][$t->id_target] ?? null));
 
@@ -206,8 +211,8 @@ class KpiRekapService
                 'jumlah_mahasiswa' => (int) ($mahasiswa[$k]->jumlah ?? 0),
                 'jumlah_kelompok' => (int) ($kelompok[$k]->jumlah ?? 0),
                 'jumlah_dpl' => (int) ($dpl[$k]->jumlah ?? 0),
-                'kecamatan' => (int) ($wilayah[$k]->kecamatan ?? 0),
-                'kelurahan' => (int) ($wilayah[$k]->kelurahan ?? 0),
+                'kecamatan' => $daftarNama($wilayah[$k] ?? null, 'kecamatan'),
+                'kelurahan' => $daftarNama($wilayah[$k] ?? null, 'desa'),
             ];
         })
             ->sortBy([['nama_lokasi', 'asc'], ['nama_pt', 'asc']])

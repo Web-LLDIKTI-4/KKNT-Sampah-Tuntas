@@ -31,7 +31,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
- * Simulasi lengkap: 3 lokasi program, 3 PT, 1 DPL + 1 kelompok (1 ketua + 3 anggota) per PT per lokasi,
+ * Simulasi lengkap: 3 lokasi program, 5 PT (1 PT = 1 lokasi), 1 DPL + 1 kelompok (1 ketua + 3 anggota) per PT,
  * beserta kehadiran, log harian/bulanan, capaian KPI, laporan DPL, dan penilaian.
  * Jalankan: php artisan migrate:fresh --seed
  */
@@ -92,14 +92,14 @@ class SimulasiSeeder extends Seeder
         foreach ($pts as $i => $pt) {
             $this->user('pt', $pt->npsn, $pt->nm_lemb, ket: 'Login memakai NPSN');
 
-            foreach ($wilayah as $data) {
-                $desa = $data['desa'][$i % $data['desa']->count()];
-                $this->kelompok($pt, $i + 1, $data['lokasi'], $desa, $targets);
-            }
+            $data = $this->lokasiPt($wilayah, $i);
+            $desa = $data['desa'][$i % $data['desa']->count()];
+            $this->kelompok($pt, $i + 1, $data['lokasi'], $desa, $targets);
         }
 
         $this->belumPilihLokasi($pts->first());
         $this->aktivitas($targets);
+        $this->sebaranMahasiswa($pts, $wilayah);
 
         $this->command?->table(['Role', 'Login', 'Nama', 'Keterangan'], $this->akun);
     }
@@ -122,6 +122,13 @@ class SimulasiSeeder extends Seeder
         return $hasil;
     }
 
+    private function lokasiPt(array $wilayah, int $noPt): array
+    {
+        $list = array_values($wilayah);
+
+        return $list[$noPt % count($list)];
+    }
+
     private function kpi(): Collection
     {
         foreach (self::KPI as $nama => $kegiatan) {
@@ -136,7 +143,13 @@ class SimulasiSeeder extends Seeder
 
     private function perguruanTinggi(): Collection
     {
-        return collect(['Universitas Padjadjaran Simulasi', 'Institut Teknologi Simulasi', 'Universitas Pasundan Simulasi'])
+        return collect([
+            'Universitas Padjadjaran Simulasi',
+            'Institut Teknologi Simulasi',
+            'Universitas Pasundan Simulasi',
+            'Universitas Islam Bandung Simulasi',
+            'Politeknik Negeri Simulasi',
+        ])
             ->map(fn ($nama, $i) => Satuanpendidikan::factory()->create([
                 'nm_lemb' => $nama,
                 'npsn' => '04100'.($i + 1),
@@ -190,6 +203,29 @@ class SimulasiSeeder extends Seeder
                 'kodept' => $pt->npsn,
             ]);
             $this->user('mahasiswa', $mhs->email, $mhs->nama, ket: 'Belum memilih lokasi');
+        }
+    }
+
+    // Mahasiswa tambahan di desa lain agar kolom sebaran berisi >1 nama; offset 3 = tahun lalu (tidak boleh tampil)
+    private function sebaranMahasiswa(Collection $pts, array $wilayah): void
+    {
+        foreach ($pts as $i => $pt) {
+            $data = $this->lokasiPt($wilayah, $i);
+            foreach ([1, 2, 3] as $offset) {
+                $desa = $data['desa'][($i + $offset) % $data['desa']->count()];
+                $mhs = Mahasiswa::factory()->create([
+                    'email' => 'sebaran'.$offset.'.pt'.($i + 1).'.'.Str::slug($data['lokasi']->nama_lokasi, '').self::DOMAIN,
+                    'kodept' => $pt->npsn,
+                    'location_program' => $data['lokasi']->id,
+                ]);
+
+                Mahasiswa_lokasi::create([
+                    'tahun' => now()->year - ($offset === 3 ? 1 : 0),
+                    'id_mahasiswa' => $mhs->id_mahasiswa,
+                    'id_desa' => $desa->id_desa,
+                    'user_in_up' => $mhs->email,
+                ]);
+            }
         }
     }
 
