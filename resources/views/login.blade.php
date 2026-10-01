@@ -766,6 +766,13 @@
                         </thead>
                         <tbody>
                           @forelse ($laporan['perLokasiPt'] as $namaLokasi => $ptList)
+                            @if ($ptList->isEmpty())
+                              <tr data-group="{{ $namaLokasi }}">
+                                <td class="fw-medium"><span class="laporan-text" title="{{ $namaLokasi }}">{{ $namaLokasi }}</span><div class="small text-muted fw-normal">0 PT</div></td>
+                                <td class="text-center">-</td>
+                                <td colspan="9" class="text-center text-muted">Belum ada perguruan tinggi</td>
+                              </tr>
+                            @endif
                             @foreach ($ptList as $pt)
                               @php
                                 $group = $namaLokasi.'|'.$pt->kodept;
@@ -774,7 +781,7 @@
                               @endphp
                               @forelse ($kegiatanPt as [$kpi, $row])
                                 <tr data-group="{{ $group }}">
-                                  <td data-merge="{{ $namaLokasi }}" class="align-top fw-medium"><span class="laporan-text" title="{{ $namaLokasi }}">{{ $namaLokasi }}</span></td>
+                                  <td data-merge="{{ $namaLokasi }}" class="align-top fw-medium"><span class="laporan-text" title="{{ $namaLokasi }}">{{ $namaLokasi }}</span><div class="small text-muted fw-normal">{{ $num($ptList->count()) }} PT</div></td>
                                   <td data-merge="{{ $group }}" class="text-center align-top">{{ $nomorPt }}</td>
                                   <td data-merge="{{ $group }}" class="align-top"><span class="laporan-text" title="{{ $pt->nama_pt }}">{{ $pt->nama_pt }}</span></td>
                                   <td data-merge="{{ $group }}" class="text-center align-top">{{ $num($pt->jumlah_mahasiswa) }}</td>
@@ -801,7 +808,7 @@
                                 </tr>
                               @empty
                                 <tr data-group="{{ $group }}">
-                                  <td data-merge="{{ $namaLokasi }}" class="align-top fw-medium"><span class="laporan-text" title="{{ $namaLokasi }}">{{ $namaLokasi }}</span></td>
+                                  <td data-merge="{{ $namaLokasi }}" class="align-top fw-medium"><span class="laporan-text" title="{{ $namaLokasi }}">{{ $namaLokasi }}</span><div class="small text-muted fw-normal">{{ $num($ptList->count()) }} PT</div></td>
                                   <td class="text-center">{{ $nomorPt }}</td>
                                   <td><span class="laporan-text" title="{{ $pt->nama_pt }}">{{ $pt->nama_pt }}</span></td>
                                   <td class="text-center">{{ $num($pt->jumlah_mahasiswa) }}</td>
@@ -832,6 +839,7 @@
                       <table class="table table-sm table-bordered mb-0">
                         <thead>
                           <tr>
+                            <th class="text-center">No</th>
                             <th>KPI</th>
                             <th>Kegiatan</th>
                             <th class="text-center">Capaian Kegiatan</th>
@@ -842,6 +850,7 @@
                             @foreach ($kpi->kegiatan as $row)
                               <tr>
                                 @if ($loop->first)
+                                  <td rowspan="{{ $loop->count }}" class="text-center align-top">{{ $loop->parent->iteration }}</td>
                                   <td rowspan="{{ $loop->count }}" class="align-top">
                                     <div class="laporan-kpi-name">{{ $kpi->nama_kpi }}</div>
                                     @if ($kpi->capaian === null)
@@ -862,7 +871,7 @@
                               </tr>
                             @endforeach
                           @empty
-                            <tr><td colspan="3" class="text-center text-muted">Belum ada KPI</td></tr>
+                            <tr><td colspan="4" class="text-center text-muted">Belum ada KPI</td></tr>
                           @endforelse
                         </tbody>
                       </table>

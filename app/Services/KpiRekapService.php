@@ -199,7 +199,7 @@ class KpiRekapService
             ->whereIn('npsn', $keys->map(fn ($k) => explode('|', $k, 2)[1])->unique())
             ->pluck('nm_lemb', 'npsn');
 
-        return $keys->map(function ($k) use ($mahasiswa, $wilayah, $daftarNama, $kelompok, $dpl, $namaLokasi, $namaPt, $agregat, $targets) {
+        $rekap = $keys->map(function ($k) use ($mahasiswa, $wilayah, $daftarNama, $kelompok, $dpl, $namaLokasi, $namaPt, $agregat, $targets) {
             [$lokasi, $kodept] = explode('|', $k, 2);
             $perKegiatan = $targets->map(fn ($t) => $this->isiCapaian(clone $t, $agregat[$k][$t->id_target] ?? null));
 
@@ -217,6 +217,11 @@ class KpiRekapService
         })
             ->sortBy([['nama_lokasi', 'asc'], ['nama_pt', 'asc']])
             ->groupBy('nama_lokasi');
+
+        // Semua lokasi program tetap tampil walau belum ada PT
+        return $namaLokasi->values()->sort()
+            ->mapWithKeys(fn ($nama) => [$nama => $rekap[$nama] ?? collect()])
+            ->union($rekap);
     }
 
     /**
