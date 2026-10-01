@@ -123,7 +123,12 @@ class KpiRekapService
      */
     public function rekapPerKpi(array $filter): Collection
     {
-        return $this->rekapPerKegiatan($filter)
+        return $this->ringkasPerKpi($this->rekapPerKegiatan($filter));
+    }
+
+    private function ringkasPerKpi(Collection $perKegiatan): Collection
+    {
+        return $perKegiatan
             ->groupBy('id_kpi')
             ->map(function (Collection $kegiatan) {
                 $berdata = $kegiatan->whereNotNull('capaian');
@@ -141,7 +146,7 @@ class KpiRekapService
     }
 
     /**
-     * Satu baris per lokasi program per PT, dikelompokkan per nama lokasi.
+     * Satu baris per lokasi program per PT (beserta capaian KPI-nya), dikelompokkan per nama lokasi.
      */
     public function rekapPerLokasiPt(): Collection
     {
@@ -171,16 +176,31 @@ class KpiRekapService
             ->selectRaw('location_program, kodept, COUNT(*) as jumlah')
             ->get()->keyBy($key);
 
+        $agregat = $this->withAgregat($this->withCapaian($this->kelompokQuery([]), []))
+            ->groupBy('m.location_program', 'm.kodept', 't.id_target')
+            ->selectRaw('m.location_program, m.kodept, t.id_target')
+            ->get()->groupBy($key)
+            ->map(fn (Collection $rows) => $rows->keyBy('id_target'));
+
+        $targets = DB::table('kpi_target as t')
+            ->leftJoin('kpi as k', 'k.id_kpi', '=', 't.id_kpi')
+            ->orderBy('k.nama_kpi')->orderBy('t.kegiatan')
+            ->select('t.id_target', 't.id_kpi', 'k.nama_kpi', 't.kegiatan', 't.target', 't.satuan')
+            ->get();
+
         $keys = $mahasiswa->keys()->merge($dpl->keys())->unique();
         $namaLokasi = DB::table('lokasi_program')->pluck('nama_lokasi', 'id');
         $namaPt = DB::table('ref_satuanpendidikan')
             ->whereIn('npsn', $keys->map(fn ($k) => explode('|', $k, 2)[1])->unique())
             ->pluck('nm_lemb', 'npsn');
 
-        return $keys->map(function ($k) use ($mahasiswa, $wilayah, $kelompok, $dpl, $namaLokasi, $namaPt) {
+        return $keys->map(function ($k) use ($mahasiswa, $wilayah, $kelompok, $dpl, $namaLokasi, $namaPt, $agregat, $targets) {
             [$lokasi, $kodept] = explode('|', $k, 2);
+            $perKegiatan = $targets->map(fn ($t) => $this->isiCapaian(clone $t, $agregat[$k][$t->id_target] ?? null));
 
             return (object) [
+                'kodept' => $kodept,
+                'kpi' => $this->ringkasPerKpi($perKegiatan),
                 'nama_lokasi' => $namaLokasi[$lokasi] ?? 'Tanpa Lokasi Program',
                 'nama_pt' => $namaPt[$kodept] ?? $kodept,
                 'jumlah_mahasiswa' => (int) ($mahasiswa[$k]->jumlah ?? 0),

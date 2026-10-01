@@ -608,6 +608,19 @@
           color: #1f2937;
         }
 
+        #tabelLaporanPt .col-lokasi { min-width: 160px; }
+        #tabelLaporanPt .col-pt { min-width: 260px; }
+        #tabelLaporanPt .col-kpi { min-width: 220px; }
+        #tabelLaporanPt .col-kegiatan { min-width: 260px; }
+
+        #tabelLaporanPt .laporan-text {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
         @media (max-width: 750px) {
           /* beri ruang untuk tombol mobile yang fixed di kanan atas */
           .panel-switch-wrap {
@@ -736,30 +749,66 @@
                       <table class="table table-sm table-bordered mb-0" id="tabelLaporanPt" data-group-label="PT">
                         <thead>
                           <tr>
-                            <th>Lokasi Program</th>
-                            <th>Perguruan Tinggi</th>
+                            <th class="col-lokasi">Lokasi Program</th>
+                            <th class="col-pt">Perguruan Tinggi</th>
                             <th class="text-center">Mahasiswa</th>
                             <th class="text-center">Kelompok</th>
                             <th class="text-center">DPL</th>
                             <th class="text-center">Sebaran Kecamatan</th>
                             <th class="text-center">Sebaran Kelurahan/Desa</th>
+                            <th class="col-kpi">KPI</th>
+                            <th class="col-kegiatan">Kegiatan</th>
+                            <th class="text-center">Capaian Kegiatan</th>
                           </tr>
                         </thead>
                         <tbody>
                           @forelse ($laporan['perLokasiPt'] as $namaLokasi => $ptList)
                             @foreach ($ptList as $pt)
-                              <tr data-group="{{ $namaLokasi }}|{{ $pt->nama_pt }}">
-                                <td data-merge="{{ $namaLokasi }}" class="align-top fw-medium">{{ $namaLokasi }}</td>
-                                <td>{{ $pt->nama_pt }}</td>
-                                <td class="text-center">{{ $num($pt->jumlah_mahasiswa) }}</td>
-                                <td class="text-center">{{ $num($pt->jumlah_kelompok) }}</td>
-                                <td class="text-center">{{ $num($pt->jumlah_dpl) }}</td>
-                                <td class="text-center">{{ $num($pt->kecamatan) }}</td>
-                                <td class="text-center">{{ $num($pt->kelurahan) }}</td>
-                              </tr>
+                              @php
+                                $group = $namaLokasi.'|'.$pt->kodept;
+                                $kegiatanPt = $pt->kpi->flatMap(fn ($kpi) => $kpi->kegiatan->map(fn ($row) => [$kpi, $row]));
+                              @endphp
+                              @forelse ($kegiatanPt as [$kpi, $row])
+                                <tr data-group="{{ $group }}">
+                                  <td data-merge="{{ $namaLokasi }}" class="align-top fw-medium"><span class="laporan-text" title="{{ $namaLokasi }}">{{ $namaLokasi }}</span></td>
+                                  <td data-merge="{{ $group }}" class="align-top"><span class="laporan-text" title="{{ $pt->nama_pt }}">{{ $pt->nama_pt }}</span></td>
+                                  <td data-merge="{{ $group }}" class="text-center align-top">{{ $num($pt->jumlah_mahasiswa) }}</td>
+                                  <td data-merge="{{ $group }}" class="text-center align-top">{{ $num($pt->jumlah_kelompok) }}</td>
+                                  <td data-merge="{{ $group }}" class="text-center align-top">{{ $num($pt->jumlah_dpl) }}</td>
+                                  <td data-merge="{{ $group }}" class="text-center align-top">{{ $num($pt->kecamatan) }}</td>
+                                  <td data-merge="{{ $group }}" class="text-center align-top">{{ $num($pt->kelurahan) }}</td>
+                                  <td data-merge="{{ $group }}|{{ $kpi->id_kpi }}" class="align-top">
+                                    <div class="laporan-kpi-name laporan-text" title="{{ $kpi->nama_kpi }}">{{ $kpi->nama_kpi }}</div>
+                                    @if ($kpi->capaian === null)
+                                      <span class="text-muted small">Belum ada data</span>
+                                    @else
+                                      <span class="badge rounded-pill {{ $badge($kpi->capaian) }} mt-1">{{ \App\Models\Kpicapaian::formatPersen($kpi->capaian) }}</span>
+                                    @endif
+                                  </td>
+                                  <td><span class="laporan-text" title="{{ $row->kegiatan }}">{{ $row->kegiatan }}</span></td>
+                                  <td class="text-center">
+                                    @if ($row->capaian === null)
+                                      -
+                                    @else
+                                      <span class="badge rounded-pill {{ $badge($row->capaian) }}">{{ \App\Models\Kpicapaian::formatPersen($row->capaian) }}</span>
+                                    @endif
+                                  </td>
+                                </tr>
+                              @empty
+                                <tr data-group="{{ $group }}">
+                                  <td data-merge="{{ $namaLokasi }}" class="align-top fw-medium"><span class="laporan-text" title="{{ $namaLokasi }}">{{ $namaLokasi }}</span></td>
+                                  <td><span class="laporan-text" title="{{ $pt->nama_pt }}">{{ $pt->nama_pt }}</span></td>
+                                  <td class="text-center">{{ $num($pt->jumlah_mahasiswa) }}</td>
+                                  <td class="text-center">{{ $num($pt->jumlah_kelompok) }}</td>
+                                  <td class="text-center">{{ $num($pt->jumlah_dpl) }}</td>
+                                  <td class="text-center">{{ $num($pt->kecamatan) }}</td>
+                                  <td class="text-center">{{ $num($pt->kelurahan) }}</td>
+                                  <td colspan="3" class="text-center text-muted">Belum ada KPI</td>
+                                </tr>
+                              @endforelse
                             @endforeach
                           @empty
-                            <tr><td colspan="7" class="text-center text-muted">Belum ada data perguruan tinggi</td></tr>
+                            <tr><td colspan="10" class="text-center text-muted">Belum ada data perguruan tinggi</td></tr>
                           @endforelse
                         </tbody>
                       </table>
