@@ -739,7 +739,7 @@
             <div class="tab-pane fade" id="paneLaporan" role="tabpanel" aria-labelledby="tabLaporan">
               <div class="laporan-wrap">
                 <h2 class="laporan-title">Laporan Kegiatan</h2>
-                <p class="lokasi-panel-subtitle mb-4">Rekap peserta dan capaian KPI KKN Tematik Sampah Tuntas</p>
+                <p class="lokasi-panel-subtitle mb-4">Rekap capaian KPI dan Perguruan Tinggi pada KKN Tematik Sampah Tuntas</p>
 
                 <div class="card laporan-card mb-4">
                   <div class="card-header">
@@ -832,7 +832,12 @@
                 <div class="card laporan-card">
                   <div class="card-header">
                     <h5 class="mb-1">Capaian KPI</h5>
-                    <p class="mb-0 card-subtitle">Capaian KPI = rata-rata capaian kegiatan yang sudah punya data</p>
+                    <p class="mb-0 card-subtitle italic">
+                      <i>
+                        Capaian KPI pada KKN Tematik Sampah Tuntas <br> 
+                        data ini adalah rata-rata capaian kegiatan yang sudah diinput oleh setiap ketua kelompok mahasiswa pada setiap perguruan tinggi.
+                      </i>
+                    </p>
                   </div>
                   <div class="card-body">
                     <div class="table-responsive">
