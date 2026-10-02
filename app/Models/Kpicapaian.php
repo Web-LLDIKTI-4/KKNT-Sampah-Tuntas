@@ -11,44 +11,19 @@ class Kpicapaian extends Model
 
     public const STATUS = ['Y' => 'Sudah Selesai', 'P' => 'Proses', 'N' => 'Belum Ditindaklanjuti'];
 
+    public const BADGE = ['Y' => 'bg-success', 'P' => 'bg-warning', 'N' => 'bg-danger'];
+
+    // Badge berwarna tindak lanjut; status tidak dikenal dianggap Belum Ditindaklanjuti
+    public static function statusBadge(?string $status): string
+    {
+        $status = array_key_exists((string) $status, self::STATUS) ? $status : 'N';
+
+        return '<span class="badge '.self::BADGE[$status].'">'.self::STATUS[$status].'</span>';
+    }
+
     protected $table = 'kpi_capaian';
     protected $guarded = ['id_capaian'];
     protected $primaryKey = 'id_capaian'; // Tentukan primary key sesuai dengan struktur tabel
-
-    // Capaian % hanya untuk isian dengan tindak lanjut Sudah Selesai; null = tidak dihitung
-    public static function persen(?string $status, $realisasi, $target): ?float
-    {
-        return $status === 'Y' ? static::capaianRata($realisasi, $target) : null;
-    }
-
-    // min(realisasi / target × 100, 100); null bila realisasi kosong atau target tidak valid
-    public static function capaianRata($realisasi, $target): ?float
-    {
-        if ($realisasi === null || (float) $target <= 0) {
-            return null;
-        }
-
-        return min((float) $realisasi / (float) $target * 100, 100.0);
-    }
-
-    public static function formatAngka($value): string
-    {
-        if ($value === null || $value === '') {
-            return '-';
-        }
-
-        return number_format(round((float) $value), 0, ',', '.');
-    }
-
-    public static function formatPersen(?float $value): string
-    {
-        return $value === null ? '-' : static::formatAngka($value).'%';
-    }
-
-    public function capaianPersen(): ?float
-    {
-        return static::persen($this->status_capaian, $this->realisasi, $this->target?->target);
-    }
 
     public function pjdesa()
     {
@@ -57,10 +32,6 @@ class Kpicapaian extends Model
     public function kpi()
     {
         return $this->hasOne(Kpi::class,'id_kpi','id_kpi');
-    }
-    public function target()
-    {
-        return $this->hasOne(Kpitarget::class,'id_target','id_target');
     }
     public function dplMentoring()
     {

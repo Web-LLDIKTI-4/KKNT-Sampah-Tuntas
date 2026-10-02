@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Mahasiswa\KpisampahRequest;
+use App\Models\Desa;
+use App\Models\Kpisampah;
+use App\Models\Pjdesa;
+use App\Services\KpiSampahService;
+use App\Support\ActionButtons;
+use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
+
+class KpisampahController extends Controller
+{
+    use RespondsWithJson;
+
+    private const ANGKA = ['jml_rw_kbs', 'jml_rw_non_kbs', 'jml_rumah', 'jml_rumah_memilah', 'jml_bank_sampah'];
+
+    private const BERAT = ['timbulan', 'pengurangan_organik', 'pengurangan_anorganik', 'pengurangan', 'residu'];
+
+    public function index()
+    {
+        return view('kpisampah.index');
+    }
+
+    public function listdata()
+    {
+        return view('kpisampah.listdata');
+    }
+
+    public function listdataserver(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        $data = Kpisampah::ownedBy($request->user())
+            ->with('desa.kecamatan')
+            ->orderByDesc('bulan')
+            ->get();
+
+        $table = DataTables::of($data)
+            ->addIndexColumn()
+            ->editColumn('bulan', fn (Kpisampah $row) => $row->bulan->translatedFormat('F Y'))
+            ->addColumn('kecamatan', fn (Kpisampah $row) => $row->desa?->kecamatan?->kecamatan ?? '-')
+            ->addColumn('kelurahan', fn (Kpisampah $row) => $row->desa?->desa ?? '-')
+            ->editColumn('persen_ketaatan', fn (Kpisampah $row) => Kpisampah::formatPersen($row->persen_ketaatan))
+            ->editColumn('persen_pengurangan', fn (Kpisampah $row) => Kpisampah::formatPersen($row->persen_pengurangan))
+            ->addColumn('action', fn (Kpisampah $row) => ActionButtons::make(
+                urlEdit: url('kpisampah/edit/'.$row->id_sampah),
+                urlDelete: url('kpisampah/destroy'),
+                idField: 'id_sampah',
+                idValue: $row->id_sampah,
+            ))
+            ->rawColumns(['action']);
+
+        foreach (self::ANGKA as $kolom) {
+            $table->editColumn($kolom, fn (Kpisampah $row) => Kpisampah::formatAngka($row->$kolom));
+        }
+        foreach (self::BERAT as $kolom) {
+            $table->editColumn($kolom, fn (Kpisampah $row) => Kpisampah::formatAngka($row->$kolom, 2));
+        }
+
+        return $table->make(true);
+    }
+
+    public function tambah(Request $request, KpiSampahService $sampah)
+    {
+        $idDesa = $sampah->desaKetua($request->user()->email);
+
+        return view('kpisampah.form', [
+            'data' => null,
+            'desa' => $idDesa ? Desa::with('kecamatan')->find($idDesa) : null,
+        ]);
+    }
+
+    public function insert(KpisampahRequest $request)
+    {
+        Kpisampah::create($this->payload($request) + ['id_desa' => $request->idDesa()]);
+
+        return $this->saved('Data sampah bulanan berhasil disimpan');
+    }
+
+    public function edit(Request $request, string $id_sampah)
+    {
+        $data = Kpisampah::ownedBy($request->user())->with('desa.kecamatan')->findOrFail($id_sampah);
+
+        return view('kpisampah.form', ['data' => $data, 'desa' => $data->desa]);
+    }
+
+    public function update(KpisampahRequest $request)
+    {
+        $data = Kpisampah::ownedBy($request->user())->find($request->validated('id_sampah'));
+        if (! $data) {
+            return $this->notFound();
+        }
+
+        $data->update($this->payload($request));
+
+        return $this->saved('Data sampah bulanan berhasil disimpan');
+    }
+
+    public function destroy(Request $request)
+    {
+        $data = Kpisampah::ownedBy($request->user())->find($request->input('id_sampah'));
+        if (! $data) {
+            return $this->notFound();
+        }
+
+        $data->delete();
+
+        return $this->deleted();
+    }
+
+    private function payload(KpisampahRequest $request): array
+    {
+        $email = $request->user()->email;
+        $data = $request->safe()->only(KpisampahRequest::FIELDS);
+        $data['bulan'] .= '-01';
+
+        return KpiSampahService::hitung($data) + [
+            'email' => $email,
+            'id_pjdesa' => Pjdesa::where('email', $email)->value('id_pjdesa'),
+        ];
+    }
+}

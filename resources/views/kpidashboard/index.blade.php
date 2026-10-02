@@ -1,96 +1,65 @@
 @extends('layouts.app')
 @section('title', 'Dashboard KPI')
 @section('container')
+@php
+    $num = fn ($v) => number_format($v, 0, ',', '.');
+@endphp
 
 <x-page-header
     icon="ri-line-chart-line"
     :title="$isPt ? 'Dashboard KPI Perguruan Tinggi' : 'Dashboard KPI'"
-    subtitle="Rekap capaian KPI ketua kelompok. Hanya isian dengan tindak lanjut Sudah Selesai yang dihitung, maksimal 100%." />
+    :subtitle="'Capaian KPI diukur dari persentase pengurangan sampah per bulan; target terpenuhi bila ≤ '.(int) \App\Models\Kpisampah::TARGET_PENGURANGAN.'%.'" />
 
 <div class="card mb-6">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Ringkasan</h5>
+        @if (in_array(auth()->user()->role, ['admin', 'kepala'], true))
+            <x-button.export :url="route('rekapsampah.export')" id="kpi-export" label="Export" size="sm" class="text-nowrap" />
+        @endif
+    </div>
     <div class="card-body">
-        <form id="kpi-filter" method="GET" action="{{ route('dashboardkpi') }}" class="row g-4 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label" for="f-lokasi">Lokasi</label>
-                <select name="lokasi" id="f-lokasi" class="form-select form-select-sm">
-                    <option value="">Semua Lokasi</option>
-                    @foreach ($lokasiList as $item)
-                        <option value="{{ $item->id }}" @selected($filter['lokasi'] === $item->id)>{{ $item->nama_lokasi }}</option>
-                    @endforeach
-                </select>
-            </div>
-            @unless ($isPt)
-                <div class="col-md-3">
-                    <label class="form-label" for="f-pt">Perguruan Tinggi</label>
-                    <select name="kodept" id="f-pt" class="form-select form-select-sm">
-                        <option value="">Semua Perguruan Tinggi</option>
-                        @foreach ($ptList as $item)
-                            <option value="{{ $item->npsn }}" @selected($filter['kodept'] === $item->npsn)>{{ $item->nm_lemb }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            @endunless
-            <div class="col-md-4">
-                <label class="form-label" for="f-kegiatan">Kegiatan</label>
-                <select name="id_target" id="f-kegiatan" class="form-select form-select-sm">
-                    <option value="">Semua Kegiatan</option>
-                    @foreach ($kegiatanList as $item)
-                        <option value="{{ $item->id_target }}" @selected($filter['id_target'] === $item->id_target)>
-                            {{ $item->kpi->nama_kpi ?? '-' }} | {{ $item->kegiatan }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-2 d-flex align-items-center gap-2">
-                <x-button id="kpi-reset" variant="outline-secondary">Reset</x-button>
-                @if (auth()->user()->role === 'admin')
-                    <x-button.export :url="route('dashboardkpi.export', array_filter($filter))" id="kpi-export" label="Export" size="sm" class="text-nowrap" />
-                @endif
-                <span id="kpi-loading" class="spinner-border spinner-border-sm text-primary" role="status" hidden></span>
-            </div>
-        </form>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0 text-nowrap">
+                <thead>
+                    <tr>
+                        @unless ($isPt)
+                            <th class="text-center">Jumlah Perguruan Tinggi</th>
+                        @endunless
+                        <th class="text-center">Kecamatan</th>
+                        <th class="text-center">Kelurahan</th>
+                        <th class="text-center">Mahasiswa</th>
+                        <th class="text-center">DPL</th>
+                        <th class="text-center">Kelompok</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        @unless ($isPt)
+                            <td class="text-center">{{ $num($summary['jumlah_pt']) }}</td>
+                        @endunless
+                        <td class="text-center">{{ $num($summary['total_kecamatan']) }}</td>
+                        <td class="text-center">{{ $num($summary['total_kelurahan']) }}</td>
+                        <td class="text-center">{{ $num($summary['total_mahasiswa']) }}</td>
+                        <td class="text-center">{{ $num($summary['total_dpl']) }}</td>
+                        <td class="text-center">{{ $num($summary['total_kelompok']) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<div id="kpi-content">
-    @include('kpidashboard._content')
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-1">Laporan Kegiatan</h5>
+        <p class="mb-0 card-subtitle">Klik nama kecamatan lalu kelurahan untuk melihat kelompok dan detail capaian KPI-nya</p>
+    </div>
+    <div class="card-body">
+        <div data-drilldown="{{ route('dashboardkpi') }}">
+            @include('laporan._drilldown', $laporan)
+        </div>
+    </div>
 </div>
 
-<script>
-$(function () {
-    var form = $('#kpi-filter');
-    var xhr = null;
-
-    // Filter langsung merender ulang isi halaman tanpa reload
-    function muat() {
-        if (xhr) xhr.abort();
-        var query = form.serialize();
-        // Export mengikuti filter yang sedang aktif
-        $('#kpi-export').attr('href', @json(route('dashboardkpi.export')) + (query ? '?' + query : ''));
-        $('#kpi-loading').prop('hidden', false);
-        xhr = $.ajax({
-            url: form.attr('action'),
-            data: query,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            success: function (html) {
-                $('#kpi-content').html(html);
-                history.replaceState(null, '', form.attr('action') + (query ? '?' + query : ''));
-            },
-            error: function (x) {
-                if (x.statusText !== 'abort') toastr.error('Gagal memuat data, silakan coba lagi.');
-            },
-            complete: function () {
-                $('#kpi-loading').prop('hidden', true);
-            }
-        });
-    }
-
-    form.on('change', 'select', muat);
-    form.on('submit', function (e) { e.preventDefault(); muat(); });
-    $('#kpi-reset').on('click', function () {
-        form.find('select').val('').trigger('change.select2');
-        muat();
-    });
-});
-</script>
+<script src="{{ asset('js/drilldown.js') }}?v={{ filemtime(public_path('js/drilldown.js')) }}"></script>
 @stop

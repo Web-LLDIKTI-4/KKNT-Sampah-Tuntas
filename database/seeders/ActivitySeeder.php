@@ -10,7 +10,7 @@ use App\Models\Evaluasikegiatanjawaban;
 use App\Models\Freeform;
 use App\Models\Kehadiran;
 use App\Models\Kpicapaian;
-use App\Models\Kpitarget;
+use App\Models\Kpi;
 use App\Models\Logbulanan;
 use App\Models\Logkegiatan;
 use App\Models\Mahasiswa;
@@ -26,7 +26,7 @@ class ActivitySeeder extends Seeder
 {
     public function run(): void
     {
-        $kpiIds = Kpitarget::pluck('id_kpi')->unique()->values();
+        $kpiIds = Kpi::pluck('id_kpi');
         $mentoring = Dplmentoring::pluck('email_dpl', 'email_mahasiswa');
 
         foreach (Mahasiswa::all() as $mhs) {
@@ -61,12 +61,10 @@ class ActivitySeeder extends Seeder
         }
 
         // Capaian KPI diisi oleh ketua kelompok (pj desa)
-        $targets = Kpitarget::all()->unique('id_kpi');
         foreach (Pjdesa::all() as $pj) {
-            foreach ($targets as $target) {
+            foreach ($kpiIds as $idKpi) {
                 Kpicapaian::factory()->create([
-                    'id_kpi' => $target->id_kpi,
-                    'id_target' => $target->id_target,
+                    'id_kpi' => $idKpi,
                     'id_pjdesa' => $pj->id_pjdesa,
                     'email' => $pj->email,
                 ]);

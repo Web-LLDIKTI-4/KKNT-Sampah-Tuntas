@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Auth\LaporanPublikRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\LokasiProgram;
-use App\Services\KpiRekapService;
+use App\Services\KpiSampahService;
 use App\Services\LokasiProgramSummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,15 +13,18 @@ use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
 {
-    public function index(LokasiProgramSummary $summary, KpiRekapService $rekap)
+    public function index(LokasiProgramSummary $summary, KpiSampahService $sampah)
     {
-        // Halaman publik: rekap di-cache agar query berat tidak jalan di setiap kunjungan
-        $laporan = Cache::remember('login.laporan_kegiatan', now()->addMinutes(10), fn () => [
-            'perLokasiPt' => $rekap->rekapPerLokasiPt(),
-            'perKpi' => $rekap->rekapPerKpi([]),
+        return view('login', [
+            'lokasiProgramList' => $summary->all(),
+            'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null]),
         ]);
+    }
 
-        return view('login', ['lokasiProgramList' => $summary->all(), 'laporan' => $laporan]);
+    // Laporan berjenjang kecamatan -> kelurahan -> kelompok sesuai pilihan bulan/kecamatan/kelurahan
+    public function laporan(LaporanPublikRequest $request, KpiSampahService $sampah)
+    {
+        return view('laporan._drilldown', $this->laporanData($sampah, $request->filter()));
     }
 
     public function proseslogin(LoginRequest $request)
@@ -66,6 +70,12 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    // Halaman publik: di-cache per kombinasi filter agar query berat tidak jalan di setiap kunjungan
+    private function laporanData(KpiSampahService $sampah, array $filter): array
+    {
+        return Cache::remember('login.laporan.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldown($filter));
     }
 
     /**

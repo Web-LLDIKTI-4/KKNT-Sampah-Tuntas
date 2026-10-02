@@ -15,11 +15,6 @@ class KpicapaianRequest extends AjaxFormRequest
         return [
             'id_capaian' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'uuid'],
             'id_kpi' => ['required', 'uuid', 'exists:kpi,id_kpi'],
-            'id_target' => [
-                'required', 'uuid',
-                Rule::exists('kpi_target', 'id_target')->where('id_kpi', $this->input('id_kpi')),
-            ],
-            'realisasi' => ['required', 'numeric', 'min:0', 'max:9999999999'],
             'status_capaian' => ['required', Rule::in(array_keys(Kpicapaian::STATUS))],
             'tautan' => ['required', 'url:http,https', 'max:2000'],
             'permasalahan' => ['required', 'string', 'max:5000'],
@@ -44,12 +39,11 @@ class KpicapaianRequest extends AjaxFormRequest
             }
 
             $duplikat = Kpicapaian::where('id_kpi', $this->input('id_kpi'))
-                ->where('id_target', $this->input('id_target'))
                 ->where('email', $email)
                 ->when($this->input('id_capaian'), fn ($q, $id) => $q->whereKeyNot($id))
                 ->exists();
             if ($duplikat) {
-                $validator->errors()->add('id_target', 'Data sudah ada!');
+                $validator->errors()->add('id_kpi', 'Data sudah ada!');
             }
         }];
     }
@@ -58,8 +52,6 @@ class KpicapaianRequest extends AjaxFormRequest
     {
         return [
             'id_kpi.required' => 'KPI harus dipilih.',
-            'id_target.required' => 'Kegiatan harus dipilih.',
-            'id_target.exists' => 'Kegiatan tidak sesuai dengan KPI yang dipilih.',
             'tautan.required' => 'Tautan harus isi.',
             'tautan.url' => 'Tautan harus berupa URL http/https yang valid.',
             'permasalahan.required' => 'Permasalahan harus isi.',

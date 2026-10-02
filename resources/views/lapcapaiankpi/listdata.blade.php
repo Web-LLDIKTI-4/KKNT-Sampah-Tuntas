@@ -8,10 +8,6 @@
                     <th>Lokasi Kegiatan</th>
                     <th>Ketua Kelompok</th>
                     <th>Nama KPI</th>
-                    <th>Kegiatan</th>
-                    <th>Target</th>
-                    <th>Realisasi</th>
-                    <th>Capaian</th>
                     <th>Permasalahan</th>
                     <th>Solusi</th>
                     <th>Kebutuhan Dukungan</th>
@@ -46,22 +42,6 @@
             {data: 'lokasi', name: 'lokasi'},
             {data: 'pjdesa', name: 'pjdesa'},
             {data: 'nama_kpi', name: 'nama_kpi'},
-            {
-                data: 'kegiatan',
-                name: 'kegiatan',
-                searchable: false,
-                render: function (data, type, row) {
-                    // Membuat sebuah div sementara untuk membersihkan tag HTML
-                    var tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = data;
-                    // Mengambil teks dari div tersebut yang sudah bersih dari tag HTML
-                    var strippedText = tempDiv.textContent || tempDiv.innerText || '';
-                    return "<div class='text-wrap'>" +strippedText+ "</div>";
-                }
-            },
-            {data: 'target_kpi', name: 'target_kpi', className: 'text-center text-nowrap', orderable: false, searchable: false},
-            {data: 'realisasi_kpi', name: 'realisasi', className: 'text-center text-nowrap', searchable: false},
-            {data: 'capaian', name: 'capaian', className: 'text-center', orderable: false, searchable: false},
             {
                 data: 'permasalahan',
                 name: 'permasalahan',
@@ -98,7 +78,7 @@
                     return "<div class='text-wrap'>" +strippedText+ "</div>";
                 }
             },
-            {data: 'status_capaian', name: 'status_capaian'},
+            {data: 'status_capaian', name: 'status_capaian', className: 'text-center'},
             {data: 'tautan', name: 'tautan'},
         ],
         layout: {

@@ -7,10 +7,6 @@
                     <th>Id kpicapaian</th>
                     <th>Lokasi Kegiatan</th>
                     <th>Nama KPI</th>
-                    <th>Kegiatan</th>
-                    <th>Target</th>
-                    <th>Realisasi</th>
-                    <th>Capaian</th>
                     <th>Permasalahan</th>
                     <th>Solusi</th>
                     <th>Kebutuhan Dukungan</th>
@@ -41,24 +37,9 @@
         },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
-            {data: 'id_target', name: 'id_target', visible:false},
+            {data: 'id_capaian', name: 'id_capaian', visible:false},
             {data: 'lokasi', name: 'lokasi'},
             {data: 'nama_kpi', name: 'nama_kpi'},
-            {
-                data: 'kegiatan',
-                name: 'kegiatan',
-                render: function (data, type, row) {
-                    // Membuat sebuah div sementara untuk membersihkan tag HTML
-                    var tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = data;
-                    // Mengambil teks dari div tersebut yang sudah bersih dari tag HTML
-                    var strippedText = tempDiv.textContent || tempDiv.innerText || '';
-                    return "<div class='text-wrap'>" +strippedText+ "</div>";
-                }
-            },
-            {data: 'target_kpi', name: 'target_kpi', className: 'text-center', orderable: false, searchable: false},
-            {data: 'realisasi', name: 'realisasi', className: 'text-center', searchable: false},
-            {data: 'capaian', name: 'capaian', className: 'text-center', orderable: false, searchable: false},
             {
                 data: 'permasalahan',
                 name: 'permasalahan',
@@ -95,7 +76,7 @@
                     return "<div class='text-wrap'>" +strippedText+ "</div>";
                 }
             },
-            {data: 'status_capaian', name: 'status_capaian'},
+            {data: 'status_capaian', name: 'status_capaian', className: 'text-center'},
             {data: 'tautan', name: 'tautan'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible: @json(in_array(auth()->user()->akses, ['pjdesa']))},
         ],

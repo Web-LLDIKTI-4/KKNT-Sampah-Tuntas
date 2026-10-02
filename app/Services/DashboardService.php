@@ -82,13 +82,10 @@ class DashboardService
 
     private function kpiHome(array $filter, bool $perPt): array
     {
+        // Laporan capaian KPI (pengurangan sampah) dimuat terpisah lewat AJAX dari Dashboard KPI
         return [
             'perPt' => $perPt,
             'lokasi' => $this->rekap->lokasiTable($filter),
-            'perKpi' => $this->rekap->rekapPerKpi($filter),
-            'perDaerah' => $perPt ? $this->rekap->rekapPerDaerah($filter) : collect(),
-            'chartKpi' => $this->rekap->chartKpi($filter),
-            'capaian' => $perPt ? $this->rekap->rekapPerPtRingkas($filter) : $this->rekap->rekapPerKegiatan($filter),
         ];
     }
 

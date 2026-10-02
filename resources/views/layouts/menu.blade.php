@@ -97,12 +97,7 @@
                                             <span data-i18n="Pricing">Kelola KPI</span>
                                         </a>
                                     </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kpitarget') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                            <span data-i18n="Pricing">Kelola Target KPI</span>
-                                        </a>
-                                    </li>                    
+                    
                                 </ul>
                             </div>
                             <div class="col-12 col-lg">
@@ -167,6 +162,11 @@
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankpi') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('rekapsampah') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rekap Data Sampah
                                         </a>
                                     </li>
                                     {{-- <li class="nav-item">
@@ -374,6 +374,11 @@
                                     <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('rekapsampah') }}">
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rekap Data Sampah
+                                </a>
+                            </li>
                             {{-- <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboardkpi') }}">
                                     <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard KPI
@@ -397,6 +402,11 @@
                 <li class="nav-item">
                     <a class="nav-link fw-medium" href="{{ url('kpicapaian') }}">Capaian KPI</a>
                 </li>
+                @if (Auth::user()->akses === 'pjdesa')
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" href="{{ url('kpisampah') }}">Data Sampah</a>
+                    </li>
+                @endif
                 <li class="nav-item">
                     <a class="nav-link fw-medium" href="{{ url('tugasakhir') }}">Laporan Akhir</a>
                 </li>

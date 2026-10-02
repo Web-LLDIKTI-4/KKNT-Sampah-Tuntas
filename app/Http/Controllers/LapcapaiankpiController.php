@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Auth;
 use Session;
 use DataTables;
 use App\Models\Kpi;
-use App\Models\Kpitarget;
 use App\Models\Kpicapaian;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
@@ -26,7 +25,7 @@ class LapcapaiankpiController extends Controller
     {
         if ($request->ajax()) {
             $query = Kpicapaian::query()
-                ->with(['kpi', 'target', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
+                ->with(['kpi', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
                 ->orderByDesc('id_capaian');
 
             if (in_array(Auth::user()->role, ['dpl'])) {
@@ -54,21 +53,7 @@ class LapcapaiankpiController extends Controller
                 ->addColumn('nama_kpi', function($row) {
                     return isset($row->kpi->nama_kpi) ? $row->kpi->nama_kpi : 'Tidak Diketahui';
                 })
-                ->addColumn('kegiatan', function($row) {
-                    return $row->target->kegiatan ?? 'Tidak Diketahui';
-                })
-                ->addColumn('target_kpi', fn ($row) => Kpicapaian::formatAngka($row->target?->target).' '.($row->target->satuan ?? ''))
-                ->addColumn('realisasi_kpi', fn ($row) => Kpicapaian::formatAngka($row->realisasi).' '.$row->satuan)
-                ->addColumn('capaian', fn ($row) => Kpicapaian::formatPersen($row->capaianPersen()))
-                ->addColumn('status_capaian', function($row) {
-                    if($row->status_capaian == 'Y'){
-                        return '<span class="badge bg-success">Sudah Selesai</span>';
-                    } elseif ($row->status_capaian == 'P') {
-                        return '<span class="badge bg-warning">Proses</span>';
-                    } else {
-                        return '<span class="badge bg-danger">Belum Ditindaklanjuti</span>';
-                    }
-                })
+                ->addColumn('status_capaian', fn ($row) => Kpicapaian::statusBadge($row->status_capaian))
                 ->addColumn('tautan', function($row) {
                     return \App\Support\HtmlSanitizer::link($row->tautan) ?: 'Tidak Ada';
                 })

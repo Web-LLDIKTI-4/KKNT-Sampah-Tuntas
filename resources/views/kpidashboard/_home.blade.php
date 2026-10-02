@@ -1,6 +1,4 @@
 @php
-    $angka = fn ($v) => \App\Models\Kpicapaian::formatAngka($v);
-    $badge = fn ($p) => $p >= 100 ? 'bg-label-success' : ($p >= 50 ? 'bg-label-warning' : 'bg-label-danger');
     $lokasi = $kpiHome['lokasi'];
     $perPt = $kpiHome['perPt'];
     $num = fn ($v) => number_format($v, 0, ',', '.');
@@ -78,65 +76,28 @@
 
     <div class="col-12">
         <div class="card">
-            @include('kpidashboard._per_kpi', ['perKpi' => $kpiHome['perKpi']])
+            <div class="card-header">
+                <h5 class="mb-1">Laporan Kegiatan</h5>
+                <p class="mb-0 card-subtitle">Capaian KPI = persentase pengurangan sampah per bulan; klik kecamatan lalu kelurahan untuk melihat kelompok dan detail capaian KPI-nya</p>
+            </div>
+            <div class="card-body">
+                {{-- Dimuat lewat AJAX dari Dashboard KPI agar tidak memperlambat halaman home --}}
+                <div data-drilldown="{{ route('dashboardkpi') }}"></div>
+            </div>
         </div>
     </div>
 
-    @if ($perPt)
-        <div class="col-12">
-            <div class="card">
-                @include('kpidashboard._per_daerah', ['perDaerah' => $kpiHome['perDaerah']])
-            </div>
-        </div>
-    @endif
-
-    @include('kpidashboard._chart_kpi', ['chartKpi' => $kpiHome['chartKpi']])
-
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-start gap-4">
-                <div>
-                    <h5 class="mb-1">Rata-rata Capaian KPI per Program</h5>
-                    <p class="mb-0 card-subtitle">Per kegiatan, hanya ketua kelompok yang mengisi dan tindak lanjut Sudah Selesai; maksimal 100%</p>
-                </div>
-                <x-button :href="route('dashboardkpi')" variant="outline-primary">Detail</x-button>
+            <div class="card-header">
+                <h5 class="mb-1">Data Sampah per Perguruan Tinggi</h5>
+                <p class="mb-0 card-subtitle">Data bulanan tiap kelurahan beserta total per kecamatan; pilih bulan, kecamatan{{ $perPt ? ', atau perguruan tinggi' : '' }}</p>
             </div>
             <div class="card-body">
-                @if ($perPt)
-                    @include('kpidashboard._per_pt', ['perPt' => $kpiHome['capaian']])
-                @else
-                    <div class="table-responsive">
-                    <table class="table table-sm table-bordered mb-0">
-                    <thead>
-                        <tr>
-                            <th>Kegiatan</th>
-                            <th class="text-center">Rata-rata Capaian</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($kpiHome['capaian'] as $row)
-                            <tr>
-                                <td>
-                                    {{ $row->kegiatan }}
-                                    <small class="d-block text-muted">{{ $row->nama_kpi }} · target {{ $angka($row->target) }} {{ $row->satuan }}</small>
-                                </td>
-                                <td class="text-center" data-order="{{ $row->capaian ?? -1 }}">
-                                    @if ($row->capaian === null)
-                                        -
-                                    @else
-                                        <span class="badge rounded-pill {{ $badge($row->capaian) }}">{{ \App\Models\Kpicapaian::formatPersen($row->capaian) }}</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                        @if ($kpiHome['capaian']->isEmpty())
-                            <tr><td colspan="2" class="text-center text-muted">Belum ada kegiatan KPI</td></tr>
-                        @endif
-                    </tbody>
-                    </table>
-                    </div>
-                @endif
+                <div data-filter-host="{{ route('rekapsampah') }}"></div>
             </div>
         </div>
     </div>
 </div>
+
+<script src="{{ asset('js/drilldown.js') }}?v={{ filemtime(public_path('js/drilldown.js')) }}"></script>

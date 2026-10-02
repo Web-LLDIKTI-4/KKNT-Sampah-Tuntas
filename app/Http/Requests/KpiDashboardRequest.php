@@ -14,9 +14,10 @@ class KpiDashboardRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'lokasi' => ['nullable', 'uuid', 'exists:lokasi_program,id'],
             'kodept' => ['nullable', 'string', 'max:10', 'exists:ref_satuanpendidikan,npsn'],
-            'id_target' => ['nullable', 'uuid', 'exists:kpi_target,id_target'],
+            'bulan' => ['nullable', 'date_format:Y-m'],
+            'kecamatan' => ['nullable', 'uuid', 'exists:kecamatan,id_kecamatan'],
+            'desa' => ['nullable', 'uuid', 'exists:desa,id_desa'],
         ];
     }
 }

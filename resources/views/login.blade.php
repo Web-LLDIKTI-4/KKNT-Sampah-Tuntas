@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="../../assets/vendor/css/rtl/core.css" class="template-customizer-core-css" />
     <link rel="stylesheet" href="../../assets/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
     <link rel="stylesheet" href="../../assets/css/demo.css" />
+    <link rel="stylesheet" href="{{ asset('css/laporan.css') }}?v={{ filemtime(public_path('css/laporan.css')) }}" />
 
     <!-- Vendors CSS -->
     <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
@@ -603,25 +604,6 @@
           white-space: nowrap;
         }
 
-        .laporan-kpi-name {
-          font-weight: 600;
-          color: #1f2937;
-        }
-
-        #tabelLaporanPt .col-lokasi { min-width: 160px; }
-        #tabelLaporanPt .col-pt { min-width: 260px; }
-        #tabelLaporanPt .col-kpi { min-width: 220px; }
-        #tabelLaporanPt .col-kegiatan { min-width: 260px; }
-        #tabelLaporanPt .col-wilayah { min-width: 200px; }
-
-        #tabelLaporanPt .laporan-text {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-
         @media (max-width: 750px) {
           /* beri ruang untuk tombol mobile yang fixed di kanan atas */
           .panel-switch-wrap {
@@ -732,154 +714,15 @@
             </div>
             </div>
 
-            @php
-              $num = fn ($v) => number_format($v, 0, ',', '.');
-              $badge = fn ($p) => $p >= 100 ? 'bg-label-success' : ($p >= 50 ? 'bg-label-warning' : 'bg-label-danger');
-            @endphp
             <div class="tab-pane fade" id="paneLaporan" role="tabpanel" aria-labelledby="tabLaporan">
               <div class="laporan-wrap">
                 <h2 class="laporan-title">Laporan Kegiatan</h2>
-                <p class="lokasi-panel-subtitle mb-4">Rekap capaian KPI dan Perguruan Tinggi pada KKN Tematik Sampah Tuntas</p>
-
-                <div class="card laporan-card mb-4">
-                  <div class="card-header">
-                    <h5 class="mb-0">Sebaran Perguruan Tinggi</h5>
-                  </div>
-                  <div class="card-body">
-                    <p class="mb-3">Total Perguruan Tinggi: <strong>{{ $num($laporan['perLokasiPt']->flatten(1)->unique('kodept')->count()) }}</strong></p>
-                    <div class="table-responsive">
-                      <table class="table table-sm table-bordered mb-0" id="tabelLaporanPt" data-group-label="PT">
-                        <thead>
-                          <tr>
-                            <th class="col-lokasi">Lokasi Program</th>
-                            <th class="text-center">No</th>
-                            <th class="col-pt">Perguruan Tinggi</th>
-                            <th class="text-center">Mahasiswa</th>
-                            <th class="text-center">Kelompok</th>
-                            <th class="text-center">DPL</th>
-                            <th class="col-wilayah">Sebaran Kecamatan</th>
-                            <th class="col-wilayah">Sebaran Kelurahan/Desa</th>
-                            <th class="col-kpi">KPI</th>
-                            <th class="col-kegiatan">Kegiatan</th>
-                            <th class="text-center">Capaian Kegiatan</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @forelse ($laporan['perLokasiPt'] as $namaLokasi => $ptList)
-                            @if ($ptList->isEmpty())
-                              <tr data-group="{{ $namaLokasi }}">
-                                <td class="fw-medium"><span class="laporan-text" title="{{ $namaLokasi }}">{{ $namaLokasi }}</span><div class="small text-muted fw-normal">0 PT</div></td>
-                                <td class="text-center">-</td>
-                                <td colspan="9" class="text-center text-muted">Belum ada perguruan tinggi</td>
-                              </tr>
-                            @endif
-                            @foreach ($ptList as $pt)
-                              @php
-                                $group = $namaLokasi.'|'.$pt->kodept;
-                                $nomorPt = $loop->iteration;
-                                $kegiatanPt = $pt->kpi->flatMap(fn ($kpi) => $kpi->kegiatan->map(fn ($row) => [$kpi, $row]));
-                              @endphp
-                              @forelse ($kegiatanPt as [$kpi, $row])
-                                <tr data-group="{{ $group }}">
-                                  <td data-merge="{{ $namaLokasi }}" class="align-top fw-medium"><span class="laporan-text" title="{{ $namaLokasi }}">{{ $namaLokasi }}</span><div class="small text-muted fw-normal">{{ $num($ptList->count()) }} PT</div></td>
-                                  <td data-merge="{{ $group }}" class="text-center align-top">{{ $nomorPt }}</td>
-                                  <td data-merge="{{ $group }}" class="align-top"><span class="laporan-text" title="{{ $pt->nama_pt }}">{{ $pt->nama_pt }}</span></td>
-                                  <td data-merge="{{ $group }}" class="text-center align-top">{{ $num($pt->jumlah_mahasiswa) }}</td>
-                                  <td data-merge="{{ $group }}" class="text-center align-top">{{ $num($pt->jumlah_kelompok) }}</td>
-                                  <td data-merge="{{ $group }}" class="text-center align-top">{{ $num($pt->jumlah_dpl) }}</td>
-                                  <td data-merge="{{ $group }}" class="align-top">{{ $pt->kecamatan ?: '-' }}</td>
-                                  <td data-merge="{{ $group }}" class="align-top">{{ $pt->kelurahan ?: '-' }}</td>
-                                  <td data-merge="{{ $group }}|{{ $kpi->id_kpi }}" class="align-top">
-                                    <div class="laporan-kpi-name laporan-text" title="{{ $kpi->nama_kpi }}">{{ $kpi->nama_kpi }}</div>
-                                    @if ($kpi->capaian === null)
-                                      <span class="text-muted small">Belum ada data</span>
-                                    @else
-                                      <span class="badge rounded-pill {{ $badge($kpi->capaian) }} mt-1">{{ \App\Models\Kpicapaian::formatPersen($kpi->capaian) }}</span>
-                                    @endif
-                                  </td>
-                                  <td><span class="laporan-text" title="{{ $row->kegiatan }}">{{ $row->kegiatan }}</span></td>
-                                  <td class="text-center">
-                                    @if ($row->capaian === null)
-                                      -
-                                    @else
-                                      <span class="badge rounded-pill {{ $badge($row->capaian) }}">{{ \App\Models\Kpicapaian::formatPersen($row->capaian) }}</span>
-                                    @endif
-                                  </td>
-                                </tr>
-                              @empty
-                                <tr data-group="{{ $group }}">
-                                  <td data-merge="{{ $namaLokasi }}" class="align-top fw-medium"><span class="laporan-text" title="{{ $namaLokasi }}">{{ $namaLokasi }}</span><div class="small text-muted fw-normal">{{ $num($ptList->count()) }} PT</div></td>
-                                  <td class="text-center">{{ $nomorPt }}</td>
-                                  <td><span class="laporan-text" title="{{ $pt->nama_pt }}">{{ $pt->nama_pt }}</span></td>
-                                  <td class="text-center">{{ $num($pt->jumlah_mahasiswa) }}</td>
-                                  <td class="text-center">{{ $num($pt->jumlah_kelompok) }}</td>
-                                  <td class="text-center">{{ $num($pt->jumlah_dpl) }}</td>
-                                  <td>{{ $pt->kecamatan ?: '-' }}</td>
-                                  <td>{{ $pt->kelurahan ?: '-' }}</td>
-                                  <td colspan="3" class="text-center text-muted">Belum ada KPI</td>
-                                </tr>
-                              @endforelse
-                            @endforeach
-                          @empty
-                            <tr><td colspan="11" class="text-center text-muted">Belum ada data perguruan tinggi</td></tr>
-                          @endforelse
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
+                <p class="lokasi-panel-subtitle mb-4">Persentase pengurangan sampah per kecamatan, kelurahan, dan kelompok pada KKN Tematik Sampah Tuntas. Klik nama kecamatan lalu kelurahan untuk melihat rinciannya.</p>
 
                 <div class="card laporan-card">
-                  <div class="card-header">
-                    <h5 class="mb-1">Capaian KPI</h5>
-                    <p class="mb-0 card-subtitle italic">
-                      <i>
-                        Capaian KPI pada KKN Tematik Sampah Tuntas <br> 
-                        data ini adalah rata-rata capaian kegiatan yang sudah diinput oleh setiap ketua kelompok mahasiswa pada setiap perguruan tinggi.
-                      </i>
-                    </p>
-                  </div>
                   <div class="card-body">
-                    <div class="table-responsive">
-                      <table class="table table-sm table-bordered mb-0">
-                        <thead>
-                          <tr>
-                            <th class="text-center">No</th>
-                            <th>KPI</th>
-                            <th>Kegiatan</th>
-                            <th class="text-center">Capaian Kegiatan</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @forelse ($laporan['perKpi'] as $kpi)
-                            @foreach ($kpi->kegiatan as $row)
-                              <tr>
-                                @if ($loop->first)
-                                  <td rowspan="{{ $loop->count }}" class="text-center align-top">{{ $loop->parent->iteration }}</td>
-                                  <td rowspan="{{ $loop->count }}" class="align-top">
-                                    <div class="laporan-kpi-name">{{ $kpi->nama_kpi }}</div>
-                                    @if ($kpi->capaian === null)
-                                      <span class="text-muted small">Belum ada data</span>
-                                    @else
-                                      <span class="badge rounded-pill {{ $badge($kpi->capaian) }} mt-1">{{ \App\Models\Kpicapaian::formatPersen($kpi->capaian) }}</span>
-                                    @endif
-                                  </td>
-                                @endif
-                                <td>{{ $row->kegiatan }}</td>
-                                <td class="text-center">
-                                  @if ($row->capaian === null)
-                                    -
-                                  @else
-                                    <span class="badge rounded-pill {{ $badge($row->capaian) }}">{{ \App\Models\Kpicapaian::formatPersen($row->capaian) }}</span>
-                                  @endif
-                                </td>
-                              </tr>
-                            @endforeach
-                          @empty
-                            <tr><td colspan="4" class="text-center text-muted">Belum ada KPI</td></tr>
-                          @endforelse
-                        </tbody>
-                      </table>
+                    <div data-drilldown="{{ route('login.laporan') }}" aria-live="polite">
+                      @include('laporan._drilldown', $laporan)
                     </div>
                   </div>
                 </div>
@@ -1010,12 +853,11 @@
     <script src="../../assets/js/main.js"></script>
 
     <script src="../../assets/vendor/libs/toastr/toastr.js"></script>
-    <script src="{{ asset('js/grouped-table.js') }}?v={{ filemtime(public_path('js/grouped-table.js')) }}"></script>
+    <script src="{{ asset('js/drilldown.js') }}?v={{ filemtime(public_path('js/drilldown.js')) }}"></script>
   </body>
 </html>
 <script>
 $(function(){
-    GroupedTable.init(document.getElementById("tabelLaporanPt"));
 
     // Token CSRF diperbarui dari respons server, tanpa reload halaman
     function setToken(token) {

@@ -49,7 +49,7 @@ class CapaiankpiExport implements FromCollection, WithHeadings
 
         }
 
-        $kpicapaian->load(['kpi', 'target', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram']);
+        $kpicapaian->load(['kpi', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram']);
 
         // Lakukan relasi yang diperlukan dan tambahkan judul kolom
         $data = $kpicapaian->map(function ($item, $key) {
@@ -57,7 +57,6 @@ class CapaiankpiExport implements FromCollection, WithHeadings
             $desa = $item?->pjdesa?->desa?->desa ?? '';
             $pjdesa = $item?->email ?? '';
             $kpi = $item->kpi ? $item->kpi->nama_kpi : null;
-            $kegiatan = $item->target?->kegiatan;
 
             return [
                 'No' => $key + 1,
@@ -65,12 +64,6 @@ class CapaiankpiExport implements FromCollection, WithHeadings
                 'PJ Desa' => $pjdesa,
                 'Desa' => $desa,
                 'KPI' => $kpi,
-                'Kegiatan' => $kegiatan,
-                'Target' => $item->target?->target !== null ? round((float) $item->target->target) : null,
-                'Satuan Target' => $item->target?->satuan,
-                'Realisasi' => $item->realisasi !== null ? round((float) $item->realisasi) : null,
-                'Satuan Realisasi' => $item->satuan,
-                'Capaian (%)' => $item->capaianPersen() !== null ? round($item->capaianPersen()) : null,
                 'Permasalahan' => $item->permasalahan,
                 'Solusi' => $item->solusi,
                 'Kebutuhan Dukungan' => $item->kendala,
@@ -92,12 +85,6 @@ class CapaiankpiExport implements FromCollection, WithHeadings
             'PJ Desa',
             'Desa',
             'KPI',
-            'Kegiatan',
-            'Target',
-            'Satuan',
-            'Realisasi',
-            'Satuan',
-            'Capaian (%)',
             'Permasalahan',
             'Solusi',
             'Kebutuhan Dukungan',

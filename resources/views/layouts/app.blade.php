@@ -36,6 +36,7 @@
     <link rel="stylesheet" href="../../assets/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
     <link rel="stylesheet" href="../../assets/css/demo.css" />
     <link rel="stylesheet" href="../../assets/css/action-buttons.css" />
+    <link rel="stylesheet" href="{{ asset('css/laporan.css') }}?v={{ filemtime(public_path('css/laporan.css')) }}" />
     <link rel="stylesheet" href="../../assets/vendor/css/pages/front-page.css" />
 
     <!-- Vendors CSS -->

@@ -19,10 +19,11 @@ use App\Http\Controllers\PerguruantinggiController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\LogkehadiranController;
 use App\Http\Controllers\KpiController;
-use App\Http\Controllers\KpitargetController;
 use App\Http\Controllers\KpicapaianController;
 use App\Http\Controllers\LapcapaiankpiController;
 use App\Http\Controllers\KpiDashboardController;
+use App\Http\Controllers\KpisampahController;
+use App\Http\Controllers\RekapsampahController;
 use App\Http\Controllers\NilaifreeformController;
 
 use App\Http\Controllers\LogkegiatanController;
@@ -71,6 +72,7 @@ Route::middleware('guest')->group(function () {
     Route::get('login', [LoginController::class, 'index'])->name('login');
     Route::put('login', [LoginController::class, 'proseslogin']);
     Route::get('login/token', [LoginController::class, 'token'])->middleware('throttle:30,1')->name('login.token');
+    Route::get('login/laporan', [LoginController::class, 'laporan'])->middleware('throttle:30,1')->name('login.laporan');
 });
 
 Route::middleware('auth')->group(function () {
@@ -147,15 +149,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('kpi/destroy', [KpiController::class, 'destroy']);
     Route::get('kpi/export', [KpiController::class, 'export'])->name('kpi.export');
 
-    Route::get('kpitarget', [KpitargetController::class, 'index']);
-    Route::get('kpitarget/listdata', [KpitargetController::class, 'listdata'])->name('kpitarget.listdata');
-    Route::get('kpitarget/listdataserver', [KpitargetController::class, 'listdataserver'])->name('kpitarget.listdataserver');
-    Route::get('kpitarget/tambah', [KpitargetController::class, 'tambah']);
-    Route::put('kpitarget/insert', [KpitargetController::class, 'insert']);
-    Route::get('kpitarget/edit/{id_target}', [KpitargetController::class, 'edit']);
-    Route::put('kpitarget/update', [KpitargetController::class, 'update']);
-    Route::put('kpitarget/destroy', [KpitargetController::class, 'destroy']);
-    Route::get('kpitarget/export', [KpitargetController::class, 'export'])->name('kpitarget.export');
 
     //semua route dalam grup ini hanya bisa diakses oleh operator
     
@@ -293,10 +286,11 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala'])->group(function () {
 
 Route::middleware(['auth', 'role:admin,pt,kepala'])->group(function () {
     Route::get('dashboardkpi', [KpiDashboardController::class, 'index'])->name('dashboardkpi');
+    Route::get('rekapsampah', [RekapsampahController::class, 'index'])->name('rekapsampah');
 });
 
 Route::middleware(['auth', 'role:admin,kepala'])->group(function () {
-    Route::get('dashboardkpi/export', [KpiDashboardController::class, 'export'])->name('dashboardkpi.export');
+    Route::get('rekapsampah/export', [RekapsampahController::class, 'export'])->name('rekapsampah.export');
 });
 
 Route::middleware(['auth', 'role:dpl,pt,kepala'])->group(function () {
@@ -374,7 +368,6 @@ Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function (
     Route::get('kpicapaian/edit/{id_capaian}', [KpicapaianController::class, 'edit']);
     Route::put('kpicapaian/update', [KpicapaianController::class, 'update']);
     Route::put('kpicapaian/destroy', [KpicapaianController::class, 'destroy']);
-    Route::post('kpicapaian/kpitarget', [KpicapaianController::class, 'kpitarget']);
     Route::get('kpicapaian/export', [KpicapaianController::class, 'export']);
 
     Route::get('logbulanan', [LogbulananController::class, 'index']);
@@ -394,6 +387,18 @@ Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function (
     Route::get('tugasakhir/edit/{id_tugasakhir}', [TugasakhirController::class, 'edit']);
     Route::put('tugasakhir/update', [TugasakhirController::class, 'update']);
     Route::put('tugasakhir/destroy', [TugasakhirController::class, 'destroy']);
+});
+
+// Data sampah bulanan: hanya ketua kelompok yang bisa mengubah (dicek di KpisampahRequest)
+Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
+    Route::get('kpisampah', [KpisampahController::class, 'index']);
+    Route::get('kpisampah/listdata', [KpisampahController::class, 'listdata']);
+    Route::get('kpisampah/listdataserver', [KpisampahController::class, 'listdataserver'])->name('kpisampah.listdataserver');
+    Route::get('kpisampah/tambah', [KpisampahController::class, 'tambah']);
+    Route::put('kpisampah/insert', [KpisampahController::class, 'insert'])->middleware('throttle:sensitive');
+    Route::get('kpisampah/edit/{id_sampah}', [KpisampahController::class, 'edit'])->whereUuid('id_sampah');
+    Route::put('kpisampah/update', [KpisampahController::class, 'update'])->middleware('throttle:sensitive');
+    Route::put('kpisampah/destroy', [KpisampahController::class, 'destroy'])->middleware('throttle:sensitive');
 });
 
 Route::middleware(['auth', 'role:pt,kepala'])->group(function () {

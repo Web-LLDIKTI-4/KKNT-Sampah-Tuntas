@@ -7,7 +7,6 @@ use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Master\KpiRequest;
 use App\Models\Kpi;
 use App\Models\Kpicapaian;
-use App\Models\Kpitarget;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -74,9 +73,7 @@ class KpiController extends Controller
             return $this->notFound();
         }
 
-        $used = Kpicapaian::where('id_kpi', $kpi->id_kpi)->exists()
-            || Kpitarget::where('id_kpi', $kpi->id_kpi)->exists();
-        if ($used) {
+        if (Kpicapaian::where('id_kpi', $kpi->id_kpi)->exists()) {
             return $this->deleteRejected('Hapus dulu data terkait');
         }
 
