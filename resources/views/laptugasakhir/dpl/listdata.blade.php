@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<x-btn-export url="{{ url('dpllaptugasakhir/export') }}" />
+<x-button.export url="{{ url('dpllaptugasakhir/export') }}" />
 
 <script type="text/javascript">
   $(function () {

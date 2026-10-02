@@ -6,9 +6,7 @@
                     <h5 class="mb-1">Ringkasan Capaian KPI per Daerah</h5>
                     <p class="mb-0 card-subtitle">Rata-rata capaian kegiatan dalam KPI per lokasi program; maksimal 100%</p>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" data-unduh-chart="ringkasan">
-                    <i class="ri-download-2-line me-1"></i> Unduh PNG
-                </button>
+                <x-button variant="outline-primary" icon="ri-download-2-line" class="text-nowrap" data-unduh-chart="ringkasan">Unduh PNG</x-button>
             </div>
             <div class="card-body">
                 <div id="chart-kpi-ringkasan"></div>
@@ -29,9 +27,7 @@
                             <option value="{{ $i }}">{{ $kpi['nama_kpi'] }}</option>
                         @endforeach
                     </select>
-                    <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" data-unduh-chart="detail">
-                        <i class="ri-download-2-line me-1"></i> Unduh PNG
-                    </button>
+                    <x-button variant="outline-primary" icon="ri-download-2-line" class="text-nowrap" data-unduh-chart="detail">Unduh PNG</x-button>
                 </div>
             </div>
             <div class="card-body">

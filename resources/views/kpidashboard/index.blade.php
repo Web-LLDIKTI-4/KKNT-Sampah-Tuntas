@@ -42,11 +42,9 @@
                 </select>
             </div>
             <div class="col-md-2 d-flex align-items-center gap-2">
-                <button type="button" id="kpi-reset" class="btn btn-sm btn-outline-secondary">Reset</button>
+                <x-button id="kpi-reset" variant="outline-secondary">Reset</x-button>
                 @if (auth()->user()->role === 'admin')
-                    <a href="{{ route('dashboardkpi.export', array_filter($filter)) }}" id="kpi-export" class="btn btn-sm btn-success text-nowrap">
-                        <i class="ri-file-excel-2-line me-1"></i> Export
-                    </a>
+                    <x-button.export :url="route('dashboardkpi.export', array_filter($filter))" id="kpi-export" label="Export" size="sm" class="text-nowrap" />
                 @endif
                 <span id="kpi-loading" class="spinner-border spinner-border-sm text-primary" role="status" hidden></span>
             </div>

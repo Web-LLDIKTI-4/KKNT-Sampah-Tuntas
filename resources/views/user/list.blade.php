@@ -64,7 +64,7 @@
 </table>
 </div>
 
-<x-btn-export url="{{ route('user.export') }}" />
+<x-button.export url="{{ route('user.export') }}" />
 
 <script>
     $(function () {

@@ -1,6 +1,6 @@
 /*
  * Custom styling for the reusable edit/delete action buttons
- * (resources/views/components/btn-edit.blade.php and btn-delete.blade.php)
+ * (resources/views/components/button/icon.blade.php, dipakai action-data)
  */
 .btn-action-view,
 .btn-action-edit,

@@ -19,9 +19,9 @@
         <label>Catatan Hasil Verifikasi</label>
     </div>
     <div>
-        <x-btn-save formId="form-simpan">
+        <x-button.save formId="form-simpan">
             Simpan
-        </x-btn-save>
+        </x-button.save>
     </div>
 </form>
 
@@ -32,7 +32,6 @@ $(document).on("submit", "#form-simpan", function(e){
     var form = $(this);
     var action = form.attr("action");
     var id = form.attr("id");
-    var btnHtml = $("#btnSubmit_" + id).html();
     var dString = form.serialize();
 
     $.ajax({
@@ -42,15 +41,11 @@ $(document).on("submit", "#form-simpan", function(e){
         dataType: "json",
 
         beforeSend: function () {
-            $("#btnSubmit_" + id)
-                .prop("disabled", true)
-                .html("<span class='spinner-border spinner-border-sm'></span> Loading...");
+            btnLoading($("#btnSubmit_" + id), true);
         },
 
         complete: function () {
-            $("#btnSubmit_" + id)
-                .prop("disabled", false)
-                .html(btnHtml);
+            btnLoading($("#btnSubmit_" + id), false);
         },
 
         success: function (ret) {

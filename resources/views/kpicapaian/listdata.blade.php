@@ -21,7 +21,7 @@
             </x-slot:thead>
         </x-datatable>
 
-        <x-btn-export url="{{ url('kpicapaian/export') }}" />
+        <x-button.export url="{{ url('kpicapaian/export') }}" />
     </div>
 </div>
 <script type="text/javascript">

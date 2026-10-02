@@ -6,7 +6,7 @@
     @if ($addUrl || isset($actions))
         <div class="card-header d-flex gap-2">
             @if ($addUrl)
-                <x-btn-modal url="{{ $addUrl }}" title="{{ $addTitle }}"><i class="ri-add-circle-line me-1"></i>{{ $addTitle }}</x-btn-modal>
+                <x-button :modal="$addUrl" :title="$addTitle" icon="ri-add-circle-line">{{ $addTitle }}</x-button>
             @endif
             {{ $actions ?? '' }}
         </div>

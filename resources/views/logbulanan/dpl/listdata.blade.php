@@ -20,7 +20,7 @@
             </div>
             <hr>
         </div>
-        <x-btn-export url="{{ url('admlogbulanan/export/' . request()->route('email')) }}" />
+        <x-button.export url="{{ url('admlogbulanan/export/' . request()->route('email')) }}" />
     </div>
 </div>
 

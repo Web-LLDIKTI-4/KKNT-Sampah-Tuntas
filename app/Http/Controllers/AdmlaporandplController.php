@@ -74,11 +74,7 @@ class AdmlaporandplController extends Controller
                 ->addColumn('deskripsi', function($row){
                     return \App\Support\HtmlSanitizer::clean($row->deskripsi).' '.\App\Support\HtmlSanitizer::link($row->tautan);
                 })
-                // ->addColumn('action', function($row){
-                //     $actionBtn = '<div class="d-felx"><a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-pencil-square"></i></a> <a href="javascript:void(0)" class="btn btn-sm p-0 m-0"><i class="bi bi-trash"></i></a></div>';
-                //     return $actionBtn;
-                // })
-                ->rawColumns(['action', 'deskripsi'])
+                ->rawColumns(['deskripsi'])
                 ->make(true);
         }
     }

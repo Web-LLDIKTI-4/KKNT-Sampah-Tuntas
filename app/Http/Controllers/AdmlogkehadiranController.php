@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\LogKehadiranByMhsExport;
 use App\Models\Kehadiran;
+use App\Support\ActionButtons;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTableAbstract;
 use Yajra\DataTables\Facades\DataTables;
@@ -27,9 +28,6 @@ class AdmlogkehadiranController extends StudentLogReportController
 
     protected function detailTable(string $email): DataTableAbstract
     {
-        $map = fn ($lat, $lng) => $lat === null || $lng === null ? '-'
-            : '<a href="https://www.google.com/maps?q='.(float) $lat.','.(float) $lng.'" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">Lihat Map</a>';
-
         return DataTables::of(Kehadiran::where('email', $email)->with('mahasiswa.sp')->orderByDesc('tanggal')->get())
             ->addIndexColumn()
             ->addColumn('nim', fn ($row) => $row->mahasiswa->nim ?? 'NIM tidak tersedia')
@@ -38,8 +36,8 @@ class AdmlogkehadiranController extends StudentLogReportController
             ->editColumn('tanggal', fn ($row) => $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-')
             ->editColumn('waktu_masuk', fn ($row) => $row->waktu_masuk ? date('H:i:s', strtotime($row->waktu_masuk)).' WIB' : '-')
             ->editColumn('waktu_pulang', fn ($row) => $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)).' WIB' : '-')
-            ->addColumn('coordinates_datang', fn ($row) => $map($row->latitude_datang, $row->longitude_datang))
-            ->addColumn('coordinates_pulang', fn ($row) => $map($row->latitude_pulang, $row->longitude_pulang))
+            ->addColumn('coordinates_datang', fn ($row) => ActionButtons::map($row->latitude_datang, $row->longitude_datang))
+            ->addColumn('coordinates_pulang', fn ($row) => ActionButtons::map($row->latitude_pulang, $row->longitude_pulang))
             ->rawColumns(['coordinates_datang', 'coordinates_pulang']);
     }
 

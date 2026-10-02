@@ -19,5 +19,5 @@
         <label>Kata Sandi{{ $user ? ' (kosongkan jika tidak diubah)' : '' }}</label>
     </div>
     <p class="small text-muted mb-4">Peran: kepala — hanya dapat melihat Dashboard KPI dan Laporan Capaian KPI.</p>
-    <x-btn-save formId="form-kepala">Simpan</x-btn-save>
+    <x-button.save formId="form-kepala">Simpan</x-button.save>
 </form>

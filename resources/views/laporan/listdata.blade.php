@@ -15,28 +15,17 @@
                     <td class="text-center">{{ $row->tahun }}</td>
                     <td class="text-center">{{ Carbon\Carbon::create()->month($row->bulan)->translatedFormat('F') }}</td>
                     <td>
-                        <a href="{{ $row->tautan }}" target="_blank">{{ $row->tautan }}</a>
+                        {!! \App\Support\HtmlSanitizer::link($row->tautan) !!}
                     </td>
                     <td class="text-center no-sort">
-                        <div class="d-flex gap-2">
-                            <form method="post" id="form-bulan-{{$row->id_laporan}}" action="{{ url('dpllaporan/tambah') }}">
+                        <x-action-data :urlDelete="url('dpllaporan/destroy')" idField="id_laporan" :idValue="$row->id_laporan">
+                            <form method="post" id="form-bulan-{{ $row->id_laporan }}" action="{{ url('dpllaporan/tambah') }}" data-ajax-form data-result-target="#resultcontent">
                                 @csrf
-                                <input type="hidden" name="tahun" value="{{$row->tahun}}">
-                                <input type="hidden" name="bulan" value="{{$row->bulan}}">
-                                <button type="submit" id="btnSubmit_form-bulan-{{$row->id_laporan}}" class="btn-action-edit" data-toggle="tooltip" title="" data-original-title="Quick view">
-                                    <i class="ri-edit-box-line fs-4"></i>
-                                </button>
+                                <input type="hidden" name="tahun" value="{{ $row->tahun }}">
+                                <input type="hidden" name="bulan" value="{{ $row->bulan }}">
+                                <x-button.icon action="edit" type="submit" id="btnSubmit_form-bulan-{{ $row->id_laporan }}" title="Ubah Data" />
                             </form>
-
-                            <form method="post" id="form-hapus-{{$row->id_laporan}}" action="{{ url('dpllaporan/destroy') }}">
-                                @csrf
-                                @method('PUT')
-                                <input type="hidden" name="id_laporan" value="{{$row->id_laporan}}">
-                                <button type="submit" id="btnSubmit_form-hapus-{{$row->id_laporan}}" class="btn-action-delete" data-toggle="tooltip" title="" data-original-title="Move to trash">
-                                    <i class="ri-delete-bin-3-line fs-4"></i>
-                                </button>
-                            </form>
-                        </div>
+                        </x-action-data>
                     </td>
                 </tr>
             @endforeach
@@ -59,36 +48,6 @@ $(function(){
             { targets: 0, orderable: false } // Prevent sorting on the "No" column
             // Remove the ellipsis render function
         ]
-    });
-    $("[id^=form-hapus-]").on("submit",function(){       
-        var action = $(this).attr("action");
-        var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
-        var dString = $(this).serialize();
-        if(confirm("yakin data akan di hapus?")){
-            $.ajax({
-                type:'post',
-                url:action,
-                data:dString,
-                beforeSend:function(){
-                    $("#btnSubmit_"+id+"").prop("disabled",true);
-                    $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
-                },
-                complete:function(){
-                    $("#btnSubmit_"+id+"").prop("disabled",false);
-                    $("#btnSubmit_"+id+"").html(btnHtml);	
-                },
-                success:function(ret){
-                    $("#listdata").load("{{ url('dpllaporan/listdata') }}");
-                    window.location.reload();                  
-                },
-                error:function(xhr,ajaxOptions,thrownError){
-                    console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
-                }			
-                
-            });
-        }
-        return false;
     });
 })
 </script>

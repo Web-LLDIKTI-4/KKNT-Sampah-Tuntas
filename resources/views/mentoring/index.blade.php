@@ -6,10 +6,8 @@
 
 <div class="card">
     <div class="card-header">
-        <x-btn-modal url="{{ url('dplmentoring/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Mahasiswa">
-            <i class="ri-add-fill me-2"></i>
-            Tambah Mahasiswa
-        </x-btn-modal>
+        <x-button modal="{{ url('dplmentoring/tambah') }}" title="Tambah Mahasiswa" icon="ri-add-fill">Tambah Mahasiswa
+        </x-button>
     </div>
     <div class="card-body">
         <p id="resultcontent">List data...</p>

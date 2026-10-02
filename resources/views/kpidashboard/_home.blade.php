@@ -99,7 +99,7 @@
                     <h5 class="mb-1">Rata-rata Capaian KPI per Program</h5>
                     <p class="mb-0 card-subtitle">Per kegiatan, hanya ketua kelompok yang mengisi dan tindak lanjut Sudah Selesai; maksimal 100%</p>
                 </div>
-                <a href="{{ route('dashboardkpi') }}" class="btn btn-sm btn-outline-primary">Detail</a>
+                <x-button :href="route('dashboardkpi')" variant="outline-primary">Detail</x-button>
             </div>
             <div class="card-body">
                 @if ($perPt)

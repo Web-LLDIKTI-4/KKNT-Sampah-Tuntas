@@ -230,7 +230,7 @@
 			if(!src || src.length == 0){
 				return false;
 			}
-			$(".modal-title").html(title);
+			$(".modal-title").text(title);
 			//$('.modal').modal();        
 			$('#modalisi').html('Loading, mohon tunggu...');
 			$('#modalisi').load(src);

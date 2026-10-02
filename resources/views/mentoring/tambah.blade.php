@@ -3,7 +3,7 @@
         @csrf
         @method('PUT')
 
-        <x-btn-save formId="form-create">Tambah Pengguna</x-btn-save>
+        <x-button.save formId="form-create">Tambah Pengguna</x-button.save>
         <hr>
 
         <table class="table table-sm" id="tabel-data">
@@ -140,18 +140,15 @@ $(function () {
 
         var action = $(this).attr("action");
         var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
         $.ajax({
             url: action,
             type:'POST',
             data: formData,
             beforeSend:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",true);
-                $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
+                btnLoading($("#btnSubmit_" + id), true);			
             },
             complete:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",false);
-                $("#btnSubmit_"+id+"").html(btnHtml);	
+                btnLoading($("#btnSubmit_" + id), false);	
             },
             success: function(data) {                
                 console.log(data.error);

@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<x-btn-export url="{{ route('kpitarget.export') }}" />
+<x-button.export url="{{ route('kpitarget.export') }}" />
 
 <script type="text/javascript">
   $(function () {

@@ -16,13 +16,13 @@
                 </div>
                 <div class="user-profile-header d-flex flex-column flex-sm-row text-sm-start text-center mb-5">
                         <div class="flex-shrink-0 mt-n2 mx-sm-0 mx-auto">
-                            <x-btn-modal url="{{ $photoUploadUrl }}" class="modalButton" title="Unggah Foto Profil">
+                            <x-button modal="{{ $photoUploadUrl }}" :variant="false" title="Unggah Foto Profil">
                             <img id="showimageprofile"
                             src="{{ $photoRoute }}?rand={{ time() }}"
                             alt="user image"
                             class="d-block h-auto ms-0 ms-sm-5 rounded user-profile-img" />
 
-                            </x-btn-modal>
+                            </x-button>
                         </div>
                     <div class="flex-grow-1 mt-4 mt-sm-12">
                         <div
@@ -148,7 +148,7 @@
                             <hr />
                             
                             <!-- Simpan buttons -->
-                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary">Simpan</x-btn-save>
+                            <x-button.save formId="form-update">Simpan</x-button.save>
                         </form>
                     @elseif($isMahasiswa)
                         <form method="post" id="form-update" action="{{ $updateUrl }}">
@@ -210,7 +210,7 @@
                             <hr />
                             
                             <!-- Simpan buttons -->
-                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary">Simpan</x-btn-save>
+                            <x-button.save formId="form-update">Simpan</x-button.save>
                         </form>
                     @else
                         @if(!$dpl)
@@ -273,7 +273,7 @@
                             <hr />
                             
                             <!-- Simpan buttons -->
-                            <x-btn-save formId="form-update" class="btn btn-sm btn-primary">Simpan</x-btn-save>
+                            <x-button.save formId="form-update">Simpan</x-button.save>
                         </form>
                     @endif   
                     </div>
@@ -316,7 +316,7 @@
                               <label for="pbaruulangi">Ulangi Kata Sandi Baru</label>
                           </div>
                         </div>
-                        <x-btn-save formId="form-updatepassword" class="btn btn-primary" name="kirim">Simpan</x-btn-save>
+                        <x-button.save formId="form-updatepassword" :size="false" name="kirim">Simpan</x-button.save>
                       </form>
                     </div>
                   </div>
@@ -367,7 +367,7 @@
                                 <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-crosshair-2-line text-info ri-24px"></i></span>
                             </div>
                             <div class="media-body ml-3">
-                                <x-btn-modal url="{{ url('mhsprofile/formlokasi') }}" class="modalButton stretched-link h6 mb-1" title="Set lokasi">Set Lokasi Kegiatan</x-btn-modal>
+                                <x-button modal="{{ url('mhsprofile/formlokasi') }}" :variant="false" class="stretched-link h6 mb-1" title="Set lokasi">Set Lokasi Kegiatan</x-button>
                                 <p class="mb-0 text-sm">
                                     {{ $mahasiswa->locationProgram->nama_lokasi ?? 'Lokasi Program belum di set' }},
                                     {{ $mahasiswa->lokasi->desa->kecamatan->kecamatan ?? 'Kecamatan belum di set' }},
@@ -396,7 +396,6 @@ $(function(){
         var formData = new FormData($(this)[0]);
         var action = $(this).attr("action");
         var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();		
 		  $.ajax({
 			  url: action,
               dataType:'json',
@@ -405,12 +404,10 @@ $(function(){
 			  processData: false, // important
 			  contentType: false, // important
 			  beforeSend:function(){					
-				  $("#btnSubmit_"+id+"").prop("disabled",true);
-				  $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status'></span> loading...");			
+				  btnLoading($("#btnSubmit_" + id), true);			
 			  },
 			  complete:function(){
-				  $("#btnSubmit_"+id+"").prop("disabled",false);
-				  $("#btnSubmit_"+id+"").html(btnHtml);	
+				  btnLoading($("#btnSubmit_" + id), false);	
 			  },
 			  success: function(ret) {
 				    if(ret.success == true){
@@ -446,7 +443,6 @@ $(function(){
     $("body").off("submit","#form-update,#form-updatepassword").on("submit","#form-update,#form-updatepassword",function(){       
         var action = $(this).attr("action");
         var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
         var dString = $(this).serialize();        
         $.ajax({
             dataType:'json',
@@ -454,12 +450,10 @@ $(function(){
             url:action,
             data:dString,
             beforeSend:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",true);
-                $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
+                btnLoading($("#btnSubmit_" + id), true);			
             },
             complete:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",false);
-                $("#btnSubmit_"+id+"").html(btnHtml);	
+                btnLoading($("#btnSubmit_" + id), false);	
             },
             success:function(ret){
                 if(ret.success == true){

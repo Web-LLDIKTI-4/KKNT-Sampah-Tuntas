@@ -12,7 +12,7 @@
 
 <div class="card">
     <div class="card-header">
-        <form method="post" id="form-bulan" action="{{ url('dpllaporan/tambah') }}">
+        <form method="post" id="form-bulan" action="{{ url('dpllaporan/tambah') }}" data-ajax-form data-result-target="#resultcontent">
             @csrf
             <div class="row">
                 <div class="col form-group form-floating form-floating-outline mb-6">
@@ -32,9 +32,9 @@
                     <label> Pilih Bulan </label>
                 </div>
                 <div class="col mt-1">
-                    <x-btn-save formId="form-bulan" class="btn btn-lg btn-primary" icon="ri-filter-3-fill">
+                    <x-button.save formId="form-bulan" size="lg" icon="ri-filter-3-fill">
                         Isi Log Bulanan
-                    </x-btn-save>
+                    </x-button.save>
                 </div>
             </div>
         </p> 
@@ -51,33 +51,6 @@ $(function(){
     $('#modalku').on('show.bs.modal', function (e) {
         $(".modal-dialog").addClass('modal-lg');
     })
-    $("body").on("submit","#form-bulan,[id^=form-bulan-]",function(){       
-        var action = $(this).attr("action");
-        var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
-        var dString = $(this).serialize();
-        $.ajax({
-            type:'post',
-            url:action,
-            data:dString,
-            beforeSend:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",true);
-                $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
-            },
-            complete:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",false);
-                $("#btnSubmit_"+id+"").html(btnHtml);	
-            },
-            success:function(ret){                
-                $("#resultcontent").html(ret);
-            },
-            error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
-            }			
-            
-        });
-        return false;
-    });
     
 })
 </script>

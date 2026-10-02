@@ -6,6 +6,7 @@ use App\Exports\LogBulananByMhsExport;
 use App\Http\Requests\Dpl\PenilaianLogbulananRequest;
 use App\Models\Dplmentoring;
 use App\Models\Logbulanan;
+use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -42,11 +43,11 @@ class AdmlogbulananController extends StudentLogReportController
             ->editColumn('deskripsi', fn ($row) => HtmlSanitizer::clean($row->deskripsi).'<br>'.HtmlSanitizer::link($row->tautan))
             ->addColumn('nama_bulan', fn ($row) => Carbon::create()->month((int) $row->bulan)->translatedFormat('F'))
             ->addColumn('action', fn ($row) => $canGrade && $row->nilai === null
-                ? view('components.btn-modal', [
-                    'url' => url('admlogbulanan/formpenilaian/'.$row->id_logbulanan),
-                    'title' => 'Penilaian Log Bulanan',
-                    'slot' => 'Berikan Nilai',
-                ])->render()
+                ? ActionButtons::modal(
+                    url('admlogbulanan/formpenilaian/'.$row->id_logbulanan),
+                    'Berikan Nilai',
+                    'Penilaian Log Bulanan',
+                )
                 : e($row->nilai))
             ->rawColumns(['deskripsi', 'action']);
     }

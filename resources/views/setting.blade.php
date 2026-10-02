@@ -25,7 +25,7 @@
                 </div>
             </div>
             <hr>
-            <x-btn-save formId="form-update">Simpan</x-btn-save>
+            <x-button.save formId="form-update">Simpan</x-button.save>
     </form>
     </div>
 </div>

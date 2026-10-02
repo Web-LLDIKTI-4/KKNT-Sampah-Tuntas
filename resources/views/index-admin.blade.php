@@ -118,23 +118,6 @@
                 <div class="card-header">
                     <div class="d-flex justify-content-between">
                         <h5 class="mb-1">Informasi Mahasiswa</h5>
-                
-                        {{-- <div class="dropdown">
-                            <button
-                            class="btn btn-text-secondary rounded-pill text-muted border-0 p-1"
-                            type="button"
-                            id="projectTimeline"
-                            data-bs-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                            <i class="ri-more-2-line ri-20px"></i>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="projectTimeline">
-                            <a class="dropdown-item" href="javascript:void(0);">Muat Ulang</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Share</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Perbarui</a>
-                            </div>              
-                        </div> --}}
                     </div>
                     <p class="mb-0 card-subtitle">Data Mahasiswa</p>
                 </div>

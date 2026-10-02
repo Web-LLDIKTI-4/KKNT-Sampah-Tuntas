@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<x-btn-export url="{{ url('admlogharian/export') }}">Export Data</x-btn-export>
+<x-button.export url="{{ url('admlogharian/export') }}">Export Data</x-button.export>
 
 <script type="text/javascript">
   $(function () {

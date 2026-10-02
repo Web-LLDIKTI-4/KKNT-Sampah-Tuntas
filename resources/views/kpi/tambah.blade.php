@@ -5,7 +5,7 @@
         <input type="text" name="nama_kpi" class="form-control" required maxlength="255">
         <label>Nama KPI</label>
     </div>
-    <x-btn-save formId="form-tambah">
+    <x-button.save formId="form-tambah">
         Simpan
-    </x-btn-save>
+    </x-button.save>
 </form>

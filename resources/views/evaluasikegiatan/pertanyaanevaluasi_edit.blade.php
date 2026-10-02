@@ -7,9 +7,9 @@
         <label>Pertanyaan</label>
     </div>
     <div id="wordCount" class="mb-3">Jumlah kata: 0</div>
-    <x-btn-save formId="form-tambah">
+    <x-button.save formId="form-tambah">
         Simpan
-    </x-btn-save>
+    </x-button.save>
 </form>
 <script>
     $(function(){

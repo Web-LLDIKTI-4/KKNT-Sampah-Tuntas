@@ -2,11 +2,34 @@
  * Handler CRUD global.
  * - Form AJAX : <form data-ajax-form [data-reload="#dataTable"] | [data-reload-url data-reload-target]>
  *               [data-reload-page] (tombol submit id="btnSubmit_{formId}")
- * - Hapus     : <a class="btn-delete" data-url data-id-field data-id-value [data-confirm]>
+ *               [data-result-target="#el"] : respons HTML dimuat ke #el (form pemuat isian)
+ * - Hapus     : .btn-delete (lihat <x-action-data>) data-url data-id-field data-id-value [data-confirm]
+ * - Loading   : btnLoading(btn, true|false[, label]) — satu-satunya state loading tombol
  * Respons server: {success, message, errors?}
  */
 (function ($) {
     'use strict';
+
+    // Tombol ikon (tanpa teks) cukup spinner kecil agar ukurannya tidak berubah
+    window.btnLoading = function (btn, loading, label) {
+        var $btn = $(btn);
+        if (!$btn.length) {
+            return;
+        }
+        if (!loading) {
+            if ($btn.data('btn-loading')) {
+                $btn.html($btn.data('btn-html')).prop('disabled', false).removeData('btn-loading');
+            }
+            return;
+        }
+        if ($btn.data('btn-loading')) {
+            return;
+        }
+        var iconOnly = $.trim($btn.text()) === '';
+        $btn.data('btn-html', $btn.html()).data('btn-loading', true).prop('disabled', true)
+            .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'
+                + (iconOnly ? '' : ' ' + (label || 'Loading...')));
+    };
 
     function csrfToken() {
         return $('meta[name="csrf-token"]').attr('content');
@@ -60,7 +83,7 @@
 
         // Pakai attr: form.id tertimpa oleh <input name="id">
         var $btn = $('#btnSubmit_' + $form.attr('id'));
-        var btnHtml = $btn.html();
+        var resultTarget = $form.data('result-target');
         var hasFile = $form.find('input[type="file"]').length > 0;
 
         $.ajax({
@@ -71,13 +94,16 @@
             contentType: hasFile ? false : 'application/x-www-form-urlencoded; charset=UTF-8',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             beforeSend: function () {
-                $btn.prop('disabled', true)
-                    .html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");
+                btnLoading($btn, true);
             },
             complete: function () {
-                $btn.prop('disabled', false).html(btnHtml);
+                btnLoading($btn, false);
             },
             success: function (ret) {
+                if (resultTarget) {
+                    $(resultTarget).html(ret);
+                    return;
+                }
                 if (ret.success) {
                     // Server boleh menentukan jenis toast, mis. import yang sebagian barisnya gagal
                     var toastType = ['success', 'warning', 'error', 'info'].indexOf(ret.toast) >= 0 ? ret.toast : 'success';

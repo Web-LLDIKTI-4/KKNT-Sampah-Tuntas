@@ -28,7 +28,7 @@
         <label>Nama Ketua Kelompok</label>
     </div>
     <hr>
-    <x-btn-save formId="form-ubah">
+    <x-button.save formId="form-ubah">
         Simpan
-    </x-btn-save>
+    </x-button.save>
 </form>

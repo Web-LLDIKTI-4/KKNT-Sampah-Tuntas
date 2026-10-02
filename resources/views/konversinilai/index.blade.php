@@ -7,10 +7,8 @@
 <div class="card">
     @if (in_array(Auth::user()->role, ['dpl']))
         <div class="card-header">
-            <x-btn-modal url="{{ url('dplkonversinilai/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Data">
-                <i class="ri-add-fill me-2"></i>
-                Tambah Data
-            </x-btn-modal>
+            <x-button modal="{{ url('dplkonversinilai/tambah') }}" title="Tambah Data" icon="ri-add-fill">Tambah Data
+            </x-button>
         </div>
     @endif
     <div class="card-body">

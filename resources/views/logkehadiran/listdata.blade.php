@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        <x-btn-export url="{{ url('admlogkehadiran/export/' . request()->route('email')) }}" />
+        <x-button.export url="{{ url('admlogkehadiran/export/' . request()->route('email')) }}" />
     </div>
 </div>
 

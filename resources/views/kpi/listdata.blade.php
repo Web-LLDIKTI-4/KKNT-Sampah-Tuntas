@@ -14,7 +14,7 @@
     </div>
 </div>
 
-<x-btn-export url="{{ route('kpi.export') }}" />
+<x-button.export url="{{ route('kpi.export') }}" />
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({

@@ -21,7 +21,7 @@
     </div>
 </div>
 
-<x-btn-export url="{{ url('admstructureform/export') }}" />
+<x-button.export url="{{ url('admstructureform/export') }}" />
 
 <script type="text/javascript">
   $(function () {

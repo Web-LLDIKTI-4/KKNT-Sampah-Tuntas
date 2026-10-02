@@ -21,24 +21,17 @@
                     <td class="text-center">{{ $row->tahun }}</td>
                     <td class="text-center">{{ Carbon\Carbon::create()->month($row->bulan)->translatedFormat('F') }}</td>
                     <td>
-                        <a href="{{ $row->tautan }}" target="_blank">{{ $row->tautan }}</a>
+                        {!! \App\Support\HtmlSanitizer::link($row->tautan) !!}
                     </td>
                     <td class="text-center">
-                        <div class="d-flex">
-                            <form method="post" id="form-bulan-{{$row->id_logbulanan}}" action="{{ url('logbulanan/tambah') }}">
+                        <x-action-data :urlDelete="url('logbulanan/destroy')" idField="id_logbulanan" :idValue="$row->id_logbulanan">
+                            <form method="post" id="form-bulan-{{ $row->id_logbulanan }}" action="{{ url('logbulanan/tambah') }}" data-ajax-form data-result-target="#resultcontent">
                                 @csrf
-                                <input type="hidden" name="tahun" value="{{$row->tahun}}">
-                                <input type="hidden" name="bulan" value="{{$row->bulan}}">
-                                <button type="submit" id="btnSubmit_form-bulan-{{$row->id_logbulanan}}" class="btn p-0 m-0 action-item" data-toggle="tooltip" title="" data-original-title="Quick view"><i class="ri-edit-box-line text-success"></i></button>
+                                <input type="hidden" name="tahun" value="{{ $row->tahun }}">
+                                <input type="hidden" name="bulan" value="{{ $row->bulan }}">
+                                <x-button.icon action="edit" type="submit" id="btnSubmit_form-bulan-{{ $row->id_logbulanan }}" title="Ubah Data" />
                             </form>
-
-                            <form method="post" id="form-hapus-{{$row->id_logbulanan}}" action="{{ url('logbulanan/destroy') }}">
-                                @csrf
-                                @method('PUT')
-                                <input type="hidden" name="id_logbulanan" value="{{$row->id_logbulanan}}">
-                                <button type="submit" id="btnSubmit_form-hapus-{{$row->id_logbulanan}}" class="btn p-0 m-0 action-item text-danger ml-2" data-toggle="tooltip" title="" data-original-title="Move to trash"><i class="ri-delete-bin-3-line text-danger"></i></button>
-                            </form>
-                        </div>
+                        </x-action-data>
                     </td>
                     <td class="text-center">{{$row->nilai}}</td>
                     <td>{{$row->hasil_verifikasi}}</td>
@@ -60,36 +53,6 @@ $(function(){
             zeroRecords: "Tidak ada data yang tersedia",
             infoEmpty: "Tidak ada data yang ditemukan",
         },
-    });
-
-    $("[id^=form-hapus-]").on("submit",function(){       
-        var action = $(this).attr("action");
-        var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
-        var dString = $(this).serialize();
-        if(confirm("yakin data akan di hapus?")){
-            $.ajax({
-                type:'post',
-                url:action,
-                data:dString,
-                beforeSend:function(){
-                    $("#btnSubmit_"+id+"").prop("disabled",true);
-                    $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
-                },
-                complete:function(){
-                    $("#btnSubmit_"+id+"").prop("disabled",false);
-                    $("#btnSubmit_"+id+"").html(btnHtml);	
-                },
-                success:function(ret){
-                    $("#listdata").load("{{ url('logbulanan/listdata') }}");
-                },
-                error:function(xhr,ajaxOptions,thrownError){
-                    console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
-                }			
-                
-            });
-        }
-        return false;
     });
 })
 </script>

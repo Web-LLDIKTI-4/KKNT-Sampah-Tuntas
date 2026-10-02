@@ -72,18 +72,7 @@ class LapcapaiankpiController extends Controller
                 ->addColumn('tautan', function($row) {
                     return \App\Support\HtmlSanitizer::link($row->tautan) ?: 'Tidak Ada';
                 })
-                // ->addColumn('action', function($row) {
-                //     $actionBtn = '<div class="d-flex">
-                //         <a href="#modalku" data-toggle="modal" class="modalButton btn btn-sm p-0 m-0" data-src="'.url('kpicapaian/edit/'.$row->id_capaian).'" title="Edit Data">
-                //             <i class="fas fa-edit"></i>
-                //         </a> 
-                //         <a href="javascript:void(0)" id="hapus_'.$row->id_capaian.'" class="btn btn-sm p-0 m-0">
-                //             <i class="fa fa-trash"></i>
-                //         </a>
-                //     </div>';
-                //     return $actionBtn;
-                // })
-                ->rawColumns(['lokasi', 'action', 'tautan', 'status_capaian'])
+                ->rawColumns(['lokasi', 'tautan', 'status_capaian'])
                 ->make(true);
         }
         

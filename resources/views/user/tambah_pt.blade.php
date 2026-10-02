@@ -35,9 +35,9 @@
         </div>
     </div>
     
-    <x-btn-save formId="form-tambah">
+    <x-button.save formId="form-tambah">
         Simpan
-    </x-btn-save>
+    </x-button.save>
 </form>
         
 <script>
@@ -49,7 +49,6 @@ $(function(){
     $("#form-tambah").on("submit",function(){       
         var action = $(this).attr("action");
         var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
         var dString = $(this).serialize();
         $("#name_error,#kodept_error,#password_error,#role_error").html('');
         $.ajax({
@@ -58,12 +57,10 @@ $(function(){
             url:action,
             data:dString,
             beforeSend:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",true);
-                $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
+                btnLoading($("#btnSubmit_" + id), true);			
             },
             complete:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",false);
-                $("#btnSubmit_"+id+"").html(btnHtml);	
+                btnLoading($("#btnSubmit_" + id), false);	
             },
             success:function(ret){
                 if(ret.success == true){		

@@ -8,20 +8,9 @@
 <div class="card">
     <div class="card-header d-flex flex-column flex-md-row align-items-center gap-3">
         @if (Auth::user()->role === 'admin')
-        <div class="btn-group justify-center" role="group" aria-label="Basic example">
-            <a href="{{ url('admevaluasikegiatan') }}" class="btn btn-info btn-sm waves-effect waves-light">
-                <i class="ri-pass-valid-line d-none d-md-block me-2"></i>
-                <span>Data Hasil Evaluasi</span>
-            </a>
-            <a href="{{ url('admevaluasikegiatan/pertanyaanevaluasi') }}" class="btn btn-secondary btn-sm waves-effect waves-light">
-                <i class="ri-questionnaire-line d-none d-md-block me-2"></i>
-                <span>Data Pertanyaan</span>
-            </a>
-        </div>
-        <x-btn-modal url="{{ url('admevaluasikegiatan/tambah') }}" title="Tambah Pertanyaan">
-            <i class="ri-add-line me-1"></i>
-            Tambah Data Pertanyaan
-        </x-btn-modal>
+        @include('evaluasikegiatan._nav', ['active' => 'hasil'])
+        <x-button modal="{{ url('admevaluasikegiatan/tambah') }}" title="Tambah Pertanyaan" icon="ri-add-line">Tambah Data Pertanyaan
+        </x-button>
         @endif
     </div>
     <div class="card-body">

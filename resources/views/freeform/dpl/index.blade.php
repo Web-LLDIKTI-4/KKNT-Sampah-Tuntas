@@ -5,7 +5,7 @@
 
 <div class="card">
     <div class="card-header">
-        <x-btn-modal url="{{ url('dplfreeform/tambah') }}" class="btn btn-primary btn-sm modalButton" title="Tambah Data">Tambah Data</x-btn-modal>
+        <x-button modal="{{ url('dplfreeform/tambah') }}" title="Tambah Data">Tambah Data</x-button>
     </div>
     <div class="card-body">
         <p id="resultcontent">Loading data...</p>

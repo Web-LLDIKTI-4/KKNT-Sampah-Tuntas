@@ -24,7 +24,7 @@
     </div>
 </div>
 
-<x-btn-export url="{{ url('lapcapaiankpi/export') }}" />
+<x-button.export url="{{ url('lapcapaiankpi/export') }}" />
 
 <script type="text/javascript">
   $(function () {
@@ -100,7 +100,6 @@
             },
             {data: 'status_capaian', name: 'status_capaian'},
             {data: 'tautan', name: 'tautan'},
-            // {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],
         layout: {
             top1: {

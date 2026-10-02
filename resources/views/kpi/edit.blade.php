@@ -6,5 +6,5 @@
         <input type="text" name="nama_kpi" class="form-control" required maxlength="255" value="{{$data->nama_kpi}}">
         <label>Nama KPI</label>
     </div>
-    <x-btn-save formId="form-ubah">Simpan</x-btn-save>
+    <x-button.save formId="form-ubah">Simpan</x-button.save>
 </form>

@@ -18,17 +18,16 @@ $(function(){
         e.preventDefault();     
         var action = $(this).attr("action");
         var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
         var dString = $(this).serialize();
         $.ajax({
             type:'post',
             url:action,
             data:dString,
             beforeSend:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",true);
+                btnLoading($("#btnSubmit_" + id), true);
             },
             complete:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",false);
+                btnLoading($("#btnSubmit_" + id), false);
             },
             success:function(ret){
                 if(ret.success == true){		

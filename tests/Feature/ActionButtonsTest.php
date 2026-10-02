@@ -20,7 +20,7 @@ class ActionButtonsTest extends TestCase
     {
         $html = ActionButtons::make(urlDelete: 'http://app.test/desa/destroy', idField: 'id_desa', idValue: '"><script>x</script>');
 
-        $this->assertStringContainsString('class="btn-delete btn-action-delete"', $html);
+        $this->assertStringContainsString('class="btn-action-delete btn-delete"', $html);
         $this->assertStringContainsString('data-id-field="id_desa"', $html);
         $this->assertStringNotContainsString('<script>x</script>', $html);
     }

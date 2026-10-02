@@ -5,9 +5,8 @@
 
 <div class="card">
     <div class="card-header">
-        <x-btn-modal url="{{ url('mahasiswa/import') }}" title="Import Data">
-            <i class="ri-chat-upload-fill me-2"></i> Import Data Mahasiswa
-        </x-btn-modal>
+        <x-button modal="{{ url('mahasiswa/import') }}" title="Import Data" icon="ri-chat-upload-fill">Import Data Mahasiswa
+        </x-button>
     </div>
     <div class="card-body">
         <p id="resultcontent">loading data...</p>

@@ -8,6 +8,7 @@ use App\Http\Requests\Mahasiswa\IzinRequest;
 use App\Http\Requests\Mahasiswa\KehadiranRequest;
 use App\Models\Kehadiran;
 use App\Services\AttendanceService;
+use App\Support\ActionButtons;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
@@ -49,8 +50,8 @@ class LogkehadiranController extends Controller
             ->editColumn('tanggal', fn (Kehadiran $row) => $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-')
             ->editColumn('waktu_masuk', fn (Kehadiran $row) => $row->waktu_masuk ? date('H:i:s', strtotime($row->waktu_masuk)).' WIB' : '-')
             ->editColumn('waktu_pulang', fn (Kehadiran $row) => $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)).' WIB' : '-')
-            ->addColumn('coordinates_datang', fn (Kehadiran $row) => static::mapButton($row->latitude_datang, $row->longitude_datang))
-            ->addColumn('coordinates_pulang', fn (Kehadiran $row) => static::mapButton($row->latitude_pulang, $row->longitude_pulang))
+            ->addColumn('coordinates_datang', fn (Kehadiran $row) => ActionButtons::map($row->latitude_datang, $row->longitude_datang))
+            ->addColumn('coordinates_pulang', fn (Kehadiran $row) => ActionButtons::map($row->latitude_pulang, $row->longitude_pulang))
             ->addColumn('action', '')
             ->rawColumns(['status_kehadiran', 'coordinates_datang', 'coordinates_pulang'])
             ->make(true);
@@ -115,14 +116,5 @@ class LogkehadiranController extends Controller
     private function today(Request $request): ?Kehadiran
     {
         return Kehadiran::ownedBy($request->user())->whereDate('tanggal', today())->first();
-    }
-
-    private static function mapButton($lat, $lng): string
-    {
-        if ($lat === null || $lng === null) {
-            return '-';
-        }
-
-        return '<a href="https://www.google.com/maps?q='.(float) $lat.','.(float) $lng.'" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">Lihat Map</a>';
     }
 }

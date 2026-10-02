@@ -12,7 +12,7 @@
         <ul class="mb-0 ps-3"></ul>
     </div>
     <hr>
-    <x-btn-save formId="form-import" class="btn btn-primary btn-sm">Simpan</x-btn-save>
+    <x-button.save formId="form-import">Simpan</x-button.save>
 </form>
 
 <script>

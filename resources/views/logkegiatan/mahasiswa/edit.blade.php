@@ -54,9 +54,9 @@
         <input type="url" class="form-control" name="tautan" maxlength="255" placeholder="https://" value="{{ $data->tautan }}">
         <label>Tautan Dokumen</label>
     </div>
-    <x-btn-save formId="form-ubah">
+    <x-button.save formId="form-ubah">
         Simpan
-    </x-btn-save>
+    </x-button.save>
 </form>
 <script>
 $(function(){

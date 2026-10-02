@@ -21,7 +21,7 @@
 </div>
 <hr>
 
-<x-btn-export url="{{ url('logkehadiran/export') }}" />
+<x-button.export url="{{ url('logkehadiran/export') }}" />
 
 <script type="text/javascript">
   $(function () {

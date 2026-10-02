@@ -44,11 +44,11 @@ class DplmentoringController extends Controller
             ->addColumn('nama', fn ($row) => $row->mahasiswa->nama ?? 'tidak ada')
             ->addColumn('nm_lemb', fn ($row) => $row->mahasiswa->sp->nm_lemb ?? 'tidak terdata')
             ->addColumn('prodi', fn ($row) => $row->mahasiswa->prodi ?? 'tidak ada')
-            ->addColumn('rekapnilai', fn ($row) => view('components.btn-modal', [
-                'url' => url('dplmentoring/rekapnilai/'.base64_encode($row->email_mahasiswa)),
-                'title' => 'Rekap Nilai Log Bulanan',
-                'slot' => 'Rekap Nilai',
-            ])->render())
+            ->addColumn('rekapnilai', fn ($row) => ActionButtons::modal(
+                url('dplmentoring/rekapnilai/'.base64_encode($row->email_mahasiswa)),
+                'Rekap Nilai',
+                'Rekap Nilai Log Bulanan',
+            ))
             ->addColumn('nilai_freeform', fn ($row) => $row->mahasiswa
                 ? '<a href="'.e(url('dplmentoring/nilaifreeform/'.$row->mahasiswa->id_mahasiswa)).'" title="Nilai konversi dan Free form">lihat data</a>'
                 : 'tidak ada - '.e($row->email_mahasiswa))

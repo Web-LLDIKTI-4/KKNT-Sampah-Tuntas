@@ -9,7 +9,7 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="mode" value="datang">
-                <x-btn-save formId="form-datang">Datang</x-btn-save>
+                <x-button.save formId="form-datang">Datang</x-button.save>
             </form>
         </div>
         <div class="col">
@@ -17,7 +17,7 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="mode" value="pulang">
-                <x-btn-save formId="form-pulang">Pulang</x-btn-save>
+                <x-button.save formId="form-pulang">Pulang</x-button.save>
             </form>
         </div>
     </div>
@@ -27,7 +27,6 @@
       $("[id^=form-]").on("submit",function(){       
         var action = $(this).attr("action");
         var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
         var dString = $(this).serialize();
         $("#tanggal_error").html('');
 
@@ -37,12 +36,10 @@
           url:action,
           data:dString,
           beforeSend:function(){
-            $("#btnSubmit_"+id+"").prop("disabled",true);
-            $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
+            btnLoading($("#btnSubmit_" + id), true);			
           },
           complete:function(){
-            $("#btnSubmit_"+id+"").prop("disabled",false);
-            $("#btnSubmit_"+id+"").html(btnHtml);	
+            btnLoading($("#btnSubmit_" + id), false);	
           },
           success:function(ret){
             var table = $('#dataTable').DataTable(); // Menginisialisasi objek tabel

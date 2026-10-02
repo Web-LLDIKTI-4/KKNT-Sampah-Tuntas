@@ -23,7 +23,7 @@
                 </table>
             </div>
         </div>
-        <x-btn-export url="{{ url('admlogkegiatan/export/'.request()->route('email')) }}" />
+        <x-button.export url="{{ url('admlogkegiatan/export/'.request()->route('email')) }}" />
     </div>
 </div>
 

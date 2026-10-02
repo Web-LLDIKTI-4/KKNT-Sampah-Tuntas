@@ -11,7 +11,7 @@
     @endforeach
 
     <hr>
-    <x-btn-save formId="form-tambah">
+    <x-button.save formId="form-tambah">
         Simpan
-    </x-btn-save>
+    </x-button.save>
 </form>

@@ -80,5 +80,5 @@
         <label>Tautan</label>
     </div>
     <hr>
-    <x-btn-save formId="form-tambah">Simpan</x-btn-save>
+    <x-button.save formId="form-tambah">Simpan</x-button.save>
 </form>

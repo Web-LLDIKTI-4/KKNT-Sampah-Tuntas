@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        <x-btn-export url="{{ url('admlaporandpl/export/' . request()->route('email')) }}" />
+        <x-button.export url="{{ url('admlaporandpl/export/' . request()->route('email')) }}" />
     </div>
 </div>
 
@@ -58,7 +58,6 @@
                     return strippedText;
                 }
             },
-            // {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:false},
         ],
     });
   });

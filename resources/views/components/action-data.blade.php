@@ -9,24 +9,20 @@
     'titleEdit' => 'Ubah Data',
     'titleDelete' => 'Hapus Data',
 ])
-{{-- Hapus ditangani handler global .btn-delete di public/js/crud.js --}}
+{{-- Kolom aksi baris tabel; slot untuk aksi tambahan. Hapus ditangani handler global .btn-delete di public/js/crud.js --}}
 <div class="d-flex justify-content-center gap-2">
+    {{ $slot ?? '' }}
+
     @if ($urlView)
-        <a href="{{ $urlView }}" class="btn-action-view" title="{{ $titleView }}">
-            <i class="ri-eye-line"></i>
-        </a>
+        <x-button.icon action="view" :href="$urlView" :title="$titleView" />
     @endif
 
     @if ($urlEdit)
-        <a href="#modalku" data-bs-toggle="modal" class="modalButton btn-action-edit" data-src="{{ $urlEdit }}" title="{{ $titleEdit }}">
-            <i class="ri-edit-box-line"></i>
-        </a>
+        <x-button.icon action="edit" :modal="$urlEdit" :title="$titleEdit" />
     @endif
 
     @if ($urlDelete && filled($idValue))
-        <a href="javascript:void(0)" class="btn-delete btn-action-delete" title="{{ $titleDelete }}"
-            data-url="{{ $urlDelete }}" data-id-field="{{ $idField }}" data-id-value="{{ $idValue }}" data-confirm="{{ $confirm }}">
-            <i class="ri-delete-bin-3-line"></i>
-        </a>
+        <x-button.icon action="delete" class="btn-delete" :title="$titleDelete"
+            :data-url="$urlDelete" :data-id-field="$idField" :data-id-value="$idValue" :data-confirm="$confirm" />
     @endif
 </div>

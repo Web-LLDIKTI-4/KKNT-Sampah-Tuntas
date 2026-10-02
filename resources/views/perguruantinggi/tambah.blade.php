@@ -5,7 +5,7 @@
         <input type="text" name="kodept" class="form-control" placeholder="041047">
         <label>Masukan Kode Perguruan Tinggi</label>
     </div>
-    <x-btn-save formId="tambahpilih">
+    <x-button.save formId="tambahpilih">
         Simpan
-    </x-btn-save>
+    </x-button.save>
 </form>

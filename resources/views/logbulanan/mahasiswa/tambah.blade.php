@@ -1,7 +1,7 @@
 <p>
-  <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+  <x-button data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
     Data log bulanan bulan <b class="ms-1 me-1"> {{ Carbon\Carbon::create((int) $tahun, (int) $bulan, 1)->translatedFormat('F')}}</b> tahun <b class="ms-1 me-1"> {{ $tahun }}</b>
-  </button>
+  </x-button>
 </p>
 
 <div class="collapse" id="collapseExample">
@@ -19,7 +19,7 @@
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $row->tanggal }}</td>
                     <td>{!! \App\Support\HtmlSanitizer::clean($row->deskripsi) !!}</td>
-                    <td><a href="{{ $row->tautan }}" target="_blank">{{ $row->tautan }}</a></td>
+                    <td>{!! \App\Support\HtmlSanitizer::link($row->tautan) !!}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -56,9 +56,9 @@
         <label>Tautan Laporan</label>
     </div>
     <br>
-    <x-btn-save formId="form-tambah">
+    <x-button.save formId="form-tambah">
         Simpan
-    </x-btn-save>
+    </x-button.save>
 </form>
         
 <script>
@@ -145,7 +145,6 @@
     $("#form-tambah").on("submit",function(){       
         var action = $(this).attr("action");
         var id = $(this).attr("id");
-        var btnHtml = $("#btnSubmit_"+id+"").html();
         var dString = $(this).serialize();
         $("#tanggal_error").html('');
         $("#deskripsi_error").html('');
@@ -155,12 +154,10 @@
             url:action,
             data:dString,
             beforeSend:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",true);
-                $("#btnSubmit_"+id+"").html("<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span> Loading...");			
+                btnLoading($("#btnSubmit_" + id), true);			
             },
             complete:function(){
-                $("#btnSubmit_"+id+"").prop("disabled",false);
-                $("#btnSubmit_"+id+"").html(btnHtml);	
+                btnLoading($("#btnSubmit_" + id), false);	
             },
             success:function(ret){
                 if(ret.success == true){

@@ -25,6 +25,6 @@
     </div>
 </div>
 <hr>
-<x-btn-save formId="form-ubah">Simpan</x-btn-save>
+<x-button.save formId="form-ubah">Simpan</x-button.save>
 </form>
 

@@ -54,9 +54,9 @@
         <input type="url" class="form-control" name="tautan" maxlength="255" placeholder="https://">
         <label>Tautan Dokumen</label>
     </div>
-    <x-btn-save formId="form-tambah">
+    <x-button.save formId="form-tambah">
         Simpan
-    </x-btn-save>
+    </x-button.save>
 </form>
         
 <script>

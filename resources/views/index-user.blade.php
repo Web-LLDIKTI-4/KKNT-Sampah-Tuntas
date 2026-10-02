@@ -34,15 +34,12 @@
     {{-- Left Section --}}
     <div class="card col">
         <div class="card-body">
-            {{-- <x-button class="btn btn-sm btn-info modalButton" href="#modalku" data-bs-toggle="modal" data-src="{{ url('logkehadiran/tambahizin') }}" title="Laporan Izin"><i class="ri-calendar-todo-line pe-1"></i> Laporan Izin</x-button> --}}
             <div class="d-flex flex-column flex-md-row gap-3">
-                <x-button class="btn-sm btn-secondary" modal="modalku" :modalSrc="url('logkehadiran/tambahizin')" title="Pengajuan Izin" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional']) || $kehadiran && $kehadiran->waktu_masuk">
-                    <i class="ri-add-line me-2"></i> 
+                <x-button variant="secondary" :modal="url('logkehadiran/tambahizin')" icon="ri-add-line" title="Pengajuan Izin" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional']) || $kehadiran && $kehadiran->waktu_masuk">
                     Pengajuan Izin
                 </x-button>
 
-                <x-button id="btnTambahLog" class="btn-sm" style="background-color: black; color: white;" modal="modalku" :modalSrc="url('logkegiatan/tambah')" title="Tambah Log Harian" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional'])">
-                    <i class="ri-add-line me-2"></i> 
+                <x-button id="btnTambahLog" variant="dark" style="background-color: black; color: white;" :modal="url('logkegiatan/tambah')" icon="ri-add-line" title="Tambah Log Harian" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional'])">
                     Tambah Log Harian
                 </x-button>
             </div>
@@ -63,11 +60,7 @@
                             $disableDatang = ($kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'libur nasional'])) ||
                                             ($kehadiran && $kehadiran->waktu_masuk);
                         @endphp
-                        <button type="submit" id="btnSubmit_form-datang"
-                            {{ $disableDatang ? 'disabled' : 'disabled' }}
-                            class="btn btn-sm btn-primary w-100">
-                            <i class="ri-time-line pe-1"></i> Datang
-                        </button>
+                        <x-button.save formId="form-datang" variant="primary" icon="ri-time-line" class="w-100" disabled>Datang</x-button.save>
                     </form>
                 </div>
                 <div class="col">
@@ -82,11 +75,7 @@
                                             (!$kehadiran || !$kehadiran->waktu_masuk) ||
                                             ($kehadiran && $kehadiran->waktu_pulang);
                         @endphp
-                        <button type="submit" id="btnSubmit_form-pulang"
-                            {{ $disablePulang ? 'disabled' : 'disabled' }}
-                            class="btn btn-sm btn-danger w-100">
-                            <i class="ri-time-line pe-1"></i> Pulang
-                        </button>
+                        <x-button.save formId="form-pulang" variant="danger" icon="ri-time-line" class="w-100" disabled>Pulang</x-button.save>
                     </form>
                 </div>
             </div>
@@ -351,15 +340,13 @@
     // ==========================================
     if (formDatang) {
         formDatang.addEventListener('submit', function() {
-            btnDatang.disabled = true;
-            btnDatang.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memproses...';
+            btnLoading(btnDatang, true, 'Memproses...');
         });
     }
 
     if (formPulang) {
         formPulang.addEventListener('submit', function() {
-            btnPulang.disabled = true;
-            btnPulang.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memproses...';
+            btnLoading(btnPulang, true, 'Memproses...');
         });
     }
 })();

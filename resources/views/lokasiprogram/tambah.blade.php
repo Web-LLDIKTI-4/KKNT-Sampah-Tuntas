@@ -10,5 +10,5 @@
         <input type="file" name="gambar" class="form-control" accept="image/jpg,image/jpeg,image/png,image/webp">
     </div>
     <hr>
-    <x-btn-save formId="form-tambah">Simpan</x-btn-save>
+    <x-button.save formId="form-tambah">Simpan</x-button.save>
 </form>
