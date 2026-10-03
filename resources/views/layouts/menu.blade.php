@@ -134,6 +134,11 @@
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Ketua Kelompok
                                         </a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('panduan') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Panduan
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                             <div class="col-12 col-lg">

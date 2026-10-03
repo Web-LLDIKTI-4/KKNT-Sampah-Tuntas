@@ -38,6 +38,8 @@ use App\Http\Controllers\DplkonversinilaiController;
 use App\Http\Controllers\DplfreeformController;
 
 use App\Http\Controllers\KecamatanController;
+use App\Http\Controllers\PanduanController;
+use App\Http\Controllers\PanduanPublikController;
 use App\Http\Controllers\DesaController;
 use App\Http\Controllers\PjdesaController;
 use App\Http\Controllers\DesaprofileController;
@@ -70,7 +72,7 @@ Route::get('/', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [LoginController::class, 'index'])->name('login');
-    Route::put('login', [LoginController::class, 'proseslogin']);
+    Route::put('login', [LoginController::class, 'proseslogin'])->middleware('throttle:30,1');
     Route::get('login/token', [LoginController::class, 'token'])->middleware('throttle:30,1')->name('login.token');
     Route::get('login/laporan', [LoginController::class, 'laporan'])->middleware('throttle:30,1')->name('login.laporan');
 });
@@ -100,6 +102,12 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 });
 Route::put('saran/insert', [SaranController::class, 'insert'])->middleware('throttle:public-form');
+
+// Panduan aktif bisa diunduh tamu (halaman login) maupun user login; route admin panduan.download terpisah
+Route::get('panduan/unduh/{id_panduan}', [PanduanPublikController::class, 'unduh'])
+    ->whereUuid('id_panduan')
+    ->middleware('throttle:public-download')
+    ->name('panduan.unduh');
 
 Route::get('ptpeserta', [PtpesertaController::class, 'index']);
 Route::get('ptpeserta/listdata', [PtpesertaController::class, 'listdata'])->name('ptpeserta.listdata');
@@ -210,6 +218,16 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('lokasiprogram/edit/{id}', [LokasiprogramController::class, 'edit']);
     Route::put('lokasiprogram/update', [LokasiprogramController::class, 'update']);
     Route::put('lokasiprogram/destroy', [LokasiprogramController::class, 'destroy']);
+
+    Route::get('panduan', [PanduanController::class, 'index']);
+    Route::get('panduan/listdata', [PanduanController::class, 'listdata'])->name('panduan.listdata');
+    Route::get('panduan/listdataserver', [PanduanController::class, 'listdataserver'])->name('panduan.listdataserver');
+    Route::get('panduan/tambah', [PanduanController::class, 'tambah']);
+    Route::put('panduan/insert', [PanduanController::class, 'insert'])->middleware('throttle:sensitive');
+    Route::get('panduan/edit/{id_panduan}', [PanduanController::class, 'edit'])->whereUuid('id_panduan');
+    Route::put('panduan/update', [PanduanController::class, 'update'])->middleware('throttle:sensitive');
+    Route::put('panduan/destroy', [PanduanController::class, 'destroy']);
+    Route::get('panduan/download/{id_panduan}', [PanduanController::class, 'download'])->whereUuid('id_panduan')->name('panduan.download');
 
     Route::get('laptugasakhir', [LaptugasakhirController::class, 'index']);
     Route::get('laptugasakhir/listdata', [LaptugasakhirController::class, 'listdata'])->name('laptugasakhir.listdata');

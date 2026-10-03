@@ -8,9 +8,12 @@ use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\User;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Storage;
 
 abstract class TestCase extends BaseTestCase
 {
+    protected const FAKED_DISKS = ['local', 'public'];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -18,6 +21,12 @@ abstract class TestCase extends BaseTestCase
         // .env lokal bisa belum punya APP_KEY; pakai key sementara khusus test
         if (empty(config('app.key'))) {
             config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+        }
+
+        // Test & seeder (mis. PanduanSeeder) tidak boleh menghapus/menulis file storage dev;
+        // DB test di-rollback tetapi operasi file tidak, jadi semua disk lokal dipalsukan
+        foreach (self::FAKED_DISKS as $disk) {
+            Storage::fake($disk);
         }
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\LaporanPublikRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\LokasiProgram;
+use App\Models\Panduan;
 use App\Services\KpiSampahService;
 use App\Services\LokasiProgramSummary;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class LoginController extends Controller
         return view('login', [
             'lokasiProgramList' => $summary->all(),
             'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null]),
+            'panduanList' => $this->getPanduanPublik(),
         ]);
     }
 
@@ -70,6 +72,16 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    // Hanya kolom aman untuk publik; file_path & uploader tidak boleh sampai ke HTML.
+    // Cache di-forget oleh hook model Panduan setiap ada perubahan
+    private function getPanduanPublik()
+    {
+        return Cache::remember(Panduan::PUBLIC_CACHE_KEY, now()->addMinutes(10), fn () => Panduan::query()
+            ->where('is_aktif', true)
+            ->latest('updated_at')
+            ->get(['id_panduan', 'judul', 'deskripsi', 'nama_file', 'ukuran', 'mime', 'updated_at']));
     }
 
     // Halaman publik: di-cache per kombinasi filter agar query berat tidak jalan di setiap kunjungan

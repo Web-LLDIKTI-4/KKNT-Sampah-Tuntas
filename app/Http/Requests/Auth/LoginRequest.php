@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Rules\Recaptcha;
+use App\Services\RecaptchaService;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -21,11 +23,17 @@ class LoginRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'username' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string', 'max:255'],
             'lokasi' => ['nullable', 'string', 'max:255'],
         ];
+
+        if (app(RecaptchaService::class)->enabled()) {
+            $rules['g-recaptcha-response'] = ['bail', 'required', 'string', 'max:4096', new Recaptcha('login', ['username', 'password'])];
+        }
+
+        return $rules;
     }
 
     public function messages(): array
@@ -33,6 +41,9 @@ class LoginRequest extends FormRequest
         return [
             'username.required' => 'Nama pengguna harus diisi',
             'password.required' => 'Kata sandi harus diisi',
+            'g-recaptcha-response.required' => Recaptcha::MESSAGE,
+            'g-recaptcha-response.string' => Recaptcha::MESSAGE,
+            'g-recaptcha-response.max' => Recaptcha::MESSAGE,
         ];
     }
 
