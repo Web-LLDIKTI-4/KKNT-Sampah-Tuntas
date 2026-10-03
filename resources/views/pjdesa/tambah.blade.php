@@ -2,8 +2,7 @@
     @csrf
     @method('PUT')
 
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="id_desa" class="form-control" required>
+    <x-form.select name="id_desa" label="Nama Desa / Kelurahan" :placeholder="false" required>
         @if($kecamatan)
             @foreach($kecamatan as $item)
                 <optgroup label="{{$item->kecamatan}}">
@@ -13,11 +12,8 @@
                 </optgroup>
             @endforeach
         @endif
-        </select>
-        <label>Nama Desa / Kelurahan</label>
-    </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="email" class="form-control" required>
+    </x-form.select>
+    <x-form.select name="email" label="Nama Ketua Kelompok" :placeholder="false" required>
             @if($user->count() > 0)
                 @foreach($user as $item)
                     <option value="{{$item->email}}">{{$item->name }} | {{ $item->mahasiswa->sp->nm_lemb ?? 'Data tidak tersedia'; }}</option>
@@ -25,9 +21,7 @@
             @else
                 <option value="">Tidak ada data</option>
             @endif
-        </select>
-        <label>Nama Ketua Kelompok</label>
-    </div>
+    </x-form.select>
     <hr>
     <x-button.save formId="form-tambah">
         Simpan

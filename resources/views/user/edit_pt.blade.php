@@ -3,38 +3,32 @@
     @method('PUT')
     <input type="hidden" name="id" value="{{$user->id}}">
     <div class="row">   
-        <div class="form-group col form-floating form-floating-outline mb-6">
-            <input type="text" name="name" value="{{$user->name}}" class="form-control" placeholder="Nama">
-            <label>Nama</label>
+        <x-form.input name="name" label="Nama" :value="$user->name" input-class="form-control" wrapper-class="form-group col form-floating form-floating-outline mb-6" placeholder="Nama">
             <span id="name_error" class="text-danger"></span>
-        </div>
+        </x-form.input>
 
-        <div class="form-group col form-floating form-floating-outline mb-6">
-            <select name="kodept" class="form-control select2">
+        <x-form.select name="kodept" label="Perguruan Tinggi" input-class="form-control select2" wrapper-class="form-group col form-floating form-floating-outline mb-6" :placeholder="false">
                 @foreach($sp as $item)
                     <option value="{{$item->npsn}}" @if($user->email == $item->npsn) selected @endif>{{$item->nm_lemb}}</option>
                 @endforeach
-            </select>
-            <label>Perguruan Tinggi</label>
+            <x-slot:after>
             <span id="kodept_error" class="text-danger"></span>
-        </div>
+            </x-slot:after>
+        </x-form.select>
     </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select  id="location_program" class="form-control form-control-sm select2" name="location_program" required>
+    <x-form.select name="location_program" label="Lokasi Program" input-class="form-control form-control-sm select2" :placeholder="false" id="location_program" required>
             <option value="" selected>--pilih--</option>
             @foreach($locationPrograms as $val)
                 <option value="{{ $val->id }}" @if($user->location_program == $val->id) selected @endif>{{$val->nama_lokasi}}</option>
             @endforeach
-        </select>
-        <label>Lokasi Program</label>
+        <x-slot:after>
         <span id="location_program_error" class="text-danger"></span>
-    </div>
+        </x-slot:after>
+    </x-form.select>
     <div class="row">   
-        <div class="form-group col form-floating form-floating-outline mb-6">
-            <input type="text" name="password" class="form-control" placeholder="Kata Sandi">
-            <label>Kata Sandi</label>
+        <x-form.input name="password" label="Kata Sandi" input-class="form-control" wrapper-class="form-group col form-floating form-floating-outline mb-6" placeholder="Kata Sandi">
             <span id="password_error" class="text-danger"></span>
-        </div>
+        </x-form.input>
     </div>
     
     <x-button.save formId="form-tambah">Simpan</x-button.save>

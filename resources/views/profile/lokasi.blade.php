@@ -13,8 +13,7 @@
     </div> --}}
 
     <div class="row">
-        <div class="form-group col form-floating form-floating-outline">
-            <select name="id_desa" class="form-control select2" required>
+        <x-form.select name="id_desa" label="Pilih Desa / Kelurahan" input-class="form-control select2" wrapper-class="form-group col form-floating form-floating-outline" :placeholder="false" required>
                 <option value="" selected>--pilih--</option>
             @if($desa)
                 @foreach($desa as $item)
@@ -25,17 +24,12 @@
                     </optgroup>
                 @endforeach
             @endif
-            </select>
-            <label>Pilih Desa / Kelurahan</label>
-        </div>
-        <div class="form-group col-md-2 form-floating form-floating-outline">
-            <select name="tahun" class="form-control" required data-no-search>
+        </x-form.select>
+        <x-form.select name="tahun" label="Tahun" wrapper-class="form-group col-md-2 form-floating form-floating-outline" :placeholder="false" required data-no-search>
                 @for($tahun=date('Y')-1; $tahun<=date('Y'); $tahun++)
                     <option value="{{$tahun}}" @selected($tahun == $tahunTerpilih)>{{$tahun}}</option>
                 @endfor
-            </select>
-            <label>Tahun</label>
-        </div>
+        </x-form.select>
     </div>
     <hr>
     <x-button.save formId="form-lokasi" class="rounded-pill">

@@ -21,6 +21,11 @@ class MahasiswaController extends PersonMasterController
         return 'mahasiswa';
     }
 
+    protected function listColumns(): array
+    {
+        return ['nim', 'nama', 'email', 'phone'];
+    }
+
     protected function label(): string
     {
         return 'mahasiswa';

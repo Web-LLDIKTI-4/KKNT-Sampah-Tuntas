@@ -7,22 +7,16 @@
         <form method="post" id="form-update" action="{{ url('setting/update') }}" data-ajax-form>
             @csrf
             @method('PUT')
-            <div class="form-group form-floating form-floating-outline mb-6">
-                <input type="password" name="plama" class="form-control" required autocomplete="current-password">
-                <label>Masukkan Kata Sandi Lama</label>
+            <x-form.input name="plama" label="Masukkan Kata Sandi Lama" type="password" input-class="form-control" required autocomplete="current-password">
                 <span id="plama_error" class="text-danger"></span>
-            </div>
+            </x-form.input>
             <div class="row">
-                <div class="form-group col form-floating form-floating-outline mb-6">
-                    <input type="password" name="pbaru" class="form-control" required minlength="8" autocomplete="new-password">
-                    <label>Masukkan Kata Sandi Baru</label>
+                <x-form.input name="pbaru" label="Masukkan Kata Sandi Baru" type="password" input-class="form-control" wrapper-class="form-group col form-floating form-floating-outline mb-6" required minlength="8" autocomplete="new-password">
                     <span id="pbaru_error" class="text-danger"></span>
-                </div>
-                <div class="form-group col form-floating form-floating-outline mb-6">
-                    <input type="password" name="pbaruulangi" class="form-control" required minlength="8" autocomplete="new-password">
-                    <label>Ulangi Kata Sandi Baru</label>
+                </x-form.input>
+                <x-form.input name="pbaruulangi" label="Ulangi Kata Sandi Baru" type="password" input-class="form-control" wrapper-class="form-group col form-floating form-floating-outline mb-6" required minlength="8" autocomplete="new-password">
                     <span id="pbaruulangi_error" class="text-danger"></span>
-                </div>
+                </x-form.input>
             </div>
             <hr>
             <x-button.save formId="form-update">Simpan</x-button.save>

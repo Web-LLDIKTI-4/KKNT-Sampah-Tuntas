@@ -3,16 +3,12 @@
     @method('PUT')
     <input type="hidden" name="id_profile" value="{{$data->id_profile}}">
     <div class="row">
-        <div class="form-group col-md-4 form-floating form-floating-outline mb-6">
-            <select name="tahun" class="form-control" required>
+        <x-form.select name="tahun" label="Tahun" :placeholder="false" wrapper-class="form-group col-md-4 form-floating form-floating-outline mb-6" required>
                 @for($th=date('Y')-1; $th<=date('Y'); $th++)
                     <option value="{{$th}}" @if($th == $data->tahun) selected @endif>{{$th}}</option>
                 @endfor
-            </select>
-            <label>Tahun</label>
-        </div>
-        <div class="form-group col form-floating form-floating-outline mb-6">
-            <select name="id_desa" class="form-control" required>
+        </x-form.select>
+        <x-form.select name="id_desa" label="Nama Desa / Kelurahan" :placeholder="false" wrapper-class="form-group col form-floating form-floating-outline mb-6" required>
             @if($kecamatan)
                 @foreach($kecamatan as $item)
                     <optgroup label="{{$item->kecamatan}}">
@@ -22,18 +18,10 @@
                     </optgroup>
                 @endforeach
             @endif
-            </select>
-            <label>Nama Desa / Kelurahan</label>
-        </div>
+        </x-form.select>
     </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <textarea name="potensi" class="form-control form-control-sm summernote">{{$data->potensi}}</textarea>
-        <label>Potensi</label>
-    </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <textarea name="masalah" class="form-control form-control-sm summernote">{{$data->masalah}}</textarea>
-        <label>Masalah</label>
-    </div>
+    <x-form.textarea name="potensi" label="Potensi" :value="$data->potensi" input-class="form-control form-control-sm summernote" />
+    <x-form.textarea name="masalah" label="Masalah" :value="$data->masalah" input-class="form-control form-control-sm summernote" />
 
     <hr>
     <x-button.save formId="form-ubah">

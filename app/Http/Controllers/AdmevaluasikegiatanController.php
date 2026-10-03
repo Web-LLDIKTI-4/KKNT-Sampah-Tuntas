@@ -6,7 +6,6 @@ use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Evaluasi\PertanyaanRequest;
 use App\Models\Evaluasikegiatan;
 use App\Models\Evaluasikegiatanjawaban;
-use App\Models\Satuanpendidikan;
 use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
@@ -30,14 +29,19 @@ class AdmevaluasikegiatanController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $data = Evaluasikegiatanjawaban::with('evaluasikegiatan')->get();
-        $namaPt = Satuanpendidikan::whereIn('npsn', $data->pluck('kodept')->filter()->unique())->pluck('nm_lemb', 'npsn');
+        // Join agar nm_lemb/pertanyaan bisa dicari & diurutkan di SQL
+        $query = Evaluasikegiatanjawaban::query()
+            ->select('evaluasi_kegiatan_jawaban.*', 'ref_satuanpendidikan.nm_lemb', 'evaluasi_kegiatan.pertanyaan')
+            ->leftJoin('ref_satuanpendidikan', 'ref_satuanpendidikan.npsn', '=', 'evaluasi_kegiatan_jawaban.kodept')
+            ->leftJoin('evaluasi_kegiatan', 'evaluasi_kegiatan.id_evaluasi', '=', 'evaluasi_kegiatan_jawaban.id_evaluasi');
 
-        return DataTables::of($data)
+        return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->addColumn('kodept', fn ($row) => $row->kodept ?? 'Tidak ada')
-            ->addColumn('nm_lemb', fn ($row) => $namaPt[$row->kodept] ?? 'Tidak ada')
-            ->addColumn('pertanyaan', fn ($row) => HtmlSanitizer::clean($row->evaluasikegiatan->pertanyaan ?? 'Tidak ada'))
+            ->editColumn('kodept', fn ($row) => $row->kodept ?? 'Tidak ada')
+            ->editColumn('nm_lemb', fn ($row) => $row->nm_lemb ?? 'Tidak ada')
+            ->editColumn('pertanyaan', fn ($row) => HtmlSanitizer::clean($row->pertanyaan ?? 'Tidak ada'))
+            ->filterColumn('nm_lemb', fn ($q, $keyword) => $q->where('ref_satuanpendidikan.nm_lemb', 'like', "%{$keyword}%"))
+            ->filterColumn('pertanyaan', fn ($q, $keyword) => $q->where('evaluasi_kegiatan.pertanyaan', 'like', "%{$keyword}%"))
             ->rawColumns(['pertanyaan'])
             ->make(true);
     }

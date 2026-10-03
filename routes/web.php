@@ -116,9 +116,12 @@ Route::get('ptpeserta/listdataserver', [PtpesertaController::class, 'listdataser
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('user',[UserController::class, 'index']);
     Route::get('user/listdata', [UserController::class, 'listdata']);
+    Route::get('user/listdataserver', [UserController::class, 'listdataserver'])->name('user.listdataserver');
     Route::get('user/getdatamember', [UserController::class, 'getdatamember']);
+    Route::get('user/getdatamember/listdataserver', [UserController::class, 'getdatamemberserver'])->name('user.getdatamember.listdataserver');
     Route::put('user/insert', [UserController::class, 'insert']);
     Route::get('user/adduser', [UserController::class, 'adduser']);
+    Route::get('user/adduser/listdataserver', [UserController::class, 'adduserserver'])->name('user.adduser.listdataserver');
     Route::put('user/insertuser', [UserController::class, 'insertuser']);
     Route::get('user/edit/{id}', [UserController::class, 'edit']);
     Route::put('user/updateuser', [UserController::class, 'updateuser']);
@@ -322,6 +325,7 @@ Route::middleware(['auth', 'role:dpl,pt,kepala'])->group(function () {
     Route::get('dplmentoring/listdata', [DplmentoringController::class, 'listdata'])->name('dplmentoring.listdata');
     Route::get('dplmentoring/listdataserver', [DplmentoringController::class, 'listdataserver'])->name('dplmentoring.listdataserver');
     Route::get('dplmentoring/tambah', [DplmentoringController::class, 'tambah']);
+    Route::get('dplmentoring/tambah/listdataserver', [DplmentoringController::class, 'tambahserver'])->name('dplmentoring.tambah.listdataserver');
     Route::put('dplmentoring/insert', [DplmentoringController::class, 'insert']);
     Route::put('dplmentoring/destroy/{id_mentoring}', [DplmentoringController::class, 'destroy']);
     Route::get('dplmentoring/rekapnilai/{email}', [DplmentoringController::class, 'rekapnilai']);

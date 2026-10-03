@@ -15,7 +15,8 @@ use Illuminate\Support\Str;
 /**
  * Data uji beban: 20.000 mahasiswa (200 PT x 100), tetap 1 PT = 1 kelurahan (200 kelurahan baru),
  * kelompok 5 orang (1 ketua), 5 DPL per PT, log harian & kehadiran hari kerja 30 hari terakhir,
- * data sampah 3 bulan per kelurahan, dan isian capaian KPI ketua.
+ * data sampah 3 bulan per kelurahan, isian capaian KPI ketua, nilai konversi & freeform per mahasiswa,
+ * jawaban evaluasi kegiatan per PT, tugas akhir & log bulanan per mahasiswa, laporan bulanan DPL, profil desa.
  * Insert massal per potongan agar cepat; password di-hash sekali untuk semua akun.
  * Jalankan setelah DatabaseSeeder: php artisan db:seed --class=BebanSeeder
  */
@@ -43,6 +44,12 @@ class BebanSeeder extends Seeder
 
     private array $antrian = [];
 
+    private array $evaluasi = [];
+
+    private const MATAKULIAH = ['Kuliah Kerja Nyata' => 4, 'Kewirausahaan' => 2, 'Pengabdian Masyarakat' => 2];
+
+    private const FREEFORM = ['Inisiatif', 'Kerja Sama Tim'];
+
     public function run(): void
     {
         mt_srand(2026);
@@ -53,6 +60,7 @@ class BebanSeeder extends Seeder
 
         $lokasi = LokasiProgram::orderBy('nama_lokasi')->pluck('id')->all() ?: [LokasiProgram::create(['nama_lokasi' => 'Kota Bandung'])->id];
         $kpi = Kpi::pluck('id_kpi')->all() ?: [Kpi::create(['nama_kpi' => 'Pengurangan Sampah Rumah Tangga'])->id_kpi];
+        $this->evaluasi = DB::table('evaluasi_kegiatan')->get(['id_evaluasi', 'tahun'])->all();
         $kelurahan = $this->wilayah();
         $hariKerja = $this->hariKerja();
 
@@ -84,6 +92,10 @@ class BebanSeeder extends Seeder
             foreach (range(1, self::KELURAHAN_PER_KECAMATAN) as $d) {
                 $idDesa = (string) Str::uuid7();
                 $this->tambah('desa', ['id_desa' => $idDesa, 'id_kecamatan' => $idKecamatan, 'desa' => sprintf('Kelurahan Beban %03d-%d', $k, $d)] + $this->waktu());
+                $this->tambah('desa_profile', [
+                    'id_profile' => (string) Str::uuid7(), 'id_desa' => $idDesa, 'tahun' => (int) date('Y'),
+                    'potensi' => 'Bank sampah RW aktif', 'masalah' => 'Pemilahan di rumah tangga rendah',
+                ] + $this->waktu());
                 $kelurahan[] = $idDesa;
             }
         }
@@ -102,6 +114,12 @@ class BebanSeeder extends Seeder
             'last_update' => now()->format('M d Y h:i:s:A'),
         ]);
         $this->user('pt', $npsn, 'Perguruan Tinggi Beban '.$noPt, null);
+        foreach ($this->evaluasi as $evaluasi) {
+            $this->tambah('evaluasi_kegiatan_jawaban', [
+                'id' => (string) Str::uuid7(), 'id_evaluasi' => $evaluasi->id_evaluasi, 'jawaban' => 'Kegiatan berjalan baik, perlu pendampingan lanjutan',
+                'tahun' => $evaluasi->tahun, 'kodept' => $npsn, 'user' => $npsn,
+            ] + $this->waktu());
+        }
 
         $dpl = [];
         foreach (range(1, self::DPL_PER_PT) as $n) {
@@ -111,6 +129,13 @@ class BebanSeeder extends Seeder
                 'email' => $email, 'location_program' => $lokasi, 'prodi' => 'Teknik Lingkungan', 'kodept' => $npsn,
             ] + $this->waktu());
             $this->user('dpl', $email, 'DPL '.$n.' PT '.$noPt, $lokasi);
+            foreach ($this->bulanLalu() as [$tahun, $bulan]) {
+                $this->tambah('dpl_laporan_bulanan', [
+                    'id_laporan' => (string) Str::uuid7(), 'email' => $email, 'tahun' => $tahun, 'bulan' => $bulan,
+                    'deskripsi' => 'Monitoring kelompok binaan', 'tautan' => 'https://drive.google.com/beban',
+                    'status_ajuan' => ['draf', 'ajuan', 'acc'][mt_rand(0, 2)],
+                ] + $this->waktu());
+            }
             $dpl[] = $email;
         }
 
@@ -133,6 +158,31 @@ class BebanSeeder extends Seeder
             $this->tambah('dpl_mentoring', [
                 'id_mentoring' => (string) Str::uuid7(), 'email_mahasiswa' => $email, 'email_dpl' => $dpl[$n % count($dpl)],
             ] + $this->waktu());
+            foreach (self::MATAKULIAH as $matakuliah => $sks) {
+                $this->tambah('nilai_konversi', [
+                    'id_konversi' => (string) Str::uuid7(), 'id_mahasiswa' => $idMahasiswa, 'matakuliah' => $matakuliah, 'sks' => $sks,
+                    'nilai_dpl' => (string) mt_rand(70, 95), 'nilai_dpa' => (string) mt_rand(70, 95), 'email_dpl' => $dpl[$n % count($dpl)],
+                ] + $this->waktu());
+            }
+            $this->tambah('tugasakhir', [
+                'id_tugasakhir' => (string) Str::uuid7(), 'tahun' => (int) date('Y'), 'email' => $email,
+                'tautan' => 'https://drive.google.com/beban', 'keterangan' => 'Laporan akhir KKN',
+                'status_ajuan' => ['draf', 'ajuan', 'acc'][mt_rand(0, 2)], 'nilai_dpl' => mt_rand(0, 1) ? mt_rand(70, 95) : null,
+                'email_dpl' => $dpl[$n % count($dpl)],
+            ] + $this->waktu());
+            foreach ($this->bulanLalu() as [$tahun, $bulan]) {
+                $this->tambah('logkegiatan_bulanan', [
+                    'id_logbulanan' => (string) Str::uuid7(), 'email' => $email, 'tahun' => $tahun, 'bulan' => $bulan,
+                    'deskripsi' => 'Rekap kegiatan pemilahan sampah', 'tautan' => 'https://drive.google.com/beban',
+                    'status_ajuan' => ['draf', 'ajuan', 'acc'][mt_rand(0, 2)],
+                ] + $this->waktu());
+            }
+            foreach (self::FREEFORM as $freeform) {
+                $this->tambah('nilai_freeform', [
+                    'id_freeform' => (string) Str::uuid7(), 'id_mahasiswa' => $idMahasiswa, 'freeform' => $freeform,
+                    'nilai_dpl' => (string) mt_rand(70, 95), 'nilai_dpa' => (string) mt_rand(70, 95), 'email_dpl' => $dpl[$n % count($dpl)],
+                ] + $this->waktu());
+            }
 
             if ($isKetua) {
                 $idPj = (string) Str::uuid7();
@@ -195,6 +245,12 @@ class BebanSeeder extends Seeder
             'id' => (string) Str::uuid7(), 'name' => $nama, 'email' => $email, 'location_program' => $lokasi,
             'password' => $this->passwordHash, 'role' => $role, 'akses' => $akses,
         ] + $this->waktu());
+    }
+
+    // [tahun, bulan] untuk 2 bulan terakhir
+    private function bulanLalu(): array
+    {
+        return array_map(fn ($mundur) => [Carbon::now()->subMonthsNoOverflow($mundur)->year, Carbon::now()->subMonthsNoOverflow($mundur)->month], [2, 1]);
     }
 
     private function hariKerja(): array

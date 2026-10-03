@@ -51,10 +51,7 @@
         <p id="wordCount" class="ps-5">Jumlah kata: 0</p>
         <span id="deskripsi_error" class="text-danger"></span>
     </div>
-    <div class="form-group form-floating form-floating-outline mb-6">       
-        <input type="url" class="form-control" name="tautan" maxlength="2000" placeholder="https://" value="{{ $isi->tautan ?? '' }}">
-        <label>Tautan Laporan</label>
-    </div>
+    <x-form.input name="tautan" label="Tautan Laporan" type="url" :value="$isi->tautan ?? ''" input-class="form-control" maxlength="2000" placeholder="https://" />
     <br>
     <x-button.save formId="form-tambah">
         Simpan

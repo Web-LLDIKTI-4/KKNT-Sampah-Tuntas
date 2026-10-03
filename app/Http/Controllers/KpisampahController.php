@@ -9,6 +9,7 @@ use App\Models\Kpisampah;
 use App\Models\Pjdesa;
 use App\Services\KpiSampahService;
 use App\Support\ActionButtons;
+use App\Support\DataTableOrder;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -34,16 +35,21 @@ class KpisampahController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $data = Kpisampah::ownedBy($request->user())
-            ->with('desa.kecamatan')
-            ->orderByDesc('bulan')
-            ->get();
+        $query = Kpisampah::ownedBy($request->user())
+            ->select('kpi_sampah.*', 'desa.desa as nama_desa', 'kecamatan.kecamatan as nama_kecamatan')
+            ->leftJoin('desa', 'desa.id_desa', '=', 'kpi_sampah.id_desa')
+            ->leftJoin('kecamatan', 'kecamatan.id_kecamatan', '=', 'desa.id_kecamatan')
+            ->when(! DataTableOrder::requested(), fn ($q) => $q->orderByDesc('kpi_sampah.bulan'));
 
-        $table = DataTables::of($data)
+        $table = DataTables::eloquent($query)
             ->addIndexColumn()
             ->editColumn('bulan', fn (Kpisampah $row) => $row->bulan->translatedFormat('F Y'))
-            ->addColumn('kecamatan', fn (Kpisampah $row) => $row->desa?->kecamatan?->kecamatan ?? '-')
-            ->addColumn('kelurahan', fn (Kpisampah $row) => $row->desa?->desa ?? '-')
+            ->addColumn('kecamatan', fn (Kpisampah $row) => $row->nama_kecamatan ?? '-')
+            ->addColumn('kelurahan', fn (Kpisampah $row) => $row->nama_desa ?? '-')
+            ->filterColumn('kecamatan', fn ($q, $keyword) => $q->where('kecamatan.kecamatan', 'like', "%{$keyword}%"))
+            ->filterColumn('kelurahan', fn ($q, $keyword) => $q->where('desa.desa', 'like', "%{$keyword}%"))
+            ->orderColumn('kecamatan', 'kecamatan.kecamatan $1')
+            ->orderColumn('kelurahan', 'desa.desa $1')
             ->editColumn('persen_ketaatan', fn (Kpisampah $row) => Kpisampah::formatPersen($row->persen_ketaatan))
             ->editColumn('persen_pengurangan', fn (Kpisampah $row) => Kpisampah::formatPersen($row->persen_pengurangan))
             ->addColumn('action', fn (Kpisampah $row) => ActionButtons::make(

@@ -2,10 +2,7 @@
     @csrf
     @method('PUT')
     <input type="hidden" name="id" value="{{ $data->id }}">
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <input type="text" name="nama_lokasi" class="form-control form-control-sm" required maxlength="255" value="{{ $data->nama_lokasi }}">
-        <label>Nama Lokasi</label>
-    </div>
+    <x-form.input name="nama_lokasi" label="Nama Lokasi" :value="$data->nama_lokasi" required maxlength="255" />
     <div class="form-group mb-6">
         <label class="form-label">Gambar Lokasi <small class="text-muted">(opsional, maks. 5MB)</small></label>
         @if($data->gambar)

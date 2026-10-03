@@ -1,11 +1,10 @@
 <form id="form-tambah" method="post" action="{{ url('logkegiatan/insert') }}" data-ajax-form>
     @csrf
     @method('PUT')
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <input type="date" name="tanggal" class="form-control form-control-sm" required max="{{ date('Y-m-d') }}">
-        <label>Tanggal <span class="text-danger">*</span></label>
+    <x-form.input name="tanggal" type="date" required max="{{ date('Y-m-d') }}">
+        <x-slot:label>Tanggal <span class="text-danger">*</span></x-slot:label>
         <span id="tanggal_error" class="text-danger"></span>
-    </div>
+    </x-form.input>
     <div class="alert alert-solid-info d-flex align-items-center">
         <span class="alert-icon rounded">
             <i class="ri-error-warning-line ri-22px"></i>
@@ -13,35 +12,31 @@
         Catatan: <br />
         Tidak diisikan gambar/dokumentasi kegitatan, hanya narasi atas kegiatan yang telah dilakukan.
     </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <textarea name="deskripsi" class="form-control form-control-sm summernote"></textarea>
-        <label>Deskripsi <span class="text-danger">*</span></label>
+    <x-form.textarea name="deskripsi" input-class="form-control form-control-sm summernote">
+        <x-slot:label>Deskripsi <span class="text-danger">*</span></x-slot:label>
         <p id="wordCount">Jumlah kata: 0</p>
         <span id="deskripsi_error" class="text-danger"></span>
-    </div>
+    </x-form.textarea>
     <div class="row">
-        <div class="form-group form-floating form-floating-outline mb-6 col">
-            <input type="number" name="volume" class="form-control form-control-sm" required min="0" step="any">
-            <label>Volume <span class="text-danger">*</span></label>
+        <x-form.input name="volume" type="number" wrapper-class="form-group form-floating form-floating-outline mb-6 col" required min="0" step="any">
+            <x-slot:label>Volume <span class="text-danger">*</span></x-slot:label>
             <span id="volume_error" class="text-danger"></span>
-        </div>
-        <div class="form-group form-floating form-floating-outline mb-6 col">
-            <input type="text" name="satuan" class="form-control form-control-sm" required maxlength="255">
-            <label>Satuan <span class="text-danger">*</span></label>
+        </x-form.input>
+        <x-form.input name="satuan" wrapper-class="form-group form-floating form-floating-outline mb-6 col" required maxlength="255">
+            <x-slot:label>Satuan <span class="text-danger">*</span></x-slot:label>
             <span id="satuan_error" class="text-danger"></span>
-        </div>
+        </x-form.input>
     </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="id_kpi" class="form-control form-control-sm">
+    <x-form.select name="id_kpi" label="Nama KPI" input-class="form-control form-control-sm" :placeholder="false">
             @if($kpi)
                 @foreach($kpi as $row)
                     <option value="{{ $row->id_kpi }}">{{ $row->nama_kpi }}</option>
                 @endforeach
             @endif
-        </select>
-        <label>Nama KPI</label>
+        <x-slot:after>
         <span id="id_kpi_error" class="text-danger"></span>
-    </div>
+        </x-slot:after>
+    </x-form.select>
     <div class="alert alert-solid-info d-flex align-items-center">
         <span class="alert-icon rounded">
             <i class="ri-error-warning-line ri-22px"></i>
@@ -50,10 +45,7 @@
         Dokumentasi tautan bisa dalam beluntuk tautan google drive atau media sosial.
     </div>
 
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <input type="url" class="form-control" name="tautan" maxlength="255" placeholder="https://">
-        <label>Tautan Dokumen</label>
-    </div>
+    <x-form.input name="tautan" label="Tautan Dokumen" type="url" input-class="form-control" maxlength="255" placeholder="https://" />
     <x-button.save formId="form-tambah">
         Simpan
     </x-button.save>

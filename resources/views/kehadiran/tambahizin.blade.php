@@ -5,20 +5,14 @@
 <form id="form-tambah" method="post" action="{{ url('logkehadiran/insertizin') }}" data-ajax-form data-reload-page>
     @csrf
     @method('PUT')
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="status_kehadiran" class="form-control form-control-sm" required>
+    <x-form.select name="status_kehadiran" label="Status Izin" input-class="form-control form-control-sm" :placeholder="false" required>
             @if($status_kehadiran) 
                 @foreach($status_kehadiran as $row)
                     <option value="{{$row}}">{{ ucfirst($row) }}</option>
                 @endforeach
             @endif
-        </select>
-        <label>Status Izin</label>
-    </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <textarea name="keterangan" class="form-control" required maxlength="1000"></textarea>
-        <label>Keterangan</label>
-    </div>
+    </x-form.select>
+    <x-form.textarea name="keterangan" label="Keterangan" required maxlength="1000" />
     <hr>
     <x-button.save formId="form-tambah">Simpan</x-button.save>
 </form>

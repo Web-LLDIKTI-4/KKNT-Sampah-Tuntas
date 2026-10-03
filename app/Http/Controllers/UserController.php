@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Admin\KepalaUserRequest;
 use App\Http\Requests\Admin\PtUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Http\Requests\BulkEmailRequest;
 use App\Models\Dpl;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
@@ -15,6 +16,8 @@ use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
 use App\Models\User;
 use App\Services\UserAccountService;
+use App\Support\BulkSelectDataTable;
+use App\Support\UserDataTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -33,39 +36,52 @@ class UserController extends Controller
 
     public function listdata()
     {
-        return view('user.list', ['data' => User::whereIn('role', ['mahasiswa', 'dpl', 'pt', 'kepala'])->get()]);
+        return view('user.list');
+    }
+
+    public function listdataserver(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        return UserDataTable::make()->make(true);
     }
 
     public function getdatamember()
     {
-        return view('user.listmember', ['data' => Mahasiswa::with('sp')->whereDoesntHave('user')->get()]);
+        return view('user.listmember', $this->filterOptions());
     }
 
-    public function insert(Request $request)
+    public function getdatamemberserver(Request $request)
     {
-        $emails = $this->selectedEmails($request);
-        if (! $emails) {
-            return response()->json(['error' => 'user harus dipilih']);
-        }
+        abort_unless($request->ajax(), 404);
 
-        $count = $this->accounts->createForMahasiswa($emails);
+        return BulkSelectDataTable::make(Mahasiswa::whereDoesntHave('user'), ['nim', 'nama', 'email'], $request)->make(true);
+    }
+
+    public function insert(BulkEmailRequest $request)
+    {
+        $count = $this->accounts->createForMahasiswa($request->emails());
 
         return response()->json(['success' => $count.' user berhasil dibuat']);
     }
 
     public function adduser()
     {
-        return view('user.listdpl', ['data' => Dpl::with('sp')->whereDoesntHave('user')->get()]);
+        return view('user.listdpl', $this->filterOptions());
     }
 
-    public function insertuser(Request $request)
+    public function adduserserver(Request $request)
     {
-        $emails = $this->selectedEmails($request);
-        if (! $emails) {
-            return response()->json(['error' => 'user harus dipilih']);
-        }
+        abort_unless($request->ajax(), 404);
 
-        $count = $this->accounts->createForDpl($emails);
+        return BulkSelectDataTable::make(Dpl::whereDoesntHave('user'), ['nidn', 'nama', 'email', 'prodi'], $request)
+            ->editColumn('prodi', fn (Dpl $row) => $row->prodi ?? '-')
+            ->make(true);
+    }
+
+    public function insertuser(BulkEmailRequest $request)
+    {
+        $count = $this->accounts->createForDpl($request->emails());
 
         return response()->json(['success' => $count.' user berhasil dibuat']);
     }
@@ -215,10 +231,12 @@ class UserController extends Controller
         return Excel::download(new UserExport, 'users_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 
-    private function selectedEmails(Request $request): array
+    // Opsi filter wajib halaman pilih massal
+    private function filterOptions(): array
     {
-        $emails = array_values(array_filter((array) $request->input('createuser', []), 'is_string'));
-
-        return array_slice($emails, 0, 1000);
+        return [
+            'ptOptions' => Satuanpendidikan::orderBy('nm_lemb')->pluck('nm_lemb', 'npsn'),
+            'lokasiOptions' => LokasiProgram::orderBy('nama_lokasi')->pluck('nama_lokasi', 'id'),
+        ];
     }
 }

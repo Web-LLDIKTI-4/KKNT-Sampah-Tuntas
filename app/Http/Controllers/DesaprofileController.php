@@ -28,9 +28,15 @@ class DesaprofileController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        return DataTables::of(Desaprofile::with('desa')->get())
+        $query = Desaprofile::query()
+            ->select('desa_profile.*', 'desa.desa as nama_desa')
+            ->leftJoin('desa', 'desa.id_desa', '=', 'desa_profile.id_desa');
+
+        return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->addColumn('desa', fn (Desaprofile $row) => $row->desa->desa ?? '')
+            ->addColumn('desa', fn (Desaprofile $row) => $row->nama_desa ?? '')
+            ->filterColumn('desa', fn ($q, $keyword) => $q->where('desa.desa', 'like', "%{$keyword}%"))
+            ->orderColumn('desa', 'desa.desa $1')
             ->addColumn('action', fn (Desaprofile $row) => ActionButtons::make(
                 urlEdit: url('desaprofile/edit/'.$row->id_profile),
                 urlDelete: url('desaprofile/destroy'),

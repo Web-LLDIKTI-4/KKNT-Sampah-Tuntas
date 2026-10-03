@@ -1,33 +1,20 @@
 <form id="form-tambah" method="post" action="{{ url('kpicapaian/insert') }}" data-ajax-form>
     @csrf
     @method('PUT')
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="id_kpi" class="form-control form-control-sm" required>
+    <x-form.select name="id_kpi" label="Nama KPI" input-class="form-control form-control-sm" :placeholder="false" required>
             <option value="">--pilih KPI--</option>
             @if($kpi)
                 @foreach($kpi as $item)
                     <option value="{{$item->id_kpi}}">{{$item->nama_kpi}}</option>
                 @endforeach
             @endif
-        </select>
-        <label>Nama KPI</label>
-    </div>
+    </x-form.select>
 
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <textarea name="permasalahan" class="form-control" required maxlength="5000"></textarea>
-        <label>Permasalahan</label>
-    </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <textarea name="solusi" class="form-control" required maxlength="5000"></textarea>
-        <label>Solusi</label>
-    </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <textarea name="kendala" class="form-control" required maxlength="5000"></textarea>
-        <label>Kebutuhan Dukungan</label>
-    </div>
+    <x-form.textarea name="permasalahan" label="Permasalahan" required maxlength="5000" />
+    <x-form.textarea name="solusi" label="Solusi" required maxlength="5000" />
+    <x-form.textarea name="kendala" label="Kebutuhan Dukungan" required maxlength="5000" />
 
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="status_capaian" class="form-control form-control-sm" required>
+    <x-form.select name="status_capaian" label="Tindak Lanjut" input-class="form-control form-control-sm" :placeholder="false" required>
             @php
                 $statusCapaian = [
                     [
@@ -48,14 +35,9 @@
             @foreach($statusCapaian as $item)
                 <option value="{{$item['status']}}">{{$item['label']}}</option>
             @endforeach
-        </select>
-        <label>Tindak Lanjut</label>
-    </div>
+    </x-form.select>
 
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <input type="url" name="tautan" required maxlength="2000" placeholder="https://" class="form-control form-control-sm">
-        <label>Tautan</label>
-    </div>
+    <x-form.input name="tautan" label="Tautan" type="url" required maxlength="2000" placeholder="https://" />
     <hr>
     <x-button.save formId="form-tambah">Simpan</x-button.save>
 </form>

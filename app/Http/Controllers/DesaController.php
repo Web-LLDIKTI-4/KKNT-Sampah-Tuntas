@@ -31,9 +31,15 @@ class DesaController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        return DataTables::of(Desa::with('kecamatan')->get())
+        $query = Desa::query()
+            ->select('desa.*', 'kecamatan.kecamatan as nama_kecamatan')
+            ->leftJoin('kecamatan', 'kecamatan.id_kecamatan', '=', 'desa.id_kecamatan');
+
+        return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->addColumn('kecamatan', fn (Desa $row) => $row->kecamatan->kecamatan ?? '')
+            ->addColumn('kecamatan', fn (Desa $row) => $row->nama_kecamatan ?? '')
+            ->filterColumn('kecamatan', fn ($q, $keyword) => $q->where('kecamatan.kecamatan', 'like', "%{$keyword}%"))
+            ->orderColumn('kecamatan', 'kecamatan.kecamatan $1')
             ->addColumn('action', fn (Desa $row) => ActionButtons::make(
                 urlEdit: url('desa/edit/'.$row->id_desa),
                 urlDelete: url('desa/destroy'),

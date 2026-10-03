@@ -7,6 +7,8 @@ use Session;
 use DataTables;
 use App\Models\Kpi;
 use App\Models\Tugasakhir;
+use App\Models\Mahasiswa;
+use App\Models\Satuanpendidikan;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 use App\Exports\LaptugasakhirExport;
@@ -25,15 +27,10 @@ class LaptugasakhirController extends Controller
     {
 
         if ($request->ajax()) {
-            $query = Tugasakhir::query();
+            // Route khusus admin; mahasiswa lewat email (tidak unik) → eager load + filter subquery
+            $query = Tugasakhir::query()->with(['mahasiswa:email,nim,nama,kodept', 'mahasiswa.sp:npsn,nm_lemb']);
 
-            if (auth()->user()->role === 'dpl') {
-                $data = Tugasakhir::whereHas('dplmentoring', function ($q) {
-                    $q->where('email_dpl', auth()->user()->email);
-                })->get();
-            }
-        
-            return Datatables::of($query)
+            return Datatables::eloquent($query)
                 ->addIndexColumn()
                 ->addColumn('nim', function($row) {
                     return $row->mahasiswa->nim ?? '-';
@@ -47,6 +44,13 @@ class LaptugasakhirController extends Controller
                 ->addColumn('tautan', function($row) {
                     return \App\Support\HtmlSanitizer::link($row->tautan) ?: null;
                 })
+                ->filterColumn('nim', fn ($q, $keyword) => $q->whereIn('tugasakhir.email', Mahasiswa::select('email')->where('nim', 'like', "%{$keyword}%")))
+                ->filterColumn('nama', fn ($q, $keyword) => $q->whereIn('tugasakhir.email', Mahasiswa::select('email')->where('nama', 'like', "%{$keyword}%")))
+                ->filterColumn('nm_lemb', fn ($q, $keyword) => $q->whereIn('tugasakhir.email', Mahasiswa::select('email')
+                    ->whereIn('kodept', Satuanpendidikan::where('nm_lemb', 'like', "%{$keyword}%")->pluck('npsn')->all())))
+                ->orderColumn('nim', '(SELECT nim FROM mahasiswa WHERE mahasiswa.email = tugasakhir.email LIMIT 1) $1')
+                ->orderColumn('nama', '(SELECT nama FROM mahasiswa WHERE mahasiswa.email = tugasakhir.email LIMIT 1) $1')
+                ->orderColumn('nm_lemb', '(SELECT sp.nm_lemb FROM mahasiswa m JOIN ref_satuanpendidikan sp ON sp.npsn = m.kodept WHERE m.email = tugasakhir.email LIMIT 1) $1')
                 ->rawColumns(['tautan'])
                 ->make(true);
         }

@@ -7,8 +7,11 @@ use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\KpicapaianRequest;
 use App\Models\Kpi;
 use App\Models\Kpicapaian;
+use App\Models\LokasiProgram;
 use App\Models\Pjdesa;
+use App\Models\User;
 use App\Support\ActionButtons;
+use App\Support\DataTableOrder;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -34,12 +37,13 @@ class KpicapaianController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $data = Kpicapaian::ownedBy($request->user())
-            ->with(['kpi', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
-            ->orderByDesc('created_at')
-            ->get();
+        $query = Kpicapaian::ownedBy($request->user())
+            ->select('kpi_capaian.*', 'kpi.nama_kpi')
+            ->leftJoin('kpi', 'kpi.id_kpi', '=', 'kpi_capaian.id_kpi')
+            ->with(['pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
+            ->when(! DataTableOrder::requested(), fn ($q) => $q->orderByDesc('kpi_capaian.created_at'));
 
-        return DataTables::of($data)
+        return DataTables::eloquent($query)
             ->addIndexColumn()
             ->addColumn('lokasi', function (Kpicapaian $row) {
                 $lokasi = $row->pjdesa?->mahasiswa?->user?->locationProgram?->nama_lokasi;
@@ -50,7 +54,18 @@ class KpicapaianController extends Controller
 
                 return e($lokasi).'<br /> '.e($desa->kecamatan->kecamatan).', '.e($desa->desa);
             })
-            ->addColumn('nama_kpi', fn (Kpicapaian $row) => $row->kpi->nama_kpi ?? '')
+            ->editColumn('nama_kpi', fn (Kpicapaian $row) => $row->nama_kpi ?? '')
+            ->filterColumn('nama_kpi', fn ($q, $keyword) => $q->where('kpi.nama_kpi', 'like', "%{$keyword}%"))
+            ->orderColumn('nama_kpi', 'kpi.nama_kpi $1')
+            // Lokasi = lokasi program user + kecamatan/desa pjdesa; dicari lewat email pemilik
+            ->filterColumn('lokasi', fn ($q, $keyword) => $q->where(fn ($w) => $w
+                ->whereIn('kpi_capaian.email', User::select('email')->whereIn('location_program',
+                    LokasiProgram::where('nama_lokasi', 'like', "%{$keyword}%")->pluck('id')->all()))
+                ->orWhereIn('kpi_capaian.email', Pjdesa::select('pj_desa.email')
+                    ->join('desa', 'desa.id_desa', '=', 'pj_desa.id_desa')
+                    ->join('kecamatan', 'kecamatan.id_kecamatan', '=', 'desa.id_kecamatan')
+                    ->where(fn ($d) => $d->where('desa.desa', 'like', "%{$keyword}%")->orWhere('kecamatan.kecamatan', 'like', "%{$keyword}%")))))
+            ->orderColumn('lokasi', '(SELECT lp.nama_lokasi FROM users u JOIN lokasi_program lp ON lp.id = u.location_program WHERE u.email = kpi_capaian.email LIMIT 1) $1')
             ->editColumn('permasalahan', fn (Kpicapaian $row) => nl2br(e($row->permasalahan)))
             ->editColumn('solusi', fn (Kpicapaian $row) => nl2br(e($row->solusi)))
             ->editColumn('kendala', fn (Kpicapaian $row) => nl2br(e($row->kendala)))

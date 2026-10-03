@@ -2,11 +2,9 @@
     @csrf
     @method('PUT')
     <input type="hidden" name="id_log" value="{{ $data->id_log }}">
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <input type="date" name="tanggal" class="form-control form-control-sm" required max="{{ date('Y-m-d') }}" value="{{ $data->tanggal }}">
-        <label>Tanggal</label>
+    <x-form.input name="tanggal" label="Tanggal" type="date" :value="$data->tanggal" required max="{{ date('Y-m-d') }}">
         <span id="tanggal_error" class="text-danger"></span>
-    </div>
+    </x-form.input>
     <div class="alert alert-solid-info d-flex align-items-center">
         <span class="alert-icon rounded">
             <i class="ri-error-warning-line ri-22px"></i>
@@ -21,28 +19,23 @@
         <span id="deskripsi_error" class="text-danger"></span>
     </div>
     <div class="row">
-        <div class="form-group form-floating form-floating-outline mb-6 col">
-            <input type="number" name="volume" class="form-control form-control-sm" required min="0" step="any" value="{{ $data->volume }}">
-            <label>Volume</label>
+        <x-form.input name="volume" label="Volume" type="number" :value="$data->volume" wrapper-class="form-group form-floating form-floating-outline mb-6 col" required min="0" step="any">
             <span id="volume_error" class="text-danger"></span>
-        </div>
-        <div class="form-group form-floating form-floating-outline mb-6 col">
-            <input type="text" name="satuan" class="form-control form-control-sm" required maxlength="255" value="{{ $data->satuan }}">
-            <label>Satuan</label>
+        </x-form.input>
+        <x-form.input name="satuan" label="Satuan" :value="$data->satuan" wrapper-class="form-group form-floating form-floating-outline mb-6 col" required maxlength="255">
             <span id="satuan_error" class="text-danger"></span>
-        </div>
+        </x-form.input>
     </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="id_kpi" class="form-control form-control-sm">
+    <x-form.select name="id_kpi" label="Nama KPI" input-class="form-control form-control-sm" :placeholder="false">
             @if($kpi)
                 @foreach($kpi as $row)
                     <option value="{{ $row->id_kpi }}" @if($row->id_kpi == $data->id_kpi) selected @endif>{{ $row->nama_kpi }}</option>
                 @endforeach
             @endif
-        </select>
-        <label>Nama KPI</label>
+        <x-slot:after>
         <span id="id_kpi_error" class="text-danger"></span>
-    </div>
+        </x-slot:after>
+    </x-form.select>
     <div class="alert alert-solid-info d-flex align-items-center">
         <span class="alert-icon rounded">
             <i class="ri-error-warning-line ri-22px"></i>
@@ -50,10 +43,7 @@
         Catatan : <br />
         Dokumentasi tautan bisa dalam beluntuk tautan google drive atau media sosial.
     </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <input type="url" class="form-control" name="tautan" maxlength="255" placeholder="https://" value="{{ $data->tautan }}">
-        <label>Tautan Dokumen</label>
-    </div>
+    <x-form.input name="tautan" label="Tautan Dokumen" type="url" :value="$data->tautan" input-class="form-control" maxlength="255" placeholder="https://" />
     <x-button.save formId="form-ubah">
         Simpan
     </x-button.save>

@@ -28,22 +28,17 @@ class AdmlogharianController extends Controller
 
         if ($request->ajax()) { 
 
-            $data = Mahasiswa::get();
-            return DataTables::of($data)
+            // jumlah_log via subquery (index email,tanggal); tidak bisa dicari/diurutkan karena berat
+            $query = Mahasiswa::query()
+                ->select('mahasiswa.kodept', 'mahasiswa.nim', 'mahasiswa.nama', 'mahasiswa.email', 'ref_satuanpendidikan.nm_lemb')
+                ->selectSub(Logkegiatan::selectRaw('count(distinct tanggal)')->whereColumn('logkegiatan.email', 'mahasiswa.email'), 'jumlah_log')
+                ->leftJoin('ref_satuanpendidikan', 'ref_satuanpendidikan.npsn', '=', 'mahasiswa.kodept');
+
+            return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->addColumn('nm_lemb', function($row) {
-                if ($row->sp) {
-                    return $row->sp->nm_lemb;
-                } else {
-                    return 'Perguruan Tinggi tidak ditemukan'; // or any default value you prefer
-                }
-            })
-            ->addColumn('jumlah_log', function($row) {
-                $log_mhs = Logkegiatan::where('email', $row->email)
-                ->select(DB::raw('count(distinct tanggal) as count'))
-                ->value('count');
-                return $log_mhs;
-            })
+            ->editColumn('nm_lemb', fn ($row) => $row->nm_lemb ?? 'Perguruan Tinggi tidak ditemukan')
+            ->filterColumn('nm_lemb', fn ($q, $keyword) => $q->where('ref_satuanpendidikan.nm_lemb', 'like', "%{$keyword}%"))
+            ->blacklist(['jumlah_log'])
             ->addColumn('action', function($row){
                 return ActionButtons::make(urlView: url('admlogharian/permhs/'.rawurlencode($row->email)));
             })
@@ -60,8 +55,7 @@ class AdmlogharianController extends Controller
     {
         if ($request->ajax()) { 
             // Menemukan semua mahasiswa dengan kodept yang sesuai
-            $data = Logkegiatan::where("email", $request->email)->get();           
-            return DataTables::of($data)
+            return DataTables::eloquent(Logkegiatan::where('email', $request->email))
             ->addIndexColumn()
             ->make(true);
         }

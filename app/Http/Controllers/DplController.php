@@ -21,6 +21,11 @@ class DplController extends PersonMasterController
         return 'dpl';
     }
 
+    protected function listColumns(): array
+    {
+        return ['nidn', 'nama', 'email', 'phone'];
+    }
+
     protected function label(): string
     {
         return 'DPL';

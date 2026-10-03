@@ -1,23 +1,17 @@
 <div>{!! \App\Support\HtmlSanitizer::clean($logbulanan->deskripsi) !!}</div>
 <hr>
-<form method="POST" id="form-simpan" action="{{ url('admlogbulanan/updatenilai') }}">
+<form method="POST" id="form-simpan" action="{{ url('admlogbulanan/updatenilai') }}" data-ajax-form>
     @csrf
     @method('PUT')
     <input type="hidden" name="id_logbulanan" value="{{$logbulanan->id_logbulanan}}">
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="nilai" class="form-control">
+    <x-form.select name="nilai" label="Nilai" :placeholder="false">
             @if($anilai)
                 @foreach($anilai as $value)
                     <option value="{{$value}}" @if($logbulanan->nilai == $value) selected @endif>{{ $value }}</option>
                 @endforeach
             @endif
-        </select>
-        <label>Nilai</label>
-    </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <textarea name="hasil_verifikasi" class="form-control">{{ $logbulanan->hasil_verifikasi }}</textarea>
-        <label>Catatan Hasil Verifikasi</label>
-    </div>
+    </x-form.select>
+    <x-form.textarea name="hasil_verifikasi" label="Catatan Hasil Verifikasi" :value="$logbulanan->hasil_verifikasi" />
     <div>
         <x-button.save formId="form-simpan">
             Simpan

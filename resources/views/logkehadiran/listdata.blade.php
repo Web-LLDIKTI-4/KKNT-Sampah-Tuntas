@@ -8,54 +8,39 @@
     <div class="card-body">
         <div class="row">
             <div class="col-12 table-responsive">
-                <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
-                    <x-slot:thead>
-                        <tr>
-                            <th class="text-center" width="1">No</th>
-                            <th class="text-center">Tanggal</th>
-                            <th class="text-center">NIM</th>
-                            <th class="text-center">Nama</th>
-                            <th class="text-center">Nama Perguruan Tinggi</th>
-                            <th class="text-center">Jam Masuk</th>
-                            <th class="text-center">Lokasi Masuk</th>
-                            <th class="text-center">Jam Pulang</th>
-                            <th class="text-center">Lokasi Pulang</th>
-                        </tr>
-                    </x-slot:thead>
-                </x-datatable>
+                <x-table
+                    thead-class=""
+                    ajax="{{ route('admlogkehadiran.listdataserver',request()->route('email')) }}"
+                    :columns="[
+                        ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
+                        ['data' => 'tanggal', 'name' => 'tanggal', 'className' => 'text-center'],
+                        ['data' => 'nim', 'name' => 'nim', 'className' => 'text-center'],
+                        ['data' => 'nama_mahasiswa', 'name' => 'nama_mahasiswa'],
+                        ['data' => 'nm_lemb', 'name' => 'nm_lemb'],
+                        ['data' => 'waktu_masuk', 'name' => 'waktu_masuk', 'className' => 'text-center'],
+                        ['data' => 'coordinates_datang', 'name' => 'coordinates_datang', 'className' => 'text-center'],
+                        ['data' => 'waktu_pulang', 'name' => 'waktu_pulang', 'className' => 'text-center'],
+                        ['data' => 'coordinates_pulang', 'name' => 'coordinates_pulang', 'className' => 'text-center'],
+                    ]"
+                >
+                                    <x-slot:thead>
+                                        <tr>
+                                            <th class="text-center" width="1">No</th>
+                                            <th class="text-center">Tanggal</th>
+                                            <th class="text-center">NIM</th>
+                                            <th class="text-center">Nama</th>
+                                            <th class="text-center">Nama Perguruan Tinggi</th>
+                                            <th class="text-center">Jam Masuk</th>
+                                            <th class="text-center">Lokasi Masuk</th>
+                                            <th class="text-center">Jam Pulang</th>
+                                            <th class="text-center">Lokasi Pulang</th>
+                                        </tr>
+                                    </x-slot:thead>
+                </x-table>
             </div>
         </div>
 
         <x-button.export url="{{ url('admlogkehadiran/export/' . request()->route('email')) }}" />
     </div>
 </div>
-
-<script type="text/javascript">
-    $(function () {
-        var table = $('#dataTable').DataTable({
-            searching: true,
-            lengthChange: true,
-            processing: true,
-            serverSide: true,
-            ajax: "{{ route('admlogkehadiran.listdataserver',request()->route('email')) }}",
-            language: {
-                search: "",
-                searchPlaceholder: "Cari...",
-                zeroRecords: "Tidak ada data yang tersedia",
-                infoEmpty: "Tidak ada data yang ditemukan",
-            },
-            columns: [
-                {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
-                {data: 'tanggal', name: 'tanggal', className: 'text-center'},
-                {data: 'nim', name: 'nim', className: 'text-center'},
-                {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
-                {data: 'nm_lemb', name: 'nm_lemb'},
-                {data: 'waktu_masuk', name: 'waktu_masuk', className: 'text-center'},
-                {data: 'coordinates_datang', name: 'coordinates_datang', className: 'text-center'},
-                {data: 'waktu_pulang', name: 'waktu_pulang', className: 'text-center'},
-                {data: 'coordinates_pulang', name: 'coordinates_pulang', className: 'text-center'},
-            ],
-        });
-    });
-</script>
 @stop

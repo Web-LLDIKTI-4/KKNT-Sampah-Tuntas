@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Dpl\MentoringBulkRequest;
 use App\Models\Dplmentoring;
 use App\Models\Freeform;
 use App\Models\Logbulanan;
+use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Nilaikonversi;
+use App\Models\Satuanpendidikan;
 use App\Support\ActionButtons;
+use App\Support\BulkSelectDataTable;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -64,18 +68,25 @@ class DplmentoringController extends Controller
 
     public function tambah()
     {
-        return view('mentoring.tambah', ['data' => Mahasiswa::with('sp')->whereDoesntHave('dplmentoring')->get()]);
+        return view('mentoring.tambah', [
+            'ptOptions' => Satuanpendidikan::orderBy('nm_lemb')->pluck('nm_lemb', 'npsn'),
+            'lokasiOptions' => LokasiProgram::orderBy('nama_lokasi')->pluck('nama_lokasi', 'id'),
+        ]);
     }
 
-    public function insert(Request $request)
+    // Aturan bisnis tetap: semua mahasiswa tanpa pembimbing (lintas PT/lokasi), dipersempit filter wajib
+    public function tambahserver(Request $request)
     {
-        $emails = array_filter((array) $request->input('createuser', []), 'is_string');
-        if ($emails === [] || count($emails) > 500) {
-            return response()->json(['error' => 'user harus dipilih (maksimal 500)']);
-        }
+        abort_unless($request->ajax(), 404);
+        abort_unless($request->user()->role === 'dpl', 403);
 
+        return BulkSelectDataTable::make(Mahasiswa::whereDoesntHave('dplmentoring'), ['nim', 'nama', 'email'], $request)->make(true);
+    }
+
+    public function insert(MentoringBulkRequest $request)
+    {
         // Hanya mahasiswa terdaftar yang belum punya DPL
-        $eligible = Mahasiswa::whereIn('email', $emails)
+        $eligible = Mahasiswa::whereIn('email', $request->emails())
             ->whereDoesntHave('dplmentoring')
             ->pluck('email');
 

@@ -5,12 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Admin\ImportFileRequest;
 use App\Support\ActionButtons;
+use App\Support\PersonDataTable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
-use Yajra\DataTables\Facades\DataTables;
 
 /**
  * Master data orang (mahasiswa/DPL): listing, import Excel, hapus berantai.
@@ -25,6 +25,9 @@ abstract class PersonMasterController extends Controller
     abstract protected function viewPrefix(): string;
 
     abstract protected function label(): string;
+
+    /** @return array<int, string> kolom tabel yang ditampilkan di listing */
+    abstract protected function listColumns(): array;
 
     abstract protected function makeImport(): object;
 
@@ -46,10 +49,7 @@ abstract class PersonMasterController extends Controller
 
         $key = (new ($this->model()))->getKeyName();
 
-        return DataTables::of($this->model()::with(['sp', 'locationProgram'])->get())
-            ->addIndexColumn()
-            ->addColumn('nm_lemb', fn ($row) => $row->sp->nm_lemb ?? 'Belum Terdata')
-            ->addColumn('location_program', fn ($row) => $row->locationProgram->nama_lokasi ?? 'Belum Terdata')
+        return PersonDataTable::make($this->model()::query(), [$key, ...$this->listColumns()])
             ->addColumn('action', fn ($row) => ActionButtons::make(
                 urlDelete: url($this->viewPrefix().'/destroy'),
                 idField: $key,

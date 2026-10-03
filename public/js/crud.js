@@ -1,7 +1,7 @@
 /*
  * Handler CRUD global.
  * - Form AJAX : <form data-ajax-form [data-reload="#dataTable"] | [data-reload-url data-reload-target]>
- *               [data-reload-page] (tombol submit id="btnSubmit_{formId}")
+ *               [data-reload-page] [data-close-modal] (tombol submit id="btnSubmit_{formId}")
  *               [data-result-target="#el"] : respons HTML dimuat ke #el (form pemuat isian)
  * - Hapus     : .btn-delete (lihat <x-action-data>) data-url data-id-field data-id-value [data-confirm]
  * - Loading   : btnLoading(btn, true|false[, label]) — satu-satunya state loading tombol
@@ -107,8 +107,12 @@
                 if (ret.success) {
                     // Server boleh menentukan jenis toast, mis. import yang sebagian barisnya gagal
                     var toastType = ['success', 'warning', 'error', 'info'].indexOf(ret.toast) >= 0 ? ret.toast : 'success';
-                    toastr[toastType](ret.message);
+                    // `messages` = format lama sebagian controller
+                    toastr[toastType](ret.message || ret.messages);
                     clearFieldErrors($form);
+                    if ($form.is('[data-close-modal]')) {
+                        $('#modalku').modal('hide');
+                    }
                     if ($form.is('[data-reload-page]')) {
                         $('#modalku').modal('hide');
                         setTimeout(function () { window.location.reload(); }, 600);
@@ -120,8 +124,8 @@
                     $form.trigger('ajax-form:saved', [ret]);
                     return;
                 }
-                toastr.warning(ret.message);
-                if (ret.errors) {
+                toastr.warning(ret.message || ret.messages);
+                if ($.isPlainObject(ret.errors)) {
                     showFieldErrors($form, ret.errors);
                 }
             },

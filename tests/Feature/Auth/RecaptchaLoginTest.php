@@ -27,6 +27,7 @@ class RecaptchaLoginTest extends TestCase
             'services.recaptcha.site_key' => 'test-site',
             'services.recaptcha.secret_key' => 'test-secret',
             'services.recaptcha.min_score' => 0.5,
+            'services.recaptcha.hostname' => null,
         ]);
         Http::preventStrayRequests();
 

@@ -2,10 +2,7 @@
     @csrf
     @method('PUT')    
     <input type="hidden" name="id_evaluasi" value="{{ $data->id_evaluasi ?? '' }}">
-    <div class="form-group form-floating form-floating-outline mb-6">       
-        <textarea name="pertanyaan" class="form-control form-control-sm summernote">{{ $data->pertanyaan ?? '' }}</textarea>
-        <label>Pertanyaan</label>
-    </div>
+    <x-form.textarea name="pertanyaan" label="Pertanyaan" :value="$data->pertanyaan ?? ''" input-class="form-control form-control-sm summernote" />
     <div id="wordCount" class="mb-3">Jumlah kata: 0</div>
     <x-button.save formId="form-tambah">
         Simpan

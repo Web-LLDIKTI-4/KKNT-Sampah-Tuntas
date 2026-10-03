@@ -8,6 +8,7 @@ use DataTables;
 use App\Models\Kpi;
 use App\Models\Dplmentoring;
 use App\Models\Nilaikonversi;
+use App\Support\NilaiMahasiswaDataTable;
 
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
@@ -29,28 +30,7 @@ class AdmstructureformController extends Controller
     {
 
         if ($request->ajax()) {
-            $data = Nilaikonversi::with(['mahasiswa'])->get();
-
-            return Datatables::of($data)
-                ->addIndexColumn()
-                ->addColumn('nim', function($row){
-                    return $row->mahasiswa->nim ?? '-';
-                })
-                ->addColumn('nama', function($row){
-                    return $row->mahasiswa->nama ?? '-';
-                })
-                ->addColumn('nm_lemb', function($row){
-                    return $row->mahasiswa->sp->nm_lemb ?? '-';
-                })
-                ->addColumn('prodi', function($row){
-                    return $row->mahasiswa->prodi ?? '-';
-                })
-                ->addColumn('nilai_akhir', function($row){
-                    $nilai_dpl = is_numeric($row->nilai_dpl) ? $row->nilai_dpl : 0;
-                    $nilai_dpa = is_numeric($row->nilai_dpa) ? $row->nilai_dpa : 0;
-                    return ($nilai_dpl + $nilai_dpa)/2;
-                })
-                ->rawColumns(['nilai_akhir'])
+            return NilaiMahasiswaDataTable::make(Nilaikonversi::query())
                 ->make(true);
         }
     }

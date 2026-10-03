@@ -2,8 +2,7 @@
     @csrf
     @method('PUT')
     <input type="hidden" name="id_pjdesa" value="{{$data->id_pjdesa}}">
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select class="form-control" name="id_desa" required>
+    <x-form.select name="id_desa" label="Nama Desa / Kelurahan" :placeholder="false" required>
         @if($kecamatan)
             @foreach($kecamatan as $item)
                 <optgroup label="{{$item->kecamatan}}">
@@ -13,20 +12,14 @@
                 </optgroup>
             @endforeach
         @endif
-        </select>
-        <label>Nama Desa / Kelurahan</label>
-       <!-- <input type="hidden" name="id_desa" value="{{$data->id_desa}}"/> -->
-    </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="email" class="form-control" required>
+    </x-form.select>
+    <x-form.select name="email" label="Nama Ketua Kelompok" :placeholder="false" required>
         @if($user)
             @foreach($user as $item)
              <option value="{{$item->email}}" @if($data->email == $item->email) selected @endif>{{$item->name}} | {{$item->mahasiswa->sp->nm_lemb}}</option>
             @endforeach
         @endif
-        </select>
-        <label>Nama Ketua Kelompok</label>
-    </div>
+    </x-form.select>
     <hr>
     <x-button.save formId="form-ubah">
         Simpan

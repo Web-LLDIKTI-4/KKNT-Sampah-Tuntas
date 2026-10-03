@@ -4,48 +4,41 @@
     <input type="hidden" name="id" value="{{ $data->id }}">
 
     <div class="row">   
-        <div class="form-group col form-floating form-floating-outline mb-6">
-            <input type="text" name="name" class="form-control form-control-sm" value="{{ $data->name }}" required>
-            <label>Nama</label>
+        <x-form.input name="name" label="Nama" :value="$data->name" wrapper-class="form-group col form-floating form-floating-outline mb-6" required>
             <span id="name_error" class="text-danger"></span>
-        </div>
-        <div class="form-group col form-floating form-floating-outline mb-6">
-            <input type="text" name="email" class="form-control form-control-sm" value="{{ $data->email }}" required readonly>
-            <label>Email</label>
+        </x-form.input>
+        <x-form.input name="email" label="Email" :value="$data->email" wrapper-class="form-group col form-floating form-floating-outline mb-6" required readonly>
             <span id="email_error" class="text-danger"></span>
-        </div>
+        </x-form.input>
     </div>
     @if (in_array($data->role, ['dpl', 'mahasiswa']))
-        <div class="form-group form-floating form-floating-outline mb-6">
-            <select  id="location_program" class="form-control form-control-sm select2" name="location_program" required>
+        <x-form.select name="location_program" label="Lokasi Program" input-class="form-control form-control-sm select2" :placeholder="false" id="location_program" required>
                 <option value="" selected>--pilih--</option>
                 @foreach($locationPrograms as $val)
                     <option value="{{ $val->id }}" @if($data->location_program == $val->id) selected @endif>{{$val->nama_lokasi}}</option>
                 @endforeach
-            </select>
-            <label>Lokasi Program</label>
+            <x-slot:after>
             <span id="location_program_error" class="text-danger"></span>
-        </div>
+            </x-slot:after>
+        </x-form.select>
     @endif
     <div class="row">   
-        <div class="form-group col form-floating form-floating-outline mb-6">
-            <input type="text" name="password" class="form-control form-control-sm">
-            <label>Kata Sandi</label>
+        <x-form.input name="password" label="Kata Sandi" wrapper-class="form-group col form-floating form-floating-outline mb-6">
             <span id="password_error" class="text-danger"></span>
-        </div>
+        </x-form.input>
     </div>
 
     @if ($data->role == 'mahasiswa')
-        <div class="form-group form-floating form-floating-outline mb-6">
-            <select  id="akses" class="form-control form-control-sm select2" name="akses">
+        <x-form.select name="akses" input-class="form-control form-control-sm select2" :placeholder="false" id="akses">
+            <x-slot:label>Tambah akses (opsional) (<span class="text-danger">Hanya role mahasiswa yang bisa jadi Ketua Kelompok</span>)</x-slot:label>
                 <option value="">-- Tidak diubah --</option>
                 @foreach($akses as $key=>$val)
                     <option value="{{ trim($key) }}" @if($data->akses == $key) selected @endif>{{$val}}</option>
                 @endforeach
-            </select>  
-            <label>Tambah akses (opsional) (<span class="text-danger">Hanya role mahasiswa yang bisa jadi Ketua Kelompok</span>)</label>
+            <x-slot:after>
             <span id="akses_error" class="text-danger"></span>
-        </div>
+            </x-slot:after>
+        </x-form.select>
     @endif
     <hr>
     <x-button.save formId="form-update">Simpan</x-button.save>

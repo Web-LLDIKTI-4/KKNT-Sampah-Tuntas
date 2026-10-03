@@ -42,7 +42,7 @@ class DpllaptugasakhirController extends Controller
             ->addColumn('nm_lemb', fn ($row) => $row->mahasiswa->sp->nm_lemb ?? '-')
             ->editColumn('tautan', fn ($row) => HtmlSanitizer::link($row->tautan))
             ->addColumn('action', fn ($row) => '<div class="d-flex">'
-                .'<form method="post" action="'.e(url('dpllaptugasakhir/nilai')).'" id="form-nilai-'.e($row->id_tugasakhir).'">'
+                .'<form method="post" data-ajax-form action="'.e(url('dpllaptugasakhir/nilai')).'" id="form-nilai-'.e($row->id_tugasakhir).'">'
                 .csrf_field().method_field('PUT')
                 .'<input type="hidden" name="id_tugasakhir" value="'.e($row->id_tugasakhir).'">'
                 .'<input type="number" name="nilai_dpl" min="0" max="100" class="form-control form-control-sm col-md-5 text-center" value="'.e($row->nilai_dpl).'">'

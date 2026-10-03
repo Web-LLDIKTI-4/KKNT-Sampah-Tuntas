@@ -12,6 +12,9 @@ use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use App\Exports\LogbulanandplExport;
 use App\Support\ActionButtons;
+use App\Support\DataTableOrder;
+use App\Models\User;
+use App\Models\Satuanpendidikan;
 
 
 class AdmlaporandplController extends Controller
@@ -28,10 +31,14 @@ class AdmlaporandplController extends Controller
     {
         if ($request->ajax()) {
             
+            // Jumlah laporan via withCount (bukan 1 COUNT per baris); relasi di-eager load
             $query = Dpl::query()
-                ->orderBy('created_at', 'desc')->get();
+                ->select('dpl.id_dpl', 'dpl.email', 'dpl.kodept')
+                ->with(['user:email,name', 'sp:npsn,nm_lemb'])
+                ->withCount('dpllaporan')
+                ->when(! DataTableOrder::requested(), fn ($q) => $q->orderByDesc('dpl.created_at'));
 
-            return Datatables::of($query)
+            return Datatables::eloquent($query)
                 ->addIndexColumn()
                 ->addColumn('deskripsi', function($row){
                     return \App\Support\HtmlSanitizer::clean($row->deskripsi).' '.\App\Support\HtmlSanitizer::link($row->tautan);
@@ -42,9 +49,12 @@ class AdmlaporandplController extends Controller
                 ->addColumn('nama_pt', function($row){
                     return $row->sp->nm_lemb ?? 'Nama Perguruan Tinggi Tidak Tersedia';
                 })
-                ->addColumn('count_log', function($row){
-                    return $row->dpllaporan()->count() ?? '0';
-                })
+                ->addColumn('count_log', fn ($row) => $row->dpllaporan_count)
+                ->filterColumn('nama_dpl', fn ($q, $keyword) => $q->whereIn('dpl.email', User::select('email')->where('name', 'like', "%{$keyword}%")))
+                ->filterColumn('nama_pt', fn ($q, $keyword) => $q->whereIn('dpl.kodept', Satuanpendidikan::where('nm_lemb', 'like', "%{$keyword}%")->pluck('npsn')->all()))
+                ->orderColumn('nama_dpl', '(SELECT name FROM users WHERE users.email = dpl.email LIMIT 1) $1')
+                ->orderColumn('nama_pt', '(SELECT nm_lemb FROM ref_satuanpendidikan WHERE npsn = dpl.kodept LIMIT 1) $1')
+                ->orderColumn('count_log', 'dpllaporan_count $1')
                 ->addColumn('action', function($row){
                     return ActionButtons::make(urlView: url('admlaporandpl/listdata/'.rawurlencode($row->email)));
                 })

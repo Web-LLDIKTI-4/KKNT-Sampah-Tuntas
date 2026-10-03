@@ -15,22 +15,16 @@
         <form method="post" id="form-bulan" action="{{ url('dpllaporan/tambah') }}" data-ajax-form data-result-target="#resultcontent">
             @csrf
             <div class="row">
-                <div class="col form-group form-floating form-floating-outline mb-6">
-                    <select name="tahun" class="form-control form-control-sm">
+                <x-form.select name="tahun" label="Pilih Tahun" input-class="form-control form-control-sm" wrapper-class="col form-group form-floating form-floating-outline mb-6" :placeholder="false">
                         @for($th=date('Y')-1; $th<=date('Y'); $th++)
                             <option value="{{ $th }}" @if($th == date("Y")) selected @endif>{{ $th }}</option>
                         @endfor
-                    </select>
-                    <label>Pilih Tahun</label>
-                </div>
-                <div class="col form-group form-floating form-floating-outline mb-6">
-                    <select name="bulan" class="form-control form-control-sm">
+                </x-form.select>
+                <x-form.select name="bulan" label="Pilih Bulan" input-class="form-control form-control-sm" wrapper-class="col form-group form-floating form-floating-outline mb-6" :placeholder="false">
                         @foreach ($namaBulan as $nomorBulan => $bulan)
                             <option value="{{ $nomorBulan }}" @if($nomorBulan == date("m")) selected @endif>{{ $bulan }}</option>
                         @endforeach
-                    </select>
-                    <label> Pilih Bulan </label>
-                </div>
+                </x-form.select>
                 <div class="col mt-1">
                     <x-button.save formId="form-bulan" size="lg" icon="ri-filter-3-fill">
                         Isi Log Bulanan

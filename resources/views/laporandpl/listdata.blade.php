@@ -12,54 +12,31 @@
     <div class="card-body">
         <div class="row">
             <div class="col-12 table-responsive">
-                <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
-                    <x-slot:thead>
-                        <tr>
-                            <th width="1">No</th>
-                            <th>Tahun</th>
-                            <th>Bulan</th>
-                            <th>Deskripsi</th>
-                            {{-- <th width="1">Aksi</th> --}}
-                        </tr>
-                    </x-slot:thead>
-                </x-datatable>
+                <x-table
+                    thead-class=""
+                    ajax="{{ route('admlaporandpl.listdataserver', request()->route('email')) }}"
+                    :columns="[
+                        ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
+                        ['data' => 'tahun', 'name' => 'tahun', 'className' => 'text-center'],
+                        ['data' => 'nama_bulan', 'name' => 'nama_bulan', 'className' => 'text-center'],
+                        ['data' => 'deskripsi', 'name' => 'deskripsi'],
+                    ]"
+                    :strip="[3]"
+                >
+                                    <x-slot:thead>
+                                        <tr>
+                                            <th width="1">No</th>
+                                            <th>Tahun</th>
+                                            <th>Bulan</th>
+                                            <th>Deskripsi</th>
+                                            {{-- <th width="1">Aksi</th> --}}
+                                        </tr>
+                                    </x-slot:thead>
+                </x-table>
             </div>
         </div>
 
         <x-button.export url="{{ url('admlaporandpl/export/' . request()->route('email')) }}" />
     </div>
 </div>
-
-<script type="text/javascript">
-  $(function () {
-    var table = $('#dataTable').DataTable({
-        searching: true,
-        lengthChange: true,
-        processing: true,
-        serverSide: true,
-        ajax: "{{ route('admlaporandpl.listdataserver', request()->route('email')) }}",
-        language: {
-            search: "",
-            searchPlaceholder: "Cari...",
-        },
-        columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex' , className: 'text-center', orderable: false, searchable: false},
-            {data: 'tahun', name: 'tahun', className: 'text-center'},
-            {data: 'nama_bulan', name: 'nama_bulan', className: 'text-center'},
-            {
-                data: 'deskripsi',
-                name: 'deskripsi',
-                render: function (data, type, row) {
-                    // Membuat sebuah div sementara untuk membersihkan tag HTML
-                    var tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = data;
-                    // Mengambil teks dari div tersebut yang sudah bersih dari tag HTML
-                    var strippedText = tempDiv.textContent || tempDiv.innerText || '';
-                    return strippedText;
-                }
-            },
-        ],
-    });
-  });
-</script>
 @stop

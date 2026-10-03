@@ -1,10 +1,7 @@
 <form id="form-tambah" method="post" action="{{ url('admevaluasikegiatan/insert') }}" data-ajax-form>
     @csrf
     @method('PUT')    
-    <div class="form-group form-floating form-floating-outline mb-6">       
-        <textarea name="pertanyaan" class="form-control form-control-sm summernote"></textarea>
-        <label>Pertanyaan</label>
-    </div>
+    <x-form.textarea name="pertanyaan" label="Pertanyaan" input-class="form-control form-control-sm summernote" />
     <div id="wordCount" class="mb-3">Jumlah kata: 0</div>
     <x-button.save formId="form-tambah">
         Simpan
