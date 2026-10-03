@@ -129,6 +129,9 @@
                 var ret = xhr.responseJSON || {};
                 if (xhr.status === 419) {
                     toastr.error('Sesi berakhir, silakan muat ulang halaman.');
+                } else if (xhr.status === 413) {
+                    // 413 bisa datang dari web server (HTML, tanpa JSON) sebelum mencapai Laravel
+                    toastr.error(ret.message || 'Ukuran file melebihi batas server. Kecilkan file lalu coba lagi.');
                 } else {
                     toastr.error(ret.message || 'Terjadi kesalahan pada server.');
                 }

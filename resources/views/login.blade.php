@@ -1,3 +1,5 @@
+{{-- Captcha aktif hanya bila backend juga bisa memverifikasi (site + secret key) --}}
+@php($recaptchaSiteKey = app(\App\Services\RecaptchaService::class)->siteKey())
 <!doctype html>
 
 <html
@@ -604,6 +606,161 @@
           white-space: nowrap;
         }
 
+        /* Tab Panduan: daftar dokumen publik */
+        .panduan-toolbar {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem 1rem;
+          flex-wrap: wrap;
+          margin-bottom: 1rem;
+        }
+
+        .panduan-search {
+          flex: 1 1 260px;
+          max-width: 28rem;
+        }
+
+        .panduan-count {
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 0.9rem;
+          font-weight: 600;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .panduan-card {
+          overflow: hidden;
+        }
+
+        .panduan-list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          max-height: calc(100vh - 300px);
+          /* min-height: 16rem; */
+          overflow-y: auto;
+          overscroll-behavior: contain;
+        }
+
+        .panduan-item {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 0.35rem 1rem;
+          padding: 1rem 1.25rem;
+          border-bottom: 1px solid #ecebf2;
+        }
+
+        .panduan-item:last-child {
+          border-bottom: 0;
+        }
+
+        .panduan-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 2.75rem;
+          height: 2.75rem;
+          border-radius: 12px;
+          font-size: 1.35rem;
+        }
+
+        .panduan-icon--pdf { background: #fbecec; color: #b4413b; }
+        .panduan-icon--word { background: #e9effb; color: #2f5fb3; }
+        .panduan-icon--excel { background: #e8f4ee; color: #23784d; }
+        .panduan-icon--ppt { background: #fbefe6; color: #b0561f; }
+        .panduan-icon--other { background: #eeeff6; color: #4f5fd8; }
+
+        .panduan-judul {
+          margin: 0;
+          font-size: 0.975rem;
+          font-weight: 600;
+          line-height: 1.4;
+          color: #2e2b3f;
+          overflow-wrap: anywhere;
+        }
+
+        .panduan-deskripsi {
+          margin: 0.2rem 0 0;
+          font-size: 0.85rem;
+          line-height: 1.5;
+          color: #5d596c;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .panduan-meta {
+          margin: 0.3rem 0 0;
+          font-size: 0.78rem;
+          color: #6d6b77;
+        }
+
+        .panduan-unduh {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          width: auto;
+          white-space: nowrap;
+        }
+
+        .panduan-unduh:active {
+          transform: translateY(1px);
+        }
+
+        .panduan-empty {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 3rem 1.5rem;
+          color: #6d6b77;
+          text-align: center;
+        }
+
+        .panduan-empty i {
+          font-size: 2rem;
+          color: #8b8ea8;
+        }
+
+        @media (max-width: 575px) {
+          /* tombol unduh pindah ke bawah teks agar judul tidak terjepit */
+          .panduan-item {
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: start;
+            padding: 0.9rem 1rem;
+          }
+
+          .panduan-unduh {
+            grid-column: 2;
+            justify-self: start;
+            margin-top: 0.35rem;
+          }
+
+          .panduan-list {
+            max-height: none;
+            min-height: 0;
+          }
+        }
+
+        @media (max-width: 420px) {
+          /* 3 pill muat di layar 360px: ikon disembunyikan, padding dirapatkan */
+          .panel-switch {
+            display: flex;
+            max-width: 100%;
+          }
+
+          .panel-switch .nav-link {
+            padding: 0.5rem 0.8rem;
+            font-size: 0.85rem;
+            white-space: nowrap;
+          }
+
+          .panel-switch .nav-link i {
+            display: none;
+          }
+        }
+
         @media (max-width: 750px) {
           /* beri ruang untuk tombol mobile yang fixed di kanan atas */
           .panel-switch-wrap {
@@ -613,6 +770,11 @@
           .laporan-wrap {
             padding: 1.25rem 1rem;
           }
+        }
+
+        /* Badge reCAPTCHA di atas panel auth (z-index 1) dan toggle mobile (1050) */
+        .grecaptcha-badge {
+          z-index: 1060;
         }
       </style>
 
@@ -625,8 +787,8 @@
     <div class="authentication-wrapper authentication-cover">
       <!-- Mobile switch button -->
       <button type="button" id="authMobileToggle" class="auth-mobile-toggle d-lg-none">
-        <i class="ri-map-pin-2-line"></i>
-        <span id="authMobileToggleText">Lihat Lokasi Program</span>
+        <i class="ri-information-line"></i>
+        <span id="authMobileToggleText">Lihat Info &amp; Panduan</span>
       </button>
       <!-- /Logo -->
       <div class="authentication-inner row m-0">
@@ -640,6 +802,9 @@
                 </button>
                 <button type="button" class="nav-link" id="tabLaporan" data-bs-toggle="pill" data-bs-target="#paneLaporan" role="tab" aria-controls="paneLaporan" aria-selected="false">
                   <i class="ri-file-chart-line"></i> Laporan Kegiatan
+                </button>
+                <button type="button" class="nav-link" id="tabPanduan" data-bs-toggle="pill" data-bs-target="#panePanduan" role="tab" aria-controls="panePanduan" aria-selected="false">
+                  <i class="ri-book-open-line"></i> Panduan
                 </button>
               </div>
             </div>
@@ -728,6 +893,14 @@
                 </div>
               </div>
             </div>
+
+            <div class="tab-pane fade" id="panePanduan" role="tabpanel" aria-labelledby="tabPanduan">
+              <div class="laporan-wrap">
+                <h2 class="laporan-title">Panduan</h2>
+                <p class="lokasi-panel-subtitle mb-4">Dokumen panduan KKN Tematik Sampah Tuntas yang bisa diunduh.</p>
+                @include('panduan._publik', ['panduanList' => $panduanList ?? collect()])
+              </div>
+            </div>
             </div>
           </div>
         </div>
@@ -758,6 +931,9 @@
               @csrf
               @method('PUT')
               <input type="hidden" id="lokasi" name="lokasi" value="" />
+              @if($recaptchaSiteKey)
+                <input type="hidden" name="g-recaptcha-response" value="" />
+              @endif
               <div class="form-floating form-floating-outline mb-5">
                 <input
                   type="text"
@@ -854,10 +1030,20 @@
 
     <script src="../../assets/vendor/libs/toastr/toastr.js"></script>
     <script src="{{ asset('js/drilldown.js') }}?v={{ filemtime(public_path('js/drilldown.js')) }}"></script>
+    @if($recaptchaSiteKey)
+      <script src="https://www.google.com/recaptcha/api.js?render={{ urlencode($recaptchaSiteKey) }}" async defer></script>
+    @endif
   </body>
 </html>
 <script>
 $(function(){
+
+    // Mobile: panel kiri (Home/Laporan/Panduan) dan form login bergantian tampil
+    function setMobilePanelVisible(visible) {
+      $(".authentication-inner").toggleClass("show-lokasi", visible);
+      $("#authMobileToggleText").text(visible ? "Kembali ke Formulir Masuk" : "Lihat Info & Panduan");
+      $("#authMobileToggle i").toggleClass("ri-arrow-left-line", visible).toggleClass("ri-information-line", !visible);
+    }
 
     // Token CSRF diperbarui dari respons server, tanpa reload halaman
     function setToken(token) {
@@ -866,12 +1052,41 @@ $(function(){
       $('meta[name="csrf-token"]').attr("content", token);
     }
 
+    var recaptchaSiteKey = @json($recaptchaSiteKey);
+
     $("#formAuthentication").on("submit",function(e, retried){
       var form = $(this);
-      var action = $(this).attr("action");
-      var id = $(this).attr("id");
+      var btn = $("#btnSubmit_"+form.attr("id"));
+      // Cegah double submit selama token/AJAX berjalan
+      if(btn.prop("disabled")) return false;
+      if(!recaptchaSiteKey){
+        sendLogin(form, retried);
+        return false;
+      }
+      if(!window.grecaptcha){
+        toastr.error("Verifikasi keamanan gagal dimuat. Periksa koneksi/adblock lalu muat ulang halaman.");
+        return false;
+      }
+      btn.prop("disabled",true);
+      // Token diambil saat submit (berlaku 2 menit, sekali pakai)
+      grecaptcha.ready(function(){
+        grecaptcha.execute(recaptchaSiteKey, {action: 'login'}).then(function(token){
+          form.find("input[name='g-recaptcha-response']").val(token);
+          btn.prop("disabled",false);
+          sendLogin(form, retried);
+        }, function(){
+          btn.prop("disabled",false);
+          toastr.error("Verifikasi keamanan gagal, silakan coba lagi.");
+        });
+      });
+      return false;
+    })
+
+    function sendLogin(form, retried){
+      var action = form.attr("action");
+      var id = form.attr("id");
       var btnHtml = $("#btnSubmit_"+id+"").html();
-      var dString = $(this).serialize();
+      var dString = form.serialize();
       $.ajax({
         dataType:'json',
         type:'post',
@@ -893,9 +1108,9 @@ $(function(){
             setToken(ret.token)
             toastr.warning(ret.messages)
             if(ret.messages && ret.messages.indexOf("lokasi program") !== -1){
-              $(".authentication-inner").addClass("show-lokasi");
-              $("#authMobileToggleText").text("Kembali ke Formulir Masuk");
-              $("#authMobileToggle i").removeClass("ri-map-pin-2-line").addClass("ri-arrow-left-line");
+              // Grid lokasi ada di tab Home; pindah dulu bila user sedang membuka tab lain
+              bootstrap.Tab.getOrCreateInstance(document.getElementById("tabHome")).show();
+              setMobilePanelVisible(true);
             }
           }
         },
@@ -913,8 +1128,7 @@ $(function(){
           toastr.error(xhr.status === 429 ? "Terlalu banyak percobaan, coba lagi nanti." : "Terjadi kesalahan, silakan coba lagi.");
         }
       })
-      return false;
-    })
+    }
 
     $("#lokasiSearch").on("input", function () {
       var keyword = $(this).val().toLowerCase().trim();
@@ -949,12 +1163,33 @@ $(function(){
       });
 
       $("#authMobileToggle").on("click", function () {
-        var $inner = $(".authentication-inner");
-        $inner.toggleClass("show-lokasi");
-        var showingLokasi = $inner.hasClass("show-lokasi");
-        $("#authMobileToggleText").text(showingLokasi ? "Kembali ke Formulir Masuk" : "Lihat Lokasi Program");
-        $(this).find("i").toggleClass("ri-map-pin-2-line ri-arrow-left-line");
+        setMobilePanelVisible(!$(".authentication-inner").hasClass("show-lokasi"));
       });
+
+      $("#panduanSearch").on("input", function () {
+        var keyword = $(this).val().toLowerCase().trim();
+        var $items = $("#panduanList .panduan-item");
+        var visibleCount = 0;
+
+        $items.each(function () {
+          var isMatch = String($(this).data("search")).indexOf(keyword) !== -1;
+          $(this).toggleClass("d-none", !isMatch);
+          if (isMatch) {
+            visibleCount++;
+          }
+        });
+
+        var total = $("#panduanCount").data("total");
+        $("#panduanCount").text(keyword === "" ? total + " panduan" : visibleCount + " dari " + total + " panduan");
+        $("#panduanList").toggleClass("d-none", visibleCount === 0);
+        $("#panduanNoResult").toggleClass("d-none", visibleCount > 0);
+      });
+
+      // Link #panduan bisa dibagikan untuk langsung membuka tab Panduan
+      if (window.location.hash === "#panduan") {
+        bootstrap.Tab.getOrCreateInstance(document.getElementById("tabPanduan")).show();
+        setMobilePanelVisible(true);
+      }
     
 })
 </script>

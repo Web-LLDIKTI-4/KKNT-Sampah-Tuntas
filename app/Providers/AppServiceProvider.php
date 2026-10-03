@@ -28,5 +28,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Form publik tanpa login (saran): per IP
         RateLimiter::for('public-form', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
+
+        // Unduhan panduan publik di halaman login: per IP, cegah penyedotan bandwidth
+        RateLimiter::for('public-download', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
     }
 }

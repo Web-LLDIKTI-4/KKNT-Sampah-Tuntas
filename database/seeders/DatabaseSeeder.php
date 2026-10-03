@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $password = config('app.seed_password') ?: Str::password(12, symbols: false);
 
         $this->callWith(SimulasiSeeder::class, ['password' => $password]);
+        $this->call(PanduanSeeder::class);
 
         $this->command->warn('Password semua akun dummy: '.$password);
     }
