@@ -16,7 +16,7 @@
 /public/build
 /public/hot
 /public/storage
-/public/.user.ini
+.user.ini
 /storage/*.key
 /storage/pail
 /vendor
