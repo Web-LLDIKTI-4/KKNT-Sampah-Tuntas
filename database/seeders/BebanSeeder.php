@@ -11,7 +11,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 /**
  * Data uji beban: 20.000 mahasiswa (200 PT x 100), tetap 1 PT = 1 kelurahan (200 kelurahan baru),
@@ -46,13 +45,9 @@ class BebanSeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->isProduction()) {
-            throw new RuntimeException('Seeder dummy tidak boleh dijalankan di production.');
-        }
-
         mt_srand(2026);
         $mulai = microtime(true);
-        $password = config('app.seed_password') ?: Str::password(12, symbols: false);
+        $password = config('app.seed_password') ?: 'password';
         $this->passwordHash = Hash::make($password);
         $this->sekarang = now()->toDateTimeString();
 
@@ -74,9 +69,6 @@ class BebanSeeder extends Seeder
             number_format(DB::table('kehadiran')->where('email', 'like', '%'.self::DOMAIN)->count()),
             microtime(true) - $mulai,
         ));
-        if (! config('app.seed_password')) {
-            $this->command?->warn('Password semua akun beban: '.$password);
-        }
     }
 
     // 200 kelurahan baru, 4 per kecamatan

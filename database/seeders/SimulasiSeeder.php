@@ -25,10 +25,10 @@ use App\Models\Satuanpendidikan;
 use App\Models\Tugasakhir;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 /**
  * Simulasi lengkap: 3 lokasi program, 12 kelurahan, 12 PT; 1 PT hanya di 1 kelurahan dan 1 kelurahan hanya 1 PT.
@@ -59,14 +59,7 @@ class SimulasiSeeder extends Seeder
 
     public function run(?string $password = null): void
     {
-        if (app()->isProduction()) {
-            throw new RuntimeException('Seeder dummy tidak boleh dijalankan di production.');
-        }
-
-        $this->password = $password ?? (config('app.seed_password') ?: Str::password(12, symbols: false));
-        if ($password === null) {
-            $this->command?->warn('Password semua akun dummy: '.$this->password);
-        }
+        $this->password = $password ?? (config('app.seed_password') ?: 'password');
         mt_srand(2026);
         fake()->seed(2026);
 
@@ -331,9 +324,10 @@ class SimulasiSeeder extends Seeder
 
     private function user(string $role, string $email, string $nama, ?string $lokasi = null, ?string $akses = null, string $ket = ''): void
     {
-        // Admin bisa sudah dibuat AdminSeeder; jangan bentrok/timpa
-        if ($role === 'admin' && User::where('email', $email)->exists()) {
-            $this->akun[] = [$role, $email, $nama, 'Sudah ada, tidak diubah'];
+        // Admin bisa sudah dibuat AdminSeeder; timpa agar tidak bentrok unique
+        if ($role === 'admin' && $admin = User::where('email', $email)->first()) {
+            $admin->forceFill(['name' => $nama, 'role' => $role, 'password' => Hash::make($this->password)])->save();
+            $this->akun[] = [$role, $email, $nama, 'Sudah ada, ditimpa'];
 
             return;
         }

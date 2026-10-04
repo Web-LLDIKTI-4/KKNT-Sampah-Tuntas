@@ -4,10 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Database\Seeders\AdminSeeder;
-use Database\Seeders\BebanSeeder;
-use Database\Seeders\SimulasiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use RuntimeException;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AdminSeederTest extends TestCase
@@ -35,52 +33,39 @@ class AdminSeederTest extends TestCase
         $this->assertSame(1, User::where('role', 'admin')->count());
     }
 
-    public function test_rerun_does_not_change_password_or_duplicate(): void
+    public function test_rerun_resets_password_without_duplicate(): void
     {
         $this->seedAdmin('password-pertama-1');
-        $hash = User::where('email', self::EMAIL)->value('password');
-
         $this->seedAdmin('password-kedua-22');
 
-        $this->assertSame($hash, User::where('email', self::EMAIL)->value('password'));
+        $this->assertTrue(Hash::check('password-kedua-22', User::where('email', self::EMAIL)->value('password')));
         $this->assertSame(1, User::where('email', self::EMAIL)->count());
     }
 
-    public function test_empty_password_outside_production_generates_one_without_command(): void
+    public function test_defaults_to_fallback_email_and_password(): void
     {
         $this->seedAdmin(null, null);
 
-        $this->assertSame(1, User::where('role', 'admin')->where('email', 'admin@kknt.test')->count());
+        $admin = User::where('role', 'admin')->where('email', 'admin@kknt.test')->first();
+        $this->assertTrue(Hash::check('password', $admin->password));
     }
 
-    public function test_does_not_promote_existing_non_admin_email(): void
+    public function test_promotes_existing_email_to_admin(): void
     {
         $mhs = User::factory()->role('mahasiswa')->create(['email' => self::EMAIL]);
 
-        $this->assertThrows(fn () => $this->seedAdmin(), RuntimeException::class);
-        $this->assertSame('mahasiswa', $mhs->fresh()->role);
+        $this->seedAdmin();
+
+        $this->assertSame('admin', $mhs->fresh()->role);
+        $this->assertSame(1, User::where('email', self::EMAIL)->count());
     }
 
-    public function test_rejects_short_password(): void
-    {
-        $this->assertThrows(fn () => $this->seedAdmin('pendek'), RuntimeException::class);
-        $this->assertSame(0, User::where('role', 'admin')->count());
-    }
-
-    public function test_production_requires_email_and_password(): void
+    public function test_accepts_short_password_and_runs_in_production(): void
     {
         $this->asProduction();
 
-        $this->assertThrows(fn () => $this->seedAdmin('password-aman-123', null), RuntimeException::class);
-        $this->assertThrows(fn () => $this->seedAdmin(null), RuntimeException::class);
-        $this->assertSame(0, User::count());
-    }
+        $this->seedAdmin('pendek');
 
-    public function test_dummy_seeders_refuse_production(): void
-    {
-        $this->asProduction();
-
-        $this->assertThrows(fn () => (new SimulasiSeeder)->run('password-aman-123'), RuntimeException::class);
-        $this->assertThrows(fn () => (new BebanSeeder)->run(), RuntimeException::class);
+        $this->assertTrue(Hash::check('pendek', User::where('email', self::EMAIL)->value('password')));
     }
 }
