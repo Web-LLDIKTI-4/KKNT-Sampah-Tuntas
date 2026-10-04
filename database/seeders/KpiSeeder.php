@@ -38,8 +38,9 @@ class KpiSeeder extends Seeder
             ->get();
 
         foreach ($ketua as $pj) {
-            foreach ($kpis as $kpi) {
-                $this->isiCapaian($pj, $kpi);
+            // UNIQUE(email, bulan): tiap KPI di bulan berbeda, mundur dari bulan ini
+            foreach ($kpis->values() as $mundur => $kpi) {
+                $this->isiCapaian($pj, $kpi, $mundur);
             }
         }
 
@@ -94,7 +95,7 @@ class KpiSeeder extends Seeder
         }
     }
 
-    private function isiCapaian(Pjdesa $pj, Kpi $kpi): void
+    private function isiCapaian(Pjdesa $pj, Kpi $kpi, int $mundur): void
     {
         $acak = random_int(1, 100);
         if ($acak > 85) {
@@ -105,6 +106,7 @@ class KpiSeeder extends Seeder
             'id_kpi' => $kpi->id_kpi,
             'id_pjdesa' => $pj->id_pjdesa,
             'email' => $pj->email,
+            'bulan' => now()->startOfMonth()->subMonths($mundur)->toDateString(),
             'status_capaian' => $acak <= 60 ? 'Y' : ($acak <= 75 ? 'P' : 'N'),
         ]);
     }

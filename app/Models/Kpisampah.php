@@ -25,29 +25,29 @@ class Kpisampah extends Model
         'persen_pengurangan' => 'float',
     ];
 
-    // Target KPI terpenuhi bila persentase pengurangan sampah per bulan tidak lebih dari 20%
+    // Target KPI terpenuhi bila persentase pengurangan sampah per bulan minimal 20%
     public const TARGET_PENGURANGAN = 20.0;
 
     public static function terpenuhi($persen): ?bool
     {
-        return $persen === null ? null : (float) $persen <= self::TARGET_PENGURANGAN;
+        return $persen === null ? null : (float) $persen >= self::TARGET_PENGURANGAN;
     }
 
     // Klaster PT/wilayah berdasarkan persentase pengurangan sampah
-    public const BATAS_KUNING = 30.0;
+    public const BATAS_KUNING = 10.0;
 
     public const KLASTER = [
-        'hijau' => ['label' => 'Hijau', 'ket' => '≤ 20%', 'sel' => 'table-success', 'badge' => 'bg-success', 'rgb' => 'C6EFCE'],
-        'kuning' => ['label' => 'Kuning', 'ket' => '> 20% – 30%', 'sel' => 'table-warning', 'badge' => 'bg-warning', 'rgb' => 'FFEB9C'],
-        'merah' => ['label' => 'Merah', 'ket' => '> 30%', 'sel' => 'table-danger', 'badge' => 'bg-danger', 'rgb' => 'FFC7CE'],
+        'hijau' => ['label' => 'Hijau', 'ket' => '≥ 20%', 'sel' => 'table-success', 'badge' => 'bg-success', 'rgb' => 'C6EFCE'],
+        'kuning' => ['label' => 'Kuning', 'ket' => '10% – < 20%', 'sel' => 'table-warning', 'badge' => 'bg-warning', 'rgb' => 'FFEB9C'],
+        'merah' => ['label' => 'Merah', 'ket' => '< 10%', 'sel' => 'table-danger', 'badge' => 'bg-danger', 'rgb' => 'FFC7CE'],
     ];
 
     public static function klaster($persen): ?string
     {
         return match (true) {
             $persen === null => null,
-            (float) $persen <= self::TARGET_PENGURANGAN => 'hijau',
-            (float) $persen <= self::BATAS_KUNING => 'kuning',
+            (float) $persen >= self::TARGET_PENGURANGAN => 'hijau',
+            (float) $persen >= self::BATAS_KUNING => 'kuning',
             default => 'merah',
         };
     }
@@ -58,14 +58,14 @@ class Kpisampah extends Model
         return self::KLASTER[static::klaster($persen)]['sel'] ?? '';
     }
 
-    // Capaian KPI: 100% bila terpenuhi, selain itu proporsional 20 / persen × 100
+    // Capaian KPI: min(100, persen / 20 × 100)
     public static function capaian($persen): ?float
     {
         if ($persen === null) {
             return null;
         }
 
-        return static::terpenuhi($persen) ? 100.0 : round(self::TARGET_PENGURANGAN / (float) $persen * 100, 2);
+        return min(100.0, round((float) $persen / self::TARGET_PENGURANGAN * 100, 2));
     }
 
     // bagian / total × 100; null bila total 0

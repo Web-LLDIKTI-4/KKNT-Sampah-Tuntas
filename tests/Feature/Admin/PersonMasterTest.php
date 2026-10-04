@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Desa;
 use App\Models\Dpl;
 use App\Models\Dplmentoring;
 use App\Models\Kpicapaian;
@@ -9,6 +10,7 @@ use App\Models\Logkegiatan;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Nilaikonversi;
+use App\Models\Pjdesa;
 use App\Models\Tugasakhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -159,6 +161,24 @@ class PersonMasterTest extends TestCase
         }, ExcelFormat::XLSX);
 
         return UploadedFile::fake()->createWithContent('import.xlsx', $content);
+    }
+
+    public function test_listing_flags_ketua_kelompok_for_admin_and_pt(): void
+    {
+        $ketua = Mahasiswa::factory()->create(['kodept' => '041996']);
+        $anggota = Mahasiswa::factory()->create(['kodept' => '041996']);
+        Pjdesa::create(['email' => $ketua->email, 'id_desa' => Desa::factory()->create()->id_desa]);
+        $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+
+        $this->loginAs('admin');
+        $rows = collect($this->getJson('mahasiswa/listdataserver?draw=1&start=0&length=10', $ajax)->assertOk()->json('data'))->keyBy('email');
+        $this->assertTrue($rows[$ketua->email]['ketua_kelompok']);
+        $this->assertFalse($rows[$anggota->email]['ketua_kelompok']);
+
+        $this->loginAs('pt', ['email' => '041996']);
+        $rows = collect($this->getJson('ptmahasiswa/listdataserver?draw=1&start=0&length=10', $ajax)->assertOk()->json('data'))->keyBy('email');
+        $this->assertTrue($rows[$ketua->email]['ketua_kelompok']);
+        $this->assertFalse($rows[$anggota->email]['ketua_kelompok']);
     }
 
     public function test_listing_shows_pt_and_lokasi(): void

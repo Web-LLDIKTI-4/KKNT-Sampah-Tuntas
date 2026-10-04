@@ -41,6 +41,10 @@ class Mahasiswa extends Model
     {
         return $this->hasOne(Satuanpendidikan::class,'npsn','kodept');
     }
+    public function pjdesa()
+    {
+        return $this->hasOne(Pjdesa::class,'email','email');
+    }
     public function dplmentoring()
     {
         return $this->hasOne(Dplmentoring::class, 'email_mahasiswa', 'email');

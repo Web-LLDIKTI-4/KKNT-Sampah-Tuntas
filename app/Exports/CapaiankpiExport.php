@@ -60,6 +60,7 @@ class CapaiankpiExport implements FromCollection, WithHeadings
 
             return [
                 'No' => $key + 1,
+                'Bulan' => $item->bulan ? \Illuminate\Support\Carbon::parse($item->bulan)->translatedFormat('F Y') : '-',
                 'Lokasi Kegiatan' => $lokasi,
                 'PJ Desa' => $pjdesa,
                 'Desa' => $desa,
@@ -81,6 +82,7 @@ class CapaiankpiExport implements FromCollection, WithHeadings
         // Tentukan judul kolom
         return [
             'No',
+            'Bulan',
             'Lokasi Kegiatan',
             'PJ Desa',
             'Desa',

@@ -143,10 +143,12 @@ class BebanSeeder extends Seeder
                 $idPj = (string) Str::uuid7();
                 $this->tambah('pj_desa', ['id_pjdesa' => $idPj, 'email' => $email, 'id_desa' => $idDesa] + $this->waktu());
                 $ketuaPertama ??= [$idPj, $email];
-                foreach ($kpi as $idKpi) {
+                // UNIQUE(email, bulan): tiap KPI di bulan berbeda, mundur dari bulan ini
+                foreach ($kpi as $mundur => $idKpi) {
                     if (mt_rand(1, 100) <= 85) {
                         $this->tambah('kpi_capaian', [
                             'id_capaian' => (string) Str::uuid7(), 'id_kpi' => $idKpi, 'id_pjdesa' => $idPj, 'email' => $email,
+                            'bulan' => now()->startOfMonth()->subMonths($mundur)->toDateString(),
                             'status_capaian' => array_keys(Kpicapaian::STATUS)[mt_rand(0, 2)], 'tautan' => 'https://drive.google.com/beban',
                             'permasalahan' => 'Warga belum rutin memilah sampah', 'solusi' => 'Sosialisasi door to door',
                             'kendala' => 'Tempat sampah terpilah',

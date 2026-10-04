@@ -62,11 +62,13 @@ class ActivitySeeder extends Seeder
 
         // Capaian KPI diisi oleh ketua kelompok (pj desa)
         foreach (Pjdesa::all() as $pj) {
-            foreach ($kpiIds as $idKpi) {
+            // UNIQUE(email, bulan): tiap KPI di bulan berbeda, mundur dari bulan ini
+            foreach ($kpiIds->values() as $mundur => $idKpi) {
                 Kpicapaian::factory()->create([
                     'id_kpi' => $idKpi,
                     'id_pjdesa' => $pj->id_pjdesa,
                     'email' => $pj->email,
+                    'bulan' => now()->startOfMonth()->subMonths($mundur)->toDateString(),
                 ]);
             }
         }

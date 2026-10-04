@@ -8,7 +8,7 @@
 <x-page-header
     icon="ri-line-chart-line"
     :title="$isPt ? 'Dashboard KPI Perguruan Tinggi' : 'Dashboard KPI'"
-    :subtitle="'Capaian KPI diukur dari persentase pengurangan sampah per bulan; target terpenuhi bila ≤ '.(int) \App\Models\Kpisampah::TARGET_PENGURANGAN.'%.'" />
+    :subtitle="'Capaian KPI diukur dari persentase pengurangan sampah per bulan; target terpenuhi bila ≥ '.(int) \App\Models\Kpisampah::TARGET_PENGURANGAN.'%.'" />
 
 <div class="card mb-6">
     <div class="card-header d-flex justify-content-between align-items-center">

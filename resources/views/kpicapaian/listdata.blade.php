@@ -4,6 +4,7 @@
             <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
+                    <th class="text-center">Bulan</th>
                     <th>Id kpicapaian</th>
                     <th>Lokasi Kegiatan</th>
                     <th>Nama KPI</th>
@@ -22,12 +23,28 @@
 </div>
 <script type="text/javascript">
   $(function () {
+  // Teks dari HTML via DOMParser (inert); <br> jadi baris baru, output di-escape lewat .text()
+  function multilineText(data) {
+    var body = new DOMParser().parseFromString(data || '', 'text/html').body;
+    body.querySelectorAll('br').forEach(function (br) {
+      var next = br.nextSibling;
+      // nl2br sudah menyisakan "\n" setelah <br>; jangan digandakan
+      if (next && next.nodeType === 3 && /^\r?\n/.test(next.nodeValue)) {
+        br.parentNode.removeChild(br);
+      } else {
+        br.parentNode.replaceChild(document.createTextNode('\n'), br);
+      }
+    });
+    return $('<div class="text-wrap text-preline"></div>').text(body.textContent || '').prop('outerHTML');
+  }
+
     var table = $('#dataTable').DataTable({
         seaching: true,
         lengthChange: true,
         processing: true,
         serverSide: true,
         scrollX: true,
+        order: [[1, 'desc']],
         ajax: "{{ route('kpicapaian.listdataserver') }}",
         language: {
             search: "",
@@ -37,6 +54,7 @@
         },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
+            {data: 'bulan_label', name: 'bulan', className: 'text-center', orderable: true, searchable: false},
             {data: 'id_capaian', name: 'id_capaian', visible:false},
             {data: 'lokasi', name: 'lokasi'},
             {data: 'nama_kpi', name: 'nama_kpi'},
@@ -44,36 +62,21 @@
                 data: 'permasalahan',
                 name: 'permasalahan',
                 render: function (data, type, row) {
-                    // Membuat sebuah div sementara untuk membersihkan tag HTML
-                    var tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = data;
-                    // Mengambil teks dari div tersebut yang sudah bersih dari tag HTML
-                    var strippedText = tempDiv.textContent || tempDiv.innerText || '';
-                    return "<div class='text-wrap'>" +strippedText+ "</div>";
+                    return multilineText(data);
                 }
             },
             {
                 data: 'solusi',
                 name: 'solusi',
                 render: function (data, type, row) {
-                    // Membuat sebuah div sementara untuk membersihkan tag HTML
-                    var tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = data;
-                    // Mengambil teks dari div tersebut yang sudah bersih dari tag HTML
-                    var strippedText = tempDiv.textContent || tempDiv.innerText || '';
-                    return "<div class='text-wrap'>" +strippedText+ "</div>";
+                    return multilineText(data);
                 }
             },
             {
                 data: 'kendala',
                 name: 'kendala',
                 render: function (data, type, row) {
-                    // Membuat sebuah div sementara untuk membersihkan tag HTML
-                    var tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = data;
-                    // Mengambil teks dari div tersebut yang sudah bersih dari tag HTML
-                    var strippedText = tempDiv.textContent || tempDiv.innerText || '';
-                    return "<div class='text-wrap'>" +strippedText+ "</div>";
+                    return multilineText(data);
                 }
             },
             {data: 'status_capaian', name: 'status_capaian', className: 'text-center'},

@@ -28,6 +28,24 @@ class DesaprofileTest extends TestCase
         $this->assertSame('Sampah', $profile->masalah);
     }
 
+    public function test_listdata_returns_sanitized_html_without_double_escape(): void
+    {
+        $this->loginAs('admin');
+        // Data lama yang tersimpan mentah (sebelum sanitasi saat simpan) tetap disanitasi saat tampil
+        Desaprofile::factory()->create([
+            'potensi' => '<p onclick="x()">Wisata <b>alam</b></p><script>alert(1)</script>',
+            'masalah' => '<img src=x onerror=alert(1)>Sampah',
+        ]);
+
+        $row = $this->getJson('desaprofile/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()->json('data.0');
+
+        $this->assertSame('<p>Wisata <b>alam</b></p>', $row['potensi']);
+        $this->assertSame('Sampah', $row['masalah']);
+        $this->assertStringNotContainsString('&lt;', $row['potensi']);
+        $this->assertStringNotContainsString('<script', $row['potensi']);
+    }
+
     public function test_required_fields_and_update(): void
     {
         $this->loginAs('admin');

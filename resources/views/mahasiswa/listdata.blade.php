@@ -8,8 +8,10 @@
         ['data' => 'phone', 'name' => 'phone'],
         ['data' => 'nm_lemb', 'name' => 'nm_lemb'],
         ['data' => 'location_program', 'name' => 'location_program'],
+        ['data' => 'ketua_kelompok', 'name' => 'ketua_kelompok', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
         ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'searchable' => false],
     ]"
+    :check="[7]"
 
 >
     <x-slot:thead>
@@ -21,6 +23,7 @@
             <th>Hp</th>
             <th>Perguruan Tinggi</th>
             <th>Lokasi Program KKN</th>
+            <th>Ketua Kelompok</th>
             <th width="1">Aksi</th>
         </tr>
     </x-slot:thead>

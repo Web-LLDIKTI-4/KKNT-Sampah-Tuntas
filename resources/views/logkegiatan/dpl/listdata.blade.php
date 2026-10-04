@@ -49,12 +49,9 @@
                     data: 'deskripsi',
                     name: 'deskripsi',
                     render: function (data, type, row) {
-                        // Membuat sebuah div sementara untuk membersihkan tag HTML
-                        var tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = data;
-                        // Mengambil teks dari div tersebut yang sudah bersih dari tag HTML
-                        var strippedText = tempDiv.textContent || tempDiv.innerText || '';
-                        return strippedText;
+                        // Ambil teks lewat DOMParser (inert), lalu escape ulang saat dirender
+                        var strippedText = new DOMParser().parseFromString(data || '', 'text/html').body.textContent || '';
+                        return $('<div></div>').text(strippedText).html();
                     }
                 },
                 {data: 'volume', name: 'volume', className: 'text-center'},

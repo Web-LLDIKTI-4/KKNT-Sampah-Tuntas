@@ -39,13 +39,16 @@ return new class extends Migration
             $table->timestamp('deleted_at')->nullable();
         });
 
-        // Ada baris lebih baru di (email, bulan) yang sama: created_at lebih besar, atau sama tapi id lebih besar
+        // Ada baris lebih baru di (email, bulan) yang sama: waktu lebih besar, atau sama tapi id lebih besar.
+        // COALESCE agar created_at NULL tetap terbandingkan (NULL > x selalu NULL di SQL)
+        $n = "COALESCE(n.created_at, n.updated_at, '1970-01-01')";
+        $c = "COALESCE(c.created_at, c.updated_at, '1970-01-01')";
         $ids = DB::table('kpi_capaian as c')
             ->whereExists(fn (Builder $q) => $q->from('kpi_capaian as n')
                 ->whereColumn('n.email', 'c.email')
                 ->whereColumn('n.bulan', 'c.bulan')
-                ->where(fn (Builder $w) => $w->whereColumn('n.created_at', '>', 'c.created_at')
-                    ->orWhere(fn (Builder $e) => $e->whereColumn('n.created_at', 'c.created_at')
+                ->where(fn (Builder $w) => $w->whereRaw("{$n} > {$c}")
+                    ->orWhere(fn (Builder $e) => $e->whereRaw("{$n} = {$c}")
                         ->whereColumn('n.id_capaian', '>', 'c.id_capaian'))))
             ->pluck('c.id_capaian');
 

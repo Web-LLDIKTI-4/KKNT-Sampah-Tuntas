@@ -30,7 +30,7 @@
         @foreach (Kpisampah::KLASTER as $k)
             <span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span> {{ $k['ket'] }}{{ $loop->last ? '.' : ';' }}
         @endforeach
-        Target KPI terpenuhi (capaian 100%) bila pengurangan sampah &le; {{ $target }}%.
+        Target KPI terpenuhi (capaian 100%) bila pengurangan sampah &ge; {{ $target }}%.
     </p>
 
     <h6 class="mb-2">Sebaran Lokasi (Kecamatan)</h6>
@@ -108,7 +108,7 @@
                         <th>Lokasi</th>
                         <th class="text-center">Jml Mhs</th>
                         <th class="text-center">DPL</th>
-                        <th>Ketua Kelompok</th>
+                        <th class="text-center">Ketua Kelompok</th>
                         <th class="text-center">% Pengurangan Sampah</th>
                         <th class="text-center">Detail</th>
                     </tr>
@@ -121,7 +121,7 @@
                             <td>{{ $row->lokasi }}</td>
                             <td class="text-center">{{ $num($row->jumlah_mahasiswa) }}</td>
                             <td class="text-center">{{ $num($row->jumlah_dpl) }}</td>
-                            <td>{{ $row->nama_ketua }}</td>
+                            <td class="text-center">{{ $num($row->jumlah_ketua) }}</td>
                             <td class="text-center {{ $sel($row->persen) }}">
                                 {{ $persen($row->persen) }}
                                 @if ($row->persen !== null)
@@ -129,15 +129,14 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-detail-toggle="detail-{{ $row->id_pjdesa }}">Detail</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-detail-toggle="detail-{{ $row->kodept }}">Detail</button>
                             </td>
                         </tr>
-                        <tr id="detail-{{ $row->id_pjdesa }}" class="d-none">
+                        <tr id="detail-{{ $row->kodept }}" class="d-none">
                             <td colspan="8" class="bg-lighter">
                                 <table class="table table-sm table-bordered mb-0 bg-white">
                                     <thead>
                                         <tr>
-                                            <th>KPI</th>
                                             <th>Permasalahan</th>
                                             <th>Solusi</th>
                                             <th>Kebutuhan Dukungan</th>
@@ -147,14 +146,13 @@
                                     <tbody>
                                         @forelse ($row->capaian as $isian)
                                             <tr>
-                                                <td>{{ $isian->kpi->nama_kpi ?? '-' }}</td>
                                                 <td>{!! nl2br(e($isian->permasalahan)) !!}</td>
                                                 <td>{!! nl2br(e($isian->solusi)) !!}</td>
                                                 <td>{!! nl2br(e($isian->kendala)) !!}</td>
                                                 <td class="text-center">{!! \App\Models\Kpicapaian::statusBadge($isian->status_capaian) !!}</td>
                                             </tr>
                                         @empty
-                                            <tr><td colspan="5" class="text-center text-muted">Ketua kelompok belum mengisi capaian KPI</td></tr>
+                                            <tr><td colspan="4" class="text-center text-muted">Belum mengisi capaian</td></tr>
                                         @endforelse
                                     </tbody>
                                 </table>

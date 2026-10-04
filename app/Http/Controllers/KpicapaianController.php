@@ -10,6 +10,8 @@ use App\Models\Kpicapaian;
 use App\Models\Pjdesa;
 use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
@@ -36,7 +38,7 @@ class KpicapaianController extends Controller
 
         $data = Kpicapaian::ownedBy($request->user())
             ->with(['kpi', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
-            ->orderByDesc('created_at')
+            ->orderByDesc('bulan')->orderByDesc('created_at')
             ->get();
 
         return DataTables::of($data)
@@ -51,6 +53,8 @@ class KpicapaianController extends Controller
                 return e($lokasi).'<br /> '.e($desa->kecamatan->kecamatan).', '.e($desa->desa);
             })
             ->addColumn('nama_kpi', fn (Kpicapaian $row) => $row->kpi->nama_kpi ?? '')
+            // Label tampilan; kolom 'bulan' mentah (Y-m-d) tetap dikirim untuk order
+            ->addColumn('bulan_label', fn (Kpicapaian $row) => $row->bulan ? Carbon::parse($row->bulan)->translatedFormat('F Y') : '-')
             ->editColumn('permasalahan', fn (Kpicapaian $row) => nl2br(e($row->permasalahan)))
             ->editColumn('solusi', fn (Kpicapaian $row) => nl2br(e($row->solusi)))
             ->editColumn('kendala', fn (Kpicapaian $row) => nl2br(e($row->kendala)))
@@ -75,7 +79,12 @@ class KpicapaianController extends Controller
 
     public function insert(KpicapaianRequest $request)
     {
-        Kpicapaian::create($this->payload($request));
+        try {
+            Kpicapaian::create($this->payload($request));
+        } catch (UniqueConstraintViolationException) {
+            // Race: dua submit bersamaan lolos validasi, UNIQUE(email,bulan) menolak yang kedua
+            return $this->failed(KpicapaianRequest::DUPLIKAT_BULAN);
+        }
 
         return $this->saved('Capaian Key performance indicator berhasil disimpan');
     }
@@ -97,7 +106,11 @@ class KpicapaianController extends Controller
             return $this->notFound();
         }
 
-        $capaian->update($this->payload($request));
+        try {
+            $capaian->update($this->payload($request));
+        } catch (UniqueConstraintViolationException) {
+            return $this->failed(KpicapaianRequest::DUPLIKAT_BULAN);
+        }
 
         return $this->saved('Capaian key performance indicator berhasil disimpan');
     }
@@ -127,6 +140,7 @@ class KpicapaianController extends Controller
         $email = $request->user()->email;
 
         return $request->safe()->only(self::FIELDS) + [
+            'bulan' => $request->bulan(),
             'email' => $email,
             'id_pjdesa' => Pjdesa::where('email', $email)->value('id_pjdesa'),
         ];

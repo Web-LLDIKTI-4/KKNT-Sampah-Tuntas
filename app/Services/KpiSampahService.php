@@ -197,7 +197,7 @@ class KpiSampahService
             'nama_pt' => $namaPt[$kodept] ?? $kodept,
             'persen' => $r->persen_pengurangan,
             'klaster' => Kpisampah::klaster($r->persen_pengurangan),
-        ])->sortBy('persen');
+        ])->sortByDesc('persen');
     }
 
     // Kelurahan tiap ketua kelompok: pilihan lokasi tahun berjalan, fallback penempatan pj_desa
@@ -238,9 +238,8 @@ class KpiSampahService
             ->groupBy('kodept', 'location_program')
             ->selectRaw('kodept, location_program, COUNT(*) as jumlah')
             ->get()->keyBy(fn ($r) => $r->kodept.'|'.$r->location_program);
-        // Nama KPI tetap di-eager load (view detail menampilkannya); urut bulan terbaru
-        $capaian = Kpicapaian::with('kpi:id_kpi,nama_kpi')
-            ->whereIn('email', $ketua->pluck('email'))
+        // Urut bulan terbaru
+        $capaian = Kpicapaian::whereIn('email', $ketua->pluck('email'))
             ->orderByDesc('bulan')->orderByDesc('created_at')
             ->get();
 

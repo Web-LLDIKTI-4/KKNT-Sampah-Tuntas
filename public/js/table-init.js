@@ -6,6 +6,13 @@ $(function () {
             return; // hindari inisialisasi ganda
         }
 
+        // data-check: kolom boolean -> ikon centang, '-' bila false
+        var check = $table.data('check') || [];
+        var columnDefs = check.length ? [{ targets: check, render: function (data, type) {
+            if (type !== 'display') return data;
+            return (data === true || data === 1 || data === '1') ? '<i class="ri-check-line text-success" aria-label="Ya"></i>' : '-';
+        } }] : [];
+
         $table.DataTable({
             processing: true,
             serverSide: true,
@@ -14,6 +21,7 @@ $(function () {
             order: $table.data('order'),
             searching: $table.data('searching'),
             lengthChange: $table.data('length-change'),
+            columnDefs: columnDefs,
             language: {
                 search: "",
                 searchPlaceholder: "Cari...",

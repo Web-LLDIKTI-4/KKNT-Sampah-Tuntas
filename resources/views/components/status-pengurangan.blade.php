@@ -1,5 +1,5 @@
 @props(['persen' => null])
-{{-- Persentase pengurangan sampah + status & capaian KPI (terpenuhi bila <= Kpisampah::TARGET_PENGURANGAN) --}}
+{{-- Persentase pengurangan sampah + status & capaian KPI (terpenuhi bila >= Kpisampah::TARGET_PENGURANGAN) --}}
 @php
     $persen = $persen === null ? null : (float) $persen;
     $terpenuhi = \App\Models\Kpisampah::terpenuhi($persen);

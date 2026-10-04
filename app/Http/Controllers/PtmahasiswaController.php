@@ -22,7 +22,8 @@ class PtmahasiswaController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $data = Mahasiswa::visibleTo($request->user())->with(['sp', 'locationProgram'])->get();
+        $data = Mahasiswa::visibleTo($request->user())->with(['sp', 'locationProgram'])
+            ->withExists('pjdesa as ketua_kelompok')->get();
 
         return DataTables::of($data)
             ->addIndexColumn()

@@ -187,8 +187,9 @@ class SimulasiSeeder extends Seeder
 
             if ($isKetua) {
                 $pj = Pjdesa::create(['email' => $mhs->email, 'id_desa' => $desa->id_desa]);
-                foreach ($kpis as $kpi) {
-                    $this->capaian($pj, $kpi);
+                // UNIQUE(email, bulan): tiap KPI di bulan berbeda, mundur dari bulan ini
+                foreach ($kpis->values() as $mundur => $kpi) {
+                    $this->capaian($pj, $kpi, $mundur);
                 }
             }
         }
@@ -228,7 +229,7 @@ class SimulasiSeeder extends Seeder
     }
 
     // Isian permasalahan/solusi per KPI; sebagian ketua belum mengisi
-    private function capaian(Pjdesa $pj, Kpi $kpi): void
+    private function capaian(Pjdesa $pj, Kpi $kpi, int $mundur): void
     {
         $acak = mt_rand(1, 100);
         if ($acak > 85) {
@@ -239,6 +240,7 @@ class SimulasiSeeder extends Seeder
             'id_kpi' => $kpi->id_kpi,
             'id_pjdesa' => $pj->id_pjdesa,
             'email' => $pj->email,
+            'bulan' => now()->startOfMonth()->subMonths($mundur)->toDateString(),
             'status_capaian' => $acak <= 60 ? 'Y' : ($acak <= 75 ? 'P' : 'N'),
         ]);
     }

@@ -41,21 +41,17 @@
         columnDefs: [
             {
                 render: function (data, type, full, meta) {
-                    var tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = data;
-                    // Mengambil teks dari div tersebut yang sudah bersih dari tag HTML
-                    var strippedText = tempDiv.textContent || tempDiv.innerText || '';
-                    return "<div class='text-wrap'>" + strippedText + "</div>";
+                    // Ambil teks lewat DOMParser (inert), lalu escape ulang saat dirender
+                    var strippedText = new DOMParser().parseFromString(data || '', 'text/html').body.textContent || '';
+                    return $('<div class="text-wrap"></div>').text(strippedText).prop('outerHTML');
                 },
                 targets: 4
             },
             {
                 render: function (data, type, full, meta) {
-                    var tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = data;
-                    // Mengambil teks dari div tersebut yang sudah bersih dari tag HTML
-                    var strippedText = tempDiv.textContent || tempDiv.innerText || '';
-                    return "<div class='text-wrap'>" + strippedText + "</div>";
+                    // Ambil teks lewat DOMParser (inert), lalu escape ulang saat dirender
+                    var strippedText = new DOMParser().parseFromString(data || '', 'text/html').body.textContent || '';
+                    return $('<div class="text-wrap"></div>').text(strippedText).prop('outerHTML');
                 },
                 targets: 5
             }

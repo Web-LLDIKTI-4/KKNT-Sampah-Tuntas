@@ -14,6 +14,13 @@
     </div>
 
     <div class="form-group form-floating form-floating-outline mb-6">
+        <input type="date" name="bulan" required max="{{ now()->toDateString() }}" class="form-control form-control-sm">
+        <label>Tanggal Capaian</label>
+        <div class="form-text">Capaian disimpan per bulan (1 capaian per bulan).</div>
+        <span id="bulan_error" class="text-danger"></span>
+    </div>
+
+    <div class="form-group form-floating form-floating-outline mb-6">
         <textarea name="permasalahan" class="form-control" required maxlength="5000"></textarea>
         <label>Permasalahan</label>
     </div>

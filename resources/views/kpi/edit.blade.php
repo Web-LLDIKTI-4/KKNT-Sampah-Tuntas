@@ -6,5 +6,13 @@
         <input type="text" name="nama_kpi" class="form-control" required maxlength="255" value="{{$data->nama_kpi}}">
         <label>Nama KPI</label>
     </div>
+    <div class="form-group form-floating form-floating-outline mb-6">
+        <input type="number" name="target" class="form-control" step="0.01" min="0" value="{{$data->target}}">
+        <label>Target</label>
+    </div>
+    <div class="form-group form-floating form-floating-outline mb-6">
+        <input type="text" name="satuan" class="form-control" maxlength="50" value="{{$data->satuan}}">
+        <label>Satuan</label>
+    </div>
     <x-button.save formId="form-ubah">Simpan</x-button.save>
 </form>

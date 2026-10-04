@@ -16,6 +16,8 @@ class KpiController extends Controller
 {
     use RespondsWithJson;
 
+    private const FIELDS = ['nama_kpi', 'target', 'satuan'];
+
     public function index()
     {
         return view('kpi.index');
@@ -49,7 +51,7 @@ class KpiController extends Controller
 
     public function insert(KpiRequest $request)
     {
-        Kpi::create($request->safe()->only('nama_kpi'));
+        Kpi::create($request->safe()->only(self::FIELDS));
 
         return $this->saved('Key performance indicator berhasil disimpan');
     }
@@ -61,7 +63,7 @@ class KpiController extends Controller
 
     public function update(KpiRequest $request)
     {
-        Kpi::findOrFail($request->validated('id_kpi'))->update($request->safe()->only('nama_kpi'));
+        Kpi::findOrFail($request->validated('id_kpi'))->update($request->safe()->only(self::FIELDS));
 
         return $this->saved('Key performance indicator berhasil disimpan');
     }

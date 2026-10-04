@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Admin\ImportFileRequest;
 use App\Support\ActionButtons;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -46,7 +47,7 @@ abstract class PersonMasterController extends Controller
 
         $key = (new ($this->model()))->getKeyName();
 
-        return DataTables::of($this->model()::with(['sp', 'locationProgram'])->get())
+        return DataTables::of($this->listQuery()->get())
             ->addIndexColumn()
             ->addColumn('nm_lemb', fn ($row) => $row->sp->nm_lemb ?? 'Belum Terdata')
             ->addColumn('location_program', fn ($row) => $row->locationProgram->nama_lokasi ?? 'Belum Terdata')
@@ -57,6 +58,11 @@ abstract class PersonMasterController extends Controller
             ))
             ->rawColumns(['action'])
             ->make(true);
+    }
+
+    protected function listQuery(): Builder
+    {
+        return $this->model()::with(['sp', 'locationProgram']);
     }
 
     public function import()

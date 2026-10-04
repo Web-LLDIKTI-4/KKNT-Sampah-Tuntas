@@ -167,7 +167,7 @@ class KpiSampahTest extends TestCase
 
     /**
      * Dua PT di kecamatan yang sama, kelurahan berbeda: timbulan 100 kg masing-masing,
-     * pengurangan 25 kg (25% -> belum terpenuhi) dan 10 kg (10% -> terpenuhi).
+     * pengurangan 25 kg (25% -> terpenuhi) dan 10 kg (10% -> belum terpenuhi).
      */
     private function duaPt(string $bulan): array
     {
@@ -185,16 +185,30 @@ class KpiSampahTest extends TestCase
         return $hasil;
     }
 
-    public function test_kpi_target_met_at_or_below_twenty_percent_with_proportional_capaian(): void
+    public function test_kpi_target_met_at_or_above_twenty_percent_with_proportional_capaian(): void
     {
-        $this->assertTrue(Kpisampah::terpenuhi(0.0));
+        $this->assertFalse(Kpisampah::terpenuhi(0.0));
+        $this->assertFalse(Kpisampah::terpenuhi(19.99));
         $this->assertTrue(Kpisampah::terpenuhi(20.0));
-        $this->assertFalse(Kpisampah::terpenuhi(20.01));
+        $this->assertTrue(Kpisampah::terpenuhi(85.0));
         $this->assertNull(Kpisampah::terpenuhi(null));
 
-        $this->assertEquals(100, Kpisampah::capaian(12.5));
-        $this->assertEquals(50, Kpisampah::capaian(40));
+        $this->assertEquals(0, Kpisampah::capaian(0.0));
+        $this->assertEquals(50, Kpisampah::capaian(10));
+        $this->assertEquals(99.95, Kpisampah::capaian(19.99));
+        $this->assertEquals(100, Kpisampah::capaian(20));
+        $this->assertEquals(100, Kpisampah::capaian(40));
         $this->assertNull(Kpisampah::capaian(null));
+    }
+
+    public function test_qc_timbulan_zero_and_persen_above_hundred(): void
+    {
+        $this->assertNull(Kpisampah::persen(5, 0));
+        $this->assertNull(Kpisampah::klaster(Kpisampah::persen(0, 0)));
+        $this->assertEquals(100, Kpisampah::capaian(150.0));
+        $this->assertSame('hijau', Kpisampah::klaster(150.0));
+        $this->assertSame('', Kpisampah::warnaSel(null));
+        $this->assertSame('table-warning', Kpisampah::warnaSel(10.0));
     }
 
     public function test_drilldown_shows_kecamatan_kelurahan_and_kelompok_with_detail(): void
@@ -213,11 +227,13 @@ class KpiSampahTest extends TestCase
         $this->assertEquals([25, 10], $laporan['kelurahan']->sortBy('desa')->pluck('persen')->sort()->reverse()->values()->all());
         $this->assertSame(['Univ Rendah'], $laporan['kelompok']->pluck('nama_pt')->all());
         $this->assertCount(1, $laporan['kelompok']->first()->capaian);
+        $this->assertSame(1, $laporan['kelompok']->first()->jumlah_ketua);
 
         $this->loginAs('admin');
         $this->get('dashboardkpi?kecamatan='.$data['kecamatan']->id_kecamatan.'&desa='.$data[1]['desa']->id_desa, ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertViewIs('laporan._drilldown')
-            ->assertSee('Kec Uji')->assertSee('Ketua Univ Rendah')->assertSee('Capaian 100,00%')
+            ->assertViewHas('kelompok', fn ($k) => $k->first()->jumlah_ketua === 1)
+            ->assertSee('Kec Uji')->assertSee('Capaian 50,00%')
             ->assertSee('Warga &lt;b&gt;belum&lt;/b&gt; memilah', false)->assertSee('Proses')
             ->assertSee('table-success')->assertSee('table-warning');
     }
@@ -254,14 +270,14 @@ class KpiSampahTest extends TestCase
 
     public function test_pt_klaster_thresholds_and_filtering(): void
     {
-        $this->assertSame(['hijau', 'hijau', 'kuning', 'kuning', 'merah', null],
-            array_map(fn ($p) => Kpisampah::klaster($p), [0.0, 20.0, 20.01, 30.0, 30.01, null]));
+        $this->assertSame(['merah', 'merah', 'kuning', 'kuning', 'hijau', 'hijau', null],
+            array_map(fn ($p) => Kpisampah::klaster($p), [0.0, 9.99, 10.0, 19.99, 20.0, 100.0, null]));
 
         $data = $this->duaPt(now()->subMonth()->format('Y-m'));
         $this->loginAs('kepala');
 
         $this->get('rekapsampah')->assertOk()
-            ->assertViewHas('klasterPt', fn ($k) => $k[$data[0]['pt']->npsn]->klaster === 'kuning' && $k[$data[1]['pt']->npsn]->klaster === 'hijau');
+            ->assertViewHas('klasterPt', fn ($k) => $k[$data[0]['pt']->npsn]->klaster === 'hijau' && $k[$data[1]['pt']->npsn]->klaster === 'kuning');
         $this->get('rekapsampah?klaster=kuning', ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()
             ->assertViewHas('perBulan', fn ($p) => self::jumlahBaris($p) === 1)
             ->assertViewHas('klasterPt', fn ($k) => $k->count() === 2);

@@ -32,8 +32,8 @@ class KpiSampahSeeder extends Seeder
 
                 $progres = (4 - $mundur) * 5;
                 $timbulan = $rumah * mt_rand(12, 18);
-                // Rentang lebar agar klaster hijau (<= 20%), kuning (<= 30%), dan merah (> 30%) semuanya muncul
-                $organik = round($timbulan * mt_rand(3 + $progres, 25 + $progres) / 100, 2);
+                // Rentang lebar agar klaster hijau (>= 20%), kuning (10% – < 20%), dan merah (< 10%) semuanya muncul
+                $organik = round($timbulan * mt_rand($progres - 4, 15 + $progres) / 100, 2);
                 $anorganik = round($timbulan * mt_rand(2, 8) / 100, 2);
 
                 Kpisampah::updateOrCreate(
