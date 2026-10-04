@@ -222,7 +222,14 @@ class KpiSampahService
         $data['kelompok'] = $data['kelompok']->each(function ($r) use ($persenPt) {
             $r->persen_pt = $persenPt[$r->kodept]->persen_pengurangan ?? null;
             $r->klaster_pt = Kpisampah::klaster($r->persen_pt, true);
-        })->filter(fn ($r) => $cocok($r->klaster_pt))
+        })->filter(fn ($r) => $cocok($r->klaster_pt));
+
+        // No. kontak semua ketua (1 query); email tidak ikut ke data publik
+        $emailKetua = $data['kelompok']->flatMap(fn ($r) => $r->ketua_email->keys())->filter()->unique()->values();
+        $phone = $emailKetua->isEmpty() ? collect()
+            : DB::table('mahasiswa')->whereIn('email', $emailKetua)->whereNotNull('phone')->pluck('phone', 'email');
+
+        $data['kelompok'] = $data['kelompok']
             // Hanya kolom yang dirender partial publik (tanpa email/nama_ketua) sebelum di-cache
             ->map(fn ($r) => (object) [
                 'kodept' => $r->kodept,
@@ -239,10 +246,31 @@ class KpiSampahService
                     'solusi' => $c->solusi,
                     'kendala' => $c->kendala,
                     'status_capaian' => $c->status_capaian,
+                    'phone' => ($phone[$c->email] ?? null) ?: null,
                 ]),
+                'detail' => $this->detailPublik($r, $phone),
             ])->values();
 
         return $data;
+    }
+
+    // Baris detail PTS: 1 per capaian (+ nama & kontak pengisi), plus 1 baris kosong untuk ketua yang belum mengisi
+    private function detailPublik(object $kelompok, Collection $phone): Collection
+    {
+        $baris = fn (?object $c, string $email) => (object) [
+            'permasalahan' => $c?->permasalahan,
+            'solusi' => $c?->solusi,
+            'kendala' => $c?->kendala,
+            'status_capaian' => $c?->status_capaian,
+            'nama_ketua' => $kelompok->ketua_email[$email] ?? '-',
+            'phone' => ($phone[$email] ?? null) ?: null,
+        ];
+
+        $pengisi = $kelompok->capaian->pluck('email')->unique();
+
+        return $kelompok->capaian->toBase()->map(fn ($c) => $baris($c, (string) $c->email))
+            ->concat($kelompok->ketua_email->keys()->diff($pengisi)->map(fn ($email) => $baris(null, $email)))
+            ->sortBy('nama_ketua')->values();
     }
 
     /**
@@ -320,6 +348,8 @@ class KpiSampahService
                 'nama_ketua' => $rows->map(fn ($r) => $r->nama_ketua ?: $r->email)->implode(', '),
                 // Distinct per email (akses ketua = terdaftar di pj_desa); nama kosong → '-'
                 'ketua' => $rows->unique('email')->map(fn ($r) => $r->nama_ketua ?: '-')->sort()->values(),
+                // email => nama ketua; dipakai drilldownPublik(), tidak ikut ke data publik
+                'ketua_email' => $rows->unique('email')->mapWithKeys(fn ($r) => [$r->email => $r->nama_ketua ?: '-']),
                 'persen' => $persen,
                 'capaian' => $capaian->whereIn('email', $emails)->values(),
             ];

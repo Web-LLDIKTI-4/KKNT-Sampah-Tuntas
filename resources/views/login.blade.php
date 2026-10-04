@@ -626,16 +626,21 @@
           white-space: normal;
         }
 
-        /* Tabel PTS 8 kolom: padding dirapatkan agar muat di desktop */
+        /* Tabel PTS 9 kolom: padding dirapatkan agar muat di desktop */
         .laporan-card .table-pts > :not(caption) > * > * {
-          padding-left: 0.75rem;
-          padding-right: 0.75rem;
+          padding-left: 0.5rem;
+          padding-right: 0.5rem;
         }
 
         @media (max-width: 575px) {
           .laporan-card .table > :not(caption) > * > * {
             padding-left: 0.5rem;
             padding-right: 0.5rem;
+          }
+
+          .laporan-card .table th {
+            font-size: 0.7rem;
+            letter-spacing: 0;
           }
         }
 

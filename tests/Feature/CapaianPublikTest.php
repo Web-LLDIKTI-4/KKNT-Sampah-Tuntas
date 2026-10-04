@@ -134,7 +134,8 @@ class CapaianPublikTest extends TestCase
             ->assertSee('JML. MHS')->assertSee('JML. DPL')
             ->assertSee('Ketua Univ Hijau')->assertSee('ri-eye-line', false)
             ->assertSee('25,00%')
-            ->assertDontSee($this->d['ketua_hijau']->phone)->assertDontSee($this->d['ketua_kosong']->phone);
+            // Revisi-5/6: no. kontak ketua boleh tampil, email tidak
+            ->assertDontSee($this->d['ketua_hijau']->email)->assertDontSee($this->d['ketua_kosong']->email);
         $this->assertStringContainsString('table-success', $res->getContent());
     }
 
@@ -173,6 +174,8 @@ class CapaianPublikTest extends TestCase
         $this->assertSame(2, $publik['Univ Hijau']->jumlah_ketua);
         $this->assertSame(['Ketua Dua', 'Ketua Univ Hijau'], $publik['Univ Hijau']->ketua->all());
         $this->assertSame($dashboard['Univ Hijau']->jumlah_ketua, $publik['Univ Hijau']->jumlah_ketua);
+        // Tiap ketua punya baris detail walau belum mengisi capaian
+        $this->assertSame(['Ketua Dua', 'Ketua Univ Hijau'], $publik['Univ Hijau']->detail->pluck('nama_ketua')->all());
     }
 
     public function test_bulan_outside_available_list_is_rejected(): void
@@ -193,7 +196,26 @@ class CapaianPublikTest extends TestCase
 
         $data = $this->publik(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $this->d['desaA']->id_desa]);
         $this->assertStringNotContainsString($email, serialize($data));
-        $this->assertStringNotContainsString('nama_ketua', serialize($data['kelompok']));
+
+        // Revisi-5: no. kontak pengisi capaian boleh tampil, email tidak
+        $isian = $data['kelompok']->firstWhere('nama_pt', 'Univ Hijau')->capaian->first();
+        $this->assertSame($this->d['ketua_hijau']->phone, $isian->phone);
+        $this->assertFalse(property_exists($isian, 'email'));
+
+        // Revisi-6: detail = baris capaian + ketua yang belum mengisi, urut nama ketua
+        $hijau = $data['kelompok']->firstWhere('nama_pt', 'Univ Hijau');
+        $this->assertSame(['Ketua Univ Hijau'], $hijau->detail->pluck('nama_ketua')->all());
+        $this->assertSame('Masalah Uji', $hijau->detail->first()->permasalahan);
+        $this->assertSame($this->d['ketua_hijau']->phone, $hijau->detail->first()->phone);
+
+        $kosong = $data['kelompok']->firstWhere('nama_pt', 'Univ Tanpa Data')->detail;
+        $this->assertCount(1, $kosong);
+        $this->assertSame('Ketua Univ Tanpa Data', $kosong->first()->nama_ketua);
+        $this->assertSame($this->d['ketua_kosong']->phone, $kosong->first()->phone);
+        $this->assertNull($kosong->first()->permasalahan);
+        $this->assertNull($kosong->first()->status_capaian);
+        $this->assertFalse(property_exists($kosong->first(), 'email'));
+        $this->assertFalse(property_exists($hijau, 'ketua_email'));
     }
 
     public function test_invalid_klaster_is_rejected(): void

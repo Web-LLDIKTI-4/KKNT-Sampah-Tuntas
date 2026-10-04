@@ -4,6 +4,7 @@
     use Illuminate\Support\Carbon;
     $num = fn ($v) => number_format($v, 0, ',', '.');
     $sel = fn ($k) => Kpisampah::KLASTER[$k]['sel'] ?? '';
+    $klasterOf = fn ($k) => Kpisampah::KLASTER[$k] ?? null;
     $persen = fn ($p) => Kpisampah::formatPersen($p === null ? null : (float) $p);
     $namaBulan = $params['bulan'] ? Carbon::parse($params['bulan'].'-01')->translatedFormat('F Y') : null;
     $isDefault = ! $params['kecamatan'] && ! $params['desa'] && ! $params['klaster'];
@@ -62,30 +63,39 @@
 
         <div class="table-responsive scroll-box mb-5">
             <table class="table table-sm table-bordered mb-0">
+                <colgroup>
+                    <col style="width: 8%">
+                    <col style="width: 52%">
+                    <col style="width: 25%">
+                    <col style="width: 15%">
+                </colgroup>
                 <thead>
                     <tr>
-                        <th class="text-center" width="1">No</th>
+                        <th class="text-center">No</th>
                         <th class="text-center">Kecamatan</th>
                         <th class="text-center">Persentase Pengurangan Sampah (%)</th>
+                        <th class="text-center">Klaster</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($kecamatan as $lokasi)
-                        <tr class="table-light">
+                        <tr class="{{ $sel($lokasi->klaster) ?: 'table-light' }}">
                             <th colspan="2" scope="rowgroup">{{ $lokasi->nama_lokasi }}</th>
-                            <th class="text-center {{ $sel($lokasi->klaster) }}">{{ $persen($lokasi->persen) }}</th>
+                            <th class="text-center">{{ $persen($lokasi->persen) }}</th>
+                            <th class="text-center">@if ($k = $klasterOf($lokasi->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</th>
                         </tr>
                         @foreach ($lokasi->kecamatan as $kec)
-                            <tr>
+                            <tr class="{{ $sel($kec->klaster) }}">
                                 <td class="text-center">{{ $loop->iteration }}</td>
                                 <td @class(['fw-bold' => $kec->id_kecamatan === $params['kecamatan']])>
                                     <a href="#" data-drill='@json(['kecamatan' => $kec->id_kecamatan, 'desa' => null])'>{{ $kec->kecamatan }}</a>
                                 </td>
-                                <td class="text-center {{ $sel($kec->klaster) }}">{{ $persen($kec->persen) }}</td>
+                                <td class="text-center">{{ $persen($kec->persen) }}</td>
+                                <td class="text-center">@if ($k = $klasterOf($kec->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                             </tr>
                         @endforeach
                     @empty
-                        <tr><td colspan="3" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kecamatan pada klaster ini' : 'Belum ada kelompok yang ditempatkan' }}</td></tr>
+                        <tr><td colspan="4" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kecamatan pada klaster ini' : 'Belum ada kelompok yang ditempatkan' }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -96,24 +106,32 @@
         <h6 class="mb-2">Sebaran Lokasi (Kelurahan) &mdash; Kecamatan {{ $namaKecamatan }}</h6>
         <div class="table-responsive scroll-box mb-5">
             <table class="table table-sm table-bordered mb-0">
+                <colgroup>
+                    <col style="width: 8%">
+                    <col style="width: 52%">
+                    <col style="width: 25%">
+                    <col style="width: 15%">
+                </colgroup>
                 <thead>
                     <tr>
-                        <th class="text-center" width="1">No</th>
+                        <th class="text-center">No</th>
                         <th class="text-center">Kelurahan/Desa</th>
                         <th class="text-center">Persentase Pengurangan Sampah (%)</th>
+                        <th class="text-center">Klaster</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($kelurahan as $kel)
-                        <tr>
+                        <tr class="{{ $sel($kel->klaster) }}">
                             <td class="text-center">{{ $loop->iteration }}</td>
                             <td @class(['fw-bold' => $kel->id_desa === $params['desa']])>
                                 <a href="#" data-drill='@json(['desa' => $kel->id_desa])'>{{ $kel->desa }}</a>
                             </td>
-                            <td class="text-center {{ $sel($kel->klaster) }}">{{ $persen($kel->persen) }}</td>
+                            <td class="text-center">{{ $persen($kel->persen) }}</td>
+                            <td class="text-center">@if ($k = $klasterOf($kel->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                         </tr>
                     @empty
-                        <tr><td colspan="3" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kelurahan/desa pada klaster ini' : 'Belum ada kelurahan/desa' }}</td></tr>
+                        <tr><td colspan="4" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kelurahan/desa pada klaster ini' : 'Belum ada kelurahan/desa' }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -133,19 +151,21 @@
                         <th class="text-center">JML. DPL</th>
                         <th class="text-center">Ketua Kelompok</th>
                         <th class="text-center">Persentase Pengurangan Sampah (%)</th>
+                        <th class="text-center">Klaster</th>
                         <th class="text-center">Detail</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($kelompok as $row)
-                        <tr>
+                        <tr class="{{ $sel($row->klaster_pt) }}">
                             <td class="text-center">{{ $loop->iteration }}</td>
                             <td>{{ $row->nama_pt }}</td>
                             <td>{{ $row->lokasi }}</td>
                             <td class="text-center">{{ $num($row->jumlah_mahasiswa) }}</td>
                             <td class="text-center">{{ $num($row->jumlah_dpl) }}</td>
                             <td class="text-center">{{ $num($row->jumlah_ketua) }}</td>
-                            <td class="text-center {{ $sel($row->klaster_pt) }}">{{ $persen($row->persen_pt) }}</td>
+                            <td class="text-center">{{ $persen($row->persen_pt) }}</td>
+                            <td class="text-center">@if ($k = $klasterOf($row->klaster_pt))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-icon btn-outline-primary" data-detail-toggle="detail-{{ $row->kodept }}"
                                     title="Detail" aria-label="Detail {{ $row->nama_pt }}">
@@ -154,37 +174,37 @@
                             </td>
                         </tr>
                         <tr id="detail-{{ $row->kodept }}" class="d-none">
-                            <td colspan="8" class="bg-lighter">
-                                <p class="small mb-2">
-                                    <span class="fw-semibold">Ketua Kelompok:</span>
-                                    {{ $row->ketua->isNotEmpty() ? $row->ketua->implode(', ') : '-' }}
-                                </p>
-                                <table class="table table-sm table-bordered mb-0 bg-white">
+                            <td colspan="9" class="bg-lighter text-start">
+                                <table class="table table-sm table-bordered mb-0 bg-white table-pts">
                                     <thead>
                                         <tr>
-                                            <th class="text-center">Permasalahan</th>
-                                            <th class="text-center">Solusi</th>
-                                            <th class="text-center">Kebutuhan Dukungan</th>
-                                            <th class="text-center">Tindak Lanjut</th>
+                                            <th class="text-start">Permasalahan</th>
+                                            <th class="text-start">Solusi</th>
+                                            <th class="text-start">Kebutuhan Dukungan</th>
+                                            <th class="text-start">Tindak Lanjut</th>
+                                            <th class="text-start">Ketua Kelompok</th>
+                                            <th class="text-start">No. Kontak</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @forelse ($row->capaian as $isian)
+                                        @forelse ($row->detail as $isian)
                                             <tr>
-                                                <td>{!! nl2br(e($isian->permasalahan)) !!}</td>
-                                                <td>{!! nl2br(e($isian->solusi)) !!}</td>
-                                                <td>{!! nl2br(e($isian->kendala)) !!}</td>
-                                                <td class="text-center">{!! \App\Models\Kpicapaian::statusBadge($isian->status_capaian) !!}</td>
+                                                <td>{!! $isian->permasalahan ? nl2br(e($isian->permasalahan)) : '-' !!}</td>
+                                                <td>{!! $isian->solusi ? nl2br(e($isian->solusi)) : '-' !!}</td>
+                                                <td>{!! $isian->kendala ? nl2br(e($isian->kendala)) : '-' !!}</td>
+                                                <td>{!! $isian->status_capaian ? \App\Models\Kpicapaian::statusBadge($isian->status_capaian) : '-' !!}</td>
+                                                <td>{{ $isian->nama_ketua ?: '-' }}</td>
+                                                <td class="text-nowrap">{{ $isian->phone ?: '-' }}</td>
                                             </tr>
                                         @empty
-                                            <tr><td colspan="4" class="text-center text-muted">Belum mengisi capaian</td></tr>
+                                            <tr><td colspan="6" class="text-muted">Belum mengisi capaian</td></tr>
                                         @endforelse
                                     </tbody>
                                 </table>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="8" class="text-center text-muted">Belum ada PTS di kelurahan/desa ini</td></tr>
+                        <tr><td colspan="9" class="text-center text-muted">Belum ada PTS di kelurahan/desa ini</td></tr>
                     @endforelse
                 </tbody>
             </table>

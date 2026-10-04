@@ -87,7 +87,7 @@ class LoginController extends Controller
     // Halaman publik: di-cache per kombinasi filter agar query berat tidak jalan di setiap kunjungan
     private function laporanData(KpiSampahService $sampah, array $filter): array
     {
-        return Cache::remember('login.capaian.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter));
+        return Cache::remember('login.capaian.v2.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter));
     }
 
     /**
