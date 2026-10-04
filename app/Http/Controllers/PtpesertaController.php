@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mahasiswa;
-use App\Models\Satuanpendidikan;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -23,12 +22,22 @@ class PtpesertaController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $data = Mahasiswa::groupBy('kodept')->selectRaw('kodept, count(*) as jumlah_mhs')->get();
-        $nama = Satuanpendidikan::whereIn('npsn', $data->pluck('kodept')->filter())->pluck('nm_lemb', 'npsn');
+        // Join agar nm_lemb bisa dicari & diurutkan di SQL
+        $query = Mahasiswa::query()
+            ->selectRaw('mahasiswa.kodept, ref_satuanpendidikan.nm_lemb, count(*) as jumlah_mhs')
+            ->leftJoin('ref_satuanpendidikan', 'ref_satuanpendidikan.npsn', '=', 'mahasiswa.kodept')
+            ->groupBy('mahasiswa.kodept', 'ref_satuanpendidikan.nm_lemb');
 
-        return DataTables::of($data)
+        return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->addColumn('nm_lemb', fn ($row) => $nama[$row->kodept] ?? 'Perguruan Tinggi tidak ditemukan')
+            ->editColumn('nm_lemb', fn ($row) => $row->nm_lemb ?? 'Perguruan Tinggi tidak ditemukan')
+            ->filterColumn('kodept', fn ($q, $keyword) => $q->where('mahasiswa.kodept', 'like', "%{$keyword}%"))
+            ->filterColumn('nm_lemb', fn ($q, $keyword) => $q->where('ref_satuanpendidikan.nm_lemb', 'like', "%{$keyword}%"))
+            ->orderColumn('nm_lemb', 'ref_satuanpendidikan.nm_lemb $1')
+            ->orderColumn('jumlah_mhs', 'jumlah_mhs $1')
+            ->blacklist(['jumlah_mhs'])
+            // Cegah pencarian kolom mahasiswa.* lewat columns[name] dari request
+            ->whitelist(['kodept', 'nm_lemb', 'jumlah_mhs'])
             ->make(true);
     }
 }

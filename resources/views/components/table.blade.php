@@ -15,12 +15,15 @@
     // Teks DataTables tambahan/pengganti default (search, zeroRecords, dst.)
     'language' => [],
     'theadClass' => 'text-center',
+    // Mode client-side: tanpa ajax, baris tbody diisi lewat slot
+    'clientSide' => false,
 ])
 
 <table
     class="{{ $tableClass }}"
     id="{{ $id }}"
     data-datatable
+    @if($clientSide) data-client-side="true" @endif
     data-ajax="{{ $ajax }}"
     data-columns='@json($columns)'
     data-order='@json($order)'
@@ -37,7 +40,7 @@
     <thead @if($theadClass) class="{{ $theadClass }}" @endif>
         {{ $thead ?? '' }}
     </thead>
-    <tbody></tbody>
+    <tbody>{{ $clientSide ? $slot : '' }}</tbody>
 </table>
 
 <script src="{{ asset('js/table-init.js') }}?v={{ filemtime(public_path('js/table-init.js')) }}"></script>

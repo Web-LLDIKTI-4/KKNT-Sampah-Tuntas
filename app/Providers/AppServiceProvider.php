@@ -22,6 +22,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Engine DataTables yang mengabaikan order kolom DT_RowIndex
+        config([
+            'datatables.engines.eloquent' => \App\Support\DataTables\EloquentDataTable::class,
+            'datatables.engines.query' => \App\Support\DataTables\QueryDataTable::class,
+        ]);
+
         // Form sensitif (ganti password, upload, import): per user
         RateLimiter::for('sensitive', fn (Request $request) => Limit::perMinute(10)
             ->by($request->user()?->id ?: $request->ip()));

@@ -7,6 +7,7 @@ use App\Http\Requests\Master\DesaprofileRequest;
 use App\Models\Desaprofile;
 use App\Models\Kecamatan;
 use App\Support\ActionButtons;
+use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -37,13 +38,15 @@ class DesaprofileController extends Controller
             ->addColumn('desa', fn (Desaprofile $row) => $row->nama_desa ?? '')
             ->filterColumn('desa', fn ($q, $keyword) => $q->where('desa.desa', 'like', "%{$keyword}%"))
             ->orderColumn('desa', 'desa.desa $1')
+            ->editColumn('potensi', fn (Desaprofile $row) => HtmlSanitizer::clean($row->potensi))
+            ->editColumn('masalah', fn (Desaprofile $row) => HtmlSanitizer::clean($row->masalah))
             ->addColumn('action', fn (Desaprofile $row) => ActionButtons::make(
                 urlEdit: url('desaprofile/edit/'.$row->id_profile),
                 urlDelete: url('desaprofile/destroy'),
                 idField: 'id_profile',
                 idValue: $row->id_profile,
             ))
-            ->rawColumns(['action'])
+            ->rawColumns(['action', 'potensi', 'masalah'])
             ->make(true);
     }
 

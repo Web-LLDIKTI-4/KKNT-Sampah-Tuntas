@@ -30,11 +30,10 @@ $(function () {
             } });
         }
 
+        var clientSide = $table.data('client-side') === true;
         var options = {
             processing: true,
-            serverSide: true,
-            ajax: $table.data('ajax'),
-            columns: $table.data('columns'),
+            serverSide: !clientSide,
             order: $table.data('order'),
             searching: $table.data('searching'),
             lengthChange: $table.data('length-change'),
@@ -46,6 +45,13 @@ $(function () {
             }, $table.data('language') || {}),
             columnDefs: columnDefs,
         };
+        // Client-side: data dari DOM; columns opsional (null per kolom = default)
+        if (!clientSide) {
+            options.ajax = $table.data('ajax');
+            options.columns = $table.data('columns');
+        } else if (($table.data('columns') || []).length) {
+            options.columns = $table.data('columns');
+        }
         if ($table.data('scroll-x')) {
             options.scrollX = true;
         }

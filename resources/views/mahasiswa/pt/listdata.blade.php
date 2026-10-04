@@ -1,7 +1,7 @@
 <x-table
     :ajax="route('ptmahasiswa.listdataserver')"
     :columns="[
-        ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'searchable' => false],
+        ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
         ['data' => 'nim', 'name' => 'nim'],
         ['data' => 'nama', 'name' => 'nama'],
         ['data' => 'email', 'name' => 'email'],

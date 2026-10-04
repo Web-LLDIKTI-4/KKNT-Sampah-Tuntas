@@ -1,6 +1,6 @@
 <div class="col-12 table-responsive">
-<table class="table table-bordered table-sm" id="dataTable">
-    <thead>
+<x-table client-side thead-class="">
+    <x-slot:thead>
         <tr>
             <th class="text-center" width="1">No</th>
             <th class="text-center">Tahun</th>
@@ -10,8 +10,7 @@
             <th class="text-center">Nilai</th>
             <th class="text-center">Hasil Verifikasi</th>
         </tr>
-    </thead>
-    <tbody>
+    </x-slot:thead>
         @if($laporan->isEmpty())
             
         @else
@@ -38,21 +37,5 @@
                 </tr>
             @endforeach
         @endif
-    </tbody>
-</table>
+</x-table>
 </div>
-<script>
-$(function(){
-    var table = $('#dataTable').DataTable({
-        searching: true,
-        lengthChange: true,
-        processing: true,
-        language: {
-            search: "",
-            searchPlaceholder: "Cari...",
-            zeroRecords: "Tidak ada data yang tersedia",
-            infoEmpty: "Tidak ada data yang ditemukan",
-        },
-    });
-})
-</script>

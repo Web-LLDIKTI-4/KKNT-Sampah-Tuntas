@@ -109,10 +109,6 @@ Route::get('panduan/unduh/{id_panduan}', [PanduanPublikController::class, 'unduh
     ->middleware('throttle:public-download')
     ->name('panduan.unduh');
 
-Route::get('ptpeserta', [PtpesertaController::class, 'index']);
-Route::get('ptpeserta/listdata', [PtpesertaController::class, 'listdata'])->name('ptpeserta.listdata');
-Route::get('ptpeserta/listdataserver', [PtpesertaController::class, 'listdataserver'])->name('ptpeserta.listdataserver');
-
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('user',[UserController::class, 'index']);
     Route::get('user/listdata', [UserController::class, 'listdata']);
@@ -308,6 +304,9 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala'])->group(function () {
 Route::middleware(['auth', 'role:admin,pt,kepala'])->group(function () {
     Route::get('dashboardkpi', [KpiDashboardController::class, 'index'])->name('dashboardkpi');
     Route::get('rekapsampah', [RekapsampahController::class, 'index'])->name('rekapsampah');
+    Route::get('ptpeserta', [PtpesertaController::class, 'index']);
+    Route::get('ptpeserta/listdata', [PtpesertaController::class, 'listdata'])->name('ptpeserta.listdata');
+    Route::get('ptpeserta/listdataserver', [PtpesertaController::class, 'listdataserver'])->name('ptpeserta.listdataserver');
 });
 
 Route::middleware(['auth', 'role:admin,kepala'])->group(function () {

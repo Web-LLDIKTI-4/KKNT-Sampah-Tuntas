@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 class LogHarianByMhsExport implements FromCollection, WithHeadings
 {
     protected $emailMahasiswa;
-    public function __construct($email)
+    public function __construct($email, protected bool $showDeskripsi = true)
     {
         $this->emailMahasiswa = $email;
     }
@@ -21,12 +21,16 @@ class LogHarianByMhsExport implements FromCollection, WithHeadings
     public function collection()
     {
         // Ambil data log bulanan
-        $logkegiatan = Logkegiatan::where('email', $this->emailMahasiswa)->get();
+        // Tanpa hak lihat deskripsi: kolom deskripsi tidak diambil dari DB
+        $logkegiatan = Logkegiatan::where('email', $this->emailMahasiswa)
+            ->with('mahasiswa.sp')
+            ->when(! $this->showDeskripsi, fn ($q) => $q->select('id_log', 'email', 'tanggal', 'volume', 'satuan', 'id_kpi'))
+            ->get();
         
         // Lakukan relasi yang diperlukan dan tambahkan judul kolom
         $data = $logkegiatan->map(function ($item, $key) {
-            $deskripsi = $item->deskripsi ?? '-';
-            if ($deskripsi !== '-') {
+            $deskripsi = $this->showDeskripsi ? ($item->deskripsi ?? '-') : 'tidak ditampilkan';
+            if ($this->showDeskripsi && $deskripsi !== '-') {
                 $deskripsi = str_replace(
                     ['<br>', '<br/>', '<br />', '</p>', '</li>'],
                     "\n",
@@ -45,14 +49,14 @@ class LogHarianByMhsExport implements FromCollection, WithHeadings
 
             return [
                 'No' => $key + 1, 
-                'Nama Mahasiswa' => $item->mahasiswa->nama, 
-                'NIM' => $item->mahasiswa->nim,
-                'Perguruan Tinggi' => $item->mahasiswa->sp->nm_lemb, 
+                'Nama Mahasiswa' => $item->mahasiswa?->nama ?? '-',
+                'NIM' => $item->mahasiswa?->nim ?? '-',
+                'Perguruan Tinggi' => $item->mahasiswa?->sp?->nm_lemb ?? '-',
                 'Tanggal' => \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y'),
                 'Deskripsi' => $deskripsi,
                 'Volume' => $item->volume,
                 'Satuan' => $item->satuan,
-                'KPI' => $item->kpi->nama_kpi,
+                'KPI' => $item->kpi?->nama_kpi ?? '-',
                 // Tambahkan kolom lain sesuai kebutuhan
             ];
         });

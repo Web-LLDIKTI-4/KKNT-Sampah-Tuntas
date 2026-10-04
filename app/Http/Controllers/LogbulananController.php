@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\LaporanBulananRequest;
+use App\Http\Requests\PeriodeRequest;
 use App\Models\Logbulanan;
 use App\Models\Logkegiatan;
 use Illuminate\Http\Request;
@@ -23,12 +24,9 @@ class LogbulananController extends Controller
         return view('logbulanan.mahasiswa.index', compact('namaBulan'));
     }
 
-    public function tambah(Request $request)
+    public function tambah(PeriodeRequest $request)
     {
-        $periode = $request->validate([
-            'tahun' => ['required', 'integer', 'between:2000,2100'],
-            'bulan' => ['required', 'integer', 'between:1,12'],
-        ]);
+        $periode = $request->validated();
         $user = $request->user();
 
         return view('logbulanan.mahasiswa.tambah', [
@@ -36,8 +34,7 @@ class LogbulananController extends Controller
             'tahun' => $periode['tahun'],
             'isi' => Logbulanan::ownedBy($user)->where($periode)->first(),
             'logharian' => Logkegiatan::ownedBy($user)
-                ->whereYear('tanggal', $periode['tahun'])
-                ->whereMonth('tanggal', $periode['bulan'])
+                ->whereBetween('tanggal', $request->dateRange())
                 ->orderBy('tanggal')
                 ->get(),
         ]);

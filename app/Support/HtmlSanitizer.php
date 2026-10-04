@@ -61,7 +61,9 @@ class HtmlSanitizer
 
                 static::cleanChildren($child);
 
-                if (! in_array($tag, self::ALLOWED_TAGS, true)) {
+                $href = $tag === 'a' ? static::safeHref($child->getAttribute('href')) : null;
+
+                if (! in_array($tag, self::ALLOWED_TAGS, true) && $href === null) {
                     // Pertahankan teks di dalam tag yang tidak diizinkan
                     while ($child->firstChild) {
                         $node->insertBefore($child->firstChild, $child);
@@ -73,6 +75,12 @@ class HtmlSanitizer
 
                 foreach (iterator_to_array($child->attributes) as $attr) {
                     $child->removeAttribute($attr->nodeName);
+                }
+
+                if ($href !== null) {
+                    $child->setAttribute('href', $href);
+                    $child->setAttribute('target', '_blank');
+                    $child->setAttribute('rel', 'noopener noreferrer');
                 }
             } elseif ($child->nodeType === XML_COMMENT_NODE || $child->nodeType === XML_PI_NODE) {
                 $node->removeChild($child);
@@ -88,6 +96,17 @@ class HtmlSanitizer
         $safe = static::safeUrl($url);
 
         return $safe ? '<a href="'.e($safe).'" target="_blank" rel="noopener noreferrer">'.e($label ?? $safe).'</a>' : '';
+    }
+
+    // href <a> di konten: DOM sudah decode entity; tolak karakter kontrol & wajib http(s) dengan host
+    private static function safeHref(string $href): ?string
+    {
+        $href = trim($href);
+        if ($href === '' || preg_match('/[\x00-\x1F\x7F]/', $href) || ! preg_match('~^https?://~i', $href)) {
+            return null;
+        }
+
+        return parse_url($href, PHP_URL_HOST) ? static::safeUrl($href) : null;
     }
 
     /**

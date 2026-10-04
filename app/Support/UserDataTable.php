@@ -58,6 +58,9 @@ class UserDataTable
                         ->whereIn('users.email', Dpl::select('email')->whereIn('kodept', $npsn)))
                     ->orWhere(fn ($p) => $p->where('users.role', 'pt')->whereIn('users.email', $npsn)));
             })
+            // Kolom turunan per role (bukan kolom SQL): order diabaikan agar tidak 500
+            ->orderColumn('nim_nidn', false)
+            ->orderColumn('nm_lemb', false)
             ->rawColumns(['action']);
     }
 }

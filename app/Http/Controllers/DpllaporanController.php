@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\LaporanBulananRequest;
+use App\Http\Requests\PeriodeRequest;
 use App\Models\Dpl;
 use App\Models\Dpllaporan;
 use Illuminate\Http\Request;
@@ -27,12 +28,9 @@ class DpllaporanController extends Controller
         return view('laporan.index', compact('namaBulan'));
     }
 
-    public function tambah(Request $request)
+    public function tambah(PeriodeRequest $request)
     {
-        $periode = $request->validate([
-            'tahun' => ['required', 'integer', 'between:2000,2100'],
-            'bulan' => ['required', 'integer', 'between:1,12'],
-        ]);
+        $periode = $request->validated();
 
         return view('laporan.tambah', $periode + [
             'isi' => Dpllaporan::where('email', $request->user()->email)->where($periode)->first(),

@@ -58,11 +58,40 @@ class PerguruanTinggiSaranTest extends TestCase
         $this->put('saran/insert', ['nama' => 'A', 'email' => 'z@pps.test', 'saran' => 'x'])->assertStatus(429);
     }
 
-    public function test_public_peserta_counts_per_pt(): void
+    public function test_peserta_requires_auth_and_role(): void
+    {
+        $url = 'ptpeserta/listdataserver?draw=1&start=0&length=10';
+        $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+
+        $this->getJson($url, $ajax)->assertUnauthorized();
+        $this->get('ptpeserta')->assertRedirect();
+
+        $this->loginAs('mahasiswa');
+        $this->getJson($url, $ajax)->assertRedirect(route('home'));
+    }
+
+    public function test_peserta_cannot_search_raw_mahasiswa_columns(): void
+    {
+        $sp = Satuanpendidikan::factory()->create();
+        Mahasiswa::factory()->create(['kodept' => $sp->npsn, 'phone' => '081234500001']);
+        Mahasiswa::factory()->create(['kodept' => Satuanpendidikan::factory()->create()->npsn]);
+
+        $this->loginAs('pt');
+        $base = 'ptpeserta/listdataserver?draw=1&start=0&length=10'
+            .'&columns[0][data]=x&columns[0][name]=mahasiswa.phone&columns[0][searchable]=true&columns[0][orderable]=true';
+        $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+
+        $hit = $this->getJson($base.'&search[value]=081234500001', $ajax)->assertOk();
+        $miss = $this->getJson($base.'&search[value]=tidakadasamasekali', $ajax)->assertOk();
+        $this->assertSame($miss->json('recordsFiltered'), $hit->json('recordsFiltered'));
+    }
+
+    public function test_peserta_counts_per_pt(): void
     {
         $sp = Satuanpendidikan::factory()->create();
         Mahasiswa::factory()->count(2)->create(['kodept' => $sp->npsn]);
 
+        $this->loginAs('pt');
         $this->getJson('ptpeserta/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertJsonPath('data.0.jumlah_mhs', 2)->assertJsonPath('data.0.nm_lemb', $sp->nm_lemb);
     }

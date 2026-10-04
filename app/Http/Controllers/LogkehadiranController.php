@@ -9,6 +9,7 @@ use App\Http\Requests\Mahasiswa\KehadiranRequest;
 use App\Models\Kehadiran;
 use App\Services\AttendanceService;
 use App\Support\ActionButtons;
+use App\Support\DataTableOrder;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
@@ -40,7 +41,11 @@ class LogkehadiranController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        return DataTables::of(Kehadiran::ownedBy($request->user())->orderByDesc('tanggal')->get())
+        $query = Kehadiran::ownedBy($request->user())
+            ->without(['mahasiswa', 'dplmentoring'])
+            ->when(! DataTableOrder::requested(), fn ($q) => $q->orderByDesc('tanggal'));
+
+        return DataTables::eloquent($query)
             ->addIndexColumn()
             ->editColumn('status_kehadiran', function (Kehadiran $row) {
                 [$class, $label] = self::BADGE[$row->status_kehadiran] ?? ['bg-secondary', 'Belum Absen'];
@@ -52,7 +57,7 @@ class LogkehadiranController extends Controller
             ->editColumn('waktu_pulang', fn (Kehadiran $row) => $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)).' WIB' : '-')
             ->addColumn('coordinates_datang', fn (Kehadiran $row) => ActionButtons::map($row->latitude_datang, $row->longitude_datang))
             ->addColumn('coordinates_pulang', fn (Kehadiran $row) => ActionButtons::map($row->latitude_pulang, $row->longitude_pulang))
-            ->addColumn('action', '')
+            ->blacklist(['coordinates_datang', 'coordinates_pulang'])
             ->rawColumns(['status_kehadiran', 'coordinates_datang', 'coordinates_pulang'])
             ->make(true);
     }
@@ -115,6 +120,6 @@ class LogkehadiranController extends Controller
 
     private function today(Request $request): ?Kehadiran
     {
-        return Kehadiran::ownedBy($request->user())->whereDate('tanggal', today())->first();
+        return Kehadiran::ownedBy($request->user())->where('tanggal', today()->toDateString())->first();
     }
 }

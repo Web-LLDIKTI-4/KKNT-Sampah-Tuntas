@@ -4,7 +4,7 @@
   </x-button>
 </p>
 
-<form id="form-tambah" method="post" action="{{ url('dpllaporan/insert') }}">
+<form id="form-tambah" method="post" action="{{ url('dpllaporan/insert') }}" data-ajax-form data-reload-url="{{ url('dpllaporan/listdata') }}" data-reload-target="#listdata">
     @csrf
     @method('PUT')
     <input type="hidden" name="bulan" value="{{$bulan}}">
@@ -18,19 +18,12 @@
             5. Apa rencana tindak lanjut, arahan, atau rekomendasi yang akan dilakukan pada periode berikutnya untuk mendukung keberhasilan pelaksanaan KKN? <br />
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
-        <textarea class="form-control summernote" name="deskripsi">
-            @if($isi)
-                {{ $isi->deskripsi }}
-            @endif
-        </textarea>
+        <textarea class="form-control summernote" name="deskripsi">{{ $isi?->deskripsi }}</textarea>
         <label>Deskripsi</label>
         <p id="wordCount">Jumlah kata: 0</p>
         <span id="deskripsi_error" class="text-danger"></span>
     </div>
-    <div class="form-group form-floating form-floating-outline mb-6">
-        <input type="text" class="form-control" name="tautan" value="@if($isi) {{$isi->tautan}}  @endif">
-        <label>Tautan Laporan</label>
-    </div>
+    <x-form.input name="tautan" label="Tautan Laporan" :value="$isi?->tautan" input-class="form-control" />
     <hr>
     <x-button.save formId="form-tambah">Simpan</x-button.save>
 </form>
@@ -67,41 +60,6 @@ $(function(){
                 }, 10);
             }
         }
-    });
-    $("#form-tambah").on("submit",function(){       
-        var action = $(this).attr("action");
-        var id = $(this).attr("id");
-        var dString = $(this).serialize();
-        $("#tanggal_error").html('');
-        $("#deskripsi_error").html('');
-        $.ajax({
-            dataType:'json',
-            type:'post',
-            url:action,
-            data:dString,
-            beforeSend:function(){
-                btnLoading($("#btnSubmit_" + id), true);			
-            },
-            complete:function(){
-                btnLoading($("#btnSubmit_" + id), false);	
-            },
-            success:function(ret){
-                if(ret.success == true){
-                    toastr.success(ret.message)	                    
-                    $("#listdata").load("{{ url('dpllaporan/listdata') }}");		
-                }else{
-                    $.each(ret.errors, function(key, value) {
-                        $("#" + key + "_error").html(value[0]); // Menampilkan pesan error di dalam field yang sesuai
-                    });
-                    toastr.warning(ret.message)	
-                }
-            },
-            error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
-            }			
-            
-        });
-        return false;
     });
 });
 </script>

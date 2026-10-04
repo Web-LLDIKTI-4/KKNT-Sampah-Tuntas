@@ -11,7 +11,7 @@
                     thead-class=""
                     ajax="{{ route('admlogbulanan.listdataserver', request()->route('email')) }}"
                     :columns="[
-                        ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'searchable' => false],
+                        ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
                         ['data' => 'nama_bulan', 'name' => 'nama_bulan', 'className' => 'text-center'],
                         ['data' => 'deskripsi', 'name' => 'deskripsi'],
                         ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],

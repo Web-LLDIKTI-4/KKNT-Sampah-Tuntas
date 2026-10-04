@@ -8,9 +8,8 @@
 <div class="card">
     <div class="card-header d-flex flex-column flex-md-row align-items-center gap-3">
         @if (Auth::user()->role === 'admin')
-        @include('evaluasikegiatan._nav', ['active' => 'hasil'])
-        <x-button modal="{{ url('admevaluasikegiatan/tambah') }}" title="Tambah Pertanyaan" icon="ri-add-line">Tambah Data Pertanyaan
-        </x-button>
+            @include('evaluasikegiatan._nav', ['active' => 'hasil'])
+            <x-button modal="{{ url('admevaluasikegiatan/tambah') }}" title="Tambah Pertanyaan" icon="ri-add-line">Tambah Data Pertanyaan</x-button>
         @endif
     </div>
     <div class="card-body">

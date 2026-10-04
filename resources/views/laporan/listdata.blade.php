@@ -1,11 +1,10 @@
 <div class="col-12 table-responsive">
-<table class="table table-bordered table-sm" id="dataTable">
-    <thead>
+<x-table client-side thead-class="" :columns="[['orderable' => false], null, null, null, null]">
+    <x-slot:thead>
         <tr>
             <th width="1">No</th><th>Tahun</th><th>Bulan</th><th>Tautan</th><th width="1">Aksi</th>
         </tr>
-    </thead>
-    <tbody>
+    </x-slot:thead>
         @if($laporan->isEmpty())
             
         @else
@@ -30,24 +29,5 @@
                 </tr>
             @endforeach
         @endif
-    </tbody>
-</table>
+</x-table>
 </div>
-<script>
-$(function(){
-    var table = $('#dataTable').DataTable({
-        searching: true,
-        lengthChange: true,
-        processing: true,
-        serverSide: false, // Set to true if you're processing on the server
-        language: {
-            search: "",
-            searchPlaceholder: "Cari..."
-        },
-        columnDefs: [
-            { targets: 0, orderable: false } // Prevent sorting on the "No" column
-            // Remove the ellipsis render function
-        ]
-    });
-})
-</script>

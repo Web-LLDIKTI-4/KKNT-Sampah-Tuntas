@@ -36,11 +36,18 @@ class LogkegiatanController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $data = Logkegiatan::ownedBy($request->user())->with('kpi')->get();
+        // Join kpi agar nama_kpi bisa dicari & diurutkan di SQL
+        $query = Logkegiatan::ownedBy($request->user())
+            ->without(['kpi', 'mahasiswa', 'dplmentoring'])
+            ->select('logkegiatan.id_log', 'logkegiatan.tanggal', 'logkegiatan.deskripsi', 'logkegiatan.tautan',
+                'logkegiatan.volume', 'logkegiatan.satuan', 'kpi.nama_kpi')
+            ->leftJoin('kpi', 'kpi.id_kpi', '=', 'logkegiatan.id_kpi');
 
-        return DataTables::of($data)
+        return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->addColumn('nama_kpi', fn (Logkegiatan $row) => $row->kpi->nama_kpi ?? '')
+            ->editColumn('nama_kpi', fn (Logkegiatan $row) => $row->nama_kpi ?? '')
+            ->filterColumn('nama_kpi', fn ($q, $keyword) => $q->where('kpi.nama_kpi', 'like', "%{$keyword}%"))
+            ->orderColumn('nama_kpi', 'kpi.nama_kpi $1')
             ->editColumn('deskripsi', fn (Logkegiatan $row) => HtmlSanitizer::clean($row->deskripsi).' '.HtmlSanitizer::link($row->tautan))
             ->addColumn('action', fn (Logkegiatan $row) => ActionButtons::make(
                 urlEdit: url('logkegiatan/edit/'.$row->id_log),
