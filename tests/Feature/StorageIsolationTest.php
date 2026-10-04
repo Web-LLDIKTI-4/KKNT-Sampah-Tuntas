@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\PanduanSeeder;
 
 class StorageIsolationTest extends TestCase
 {
@@ -27,7 +27,7 @@ class StorageIsolationTest extends TestCase
         $realStorageRoots = [storage_path('app/private'), storage_path('app/public')];
         $snapshotBefore = $this->snapshotFiles($realStorageRoots);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(PanduanSeeder::class);
 
         $this->assertNotEmpty(Storage::disk('local')->files('panduan/dummy'), 'Seeder seharusnya menulis ke disk fake');
         $this->assertSame($snapshotBefore, $this->snapshotFiles($realStorageRoots));

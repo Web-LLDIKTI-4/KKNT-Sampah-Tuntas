@@ -238,20 +238,30 @@ class KpiSampahService
             ->groupBy('kodept', 'location_program')
             ->selectRaw('kodept, location_program, COUNT(*) as jumlah')
             ->get()->keyBy(fn ($r) => $r->kodept.'|'.$r->location_program);
+        // Nama KPI tetap di-eager load (view detail menampilkannya); urut bulan terbaru
         $capaian = Kpicapaian::with('kpi:id_kpi,nama_kpi')
             ->whereIn('email', $ketua->pluck('email'))
-            ->get()->groupBy('email');
+            ->orderByDesc('bulan')->orderByDesc('created_at')
+            ->get();
 
-        return $ketua->map(fn ($r) => (object) [
-            'id_pjdesa' => $r->id_pjdesa,
-            'nama_pt' => $namaPt[$r->kodept] ?? $r->kodept,
-            'lokasi' => $r->desa.', '.$r->kecamatan,
-            'jumlah_mahasiswa' => (int) ($mahasiswa[$r->kodept] ?? 0),
-            'jumlah_dpl' => (int) ($dpl[$r->kodept.'|'.$r->location_program]->jumlah ?? 0),
-            'nama_ketua' => $r->nama_ketua ?: $r->email,
-            'persen' => $persen,
-            'capaian' => ($capaian[$r->email] ?? collect())->sortBy(fn ($c) => $c->kpi->nama_kpi ?? '')->values(),
-        ])->sortBy('nama_pt')->values();
+        // 1 baris per PT di kelurahan ini; detail = gabungan capaian semua ketua PT tsb
+        return $ketua->groupBy('kodept')->map(function (Collection $rows, $kodept) use ($namaPt, $mahasiswa, $dpl, $persen, $capaian) {
+            $first = $rows->first();
+            $emails = $rows->pluck('email')->all();
+
+            return (object) [
+                'kodept' => $kodept,
+                'nama_pt' => $namaPt[$kodept] ?? $kodept,
+                'lokasi' => $first->desa.', '.$first->kecamatan,
+                'jumlah_mahasiswa' => (int) ($mahasiswa[$kodept] ?? 0),
+                'jumlah_dpl' => $rows->pluck('location_program')->unique()
+                    ->sum(fn ($lokasi) => (int) ($dpl[$kodept.'|'.$lokasi]->jumlah ?? 0)),
+                'jumlah_ketua' => $rows->count(),
+                'nama_ketua' => $rows->map(fn ($r) => $r->nama_ketua ?: $r->email)->implode(', '),
+                'persen' => $persen,
+                'capaian' => $capaian->whereIn('email', $emails)->values(),
+            ];
+        })->sortBy('nama_pt')->values();
     }
 
     private function query(array $filter): Builder

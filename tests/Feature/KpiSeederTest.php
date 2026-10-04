@@ -6,7 +6,7 @@ use App\Models\Kpi;
 use App\Models\Kpicapaian;
 use App\Models\Kpisampah;
 use App\Models\Pjdesa;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\SimulasiSeeder;
 use Database\Seeders\KpiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +18,7 @@ class KpiSeederTest extends TestCase
 
     public function test_seeder_creates_kpi_dummy_data_and_is_rerunnable(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(SimulasiSeeder::class);
 
         $this->assertSame(3, Kpi::count());
         $this->assertSame(12, Pjdesa::where('email', 'like', '%@kknt.test')->count());

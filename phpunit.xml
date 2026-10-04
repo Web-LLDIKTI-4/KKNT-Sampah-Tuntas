@@ -34,5 +34,8 @@
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="RECAPTCHA_SITE_KEY" value=""/>
         <env name="RECAPTCHA_SECRET_KEY" value=""/>
+        <env name="RECAPTCHA_HOSTNAME" value=""/>
+        <env name="SEED_DEFAULT_PASSWORD" value=""/>
+        <env name="SEED_ADMIN_EMAIL" value=""/>
     </php>
 </phpunit>

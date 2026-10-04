@@ -11,13 +11,14 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 /**
  * Data uji beban: 20.000 mahasiswa (200 PT x 100), tetap 1 PT = 1 kelurahan (200 kelurahan baru),
  * kelompok 5 orang (1 ketua), 5 DPL per PT, log harian & kehadiran hari kerja 30 hari terakhir,
  * data sampah 3 bulan per kelurahan, dan isian capaian KPI ketua.
  * Insert massal per potongan agar cepat; password di-hash sekali untuk semua akun.
- * Jalankan setelah DatabaseSeeder: php artisan db:seed --class=BebanSeeder
+ * Jalankan setelah SimulasiSeeder: php artisan db:seed --class=BebanSeeder
  */
 class BebanSeeder extends Seeder
 {
@@ -45,6 +46,10 @@ class BebanSeeder extends Seeder
 
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new RuntimeException('Seeder dummy tidak boleh dijalankan di production.');
+        }
+
         mt_srand(2026);
         $mulai = microtime(true);
         $password = config('app.seed_password') ?: Str::password(12, symbols: false);

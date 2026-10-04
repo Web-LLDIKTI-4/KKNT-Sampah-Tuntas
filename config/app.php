@@ -85,7 +85,10 @@ return [
     'faker_locale' => env('APP_FAKER_LOCALE', 'id_ID'),
 
     // Password akun dummy saat db:seed (kosong = dibuat acak)
-    'seed_password' => env('SEED_DEFAULT_PASSWORD', '123'),
+    'seed_password' => env('SEED_DEFAULT_PASSWORD'),
+
+    // Kosong = admin@kknt.test (non-production); wajib diisi di production
+    'seed_admin_email' => env('SEED_ADMIN_EMAIL') ?: null,
 
     /*
     |--------------------------------------------------------------------------

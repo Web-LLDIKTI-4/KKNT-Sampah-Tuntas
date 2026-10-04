@@ -28,12 +28,13 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 /**
  * Simulasi lengkap: 3 lokasi program, 12 kelurahan, 12 PT; 1 PT hanya di 1 kelurahan dan 1 kelurahan hanya 1 PT.
  * Per PT: 1 DPL + 1 kelompok (1 ketua + 3 anggota) + 2 mahasiswa tambahan, semuanya di kelurahan PT tersebut,
  * beserta kehadiran, log harian/bulanan, capaian KPI, data sampah bulanan 3 bulan terakhir, laporan DPL, dan penilaian.
- * Jalankan: php artisan migrate:fresh --seed
+ * Jalankan: php artisan migrate:fresh --seed && php artisan db:seed --class=SimulasiSeeder
  */
 class SimulasiSeeder extends Seeder
 {
@@ -56,9 +57,16 @@ class SimulasiSeeder extends Seeder
 
     private array $akun = [];
 
-    public function run(string $password): void
+    public function run(?string $password = null): void
     {
-        $this->password = $password;
+        if (app()->isProduction()) {
+            throw new RuntimeException('Seeder dummy tidak boleh dijalankan di production.');
+        }
+
+        $this->password = $password ?? (config('app.seed_password') ?: Str::password(12, symbols: false));
+        if ($password === null) {
+            $this->command?->warn('Password semua akun dummy: '.$this->password);
+        }
         mt_srand(2026);
         fake()->seed(2026);
 
@@ -321,6 +329,13 @@ class SimulasiSeeder extends Seeder
 
     private function user(string $role, string $email, string $nama, ?string $lokasi = null, ?string $akses = null, string $ket = ''): void
     {
+        // Admin bisa sudah dibuat AdminSeeder; jangan bentrok/timpa
+        if ($role === 'admin' && User::where('email', $email)->exists()) {
+            $this->akun[] = [$role, $email, $nama, 'Sudah ada, tidak diubah'];
+
+            return;
+        }
+
         User::factory()->role($role)->withPassword($this->password)->create([
             'name' => $nama,
             'email' => $email,
