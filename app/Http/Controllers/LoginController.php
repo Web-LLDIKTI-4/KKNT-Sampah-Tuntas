@@ -18,7 +18,7 @@ class LoginController extends Controller
     {
         return view('login', [
             'lokasiProgramList' => $summary->all(),
-            'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null]),
+            'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]),
             'panduanList' => $this->getPanduanPublik(),
         ]);
     }
@@ -26,13 +26,13 @@ class LoginController extends Controller
     // Laporan berjenjang kecamatan -> kelurahan -> kelompok sesuai pilihan bulan/kecamatan/kelurahan
     public function laporan(LaporanPublikRequest $request, KpiSampahService $sampah)
     {
-        return view('laporan._drilldown', $this->laporanData($sampah, $request->filter()));
+        return view('laporan._capaian_publik', $this->laporanData($sampah, $request->filter()));
     }
 
     public function proseslogin(LoginRequest $request)
     {
         if (! $request->authenticate()) {
-            return LoginRequest::failedResponse('Email atau Kata Sandi Salah');
+            return LoginRequest::failedResponse('Username atau Kata Sandi Salah');
         }
 
         $user = Auth::user();
@@ -87,7 +87,7 @@ class LoginController extends Controller
     // Halaman publik: di-cache per kombinasi filter agar query berat tidak jalan di setiap kunjungan
     private function laporanData(KpiSampahService $sampah, array $filter): array
     {
-        return Cache::remember('login.laporan.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldown($filter));
+        return Cache::remember('login.capaian.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter));
     }
 
     /**

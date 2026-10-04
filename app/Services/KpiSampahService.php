@@ -65,7 +65,7 @@ class KpiSampahService
      */
     public function totalPer(string $kolom, array $filter): Collection
     {
-        $kolom = ['kecamatan' => 'd.id_kecamatan', 'desa' => 's.id_desa', 'kodept' => 'm.kodept'][$kolom];
+        $kolom = ['kecamatan' => 'd.id_kecamatan', 'desa' => 's.id_desa', 'kodept' => 'm.kodept', 'lokasi' => 'm.location_program'][$kolom];
 
         return $this->withJumlah($this->query($filter))
             ->whereNotNull($kolom)
@@ -136,8 +136,9 @@ class KpiSampahService
      * Laporan berjenjang: kecamatan per lokasi program -> kelurahan -> kelompok (ketua) di kelurahan.
      * Persentase = pengurangan / timbulan pada bulan terpilih (default bulan terakhir yang ada datanya).
      * Filter: bulan, kodept (PT dikunci), id_kecamatan, id_desa.
+     * $totalKeseluruhan: key `total` tidak difilter kecamatan (dipakai versi publik).
      */
-    public function drilldown(array $filter): array
+    public function drilldown(array $filter, bool $totalKeseluruhan = false): array
     {
         $filter['bulan'] = ($filter['bulan'] ?? null) ?: $this->bulanTerakhir($filter['kodept'] ?? null);
         $filterSampah = ['bulan' => $filter['bulan'], 'kodept' => $filter['kodept'] ?? null];
@@ -152,6 +153,7 @@ class KpiSampahService
         $kecamatan = $penempatan->whereNotNull('id_kecamatan')
             ->groupBy('location_program')
             ->map(fn (Collection $rows, $lokasi) => (object) [
+                'id_lokasi' => $lokasi,
                 'nama_lokasi' => $namaLokasi[$lokasi] ?? 'Tanpa Lokasi Program',
                 'kecamatan' => $rows->unique('id_kecamatan')->sortBy('kecamatan')->map(fn ($r) => (object) [
                     'id_kecamatan' => $r->id_kecamatan,
@@ -173,7 +175,7 @@ class KpiSampahService
         return [
             'params' => ['bulan' => $filter['bulan'], 'kecamatan' => $idKecamatan, 'desa' => $idDesa],
             'bulanList' => $this->bulanList($filter['kodept'] ?? null),
-            'total' => $this->total($filterSampah + ['id_kecamatan' => $idKecamatan]),
+            'total' => $this->total($filterSampah + ['id_kecamatan' => $totalKeseluruhan ? null : $idKecamatan]),
             'kecamatan' => $kecamatan,
             'namaKecamatan' => $idKecamatan ? $penempatan->firstWhere('id_kecamatan', $idKecamatan)?->kecamatan : null,
             'kelurahan' => $kelurahan,
@@ -182,6 +184,65 @@ class KpiSampahService
                 ? $this->kelompokDiKelurahan($penempatan->where('id_desa', $idDesa), $persenDesa[$idDesa]->persen_pengurangan ?? null)
                 : collect(),
         ];
+    }
+
+    /**
+     * Versi halaman publik (login): drilldown() + persen per lokasi program, total keseluruhan,
+     * persen per PT di kelurahan, dan filter klaster (hijau > 20%) per baris tanpa hitung ulang angka.
+     */
+    public function drilldownPublik(array $filter): array
+    {
+        $data = $this->drilldown(['bulan' => $filter['bulan'] ?? null, 'id_kecamatan' => $filter['id_kecamatan'] ?? null, 'id_desa' => $filter['id_desa'] ?? null], true);
+        $bulan = $data['params']['bulan'];
+        $klaster = $filter['klaster'] ?? null;
+        $cocok = fn ($k) => ! $klaster || $k === $klaster;
+
+        $persenLokasi = $bulan ? $this->totalPer('lokasi', ['bulan' => $bulan]) : collect();
+        $persenPt = $bulan && $data['params']['desa']
+            ? $this->totalPer('kodept', ['bulan' => $bulan, 'id_desa' => $data['params']['desa']])
+            : collect();
+
+        $data['params']['klaster'] = $klaster;
+        $data['total_keseluruhan'] = $data['total'];
+
+        $data['kecamatan'] = $data['kecamatan']->map(function ($lokasi) use ($persenLokasi, $cocok) {
+            $lokasi->persen = $persenLokasi[$lokasi->id_lokasi]->persen_pengurangan ?? null;
+            $lokasi->klaster = Kpisampah::klaster($lokasi->persen, true);
+            $lokasi->kecamatan = $lokasi->kecamatan
+                ->each(fn ($r) => $r->klaster = Kpisampah::klaster($r->persen, true))
+                ->filter(fn ($r) => $cocok($r->klaster))->values();
+
+            return $lokasi;
+        })->filter(fn ($lokasi) => $lokasi->kecamatan->isNotEmpty())->values();
+
+        $data['kelurahan'] = $data['kelurahan']
+            ->each(fn ($r) => $r->klaster = Kpisampah::klaster($r->persen, true))
+            ->filter(fn ($r) => $cocok($r->klaster))->values();
+
+        $data['kelompok'] = $data['kelompok']->each(function ($r) use ($persenPt) {
+            $r->persen_pt = $persenPt[$r->kodept]->persen_pengurangan ?? null;
+            $r->klaster_pt = Kpisampah::klaster($r->persen_pt, true);
+        })->filter(fn ($r) => $cocok($r->klaster_pt))
+            // Hanya kolom yang dirender partial publik (tanpa email/nama_ketua) sebelum di-cache
+            ->map(fn ($r) => (object) [
+                'kodept' => $r->kodept,
+                'nama_pt' => $r->nama_pt,
+                'lokasi' => $r->lokasi,
+                'jumlah_mahasiswa' => $r->jumlah_mahasiswa,
+                'jumlah_dpl' => $r->jumlah_dpl,
+                'ketua' => $r->ketua,
+                'jumlah_ketua' => $r->ketua->count(),
+                'persen_pt' => $r->persen_pt,
+                'klaster_pt' => $r->klaster_pt,
+                'capaian' => $r->capaian->map(fn ($c) => (object) [
+                    'permasalahan' => $c->permasalahan,
+                    'solusi' => $c->solusi,
+                    'kendala' => $c->kendala,
+                    'status_capaian' => $c->status_capaian,
+                ]),
+            ])->values();
+
+        return $data;
     }
 
     /**
@@ -257,6 +318,8 @@ class KpiSampahService
                     ->sum(fn ($lokasi) => (int) ($dpl[$kodept.'|'.$lokasi]->jumlah ?? 0)),
                 'jumlah_ketua' => $rows->count(),
                 'nama_ketua' => $rows->map(fn ($r) => $r->nama_ketua ?: $r->email)->implode(', '),
+                // Distinct per email (akses ketua = terdaftar di pj_desa); nama kosong → '-'
+                'ketua' => $rows->unique('email')->map(fn ($r) => $r->nama_ketua ?: '-')->sort()->values(),
                 'persen' => $persen,
                 'capaian' => $capaian->whereIn('email', $emails)->values(),
             ];

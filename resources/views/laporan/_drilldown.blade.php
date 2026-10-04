@@ -30,7 +30,7 @@
         @foreach (Kpisampah::KLASTER as $k)
             <span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span> {{ $k['ket'] }}{{ $loop->last ? '.' : ';' }}
         @endforeach
-        Target KPI terpenuhi (capaian 100%) bila pengurangan sampah &ge; {{ $target }}%.
+        Target KPI: pengurangan sampah &ge; {{ $target }}%.
     </p>
 
     <h6 class="mb-2">Sebaran Lokasi (Kecamatan)</h6>
@@ -124,9 +124,6 @@
                             <td class="text-center">{{ $num($row->jumlah_ketua) }}</td>
                             <td class="text-center {{ $sel($row->persen) }}">
                                 {{ $persen($row->persen) }}
-                                @if ($row->persen !== null)
-                                    <small class="d-block">Capaian {{ $persen(Kpisampah::capaian($row->persen)) }}</small>
-                                @endif
                             </td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-outline-primary" data-detail-toggle="detail-{{ $row->kodept }}">Detail</button>

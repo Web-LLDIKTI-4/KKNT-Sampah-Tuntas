@@ -215,8 +215,8 @@ class KpiDashboardTest extends TestCase
     {
         $this->get(route('login'))
             ->assertOk()
-            ->assertSee('Laporan Kegiatan')
-            ->assertSee('Sebaran Lokasi (Kecamatan)')
+            ->assertSee('Capaian Program')
+            ->assertSee('Persentase Pengurangan Sampah (%)')
             ->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 3
                 && $l['kecamatan']->first()->nama_lokasi === $this->lokasi->nama_lokasi);
     }

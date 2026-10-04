@@ -146,7 +146,7 @@
           color: #fff;
           font-family: 'Inter', sans-serif;
           font-weight: 900;
-          font-size: 50px;
+          font-size: clamp(30px, 3vw, 46px);
           line-height: 1.1;
           letter-spacing: -0.02em;
           text-shadow: 0 2px 16px rgba(20, 24, 70, 0.25);
@@ -271,14 +271,17 @@
           font-size: 0.85rem;
           font-weight: 600;
           z-index: 2;
-          display: flex;
-          align-items: center;
-          gap: 4px;
+          display: block;
+          text-align: center;
+          line-height: 1.3;
           text-shadow: 0 1px 3px rgba(0,0,0,0.4);
         }
 
+        /* Ikon inline di dalam teks agar nama 2 baris tetap simetris */
         .lokasi-item-badge i {
           font-size: 0.9rem;
+          vertical-align: -0.1em;
+          margin-right: 2px;
         }
 
         .lokasi-item-body {
@@ -300,7 +303,9 @@
           display: flex;
           flex-direction: column;
           align-items: center;
+          text-align: center;
           flex: 1;
+          min-width: 0;
           padding: 8px 4px;
           background: rgba(102, 126, 234, 0.07);
           border: 1px solid rgba(102, 126, 234, 0.1);
@@ -452,7 +457,7 @@
           .lokasi-panel-title {
             font-family: 'Inter', sans-serif;
             font-weight: 900;
-            font-size: 44px;
+            font-size: clamp(26px, 5vw, 40px);
           }
 
       }
@@ -467,6 +472,20 @@
           .lokasi-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
 
+          }
+        }
+
+        /* Desktop kecil: panel kiri sempit, 2 kolom agar statistik tidak berdesakan */
+        @media (min-width: 992px) and (max-width: 1199px) {
+          .lokasi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        /* HP: 1 kolom agar 3 statistik card tidak terpotong */
+        @media (max-width: 575px) {
+          .lokasi-grid {
+            grid-template-columns: minmax(0, 1fr);
           }
         }
 
@@ -540,7 +559,7 @@
           }
         }
 
-        /* Toggle Home / Laporan Kegiatan di panel kiri */
+        /* Toggle Beranda / Capaian Program di panel kiri */
         .panel-switch-wrap {
           padding: 1.5rem 1.75rem 0;
         }
@@ -602,8 +621,60 @@
           box-shadow: 0 8px 22px rgba(20, 24, 70, 0.14);
         }
 
+        /* Header boleh wrap agar tabel 3 kolom muat di HP */
         .laporan-card .table th {
-          white-space: nowrap;
+          white-space: normal;
+        }
+
+        /* Tabel PTS 8 kolom: padding dirapatkan agar muat di desktop */
+        .laporan-card .table-pts > :not(caption) > * > * {
+          padding-left: 0.75rem;
+          padding-right: 0.75rem;
+        }
+
+        @media (max-width: 575px) {
+          .laporan-card .table > :not(caption) > * > * {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+          }
+        }
+
+        /* Toolbar Capaian: select & tombol satu baris, tinggi seragam; turun baris rapi di layar kecil */
+        .capaian-toolbar .capaian-field {
+          flex: 1 1 140px;
+          max-width: 220px;
+        }
+
+        .capaian-toolbar .form-select,
+        .capaian-toolbar .capaian-action {
+          height: auto;
+          min-height: 2.5rem;
+        }
+
+        /* Netralkan .btn-primary global (tombol Masuk) agar Unduh PNG = Reset */
+        .capaian-toolbar .capaian-action,
+        .capaian-toolbar .capaian-action:hover {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex: 0 0 auto;
+          width: auto;
+          min-width: 9rem;
+          padding: 0.375rem 1rem;
+          border-radius: 0.375rem;
+          box-shadow: none;
+          transform: none;
+        }
+
+        @media (max-width: 575px) {
+          .capaian-toolbar .capaian-field {
+            max-width: none;
+          }
+
+          .capaian-toolbar .capaian-action,
+          .capaian-toolbar .capaian-action:hover {
+            flex: 1 1 100%;
+          }
         }
 
         /* Tab Panduan: daftar dokumen publik */
@@ -788,7 +859,7 @@
       <!-- Mobile switch button -->
       <button type="button" id="authMobileToggle" class="auth-mobile-toggle d-lg-none">
         <i class="ri-information-line"></i>
-        <span id="authMobileToggleText">Lihat Info &amp; Panduan</span>
+        <span id="authMobileToggleText">Lihat Info &amp; Dokumen</span>
       </button>
       <!-- /Logo -->
       <div class="authentication-inner row m-0">
@@ -798,13 +869,13 @@
             <div class="panel-switch-wrap">
               <div class="nav panel-switch" role="tablist" aria-label="Tampilan panel">
                 <button type="button" class="nav-link active" id="tabHome" data-bs-toggle="pill" data-bs-target="#paneHome" role="tab" aria-controls="paneHome" aria-selected="true">
-                  <i class="ri-home-4-line"></i> Home
+                  <i class="ri-home-4-line"></i> Beranda
                 </button>
                 <button type="button" class="nav-link" id="tabLaporan" data-bs-toggle="pill" data-bs-target="#paneLaporan" role="tab" aria-controls="paneLaporan" aria-selected="false">
-                  <i class="ri-file-chart-line"></i> Laporan Kegiatan
+                  <i class="ri-file-chart-line"></i> Capaian Program
                 </button>
                 <button type="button" class="nav-link" id="tabPanduan" data-bs-toggle="pill" data-bs-target="#panePanduan" role="tab" aria-controls="panePanduan" aria-selected="false">
-                  <i class="ri-book-open-line"></i> Panduan
+                  <i class="ri-book-open-line"></i> Dokumen
                 </button>
               </div>
             </div>
@@ -813,7 +884,7 @@
             <div class="tab-pane fade show active" id="paneHome" role="tabpanel" aria-labelledby="tabHome">
             <div class="lokasi-panel-header">
               <img src="../assets/images/sampah.png" alt="Kegiatan KKN" class="lokasi-hero-img" />
-              <h2 class="lokasi-panel-title">KKN Tematik Sampah Tuntas <br /> LLDIKTI Wilayah IV</h2>
+              <h2 class="lokasi-panel-title">Program GRADASI : KKN Tematik <br /> Sampah Tuntas LLDIKTI Wilayah IV</h2>
 
               <p class="lokasi-panel-subtitle">
                 Silahkan <b>pilih Lokasi</b> terlebih dahulu sebelum Anda Login
@@ -881,13 +952,13 @@
 
             <div class="tab-pane fade" id="paneLaporan" role="tabpanel" aria-labelledby="tabLaporan">
               <div class="laporan-wrap">
-                <h2 class="laporan-title">Laporan Kegiatan</h2>
-                <p class="lokasi-panel-subtitle mb-4">Persentase pengurangan sampah per kecamatan, kelurahan, dan kelompok pada KKN Tematik Sampah Tuntas. Klik nama kecamatan lalu kelurahan untuk melihat rinciannya.</p>
+                <h2 class="laporan-title">Capaian Program</h2>
+                <p class="lokasi-panel-subtitle mb-4">Persentase Pengurangan Sampah per Kota/Kabupaten dengan sebaran Kecamatan, Kelurahan/Desa yang menjadi lokus pada KKN Tematik Sampah Tuntas.<br /><em>klik nama kecamatan, kelurahan untuk melihat capaian, kinerja perguruan tinggi maupun permasalahan di lapangan.</em></p>
 
                 <div class="card laporan-card">
                   <div class="card-body">
                     <div data-drilldown="{{ route('login.laporan') }}" aria-live="polite">
-                      @include('laporan._drilldown', $laporan)
+                      @include('laporan._capaian_publik', $laporan)
                     </div>
                   </div>
                 </div>
@@ -896,8 +967,8 @@
 
             <div class="tab-pane fade" id="panePanduan" role="tabpanel" aria-labelledby="tabPanduan">
               <div class="laporan-wrap">
-                <h2 class="laporan-title">Panduan</h2>
-                <p class="lokasi-panel-subtitle mb-4">Dokumen panduan KKN Tematik Sampah Tuntas yang bisa diunduh.</p>
+                <h2 class="laporan-title">Dokumen</h2>
+                <p class="lokasi-panel-subtitle mb-4">Dokumen KKN Tematik Sampah Tuntas yang bisa diunduh.</p>
                 @include('panduan._publik', ['panduanList' => $panduanList ?? collect()])
               </div>
             </div>
@@ -940,9 +1011,9 @@
                   class="form-control"
                   id="email"
                   name="username"
-                  placeholder="Masukkan email atau nama pengguna"
+                  placeholder="Masukkan username"
                   autofocus />
-                <label for="email">Email</label>
+                <label for="email">Username</label>
               </div>
               <div class="mb-5">
                 <div class="form-password-toggle">
@@ -1038,10 +1109,10 @@
 <script>
 $(function(){
 
-    // Mobile: panel kiri (Home/Laporan/Panduan) dan form login bergantian tampil
+    // Mobile: panel kiri (Beranda/Capaian/Dokumen) dan form login bergantian tampil
     function setMobilePanelVisible(visible) {
       $(".authentication-inner").toggleClass("show-lokasi", visible);
-      $("#authMobileToggleText").text(visible ? "Kembali ke Formulir Masuk" : "Lihat Info & Panduan");
+      $("#authMobileToggleText").text(visible ? "Kembali ke Formulir Masuk" : "Lihat Info & Dokumen");
       $("#authMobileToggle i").toggleClass("ri-arrow-left-line", visible).toggleClass("ri-information-line", !visible);
     }
 
@@ -1180,7 +1251,7 @@ $(function(){
         });
 
         var total = $("#panduanCount").data("total");
-        $("#panduanCount").text(keyword === "" ? total + " panduan" : visibleCount + " dari " + total + " panduan");
+        $("#panduanCount").text(keyword === "" ? total + " dokumen" : visibleCount + " dari " + total + " dokumen");
         $("#panduanList").toggleClass("d-none", visibleCount === 0);
         $("#panduanNoResult").toggleClass("d-none", visibleCount > 0);
       });

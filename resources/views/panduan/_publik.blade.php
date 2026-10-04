@@ -5,17 +5,17 @@
 <div class="panduan-toolbar">
     <div class="input-group lokasi-search panduan-search">
         <span class="input-group-text"><i class="ri-search-line" aria-hidden="true"></i></span>
-        <input type="search" id="panduanSearch" class="form-control" placeholder="Cari judul atau isi panduan..."
-            aria-label="Cari panduan" autocomplete="off" @disabled($totalPanduan === 0) />
+        <input type="search" id="panduanSearch" class="form-control" placeholder="Cari judul atau isi dokumen..."
+            aria-label="Cari dokumen" autocomplete="off" @disabled($totalPanduan === 0) />
     </div>
-    <span class="panduan-count" id="panduanCount" data-total="{{ $totalPanduan }}" aria-live="polite">{{ $totalPanduan }} panduan</span>
+    <span class="panduan-count" id="panduanCount" data-total="{{ $totalPanduan }}" aria-live="polite">{{ $totalPanduan }} dokumen</span>
 </div>
 
 <div class="card laporan-card panduan-card">
     @if ($totalPanduan === 0)
         <div class="panduan-empty">
             <i class="ri-book-open-line" aria-hidden="true"></i>
-            <p class="mb-0">Belum ada panduan yang tersedia.</p>
+            <p class="mb-0">Belum ada dokumen yang tersedia.</p>
         </div>
     @else
         <ul class="panduan-list" id="panduanList">
@@ -44,7 +44,7 @@
         </ul>
         <div id="panduanNoResult" class="panduan-empty d-none">
             <i class="ri-search-eye-line" aria-hidden="true"></i>
-            <p class="mb-0">Panduan tidak ditemukan.</p>
+            <p class="mb-0">Dokumen tidak ditemukan.</p>
         </div>
     @endif
 </div>

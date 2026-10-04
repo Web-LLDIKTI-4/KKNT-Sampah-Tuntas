@@ -233,7 +233,7 @@ class KpiSampahTest extends TestCase
         $this->get('dashboardkpi?kecamatan='.$data['kecamatan']->id_kecamatan.'&desa='.$data[1]['desa']->id_desa, ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertViewIs('laporan._drilldown')
             ->assertViewHas('kelompok', fn ($k) => $k->first()->jumlah_ketua === 1)
-            ->assertSee('Kec Uji')->assertSee('Capaian 50,00%')
+            ->assertSee('Kec Uji')->assertSee('10,00%')->assertDontSee('Capaian 50,00%')
             ->assertSee('Warga &lt;b&gt;belum&lt;/b&gt; memilah', false)->assertSee('Proses')
             ->assertSee('table-success')->assertSee('table-warning');
     }
@@ -298,7 +298,7 @@ class KpiSampahTest extends TestCase
         $kecamatanLain = Kecamatan::factory()->create();
         Cache::flush();
 
-        $this->get('login')->assertOk()->assertSee('Sebaran Lokasi (Kecamatan)')->assertSee('Kec Uji')->assertDontSee('Univ Rendah');
+        $this->get('login')->assertOk()->assertSee('Persentase Pengurangan Sampah (%)')->assertSee('Kec Uji')->assertDontSee('Univ Rendah');
         $this->get('login/laporan?kecamatan='.$data['kecamatan']->id_kecamatan)->assertOk()
             ->assertSee('Sebaran Lokasi (Kelurahan)')->assertSee($data[0]['desa']->desa)->assertDontSee('Univ Rendah');
         $this->get('login/laporan?kecamatan='.$data['kecamatan']->id_kecamatan.'&desa='.$data[1]['desa']->id_desa)->assertOk()

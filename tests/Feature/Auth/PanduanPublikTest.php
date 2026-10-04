@@ -54,7 +54,7 @@ class PanduanPublikTest extends TestCase
 
     public function test_login_page_shows_empty_state_when_no_panduan(): void
     {
-        $this->get('login')->assertOk()->assertSee('id="tabPanduan"', false)->assertSee('Belum ada panduan yang tersedia.');
+        $this->get('login')->assertOk()->assertSee('id="tabPanduan"', false)->assertSee('Belum ada dokumen yang tersedia.');
     }
 
     public function test_guest_can_download_active_panduan(): void

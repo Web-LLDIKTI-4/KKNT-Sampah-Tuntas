@@ -5,6 +5,7 @@
  * - Root  : [data-drilldown-root data-params='{"bulan","kecamatan","desa"}'] state saat ini
  * - Klik  : [data-drill='{"kecamatan": id}'] / [data-drill='{"desa": id}'] memuat ulang host
  * - Detail: [data-detail-toggle="id-baris"] buka/tutup baris detail
+ * - Publik: select[name=klaster], [data-drill-reset], [data-png-download] (html-to-image lazy) — aktif hanya bila elemen ada
  * Tabel dengan filter (mis. resources/views/rekapsampah/_tabel.blade.php):
  * - Host  : <div data-filter-host="url">; select di form[data-filter] memuat ulang host
  * - Klaster: [data-klaster="hijau|kuning|merah"] memilih klaster di select name="klaster"
@@ -42,6 +43,73 @@
 
     $(document).on('change', '[data-drilldown-root] select[name="bulan"]', function () {
         muatDari(this, { bulan: this.value });
+    });
+
+    // Capaian publik: filter klaster & reset ke posisi default (bulan tetap)
+    $(document).on('change', '[data-drilldown-root] select[name="klaster"]', function () {
+        muatDari(this, { klaster: this.value });
+    });
+
+    $(document).on('click', '[data-drilldown-root] [data-drill-reset]', function () {
+        muatDari(this, { kecamatan: null, desa: null, klaster: null });
+    });
+
+    var htmlToImageLoading = null;
+
+    function loadHtmlToImage(src) {
+        if (window.htmlToImage) {
+            return $.Deferred().resolve().promise();
+        }
+        if (!htmlToImageLoading) {
+            htmlToImageLoading = $.Deferred();
+            var script = document.createElement('script');
+            script.src = src;
+            script.onload = function () { htmlToImageLoading.resolve(); };
+            script.onerror = function () {
+                htmlToImageLoading.reject();
+                htmlToImageLoading = null;
+            };
+            document.head.appendChild(script);
+        }
+        return htmlToImageLoading.promise();
+    }
+
+    $(document).on('click', '[data-drilldown-root] [data-png-download]', function () {
+        var $btn = $(this);
+        var $root = $btn.closest('[data-drilldown-root]');
+        var node = $root.find('[data-png-target]').get(0);
+        if (!node) {
+            return;
+        }
+        var bulan = ($root.data('params') || {}).bulan || new Date().toISOString().slice(0, 7);
+        $btn.prop('disabled', true);
+
+        loadHtmlToImage($btn.data('png-lib'))
+            .then(function () {
+                // Buka sementara batas scroll agar seluruh tabel ikut ter-capture
+                var $boxes = $(node).find('.scroll-box').css({ maxHeight: 'none', overflow: 'visible' });
+                return window.htmlToImage.toPng(node, {
+                    backgroundColor: '#fff',
+                    pixelRatio: 2,
+                    width: node.scrollWidth,
+                    height: node.scrollHeight
+                }).finally(function () {
+                    $boxes.css({ maxHeight: '', overflow: '' });
+                });
+            })
+            .then(function (dataUrl) {
+                var link = document.createElement('a');
+                link.download = 'capaian-program-' + bulan + '.png';
+                link.href = dataUrl;
+                link.click();
+            }, function () {
+                if (window.toastr) {
+                    toastr.error('Gagal membuat gambar PNG.');
+                }
+            })
+            .always(function () {
+                $btn.prop('disabled', false);
+            });
     });
 
     $(document).on('click', '[data-detail-toggle]', function () {
