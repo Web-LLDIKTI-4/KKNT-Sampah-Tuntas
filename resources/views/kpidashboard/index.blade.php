@@ -13,7 +13,7 @@
 <div class="card mb-6">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Ringkasan</h5>
-        @if (in_array(auth()->user()->role, ['admin', 'kepala'], true))
+        @if (auth()->user()->role === 'admin' || auth()->user()->isPemantau())
             <x-button.export :url="route('rekapsampah.export')" id="kpi-export" label="Export" size="sm" class="btn-filter" />
         @endif
     </div>

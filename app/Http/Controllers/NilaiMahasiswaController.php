@@ -136,7 +136,7 @@ abstract class NilaiMahasiswaController extends Controller
     private function visibleTo(Request $request): Builder
     {
         $user = $request->user();
-        if (in_array($user->role, ['pt', 'kepala'], true)) {
+        if (in_array($user->role, ['pt', 'kepala', 'pemda'], true)) {
             return $this->model()::whereIn('id_mahasiswa', Mahasiswa::visibleTo($user)->select('id_mahasiswa'));
         }
 

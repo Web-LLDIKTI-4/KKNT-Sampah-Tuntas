@@ -1,4 +1,4 @@
-<form id="form-ubah" method="post" action="{{ url('kpicapaian/update') }}" data-ajax-form>
+<form id="form-ubah" method="post" action="{{ url('kpicapaian/update') }}" data-ajax-form data-sampah-form>
     @csrf
     @method('PUT')
     <input type="hidden" name="id_capaian" value="{{$data->id_capaian}}">
@@ -63,6 +63,7 @@
         <input type="url" name="tautan" required maxlength="2000" placeholder="https://" value="{{ $data->tautan }}" class="form-control form-control-sm">
         <label>Tautan</label>
     </div>
+    @include('kpicapaian._sampah')
     <hr>
     <x-button.save formId="form-ubah">Simpan</x-button.save>
 </form>

@@ -194,6 +194,13 @@ class KpiDashboardTest extends TestCase
             'email' => 'kepala@pps.test',
             'password' => 'rahasia123',
             'role' => 'admin',
+        ])->assertJsonValidationErrors('role', 'errors');
+
+        $this->put('user/insertuserkepala', [
+            'name' => 'Kepala LLDIKTI',
+            'email' => 'kepala@pps.test',
+            'password' => 'rahasia123',
+            'role' => 'kepala',
         ])->assertJson(['success' => true]);
 
         $kepala = User::where('email', 'kepala@pps.test')->firstOrFail();
@@ -206,9 +213,13 @@ class KpiDashboardTest extends TestCase
         $this->put('user/updateuserkepala', ['id' => $pt->id, 'name' => 'X', 'email' => 'x@pps.test'])
             ->assertJsonValidationErrors('id', 'errors');
 
-        $this->put('user/updateuserkepala', ['id' => $kepala->id, 'name' => 'Kepala Baru', 'email' => 'kepala@pps.test'])
+        $this->put('user/updateuserkepala', ['id' => $kepala->id, 'name' => 'Kepala Baru', 'email' => 'kepala@pps.test', 'role' => 'pemda'])
             ->assertJson(['success' => true]);
         $this->assertSame('Kepala Baru', $kepala->fresh()->name);
+        $this->assertSame('pemda', $kepala->fresh()->role);
+
+        // Pemda read-only seperti kepala
+        $this->actingAs($kepala->fresh())->put('user/insertuserkepala', [])->assertForbidden();
     }
 
     public function test_login_page_shows_laporan_kegiatan(): void

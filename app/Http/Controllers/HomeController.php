@@ -25,7 +25,7 @@ class HomeController extends Controller
                 ? view('index-admin', $dashboard->forDpl($user))
                 : redirect(url('profile')),
             'pt' => view('index-admin', $dashboard->forPt($user)),
-            'kepala' => view('index-admin', $dashboard->forKepala()),
+            'kepala', 'pemda' => view('index-admin', $dashboard->forKepala()),
             default => view('index-admin', $dashboard->forAdmin()),
         };
     }

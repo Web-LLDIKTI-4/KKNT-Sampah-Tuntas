@@ -5,14 +5,19 @@ namespace App\Http\Controllers;
 use App\Exports\CapaiankpiExport;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\KpicapaianRequest;
+use App\Http\Requests\Mahasiswa\KpisampahRequest;
+use App\Models\Desa;
 use App\Models\Kpi;
 use App\Models\Kpicapaian;
+use App\Models\Kpisampah;
 use App\Models\Pjdesa;
+use App\Services\KpiSampahService;
 use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -70,17 +75,21 @@ class KpicapaianController extends Controller
             ->make(true);
     }
 
-    public function tambah()
+    public function tambah(Request $request, KpiSampahService $sampah)
     {
         return view('kpicapaian.tambah', [
             'kpi' => Kpi::orderBy('nama_kpi')->get(),
+            'desa' => $this->desaKetua($request->user()->email, $sampah),
         ]);
     }
 
-    public function insert(KpicapaianRequest $request)
+    public function insert(KpicapaianRequest $request, KpiSampahService $sampah)
     {
         try {
-            Kpicapaian::create($this->payload($request));
+            DB::transaction(function () use ($request, $sampah) {
+                Kpicapaian::create($this->payload($request));
+                $this->simpanSampah($request, $sampah, null);
+            });
         } catch (UniqueConstraintViolationException) {
             // Race: dua submit bersamaan lolos validasi, UNIQUE(email,bulan) menolak yang kedua
             return $this->failed(KpicapaianRequest::DUPLIKAT_BULAN);
@@ -89,17 +98,21 @@ class KpicapaianController extends Controller
         return $this->saved('Capaian Key performance indicator berhasil disimpan');
     }
 
-    public function edit(Request $request, string $id_capaian)
+    public function edit(Request $request, string $id_capaian, KpiSampahService $sampahService)
     {
         $capaian = Kpicapaian::ownedBy($request->user())->findOrFail($id_capaian);
+        $sampah = Kpisampah::ownedBy($request->user())->with('desa.kecamatan')
+            ->where('bulan', $capaian->bulan)->first();
 
         return view('kpicapaian.edit', [
             'data' => $capaian,
             'kpi' => Kpi::orderBy('nama_kpi')->get(),
+            'sampah' => $sampah,
+            'desa' => $sampah?->desa ?? $this->desaKetua($request->user()->email, $sampahService),
         ]);
     }
 
-    public function update(KpicapaianRequest $request)
+    public function update(KpicapaianRequest $request, KpiSampahService $sampah)
     {
         $capaian = Kpicapaian::ownedBy($request->user())->find($request->validated('id_capaian'));
         if (! $capaian) {
@@ -107,7 +120,11 @@ class KpicapaianController extends Controller
         }
 
         try {
-            $capaian->update($this->payload($request));
+            DB::transaction(function () use ($request, $sampah, $capaian) {
+                $bulanLama = $capaian->bulan;
+                $capaian->update($this->payload($request));
+                $this->simpanSampah($request, $sampah, $bulanLama);
+            });
         } catch (UniqueConstraintViolationException) {
             return $this->failed(KpicapaianRequest::DUPLIKAT_BULAN);
         }
@@ -115,14 +132,17 @@ class KpicapaianController extends Controller
         return $this->saved('Capaian key performance indicator berhasil disimpan');
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request, KpiSampahService $sampah)
     {
         $capaian = Kpicapaian::ownedBy($request->user())->find($request->input('id_capaian'));
         if (! $capaian) {
             return $this->notFound();
         }
 
-        $capaian->delete();
+        DB::transaction(function () use ($capaian, $sampah) {
+            $capaian->delete();
+            $sampah->hapusDariCapaian($capaian->email, $capaian->bulan);
+        });
 
         return $this->deleted();
     }
@@ -133,6 +153,25 @@ class KpicapaianController extends Controller
         $email = $user->role === 'mahasiswa' ? $user->email : null;
 
         return Excel::download(new CapaiankpiExport($email), 'capaian_kpi_'.date('Y-m-d_H-i-s').'.xlsx');
+    }
+
+    // Bulan sampah = bulan capaian
+    private function simpanSampah(KpicapaianRequest $request, KpiSampahService $sampah, ?string $bulanLama): void
+    {
+        $sampah->simpanDariCapaian(
+            $request->user()->email,
+            $bulanLama,
+            $request->bulan(),
+            $request->safe()->only(KpisampahRequest::SAMPAH_FIELDS),
+            $request->idDesa(),
+        );
+    }
+
+    private function desaKetua(string $email, KpiSampahService $sampah): ?Desa
+    {
+        $idDesa = $sampah->desaKetua($email);
+
+        return $idDesa ? Desa::with('kecamatan')->find($idDesa) : null;
     }
 
     private function payload(KpicapaianRequest $request): array

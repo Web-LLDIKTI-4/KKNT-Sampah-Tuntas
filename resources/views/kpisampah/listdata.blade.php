@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col-12">
-        <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
+        <x-datatable id="dataTableSampah" tableClass="table table-bordered table-sm">
             <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
@@ -19,7 +19,6 @@
                     <th>Residu (kg)</th>
                     <th>Pengurangan Sampah</th>
                     <th>Bank Sampah</th>
-                    <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
         </x-datatable>
@@ -27,7 +26,7 @@
 </div>
 <script type="text/javascript">
   $(function () {
-    $('#dataTable').DataTable({
+    $('#dataTableSampah').DataTable({
         processing: true,
         serverSide: true,
         scrollX: true,
@@ -55,7 +54,6 @@
             {data: 'residu', name: 'residu', className: 'text-end', searchable: false},
             {data: 'persen_pengurangan', name: 'persen_pengurangan', className: 'text-end', searchable: false},
             {data: 'jml_bank_sampah', name: 'jml_bank_sampah', className: 'text-end', searchable: false},
-            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible: @json(auth()->user()->akses === 'pjdesa')},
         ]
     });
   });

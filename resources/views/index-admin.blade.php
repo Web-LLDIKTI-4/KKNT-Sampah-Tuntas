@@ -61,7 +61,7 @@
                         <small>{{$jumlahdpl}} Orang</small>
                     </div>
                 </div>               
-                @if (!in_array($userRole, ['pt', 'kepala']))
+                @if (!in_array($userRole, ['pt', 'kepala', 'pemda']))
                     <div class="d-flex align-items-center mb-6">
                         <div class="avatar">
                             <div class="avatar-initial bg-label-info rounded">
@@ -75,7 +75,7 @@
                     </div>
                 @endif
                 
-                @if (!in_array($userRole, ['pt', 'kepala']))
+                @if (!in_array($userRole, ['pt', 'kepala', 'pemda']))
                     <div class="d-flex align-items-center">
                         <div class="avatar">
                             <div class="avatar-initial bg-label-info rounded">

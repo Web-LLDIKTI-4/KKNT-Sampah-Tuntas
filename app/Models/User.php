@@ -61,4 +61,10 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Satuanpendidikan::class,'email','npsn');
     }
+
+    // Role pemantau read-only (kepala & pemda)
+    public function isPemantau(): bool
+    {
+        return in_array($this->role, ['kepala', 'pemda'], true);
+    }
 }

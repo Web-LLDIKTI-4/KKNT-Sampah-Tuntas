@@ -1,8 +1,8 @@
-@props(['listUrl', 'addUrl' => null, 'addTitle' => 'Tambah Data', 'modalSize' => 'modal-lg', 'title' => null])
+@props(['listUrl', 'addUrl' => null, 'addTitle' => 'Tambah Data', 'modalSize' => 'modal-lg', 'title' => null, 'id' => 'resultcontent'])
 {{-- Halaman index CRUD standar: form & hapus ditangani public/js/crud.js --}}
 <x-page-header :title="$title" />
 
-<div class="card">
+<div class="card" data-crud-index>
     @if ($addUrl || isset($actions))
         <div class="card-header d-flex gap-2">
             @if ($addUrl)
@@ -12,14 +12,21 @@
         </div>
     @endif
     <div class="card-body">
-        <p id="resultcontent">loading data...</p>
+        <p id="{{ $id }}">loading data...</p>
     </div>
 </div>
 <script>
 $(function () {
-    $('#modalku').on('show.bs.modal', function () {
-        $('.modal-dialog').addClass(@json($modalSize));
+    var $result = $('#' + @json($id));
+    var card = $result.closest('[data-crud-index]')[0];
+    $('#modalku').on('show.bs.modal', function (e) {
+        // Banyak instance di satu halaman: ukuran modal milik card pemicu
+        var owner = $(e.relatedTarget).closest('[data-crud-index]')[0];
+        if (owner && owner !== card) {
+            return;
+        }
+        $(this).find('.modal-dialog').removeClass('modal-sm modal-lg modal-xl').addClass(@json($modalSize));
     });
-    $('#resultcontent').load(@json($listUrl));
+    $result.load(@json($listUrl));
 });
 </script>

@@ -296,7 +296,7 @@
                     </div>
                     </div>
                 </li>
-            @elseif (in_array(Auth::user()->role, ['pt', 'kepala']))
+            @elseif (Auth::user()->role === 'pt' || Auth::user()->isPemantau())
                 <li class="nav-item mega-dropdown">
                     <a
                         href="javascript:void(0);"
@@ -344,7 +344,7 @@
                                     </li>
                                 @endif
                                 <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url(Auth::user()->role === 'kepala' ? 'admevaluasikegiatan' : 'ptevaluasikegiatan') }}">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url(Auth::user()->isPemantau() ? 'admevaluasikegiatan' : 'ptevaluasikegiatan') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i>
                                         <span data-i18n="Pricing">Evaluasi Kegiatan</span>
                                     </a>

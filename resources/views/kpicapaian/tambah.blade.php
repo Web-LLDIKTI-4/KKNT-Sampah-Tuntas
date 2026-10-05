@@ -1,4 +1,4 @@
-<form id="form-tambah" method="post" action="{{ url('kpicapaian/insert') }}" data-ajax-form>
+<form id="form-tambah" method="post" action="{{ url('kpicapaian/insert') }}" data-ajax-form data-sampah-form>
     @csrf
     @method('PUT')
     <div class="form-group form-floating form-floating-outline mb-6">
@@ -63,6 +63,7 @@
         <input type="url" name="tautan" required maxlength="2000" placeholder="https://" class="form-control form-control-sm">
         <label>Tautan</label>
     </div>
+    @include('kpicapaian._sampah')
     <hr>
     <x-button.save formId="form-tambah">Simpan</x-button.save>
 </form>

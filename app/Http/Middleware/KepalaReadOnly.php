@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Role kepala hanya memantau: semua request yang mengubah data ditolak,
+ * Role kepala & pemda hanya memantau: semua request yang mengubah data ditolak,
  * kecuali logout dan pengelolaan profil sendiri.
  */
 class KepalaReadOnly
@@ -16,10 +16,10 @@ class KepalaReadOnly
 
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()?->role === 'kepala'
+        if ($request->user()?->isPemantau()
             && ! $request->isMethodSafe()
             && ! in_array($request->path(), self::ALLOWED, true)) {
-            abort(403, 'Akun kepala hanya dapat melihat data.');
+            abort(403, 'Akun pemantau hanya dapat melihat data.');
         }
 
         return $next($request);

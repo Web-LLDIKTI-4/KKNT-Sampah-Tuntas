@@ -32,6 +32,11 @@ class UserSeeder extends Seeder
             'email' => 'kepala@kknt.test',
         ]);
 
+        User::factory()->role('pemda')->withPassword($password)->create([
+            'name' => 'Pemda',
+            'email' => 'pemda@kknt.test',
+        ]);
+
         // Akun PT login memakai NPSN sebagai email
         User::factory()->role('pt')->withPassword($password)->create([
             'name' => $pt->nm_lemb,

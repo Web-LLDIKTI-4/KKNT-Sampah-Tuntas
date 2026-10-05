@@ -13,7 +13,8 @@ class KepalaUserRequest extends AjaxFormRequest
         $update = str_ends_with($this->path(), 'updateuserkepala');
 
         return [
-            'id' => [Rule::requiredIf($update), 'nullable', 'uuid', Rule::exists('users', 'id')->where('role', 'kepala')],
+            'id' => [Rule::requiredIf($update), 'nullable', 'uuid', Rule::exists('users', 'id')->whereIn('role', ['kepala', 'pemda'])],
+            'role' => ['required', 'in:kepala,pemda'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email:rfc', 'max:255', Rule::unique('users', 'email')->ignore($this->input('id'))],
             'password' => [$update ? 'nullable' : 'required', 'string', 'max:255', Password::min(8)],
@@ -23,6 +24,8 @@ class KepalaUserRequest extends AjaxFormRequest
     public function messages(): array
     {
         return [
+            'role.required' => 'Role harus dipilih.',
+            'role.in' => 'Role tidak valid.',
             'name.required' => 'Nama harus di isi.',
             'email.required' => 'Email harus diisi.',
             'email.email' => 'Format Email tidak valid.',

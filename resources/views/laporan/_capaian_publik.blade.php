@@ -10,7 +10,7 @@
     $isDefault = ! $params['kecamatan'] && ! $params['desa'] && ! $params['klaster'];
     $persenTotal = $total_keseluruhan->persen_pengurangan ?? null;
     $klasterTotal = Kpisampah::klaster($persenTotal, true);
-    // Export Excel menggantikan PNG: guest (login) & admin (dashboard); kepala & pt tetap PNG
+    // Export Excel menggantikan PNG: guest (login) & admin (dashboard); kepala, pemda & pt tetap PNG
     $exportRoute = match (true) {
         auth()->guest() => 'login.laporan.export',
         auth()->user()->role === 'admin' => 'dashboardkpi.export-capaian',

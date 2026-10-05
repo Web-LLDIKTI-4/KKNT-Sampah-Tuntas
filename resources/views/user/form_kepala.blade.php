@@ -15,9 +15,17 @@
         </div>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
+        <select name="role" id="role" class="form-select form-select-sm" required>
+            @foreach (['kepala' => 'Kepala', 'pemda' => 'Pemda'] as $value => $label)
+                <option value="{{ $value }}" @selected(($user->role ?? 'kepala') === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+        <label for="role">Peran</label>
+    </div>
+    <div class="form-group form-floating form-floating-outline mb-6">
         <input type="password" name="password" class="form-control form-control-sm" minlength="8" maxlength="255" autocomplete="new-password" @unless ($user) required @endunless>
         <label>Kata Sandi{{ $user ? ' (kosongkan jika tidak diubah)' : '' }}</label>
     </div>
-    <p class="small text-muted mb-4">Peran: kepala — hanya dapat melihat Dashboard KPI dan Laporan Capaian KPI.</p>
+    <p class="small text-muted mb-4">Peran kepala &amp; pemda — hanya dapat melihat Dashboard KPI dan Laporan Capaian KPI.</p>
     <x-button.save formId="form-kepala">Simpan</x-button.save>
 </form>

@@ -5,6 +5,7 @@ namespace Tests\Feature\Mahasiswa;
 use App\Models\Desa;
 use App\Models\Kpi;
 use App\Models\Kpicapaian;
+use App\Models\Kpisampah;
 use App\Http\Requests\Mahasiswa\KpicapaianRequest;
 use App\Models\Pjdesa;
 use Illuminate\Support\Carbon;
@@ -44,7 +45,97 @@ class KpicapaianTest extends TestCase
             'permasalahan' => 'Masalah',
             'solusi' => 'Solusi',
             'kendala' => 'Kendala',
+            'jml_rw_kbs' => 2,
+            'jml_rw_non_kbs' => 3,
+            'jml_rumah' => 200,
+            'jml_rumah_memilah' => 50,
+            'timbulan' => 1000,
+            'pengurangan_organik' => 300,
+            'pengurangan_anorganik' => 100,
+            'residu' => 600,
+            'jml_bank_sampah' => 1,
         ];
+    }
+
+    public function test_insert_saves_sampah_in_same_month_with_server_values(): void
+    {
+        $user = $this->loginKetua();
+
+        $this->put('kpicapaian/insert', $this->payload(1, ['bulan' => '2026-03-17', 'pengurangan' => 999]))
+            ->assertJson(['success' => true]);
+
+        $sampah = Kpisampah::firstOrFail();
+        $this->assertSame('2026-03-01', $sampah->bulan->toDateString());
+        $this->assertSame($user->email, $sampah->email);
+        $this->assertSame(app(\App\Services\KpiSampahService::class)->desaKetua($user->email), $sampah->id_desa);
+        $this->assertSame(400.0, $sampah->pengurangan);
+        $this->assertSame(40.0, $sampah->persen_pengurangan);
+        $this->assertSame(25.0, $sampah->persen_ketaatan);
+    }
+
+    public function test_sampah_invalid_rejects_whole_submit(): void
+    {
+        $this->loginKetua();
+
+        $this->put('kpicapaian/insert', $this->payload(1, ['pengurangan_organik' => 950]))
+            ->assertJsonValidationErrors('pengurangan_anorganik', 'errors');
+        $this->put('kpicapaian/insert', $this->payload(1, ['jml_rumah_memilah' => 201]))
+            ->assertJsonValidationErrors('jml_rumah_memilah', 'errors');
+        $this->put('kpicapaian/insert', $this->payload(1, ['timbulan' => '']))
+            ->assertJsonValidationErrors('timbulan', 'errors');
+
+        $this->assertDatabaseCount('kpi_capaian', 0);
+        $this->assertDatabaseCount('kpi_sampah', 0);
+    }
+
+    public function test_update_moves_sampah_to_new_month_and_overwrites_leftover(): void
+    {
+        $user = $this->loginKetua();
+        $this->put('kpicapaian/insert', $this->payload(1, ['bulan' => '2026-03-10']))->assertJson(['success' => true]);
+        $capaian = Kpicapaian::firstOrFail();
+        $idSampah = Kpisampah::firstOrFail()->id_sampah;
+        // Sisa input menu lama di bulan tujuan
+        Kpisampah::create(['email' => $user->email, 'bulan' => '2026-05-01', 'id_desa' => Desa::factory()->create()->id_desa,
+            'jml_rw_kbs' => 0, 'jml_rw_non_kbs' => 0, 'jml_rumah' => 0, 'jml_rumah_memilah' => 0, 'timbulan' => 1,
+            'pengurangan_organik' => 0, 'pengurangan_anorganik' => 0, 'pengurangan' => 0, 'residu' => 0, 'jml_bank_sampah' => 0]);
+
+        $this->put('kpicapaian/update', $this->payload(1, [
+            'id_capaian' => $capaian->id_capaian, 'bulan' => '2026-05-09', 'timbulan' => 2000,
+        ]))->assertJson(['success' => true]);
+
+        $this->assertDatabaseCount('kpi_sampah', 1);
+        $sampah = Kpisampah::firstOrFail();
+        $this->assertSame($idSampah, $sampah->id_sampah);
+        $this->assertSame('2026-05-01', $sampah->bulan->toDateString());
+        $this->assertSame(2000.0, $sampah->timbulan);
+    }
+
+    public function test_update_creates_sampah_when_missing_and_edit_prefills(): void
+    {
+        $user = $this->loginKetua();
+        $capaian = Kpicapaian::factory()->create(['email' => $user->email, 'id_kpi' => $this->kpi[1]->id_kpi, 'bulan' => '2026-02-01']);
+
+        $this->put('kpicapaian/update', $this->payload(1, ['id_capaian' => $capaian->id_capaian, 'bulan' => '2026-02-01']))
+            ->assertJson(['success' => true]);
+        $this->assertDatabaseHas('kpi_sampah', ['email' => $user->email, 'bulan' => '2026-02-01', 'timbulan' => 1000]);
+
+        $response = $this->get('kpicapaian/edit/'.$capaian->id_capaian)->assertOk();
+        $this->assertSame(1000.0, $response->viewData('sampah')->timbulan);
+        $this->assertNotNull($response->viewData('desa'));
+        $this->assertNotNull($this->get('kpicapaian/tambah')->viewData('desa'));
+    }
+
+    public function test_destroy_deletes_sampah_of_same_month_only(): void
+    {
+        $this->loginKetua();
+        $this->put('kpicapaian/insert', $this->payload(1, ['bulan' => '2026-03-10']))->assertJson(['success' => true]);
+        $this->put('kpicapaian/insert', $this->payload(1, ['bulan' => '2026-04-10']))->assertJson(['success' => true]);
+        $maret = Kpicapaian::where('bulan', '2026-03-01')->firstOrFail();
+
+        $this->put('kpicapaian/destroy', ['id_capaian' => $maret->id_capaian])->assertJson(['success' => true]);
+
+        $this->assertDatabaseCount('kpi_sampah', 1);
+        $this->assertDatabaseHas('kpi_sampah', ['bulan' => '2026-04-01']);
     }
 
     public function test_ketua_creates_one_capaian_per_month(): void
@@ -94,6 +185,16 @@ class KpicapaianTest extends TestCase
         $this->put('kpicapaian/insert', $this->payload(1, ['bulan' => now()->addDay()->toDateString()]))
             ->assertJsonValidationErrors('bulan', 'errors');
         $this->put('kpicapaian/insert', $this->payload(1, ['bulan' => now()->toDateString()]))->assertJson(['success' => true]);
+    }
+
+    public function test_bulan_before_2020_rejected(): void
+    {
+        $this->loginKetua();
+
+        $this->put('kpicapaian/insert', $this->payload(1, ['bulan' => '2019-12-31']))
+            ->assertJsonPath('errors.bulan.0', 'Tanggal minimal Januari 2020.');
+        $this->assertDatabaseCount('kpi_sampah', 0);
+        $this->put('kpicapaian/insert', $this->payload(1, ['bulan' => '2020-01-01']))->assertJson(['success' => true]);
     }
 
     public function test_update_to_existing_month_is_rejected(): void

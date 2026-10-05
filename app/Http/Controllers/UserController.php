@@ -33,7 +33,7 @@ class UserController extends Controller
 
     public function listdata()
     {
-        return view('user.list', ['data' => User::whereIn('role', ['mahasiswa', 'dpl', 'pt', 'kepala'])->get()]);
+        return view('user.list', ['data' => User::whereIn('role', ['mahasiswa', 'dpl', 'pt', 'kepala', 'pemda'])->get()]);
     }
 
     public function getdatamember()
@@ -179,20 +179,20 @@ class UserController extends Controller
 
     public function insertuserkepala(KepalaUserRequest $request)
     {
-        // Role dikunci "kepala", tidak diambil dari input
+        // Role dibatasi kepala/pemda lewat KepalaUserRequest
         (new User)->forceFill([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
-            'role' => 'kepala',
+            'role' => $request->validated('role'),
             'password' => Hash::make($request->validated('password')),
         ])->save();
 
-        return $this->saved('User kepala berhasil dibuat');
+        return $this->saved('User '.$request->validated('role').' berhasil dibuat');
     }
 
     public function edituserkepala(string $id)
     {
-        return view('user.form_kepala', ['user' => User::where('role', 'kepala')->findOrFail($id)]);
+        return view('user.form_kepala', ['user' => User::whereIn('role', ['kepala', 'pemda'])->findOrFail($id)]);
     }
 
     public function updateuserkepala(KepalaUserRequest $request)
@@ -200,14 +200,15 @@ class UserController extends Controller
         $data = [
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
+            'role' => $request->validated('role'),
         ];
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->validated('password'));
         }
 
-        User::where('role', 'kepala')->findOrFail($request->validated('id'))->forceFill($data)->save();
+        User::whereIn('role', ['kepala', 'pemda'])->findOrFail($request->validated('id'))->forceFill($data)->save();
 
-        return $this->saved('User kepala berhasil diupdate');
+        return $this->saved('User '.$request->validated('role').' berhasil diupdate');
     }
 
     public function export()

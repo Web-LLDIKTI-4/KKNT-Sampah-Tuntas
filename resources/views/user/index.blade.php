@@ -10,7 +10,7 @@
         </x-button>
         <x-button modal="{{ url('user/adduserpt') }}" variant="warning" title="Tambah Pengguna Perguruan Tinggi" icon="ri-user-add-fill">Tambah Pengguna Perguruan Tinggi
         </x-button>
-        <x-button modal="{{ url('user/adduserkepala') }}" variant="info" title="Tambah Pengguna Kepala" icon="ri-user-add-fill">Tambah Pengguna Kepala
+        <x-button modal="{{ url('user/adduserkepala') }}" variant="info" title="Tambah Pengguna Kepala/Pemda" icon="ri-user-add-fill">Tambah Pengguna Kepala/Pemda
         </x-button>
     </div>
     <div class="card-body">

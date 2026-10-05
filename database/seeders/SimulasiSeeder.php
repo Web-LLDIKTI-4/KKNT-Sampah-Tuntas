@@ -72,6 +72,7 @@ class SimulasiSeeder extends Seeder
 
         $this->user('admin', 'admin'.self::DOMAIN, 'Administrator');
         $this->user('kepala', 'kepala'.self::DOMAIN, 'Kepala LLDIKTI');
+        $this->user('pemda', 'pemda'.self::DOMAIN, 'Pemerintah Daerah');
 
         // Pasangan PT <-> kelurahan 1:1, urut lokasi -> kecamatan -> kelurahan
         $penempatan = $this->penempatan($wilayah);

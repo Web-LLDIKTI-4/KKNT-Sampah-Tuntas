@@ -17,7 +17,7 @@ class Dpl extends Model
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
         return match ($user->role) {
-            'admin', 'kepala' => $query,
+            'admin', 'kepala', 'pemda' => $query,
             'pt' => $query->where('kodept', $user->email),
             default => $query->whereRaw('1 = 0'),
         };

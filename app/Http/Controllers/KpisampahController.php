@@ -8,7 +8,6 @@ use App\Models\Desa;
 use App\Models\Kpisampah;
 use App\Models\Pjdesa;
 use App\Services\KpiSampahService;
-use App\Support\ActionButtons;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -47,14 +46,7 @@ class KpisampahController extends Controller
             ->addColumn('kecamatan', fn (Kpisampah $row) => $row->desa?->kecamatan?->kecamatan ?? '-')
             ->addColumn('kelurahan', fn (Kpisampah $row) => $row->desa?->desa ?? '-')
             ->editColumn('persen_ketaatan', fn (Kpisampah $row) => Kpisampah::formatPersen($row->persen_ketaatan))
-            ->editColumn('persen_pengurangan', fn (Kpisampah $row) => Kpisampah::formatPersen($row->persen_pengurangan))
-            ->addColumn('action', fn (Kpisampah $row) => ActionButtons::make(
-                urlEdit: url('kpisampah/edit/'.$row->id_sampah),
-                urlDelete: url('kpisampah/destroy'),
-                idField: 'id_sampah',
-                idValue: $row->id_sampah,
-            ))
-            ->rawColumns(['action']);
+            ->editColumn('persen_pengurangan', fn (Kpisampah $row) => Kpisampah::formatPersen($row->persen_pengurangan));
 
         foreach (self::ANGKA as $kolom) {
             $table->editColumn($kolom, fn (Kpisampah $row) => Kpisampah::formatAngka($row->$kolom));

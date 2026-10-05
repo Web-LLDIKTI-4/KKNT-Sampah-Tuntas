@@ -41,6 +41,33 @@ class KpiSampahService
         return $pilihan ?? $pj->id_desa;
     }
 
+    // Capaian + sampah = satu data: baris bulan lama ikut pindah, sisa baris di bulan baru ditimpa
+    public function simpanDariCapaian(string $email, ?string $bulanLama, string $bulan, array $data, ?string $idDesa): Kpisampah
+    {
+        $lama = $bulanLama ? Kpisampah::where('email', $email)->where('bulan', $bulanLama)->first() : null;
+        $baru = Kpisampah::where('email', $email)->where('bulan', $bulan)
+            ->when($lama, fn ($q) => $q->whereKeyNot($lama->getKey()))->first();
+        if ($lama && $baru) {
+            $baru->delete();
+            $baru = null;
+        }
+
+        // id_desa baris lama tetap; hanya baris baru memakai desa ketua
+        $row = $lama ?? $baru ?? new Kpisampah(['email' => $email, 'id_desa' => $idDesa]);
+        $row->fill(self::hitung($data) + [
+            'bulan' => $bulan,
+            'id_pjdesa' => Pjdesa::where('email', $email)->value('id_pjdesa'),
+        ]);
+        $row->save();
+
+        return $row;
+    }
+
+    public function hapusDariCapaian(string $email, string $bulan): void
+    {
+        Kpisampah::where('email', $email)->where('bulan', $bulan)->first()?->delete();
+    }
+
     // Persentase & pengurangan selalu dihitung server, nilai dari klien diabaikan
     public static function hitung(array $data): array
     {

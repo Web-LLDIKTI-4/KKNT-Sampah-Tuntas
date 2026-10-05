@@ -49,7 +49,7 @@
                     @endif
                     <td>{{ $row->role }}</td>
                     <td class="text-center no-sort">
-                        @if($row->role === 'kepala')
+                        @if(in_array($row->role, ['kepala', 'pemda'], true))
                             <x-action-data urlEdit="{{ url('user/edituserkepala/'.$row->id) }}" />
                         @elseif($row->role != "pt")
                             <x-action-data urlEdit="{{ url('user/edit/'.$row->id) }}" />
