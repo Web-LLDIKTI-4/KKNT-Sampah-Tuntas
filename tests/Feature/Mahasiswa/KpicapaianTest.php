@@ -45,15 +45,16 @@ class KpicapaianTest extends TestCase
             'permasalahan' => 'Masalah',
             'solusi' => 'Solusi',
             'kendala' => 'Kendala',
-            'jml_rw_kbs' => 2,
-            'jml_rw_non_kbs' => 3,
+            'jml_rw' => 5,
+            'jml_penduduk' => 800,
             'jml_rumah' => 200,
             'jml_rumah_memilah' => 50,
             'timbulan' => 1000,
-            'pengurangan_organik' => 300,
-            'pengurangan_anorganik' => 100,
-            'residu' => 600,
-            'jml_bank_sampah' => 1,
+            'organik_sumber' => 200,
+            'organik_metode_unit' => 1,
+            'organik_dlh' => 100,
+            'anorganik_sumber' => 100,
+            'anorganik_metode_unit' => 1,
         ];
     }
 
@@ -69,6 +70,7 @@ class KpicapaianTest extends TestCase
         $this->assertSame($user->email, $sampah->email);
         $this->assertSame(app(\App\Services\KpiSampahService::class)->desaKetua($user->email), $sampah->id_desa);
         $this->assertSame(400.0, $sampah->pengurangan);
+        $this->assertSame(600.0, $sampah->belum_terkelola);
         $this->assertSame(40.0, $sampah->persen_pengurangan);
         $this->assertSame(25.0, $sampah->persen_ketaatan);
     }
@@ -77,8 +79,8 @@ class KpicapaianTest extends TestCase
     {
         $this->loginKetua();
 
-        $this->put('kpicapaian/insert', $this->payload(1, ['pengurangan_organik' => 950]))
-            ->assertJsonValidationErrors('pengurangan_anorganik', 'errors');
+        $this->put('kpicapaian/insert', $this->payload(1, ['organik_sumber' => 850]))
+            ->assertJsonValidationErrors('anorganik_sumber', 'errors');
         $this->put('kpicapaian/insert', $this->payload(1, ['jml_rumah_memilah' => 201]))
             ->assertJsonValidationErrors('jml_rumah_memilah', 'errors');
         $this->put('kpicapaian/insert', $this->payload(1, ['timbulan' => '']))
@@ -96,8 +98,8 @@ class KpicapaianTest extends TestCase
         $idSampah = Kpisampah::firstOrFail()->id_sampah;
         // Sisa input menu lama di bulan tujuan
         Kpisampah::create(['email' => $user->email, 'bulan' => '2026-05-01', 'id_desa' => Desa::factory()->create()->id_desa,
-            'jml_rw_kbs' => 0, 'jml_rw_non_kbs' => 0, 'jml_rumah' => 0, 'jml_rumah_memilah' => 0, 'timbulan' => 1,
-            'pengurangan_organik' => 0, 'pengurangan_anorganik' => 0, 'pengurangan' => 0, 'residu' => 0, 'jml_bank_sampah' => 0]);
+            'jml_rw' => 0, 'jml_penduduk' => 0, 'jml_rumah' => 0, 'jml_rumah_memilah' => 0, 'timbulan' => 1,
+            'organik_sumber' => 0, 'organik_dlh' => 0, 'anorganik_sumber' => 0, 'pengurangan' => 0, 'belum_terkelola' => 1]);
 
         $this->put('kpicapaian/update', $this->payload(1, [
             'id_capaian' => $capaian->id_capaian, 'bulan' => '2026-05-09', 'timbulan' => 2000,

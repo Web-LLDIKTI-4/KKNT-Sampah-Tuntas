@@ -20,10 +20,11 @@ class Kpisampah extends Model
         'bulan' => 'date',
         'persen_ketaatan' => 'float',
         'timbulan' => 'float',
-        'pengurangan_organik' => 'float',
-        'pengurangan_anorganik' => 'float',
+        'organik_sumber' => 'float',
+        'organik_dlh' => 'float',
+        'anorganik_sumber' => 'float',
         'pengurangan' => 'float',
-        'residu' => 'float',
+        'belum_terkelola' => 'float',
         'persen_pengurangan' => 'float',
     ];
 

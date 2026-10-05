@@ -33,14 +33,14 @@ class RekapsampahController extends Controller
         ]);
     }
 
-    // Admin & kepala: format sama dengan tabel (kelurahan + total kecamatan), mengikuti filter & klaster aktif
+    // Format Excel resmi (per kelurahan), mengikuti filter & klaster aktif
     public function export(RekapSampahRequest $request, KpiSampahService $sampah)
     {
         [$filter] = $this->filter($request, $sampah);
         $perKetua = $request->user()->role === 'pt';
 
         return Excel::download(
-            new DataSampahSheet($sampah->detail($filter, $perKetua), $sampah->rekapKecamatan($filter)),
+            new DataSampahSheet($sampah->detail($filter, $perKetua)),
             'data_sampah_'.($filter['klaster'] ?? 'semua').'_'.date('Y-m-d_H-i-s').'.xlsx'
         );
     }

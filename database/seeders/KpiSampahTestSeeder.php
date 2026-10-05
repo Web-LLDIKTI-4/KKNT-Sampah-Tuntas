@@ -84,15 +84,16 @@ class KpiSampahTestSeeder extends Seeder
                 KpiSampahService::hitung([
                     'id_pjdesa' => $pj->id_pjdesa,
                     'id_desa' => $desa->id_desa,
-                    'jml_rw_kbs' => 2,
-                    'jml_rw_non_kbs' => 3,
+                    'jml_rw' => 5,
+                    'jml_penduduk' => $rumah * 4,
                     'jml_rumah' => $rumah,
                     'jml_rumah_memilah' => $memilah,
                     'timbulan' => $timbulan,
-                    'pengurangan_organik' => $organik,
-                    'pengurangan_anorganik' => $anorganik,
-                    'residu' => $timbulan - $organik - $anorganik,
-                    'jml_bank_sampah' => 1,
+                    'organik_sumber' => $organik,
+                    'organik_metode_unit' => 1,
+                    'organik_dlh' => 0,
+                    'anorganik_sumber' => $anorganik,
+                    'anorganik_metode_unit' => 1,
                 ])
             );
         }

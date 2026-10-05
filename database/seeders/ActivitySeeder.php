@@ -32,9 +32,7 @@ class ActivitySeeder extends Seeder
         foreach (Mahasiswa::all() as $mhs) {
             $emailDpl = $mentoring[$mhs->email] ?? null;
 
-            Logkegiatan::factory()->count(8)
-                ->sequence(fn () => ['id_kpi' => $kpiIds->random()])
-                ->create(['email' => $mhs->email]);
+            Logkegiatan::factory()->count(8)->create(['email' => $mhs->email]);
 
             foreach ([1, 2] as $offset) {
                 $bulan = Carbon::now()->subMonthsNoOverflow($offset);

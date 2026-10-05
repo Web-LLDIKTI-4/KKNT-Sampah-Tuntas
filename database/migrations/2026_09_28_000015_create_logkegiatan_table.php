@@ -10,13 +10,16 @@ return new class extends Migration
     {
         Schema::create('logkegiatan', function (Blueprint $table) {
             $table->uuid('id_log')->primary();
-            $table->string('email')->nullable();
-            $table->date('tanggal')->nullable();
-            $table->longText('deskripsi')->nullable();
-            $table->string('volume', 100)->nullable();
-            $table->text('satuan')->nullable();
-            $table->uuid('id_kpi')->nullable()->index();
-            $table->string('tautan')->nullable();
+            $table->string('email');
+            $table->date('tanggal');
+            $table->string('nama_kepala_keluarga', 150);
+            $table->string('alamat_rumah');
+            $table->string('rt', 5);
+            $table->string('rw', 5);
+            $table->boolean('memilah');
+            $table->decimal('organik_kg', 10, 2);
+            $table->decimal('anorganik_kg', 10, 2);
+            $table->decimal('residu_kg', 10, 2);
             $table->timestamps();
             $table->index(['email', 'tanggal']);
         });

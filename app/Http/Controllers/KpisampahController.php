@@ -17,9 +17,9 @@ class KpisampahController extends Controller
 {
     use RespondsWithJson;
 
-    private const ANGKA = ['jml_rw_kbs', 'jml_rw_non_kbs', 'jml_rumah', 'jml_rumah_memilah', 'jml_bank_sampah'];
+    private const ANGKA = ['jml_rw', 'jml_penduduk', 'jml_rumah', 'jml_rumah_memilah', 'organik_metode_unit', 'anorganik_metode_unit'];
 
-    private const BERAT = ['timbulan', 'pengurangan_organik', 'pengurangan_anorganik', 'pengurangan', 'residu'];
+    private const BERAT = ['timbulan', 'organik_sumber', 'organik_dlh', 'anorganik_sumber', 'pengurangan', 'belum_terkelola'];
 
     public function index()
     {

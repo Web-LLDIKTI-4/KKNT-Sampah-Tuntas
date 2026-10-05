@@ -64,8 +64,8 @@ class CapaianPublikTest extends TestCase
         }
         Kpisampah::create(KpiSampahService::hitung([
             'email' => $mhs->email, 'id_desa' => $desa->id_desa, 'bulan' => $this->bulan.'-01',
-            'jml_rw_kbs' => 1, 'jml_rw_non_kbs' => 1, 'jml_rumah' => 100, 'jml_rumah_memilah' => 50,
-            'timbulan' => 100, 'pengurangan_organik' => $pengurangan, 'pengurangan_anorganik' => 0, 'residu' => 100 - $pengurangan, 'jml_bank_sampah' => 0,
+            'jml_rw' => 1, 'jml_penduduk' => 300, 'jml_rumah' => 100, 'jml_rumah_memilah' => 50,
+            'timbulan' => 100, 'organik_sumber' => $pengurangan, 'organik_dlh' => 0, 'anorganik_sumber' => 0,
         ]));
     }
 
@@ -294,8 +294,8 @@ class CapaianPublikTest extends TestCase
         // Data bulan lain tidak boleh ikut ke bulan terpilih
         Kpisampah::create(KpiSampahService::hitung([
             'email' => $mhs->email, 'id_desa' => $desaKosong->id_desa, 'bulan' => now()->subMonths(2)->format('Y-m').'-01',
-            'jml_rw_kbs' => 1, 'jml_rw_non_kbs' => 1, 'jml_rumah' => 100, 'jml_rumah_memilah' => 50,
-            'timbulan' => 100, 'pengurangan_organik' => 90, 'pengurangan_anorganik' => 0, 'residu' => 10, 'jml_bank_sampah' => 0,
+            'jml_rw' => 1, 'jml_penduduk' => 300, 'jml_rumah' => 100, 'jml_rumah_memilah' => 50,
+            'timbulan' => 100, 'organik_sumber' => 90, 'organik_dlh' => 0, 'anorganik_sumber' => 0,
         ]));
         // Kelurahan tepat 20% -> Kuning (ambang strict > 20%)
         $this->ketua('pas', 'Univ Pas', $this->d['lokasiA'], Desa::factory()->create(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'desa' => 'Desa Pas']), 20);

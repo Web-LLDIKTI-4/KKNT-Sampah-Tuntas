@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Exports\LogHarianByMhsExport;
 use App\Models\Logkegiatan;
-use App\Support\HtmlSanitizer;
 use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTableAbstract;
@@ -29,20 +28,23 @@ class AdmlogkegiatanController extends StudentLogReportController
 
     protected function detailTable(string $email): DataTableAbstract
     {
-        // PT hanya melihat tautan, tidak isi deskripsi
-        $showDeskripsi = in_array(auth()->user()->role, ['admin', 'dpl'], true);
+        $showIdentitas = $this->showIdentitas();
 
-        return DataTables::of(Logkegiatan::where('email', $email)->with('kpi')->orderBy('tanggal')->get())
+        return DataTables::of(Logkegiatan::where('email', $email)->without(['mahasiswa', 'dplmentoring'])->orderBy('tanggal')->get())
             ->addIndexColumn()
             ->editColumn('tanggal', fn ($row) => Carbon::parse($row->tanggal)->format('d-m-Y'))
-            ->addColumn('nama_kpi', fn ($row) => $row->kpi->nama_kpi ?? '')
-            ->editColumn('deskripsi', fn ($row) => ($showDeskripsi ? HtmlSanitizer::clean($row->deskripsi) : 'tidak ditampilkan <br />')
-                .' '.HtmlSanitizer::link($row->tautan))
-            ->rawColumns(['deskripsi']);
+            ->editColumn('nama_kepala_keluarga', fn ($row) => $showIdentitas ? $row->nama_kepala_keluarga : 'tidak ditampilkan')
+            ->editColumn('alamat_rumah', fn ($row) => $showIdentitas ? $row->alamat_rumah : 'tidak ditampilkan');
     }
 
     protected function exportFor(string $email)
     {
-        return Excel::download(new LogHarianByMhsExport($email), 'logharian_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
+        return Excel::download(new LogHarianByMhsExport($email, $this->showIdentitas()), 'logharian_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
+    }
+
+    // Selain admin/dpl: identitas rumah tangga disembunyikan (tabel & export)
+    private function showIdentitas(): bool
+    {
+        return in_array(auth()->user()->role, ['admin', 'dpl'], true);
     }
 }

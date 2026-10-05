@@ -11,8 +11,11 @@ use Illuminate\Validation\Validator;
 class KpisampahRequest extends AjaxFormRequest
 {
     public const SAMPAH_FIELDS = [
-        'jml_rw_kbs', 'jml_rw_non_kbs', 'jml_rumah', 'jml_rumah_memilah', 'timbulan',
-        'pengurangan_organik', 'pengurangan_anorganik', 'residu', 'jml_bank_sampah',
+        'jml_rw', 'jml_penduduk', 'jml_rumah', 'jml_rumah_memilah', 'timbulan',
+        'organik_sumber', 'organik_metode', 'organik_metode_unit',
+        'organik_dlh', 'organik_dlh_fasilitas', 'organik_dlh_lokasi',
+        'anorganik_sumber', 'anorganik_metode', 'anorganik_metode_lokasi', 'anorganik_metode_unit',
+        'keterangan',
     ];
 
     public const FIELDS = ['bulan', ...self::SAMPAH_FIELDS];
@@ -34,18 +37,27 @@ class KpisampahRequest extends AjaxFormRequest
     public static function sampahRules(): array
     {
         $bilangan = ['required', 'integer', 'min:0', 'max:1000000'];
-        $berat = ['required', 'numeric', 'min:0', 'max:9999999999'];
+        $berat = ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:9999999999'];
+        // Awalan = + - @ ditolak agar tidak jadi formula saat diekspor ke Excel
+        $teks = ['nullable', 'string', 'max:255', 'not_regex:/^[=+\-@]/'];
 
         return [
-            'jml_rw_kbs' => $bilangan,
-            'jml_rw_non_kbs' => $bilangan,
+            'jml_rw' => $bilangan,
+            'jml_penduduk' => $bilangan,
             'jml_rumah' => $bilangan,
             'jml_rumah_memilah' => [...$bilangan, 'lte:jml_rumah'],
             'timbulan' => $berat,
-            'pengurangan_organik' => $berat,
-            'pengurangan_anorganik' => $berat,
-            'residu' => $berat,
-            'jml_bank_sampah' => $bilangan,
+            'organik_sumber' => $berat,
+            'organik_metode' => $teks,
+            'organik_metode_unit' => $bilangan,
+            'organik_dlh' => $berat,
+            'organik_dlh_fasilitas' => $teks,
+            'organik_dlh_lokasi' => $teks,
+            'anorganik_sumber' => $berat,
+            'anorganik_metode' => $teks,
+            'anorganik_metode_lokasi' => $teks,
+            'anorganik_metode_unit' => $bilangan,
+            'keterangan' => ['nullable', 'string', 'max:2000', 'not_regex:/^[=+\-@]/'],
         ];
     }
 
@@ -88,11 +100,12 @@ class KpisampahRequest extends AjaxFormRequest
         }];
     }
 
-    // Total pengurangan ≤ timbulan; false bila gagal (error sudah ditambahkan)
+    // Total pengolahan (J+M+P) ≤ timbulan; false bila gagal (error sudah ditambahkan)
     public static function cekPengurangan(Validator $validator, array $input): bool
     {
-        if ((float) ($input['pengurangan_organik'] ?? 0) + (float) ($input['pengurangan_anorganik'] ?? 0) > (float) ($input['timbulan'] ?? 0)) {
-            $validator->errors()->add('pengurangan_anorganik', 'Total pengurangan tidak boleh melebihi jumlah timbulan sampah.');
+        $total = (float) ($input['organik_sumber'] ?? 0) + (float) ($input['organik_dlh'] ?? 0) + (float) ($input['anorganik_sumber'] ?? 0);
+        if (round($total, 2) > (float) ($input['timbulan'] ?? 0)) {
+            $validator->errors()->add('anorganik_sumber', 'Total pengolahan tidak boleh melebihi jumlah timbulan sampah.');
 
             return false;
         }
@@ -120,6 +133,9 @@ class KpisampahRequest extends AjaxFormRequest
             'jml_rumah_memilah.lte' => 'Jumlah rumah yang memilah tidak boleh melebihi jumlah rumah keseluruhan.',
             '*.required' => 'Kolom ini harus diisi.',
             '*.min' => 'Nilai tidak boleh negatif.',
+            '*.max' => 'Nilai melebihi batas maksimum.',
+            '*.decimal' => 'Maksimal 2 angka di belakang koma.',
+            '*.not_regex' => 'Teks tidak boleh diawali tanda = + - @.',
         ];
     }
 }

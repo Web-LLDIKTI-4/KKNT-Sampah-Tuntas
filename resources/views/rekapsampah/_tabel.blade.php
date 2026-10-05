@@ -97,49 +97,57 @@
         <div class="fw-medium">{{ $berat($total->total_timbulan) }} kg</div>
     </div>
     <div>
-        <div class="small text-muted">Total Pengurangan</div>
+        <div class="small text-muted">Total Pengolahan</div>
         <div class="fw-medium">{{ $berat($total->total_pengurangan) }} kg</div>
     </div>
     <div>
-        <div class="small text-muted">Total Residu</div>
-        <div class="fw-medium">{{ $berat($total->total_residu) }} kg</div>
-    </div>
-    <div>
-        <div class="small text-muted">Bank Sampah</div>
-        <div class="fw-medium">{{ $angka($total->total_jml_bank_sampah) }}</div>
+        <div class="small text-muted">Belum Terkelola</div>
+        <div class="fw-medium">{{ $berat($total->total_belum_terkelola) }} kg</div>
     </div>
 </div>
 
 <div class="table-responsive scroll-box scroll-box-lg">
     <table class="table table-sm table-bordered mb-0 align-middle">
         <thead class="text-center">
+            {{-- Header bertingkat mengikuti format Excel --}}
             <tr>
-                <th rowspan="2">Kecamatan</th>
-                <th rowspan="2">Kelurahan</th>
-                <th rowspan="2">Perguruan Tinggi</th>
-                <th colspan="2">Jumlah RW</th>
+                <th rowspan="3">Kecamatan</th>
+                <th rowspan="3">Kelurahan</th>
+                <th rowspan="3">Perguruan Tinggi</th>
+                <th rowspan="3">Jumlah RW</th>
+                <th rowspan="3">Penduduk (Jiwa)</th>
                 <th colspan="3">Rumah</th>
-                <th colspan="5">Sampah (kg/bulan)</th>
-                <th rowspan="2">% Pengurangan Sampah</th>
-                <th rowspan="2">Bank Sampah</th>
+                <th rowspan="3">Timbulan (Kg/Bulan)</th>
+                <th colspan="12">Jenis Sampah yang Diolah</th>
+                <th rowspan="3">% Penurunan Sampah</th>
+                <th rowspan="3">Keterangan</th>
             </tr>
             <tr>
-                <th>KBS DLH</th>
-                <th>Non-KBS</th>
-                <th>Keseluruhan</th>
-                <th>Memilah</th>
-                <th>% Ketaatan</th>
-                <th>Timbulan</th>
-                <th>Peng. Organik</th>
-                <th>Peng. Anorganik</th>
-                <th>Pengurangan</th>
-                <th>Residu</th>
+                <th rowspan="2">Keseluruhan</th>
+                <th rowspan="2">Memilah</th>
+                <th rowspan="2">% Ketaatan</th>
+                <th colspan="6">Organik</th>
+                <th colspan="4">Anorganik</th>
+                <th rowspan="2">Total Pengolahan (Kg/Bulan)</th>
+                <th rowspan="2">Belum Terkelola (Kg/Bulan)</th>
+            </tr>
+            <tr>
+                <th>Diolah di Sumber (Kg)</th>
+                <th>Metode</th>
+                <th>Unit</th>
+                <th>Diolah DLH (Kg)</th>
+                <th>Fasilitas DLH</th>
+                <th>Lokasi</th>
+                <th>Diolah di Sumber (Kg)</th>
+                <th>Metode</th>
+                <th>Lokasi</th>
+                <th>Unit</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($perBulan as $grupBulan)
                 <tr class="table-light">
-                    <th colspan="15">{{ $namaBulan($grupBulan->bulan) }}</th>
+                    <th colspan="25">{{ $namaBulan($grupBulan->bulan) }}</th>
                 </tr>
                 @foreach ($grupBulan->kecamatan as $kec)
                     @foreach ($kec->rows as $row)
@@ -149,40 +157,56 @@
                             @endif
                             <td>{{ $row->desa }}</td>
                             <td>{{ $row->nama_pt ?? '-' }}@isset($row->email)<div class="small text-muted">{{ $row->nama_ketua ?? $row->email }}</div>@endisset</td>
-                            <td class="text-end">{{ $angka($row->jml_rw_kbs) }}</td>
-                            <td class="text-end">{{ $angka($row->jml_rw_non_kbs) }}</td>
+                            <td class="text-end">{{ $angka($row->jml_rw) }}</td>
+                            <td class="text-end">{{ $angka($row->jml_penduduk) }}</td>
                             <td class="text-end">{{ $angka($row->jml_rumah) }}</td>
                             <td class="text-end">{{ $angka($row->jml_rumah_memilah) }}</td>
                             <td class="text-end">{{ $persen($row->persen_ketaatan) }}</td>
                             <td class="text-end">{{ $berat($row->timbulan) }}</td>
-                            <td class="text-end">{{ $berat($row->pengurangan_organik) }}</td>
-                            <td class="text-end">{{ $berat($row->pengurangan_anorganik) }}</td>
+                            <td class="text-end">{{ $berat($row->organik_sumber) }}</td>
+                            <td>{{ $row->organik_metode ?? '-' }}</td>
+                            <td class="text-end">{{ $angka($row->organik_metode_unit) }}</td>
+                            <td class="text-end">{{ $berat($row->organik_dlh) }}</td>
+                            <td>{{ $row->organik_dlh_fasilitas ?? '-' }}</td>
+                            <td>{{ $row->organik_dlh_lokasi ?? '-' }}</td>
+                            <td class="text-end">{{ $berat($row->anorganik_sumber) }}</td>
+                            <td>{{ $row->anorganik_metode ?? '-' }}</td>
+                            <td>{{ $row->anorganik_metode_lokasi ?? '-' }}</td>
+                            <td class="text-end">{{ $angka($row->anorganik_metode_unit) }}</td>
                             <td class="text-end">{{ $berat($row->pengurangan) }}</td>
-                            <td class="text-end">{{ $berat($row->residu) }}</td>
+                            <td class="text-end">{{ $berat($row->belum_terkelola) }}</td>
                             <td class="text-center {{ $sel($row->persen_pengurangan) }}">{{ $persen($row->persen_pengurangan) }}</td>
-                            <td class="text-end">{{ $angka($row->jml_bank_sampah) }}</td>
+                            <td>{{ $row->keterangan ?? '-' }}</td>
                         </tr>
                     @endforeach
                     @if ($t = $kec->total)
                         <tr class="fw-semibold bg-lighter">
                             <td colspan="2">Total Kecamatan ({{ $angka($t->jml_kelurahan) }} kelurahan)</td>
-                            <td class="text-end">{{ $angka($t->total_jml_rw_kbs) }}</td>
-                            <td class="text-end">{{ $angka($t->total_jml_rw_non_kbs) }}</td>
+                            <td class="text-end">{{ $angka($t->total_jml_rw) }}</td>
+                            <td class="text-end">{{ $angka($t->total_jml_penduduk) }}</td>
                             <td class="text-end">{{ $angka($t->total_jml_rumah) }}</td>
                             <td class="text-end">{{ $angka($t->total_jml_rumah_memilah) }}</td>
                             <td class="text-end">{{ $persen($t->persen_ketaatan) }}</td>
                             <td class="text-end">{{ $berat($t->total_timbulan) }}</td>
-                            <td class="text-end">{{ $berat($t->total_pengurangan_organik) }}</td>
-                            <td class="text-end">{{ $berat($t->total_pengurangan_anorganik) }}</td>
+                            <td class="text-end">{{ $berat($t->total_organik_sumber) }}</td>
+                            <td></td>
+                            <td class="text-end">{{ $angka($t->total_organik_metode_unit) }}</td>
+                            <td class="text-end">{{ $berat($t->total_organik_dlh) }}</td>
+                            <td></td>
+                            <td></td>
+                            <td class="text-end">{{ $berat($t->total_anorganik_sumber) }}</td>
+                            <td></td>
+                            <td></td>
+                            <td class="text-end">{{ $angka($t->total_anorganik_metode_unit) }}</td>
                             <td class="text-end">{{ $berat($t->total_pengurangan) }}</td>
-                            <td class="text-end">{{ $berat($t->total_residu) }}</td>
+                            <td class="text-end">{{ $berat($t->total_belum_terkelola) }}</td>
                             <td class="text-center {{ $sel($t->persen_pengurangan) }}">{{ $persen($t->persen_pengurangan) }}</td>
-                            <td class="text-end">{{ $angka($t->total_jml_bank_sampah) }}</td>
+                            <td></td>
                         </tr>
                     @endif
                 @endforeach
             @empty
-                <tr><td colspan="15" class="text-center text-muted">Belum ada data</td></tr>
+                <tr><td colspan="25" class="text-center text-muted">Belum ada data</td></tr>
             @endforelse
         </tbody>
     </table>

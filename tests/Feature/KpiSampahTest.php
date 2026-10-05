@@ -37,15 +37,22 @@ class KpiSampahTest extends TestCase
     {
         return $override + [
             'bulan' => now()->subMonth()->format('Y-m'),
-            'jml_rw_kbs' => 2,
-            'jml_rw_non_kbs' => 3,
+            'jml_rw' => 5,
+            'jml_penduduk' => 800,
             'jml_rumah' => 200,
             'jml_rumah_memilah' => 50,
             'timbulan' => 1000,
-            'pengurangan_organik' => 300,
-            'pengurangan_anorganik' => 100,
-            'residu' => 600,
-            'jml_bank_sampah' => 1,
+            'organik_sumber' => 200,
+            'organik_metode' => 'Maggot BSF',
+            'organik_metode_unit' => 2,
+            'organik_dlh' => 100,
+            'organik_dlh_fasilitas' => 'TPS3R',
+            'organik_dlh_lokasi' => 'Kel. Uji',
+            'anorganik_sumber' => 100,
+            'anorganik_metode' => 'Bank Sampah',
+            'anorganik_metode_lokasi' => 'RW 01',
+            'anorganik_metode_unit' => 1,
+            'keterangan' => 'Catatan',
         ];
     }
 
@@ -60,15 +67,14 @@ class KpiSampahTest extends TestCase
             'email' => $email,
             'id_desa' => $idDesa,
             'bulan' => $bulan.'-01',
-            'jml_rw_kbs' => 1,
-            'jml_rw_non_kbs' => 1,
+            'jml_rw' => 1,
+            'jml_penduduk' => 300,
             'jml_rumah' => 100,
             'jml_rumah_memilah' => 50,
             'timbulan' => 100,
-            'pengurangan_organik' => 10,
-            'pengurangan_anorganik' => 10,
-            'residu' => 80,
-            'jml_bank_sampah' => 0,
+            'organik_sumber' => 10,
+            'organik_dlh' => 0,
+            'anorganik_sumber' => 10,
         ]));
     }
 
@@ -84,6 +90,7 @@ class KpiSampahTest extends TestCase
         $this->assertSame($desaPilihan, $data->id_desa);
         $this->assertSame(now()->subMonth()->format('Y-m-01'), $data->bulan->toDateString());
         $this->assertEquals(400, $data->pengurangan);
+        $this->assertEquals(600, $data->belum_terkelola);
         $this->assertEquals(25, $data->persen_ketaatan);
         $this->assertEquals(40, $data->persen_pengurangan);
     }
@@ -98,8 +105,8 @@ class KpiSampahTest extends TestCase
         $this->put('kpisampah/insert', $this->payload(['bulan' => '2026-13']))->assertJsonPath('success', false);
         $this->put('kpisampah/insert', $this->payload(['bulan' => now()->subMonths(2)->format('Y-m'), 'jml_rumah_memilah' => 201]))
             ->assertJsonStructure(['errors' => ['jml_rumah_memilah']]);
-        $this->put('kpisampah/insert', $this->payload(['bulan' => now()->subMonths(2)->format('Y-m'), 'pengurangan_organik' => 950]))
-            ->assertJsonStructure(['errors' => ['pengurangan_anorganik']]);
+        $this->put('kpisampah/insert', $this->payload(['bulan' => now()->subMonths(2)->format('Y-m'), 'organik_sumber' => 850]))
+            ->assertJsonStructure(['errors' => ['anorganik_sumber']]);
         $this->put('kpisampah/insert', $this->payload(['bulan' => now()->subMonths(2)->format('Y-m'), 'timbulan' => -1]))
             ->assertJsonStructure(['errors' => ['timbulan']]);
 
@@ -138,7 +145,7 @@ class KpiSampahTest extends TestCase
         foreach ([[$pt1, 100, 20], [$pt1, 300, 60], [$pt2, 600, 0]] as [$pt, $timbulan, $organik]) {
             $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn]);
             $desa = Desa::factory()->create(['id_kecamatan' => $kecamatan->id_kecamatan]);
-            $this->isi($mhs->email, $desa->id_desa, $bulan, ['timbulan' => $timbulan, 'pengurangan_organik' => $organik, 'pengurangan_anorganik' => 0, 'jml_rumah' => 100, 'jml_rumah_memilah' => 40]);
+            $this->isi($mhs->email, $desa->id_desa, $bulan, ['timbulan' => $timbulan, 'organik_sumber' => $organik, 'anorganik_sumber' => 0, 'jml_rumah' => 100, 'jml_rumah_memilah' => 40]);
         }
 
         $rekap = app(KpiSampahService::class)->rekapKecamatan(['bulan' => $bulan])->sole();
@@ -178,7 +185,7 @@ class KpiSampahTest extends TestCase
             $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'nama' => 'Ketua '.$nama]);
             $desa = Desa::factory()->create(['id_kecamatan' => $kecamatan->id_kecamatan]);
             Pjdesa::create(['email' => $mhs->email, 'id_desa' => $desa->id_desa]);
-            $this->isi($mhs->email, $desa->id_desa, $bulan, ['pengurangan_organik' => $organik, 'pengurangan_anorganik' => 0, 'jml_bank_sampah' => 0]);
+            $this->isi($mhs->email, $desa->id_desa, $bulan, ['organik_sumber' => $organik, 'anorganik_sumber' => 0]);
             $hasil[] = ['pt' => $pt, 'desa' => $desa, 'ketua' => $mhs];
         }
 
@@ -250,56 +257,144 @@ class KpiSampahTest extends TestCase
                 && $l['total']->persen_pengurangan == 10.0);
     }
 
-    public function test_export_data_sampah_sheet_has_kelurahan_rows_and_merged_kecamatan_totals(): void
+    public function test_export_data_sampah_sheet_follows_excel_format(): void
     {
         $this->duaPt(now()->subMonth()->format('Y-m'));
 
-        $sampah = app(KpiSampahService::class);
-        $rows = (new DataSampahSheet($sampah->detail([]), $sampah->rekapKecamatan([])))->array();
+        $rows = (new DataSampahSheet(app(KpiSampahService::class)->detail([])))->array();
 
-        // Kolom A-Z: 16 kolom kelurahan + 10 kolom total bulan
-        $this->assertCount(26, $rows[0]);
-        $this->assertSame(['Bulan', 'Persentase Pengurangan Sampah (%)'], [$rows[0][0], $rows[0][25]]);
-        $this->assertCount(3, $rows);
-        $this->assertSame(['Univ Lebih', 'Univ Rendah'], [$rows[1][2], $rows[2][2]]);
-        // Total bulan hanya di baris pertama: timbulan 200, pengurangan 35 => 17,5%
-        $this->assertEquals([200.0, 35.0, 0.175], [$rows[1][19], $rows[1][22], $rows[1][25]]);
-        $this->assertNull($rows[2][19]);
-        $this->assertSame(0, $rows[1][15]);
+        // 4 baris header (A-W) + 2 data + 2 kosong + 3 catatan
+        $this->assertCount(11, $rows);
+        $this->assertCount(23, $rows[0]);
+        $this->assertSame(['Bulan', 'Kecamatan', 'Desa/Kelurahan', 'Jumlah RW'], array_slice($rows[0], 0, 4));
+        $this->assertSame('Keterangan', $rows[0][22]);
+        $this->assertSame(['Organik', 'Anorganik'], [$rows[1][9], $rows[1][15]]);
+        $this->assertSame(['Diolah di sumber (Kg/Bulan)', 'Diolah oleh DLH (Kg/Bulan)', 'Lokasi Metode'], [$rows[2][9], $rows[2][12], $rows[2][17]]);
+        $this->assertSame(array_fill(0, 23, null), $rows[3]);
+
+        // Data diurut per kelurahan; persen ditulis pecahan untuk format % Excel
+        $data = collect([$rows[4], $rows[5]])->keyBy(fn ($r) => $r[22]);
+        $lebih = $data['PT: Univ Lebih'];
+        $this->assertSame('Kec Uji', $lebih[1]);
+        $this->assertEquals([100.0, 25.0, 0.0, 0.0, 25.0, 75.0, 0.25], [$lebih[8], $lebih[9], $lebih[12], $lebih[15], $lebih[19], $lebih[20], $lebih[21]]);
+        $this->assertEquals(0.5, $lebih[7]);
+        $this->assertSame(0.1, $data['PT: Univ Rendah'][21]);
+
+        $this->assertSame([[null], [null]], [$rows[6], $rows[7]]);
+        $this->assertStringStartsWith('Asumsi : Timbulan sampah', $rows[8][0]);
+        $this->assertStringStartsWith('untuk baseline', $rows[10][0]);
     }
 
-    public function test_export_total_columns_are_per_bulan_merged_over_all_kecamatan(): void
+    public function test_export_merges_bulan_and_kecamatan_and_follows_filter(): void
     {
         $bulan = now()->subMonth()->format('Y-m');
-        $dua = $this->duaPt($bulan); // Kec Uji: timbulan 200, pengurangan 35
+        $dua = $this->duaPt($bulan);
         $kecLain = Kecamatan::factory()->create(['kecamatan' => 'Kec Zeta']);
         $desaLain = Desa::factory()->create(['id_kecamatan' => $kecLain->id_kecamatan]);
         $mhs = Mahasiswa::factory()->create(['kodept' => Satuanpendidikan::factory()->create()->npsn]);
-        $this->isi($mhs->email, $desaLain->id_desa, $bulan, []); // timbulan 100, pengurangan 20
+        $this->isi($mhs->email, $desaLain->id_desa, $bulan, []);
 
         $sampah = app(KpiSampahService::class);
-        $sheet = new DataSampahSheet($sampah->detail([]), $sampah->rekapKecamatan([]));
+        $sheet = new DataSampahSheet($sampah->detail([]));
         $rows = $sheet->array();
         $prop = fn (string $nama) => (new \ReflectionProperty($sheet, $nama))->getValue($sheet);
 
-        // 1 nilai per bulan: 300 timbulan, 55 pengurangan -> 18,33% (rumah 300, memilah 150 -> 50%)
-        $this->assertCount(4, $rows);
-        $this->assertEquals([300, 150, 0.5, 300.0, 55.0, 0.1833], [$rows[1][16], $rows[1][17], $rows[1][18], $rows[1][19], $rows[1][22], $rows[1][25]]);
-        $this->assertNull($rows[2][19]);
-        $this->assertNull($rows[3][19]);
-        // Q-Z & A di-merge per bulan (baris 2-4), B tetap per kecamatan (Kec Uji baris 2-3)
+        // Baris Excel 5-6 Kec Uji, 7 Kec Zeta: A di-merge per bulan, B per kecamatan
+        $this->assertSame('Kec Zeta', $rows[6][1]);
         $merges = $prop('merges');
-        foreach (['A', 'Q', 'U', 'Z'] as $kolom) {
-            $this->assertContains("{$kolom}2:{$kolom}4", $merges);
-        }
-        $this->assertContains('B2:B3', $merges);
-        $this->assertNotContains('Q2:Q3', $merges);
-        $this->assertSame(Kpisampah::KLASTER['kuning']['rgb'], $prop('warna')['Z2']);
+        $this->assertContains('A5:A7', $merges);
+        $this->assertContains('B5:B6', $merges);
+        $this->assertNotContains('B5:B7', $merges);
+        $this->assertSame(Kpisampah::KLASTER['hijau']['rgb'], $prop('warna')['V7']);
 
-        // Mengikuti filter export: hanya PT Univ Lebih (timbulan 100, pengurangan 25)
         $filter = ['kodept' => $dua[0]['pt']->npsn];
-        $rows = (new DataSampahSheet($sampah->detail($filter), $sampah->rekapKecamatan($filter)))->array();
-        $this->assertEquals([100.0, 25.0, 0.25], [$rows[1][19], $rows[1][22], $rows[1][25]]);
+        $rows = (new DataSampahSheet($sampah->detail($filter)))->array();
+        $this->assertCount(4 + 1 + 5, $rows);
+        $this->assertEquals([100.0, 25.0, 0.25], [$rows[4][8], $rows[4][19], $rows[4][21]]);
+    }
+
+    public function test_export_file_header_merges_identik_dengan_format_acuan(): void
+    {
+        $this->duaPt(now()->subMonth()->format('Y-m'));
+        $sheet = new DataSampahSheet(app(KpiSampahService::class)->detail([]));
+
+        $path = tempnam(sys_get_temp_dir(), 'sampah').'.xlsx';
+        file_put_contents($path, \Maatwebsite\Excel\Facades\Excel::raw($sheet, \Maatwebsite\Excel\Excel::XLSX));
+        $ws = \PhpOffice\PhpSpreadsheet\IOFactory::load($path)->getActiveSheet();
+        @unlink($path);
+
+        $merges = array_values($ws->getMergeCells());
+        $acuan = ['A1:A4', 'B1:B4', 'C1:C4', 'D1:D4', 'E1:E4', 'F1:F4', 'G1:G4', 'H1:H4', 'I1:I4', 'J1:U1', 'J2:O2', 'J3:J4', 'K3:K4',
+            'L3:L4', 'M3:M4', 'N3:N4', 'O3:O4', 'P2:S2', 'P3:P4', 'Q3:Q4', 'R3:R4', 'S3:S4', 'T2:T4', 'U2:U4', 'V1:V4', 'W1:W4'];
+        foreach ($acuan as $range) {
+            $this->assertContains($range, $merges);
+        }
+        // Data baris 5-6 (1 kecamatan, 1 bulan) lalu catatan di A9:E9
+        $this->assertContains('A5:A6', $merges);
+        $this->assertContains('B5:B6', $merges);
+        $this->assertContains('A9:E9', $merges);
+        $this->assertSame('D5', $ws->getFreezePane());
+        $this->assertSame('0.00%', $ws->getStyle('V5')->getNumberFormat()->getFormatCode());
+        $this->assertSame("Total Pengolahan (Kg/Bulan)\n[J+M+P]", $ws->getCell('T2')->getValue());
+        $this->assertStringStartsWith('Asumsi', (string) $ws->getCell('A9')->getValue());
+        $this->assertSame('Data Sampah', $ws->getTitle());
+    }
+
+    public function test_hitung_total_belum_terkelola_dan_persen(): void
+    {
+        $hasil = KpiSampahService::hitung([
+            'jml_rumah' => 80, 'jml_rumah_memilah' => 20, 'timbulan' => 200.5,
+            'organik_sumber' => 10.25, 'organik_dlh' => 20.1, 'anorganik_sumber' => 9.75,
+        ]);
+        $this->assertSame(40.1, $hasil['pengurangan']);
+        $this->assertSame(160.4, $hasil['belum_terkelola']);
+        $this->assertSame(25.0, $hasil['persen_ketaatan']);
+        $this->assertSame(20.0, $hasil['persen_pengurangan']);
+
+        $nol = KpiSampahService::hitung(['jml_rumah' => 0, 'jml_rumah_memilah' => 0, 'timbulan' => 0, 'organik_sumber' => 0, 'organik_dlh' => 0, 'anorganik_sumber' => 0]);
+        $this->assertNull($nol['persen_ketaatan']);
+        $this->assertNull($nol['persen_pengurangan']);
+        $this->assertSame(0.0, $nol['belum_terkelola']);
+    }
+
+    public function test_insert_menyimpan_semua_kolom_baru_dan_mengabaikan_nilai_hitungan_klien(): void
+    {
+        $this->loginKetua();
+
+        $this->put('kpisampah/insert', $this->payload(['belum_terkelola' => 1, 'persen_ketaatan' => 99]))->assertJson(['success' => true]);
+
+        $data = Kpisampah::sole();
+        $this->assertEquals(600, $data->belum_terkelola);
+        $this->assertEquals(25, $data->persen_ketaatan);
+        $this->assertEquals([5, 800, 2, 1], [$data->jml_rw, $data->jml_penduduk, $data->organik_metode_unit, $data->anorganik_metode_unit]);
+        $this->assertSame(['Maggot BSF', 'TPS3R', 'Kel. Uji', 'Bank Sampah', 'RW 01', 'Catatan'], [
+            $data->organik_metode, $data->organik_dlh_fasilitas, $data->organik_dlh_lokasi,
+            $data->anorganik_metode, $data->anorganik_metode_lokasi, $data->keterangan,
+        ]);
+    }
+
+    public function test_validasi_kolom_baru(): void
+    {
+        $this->loginKetua();
+        $lain = fn (int $n) => now()->subMonths($n)->format('Y-m');
+
+        // Total pengolahan = timbulan masih boleh (belum terkelola 0); organik DLH ikut dijumlah
+        $this->put('kpisampah/insert', $this->payload(['organik_sumber' => 800]))->assertJson(['success' => true]);
+        $this->assertEquals(0, Kpisampah::sole()->belum_terkelola);
+        $this->put('kpisampah/insert', $this->payload(['bulan' => $lain(2), 'organik_dlh' => 701]))
+            ->assertJsonPath('errors.anorganik_sumber.0', 'Total pengolahan tidak boleh melebihi jumlah timbulan sampah.');
+
+        // Teks opsional boleh kosong; awalan formula ditolak
+        $kosong = array_fill_keys(['organik_metode', 'organik_dlh_fasilitas', 'organik_dlh_lokasi', 'anorganik_metode', 'anorganik_metode_lokasi', 'keterangan'], '');
+        $this->put('kpisampah/insert', $this->payload(['bulan' => $lain(3)] + $kosong))->assertJson(['success' => true]);
+        $this->put('kpisampah/insert', $this->payload(['bulan' => $lain(4), 'organik_metode' => '=1+1', 'keterangan' => '@cmd', 'anorganik_metode_lokasi' => str_repeat('a', 256)]))
+            ->assertJsonValidationErrors(['organik_metode', 'keterangan', 'anorganik_metode_lokasi'], 'errors');
+
+        // Angka wajib & tidak negatif
+        $this->put('kpisampah/insert', $this->payload(['bulan' => $lain(4), 'jml_rw' => '', 'jml_penduduk' => -1, 'organik_metode_unit' => 1.5, 'organik_dlh' => -1]))
+            ->assertJsonValidationErrors(['jml_rw', 'jml_penduduk', 'organik_metode_unit', 'organik_dlh'], 'errors');
+
+        $this->assertSame(2, Kpisampah::count());
     }
 
     public function test_pt_klaster_thresholds_and_filtering(): void
@@ -360,7 +455,7 @@ class KpiSampahTest extends TestCase
         foreach ([1, 2, 3] as $n) {
             $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'nama' => 'Ketua Rahasia '.$n]);
             $this->isi($mhs->email, $desa->id_desa, $bulan, [
-                'timbulan' => 100 * $n, 'pengurangan_organik' => 10 * $n, 'pengurangan_anorganik' => 10 * $n, 'residu' => 80 * $n,
+                'timbulan' => 100 * $n, 'organik_sumber' => 10 * $n, 'organik_dlh' => 5 * $n, 'anorganik_sumber' => 5 * $n,
             ]);
         }
         $this->isi(Mahasiswa::factory()->create(['kodept' => $ptLain->npsn])->email, $desa->id_desa, $bulan, []);
@@ -368,9 +463,9 @@ class KpiSampahTest extends TestCase
         $rows = app(KpiSampahService::class)->detail([])->where('id_desa', $desa->id_desa)->keyBy('nama_pt');
         $this->assertCount(2, $rows);
         $r = $rows['Univ Tiga Ketua'];
-        $this->assertEquals([3, 3, 300, 150, 600.0, 60.0, 60.0, 120.0, 480.0, 0], [
-            (int) $r->jml_rw_kbs, (int) $r->jml_rw_non_kbs, (int) $r->jml_rumah, (int) $r->jml_rumah_memilah, (float) $r->timbulan,
-            (float) $r->pengurangan_organik, (float) $r->pengurangan_anorganik, (float) $r->pengurangan, (float) $r->residu, (int) $r->jml_bank_sampah,
+        $this->assertEquals([3, 900, 300, 150, 600.0, 60.0, 30.0, 30.0, 120.0, 480.0], [
+            (int) $r->jml_rw, (int) $r->jml_penduduk, (int) $r->jml_rumah, (int) $r->jml_rumah_memilah, (float) $r->timbulan,
+            (float) $r->organik_sumber, (float) $r->organik_dlh, (float) $r->anorganik_sumber, (float) $r->pengurangan, (float) $r->belum_terkelola,
         ]);
         $this->assertEquals(20.0, $r->persen_pengurangan);
         $this->assertEquals(50.0, $r->persen_ketaatan);
@@ -391,13 +486,13 @@ class KpiSampahTest extends TestCase
                 && (float) $p->first()->kecamatan->first()->total->total_timbulan === 600.0)
             ->assertSee('Ketua Rahasia 1')->assertSee('Ketua Rahasia 3')->assertDontSee('Univ Lain');
 
-        // Export mode per ketua: nama ketua di kolom PT, struktur kolom sama
+        // Export mode per ketua: PT + nama ketua di awal Keterangan (W), struktur kolom sama
         $sampah = app(KpiSampahService::class);
         $filter = ['bulan' => $bulan, 'kodept' => $pt->npsn];
-        $rows = (new DataSampahSheet($sampah->detail($filter, true), $sampah->rekapKecamatan($filter)))->array();
-        $this->assertCount(4, $rows);
-        $this->assertCount(count($rows[0]), $rows[1]);
-        $this->assertStringContainsString('Univ Tiga Ketua – Ketua Rahasia', $rows[1][2]);
+        $rows = (new DataSampahSheet($sampah->detail($filter, true)))->array();
+        $this->assertCount(4 + 3 + 2 + 3, $rows);
+        $this->assertCount(23, $rows[4]);
+        $this->assertStringStartsWith('PT: Univ Tiga Ketua – Ketua Rahasia', $rows[4][22]);
     }
 
     public function test_second_ketua_in_same_kelurahan_and_month_can_save(): void

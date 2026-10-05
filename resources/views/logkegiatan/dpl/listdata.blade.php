@@ -12,11 +12,15 @@
                     <thead>
                         <tr>
                             <th width="1">No</th>
-                            <th width="100">Tanggal</th>
-                            <th>Deskripsi</th>
-                            <th>Volume</th>
-                            <th>Satuan</th>
-                            <th>KPI</th>
+                            <th>Tanggal</th>
+                            <th>Nama Kepala Keluarga</th>
+                            <th>Alamat Rumah</th>
+                            <th>RT</th>
+                            <th>RW</th>
+                            <th>Memilah</th>
+                            <th>Organik (kg)</th>
+                            <th>Anorganik (kg)</th>
+                            <th>Residu (kg)</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -45,18 +49,14 @@
             columns: [
                 {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', searchable: false},
                 {data: 'tanggal', name: 'tanggal', className: 'text-center'},
-                {
-                    data: 'deskripsi',
-                    name: 'deskripsi',
-                    render: function (data, type, row) {
-                        // Ambil teks lewat DOMParser (inert), lalu escape ulang saat dirender
-                        var strippedText = new DOMParser().parseFromString(data || '', 'text/html').body.textContent || '';
-                        return $('<div></div>').text(strippedText).html();
-                    }
-                },
-                {data: 'volume', name: 'volume', className: 'text-center'},
-                {data: 'satuan', name: 'satuan', className: 'text-center'},
-                {data: 'nama_kpi', name: 'nama_kpi'},
+                {data: 'nama_kepala_keluarga', name: 'nama_kepala_keluarga'},
+                {data: 'alamat_rumah', name: 'alamat_rumah'},
+                {data: 'rt', name: 'rt', className: 'text-center'},
+                {data: 'rw', name: 'rw', className: 'text-center'},
+                {data: 'memilah', name: 'memilah', className: 'text-center', searchable: false, render: function (data) { return data == 1 ? 'Ya' : 'Tidak'; }},
+                {data: 'organik_kg', name: 'organik_kg', className: 'text-end', searchable: false},
+                {data: 'anorganik_kg', name: 'anorganik_kg', className: 'text-end', searchable: false},
+                {data: 'residu_kg', name: 'residu_kg', className: 'text-end', searchable: false},
             ]
         });
     });

@@ -14,22 +14,31 @@ return new class extends Migration
             $table->string('email', 200)->index();
             $table->uuid('id_desa')->index();
             $table->date('bulan');
-            $table->unsignedInteger('jml_rw_kbs');
-            $table->unsignedInteger('jml_rw_non_kbs');
+            // Urutan kolom = kolom D–W format Excel "Data Pengelolaan Sampah"
+            $table->unsignedInteger('jml_rw');
+            $table->unsignedInteger('jml_penduduk');
             $table->unsignedInteger('jml_rumah');
             $table->unsignedInteger('jml_rumah_memilah');
-            $table->decimal('persen_ketaatan', 6, 2)->nullable();
+            $table->float('persen_ketaatan')->nullable();
             $table->decimal('timbulan', 12, 2);
-            $table->decimal('pengurangan_organik', 12, 2);
-            $table->decimal('pengurangan_anorganik', 12, 2);
+            $table->decimal('organik_sumber', 12, 2);
+            $table->string('organik_metode')->nullable();
+            $table->unsignedInteger('organik_metode_unit')->default(0);
+            $table->decimal('organik_dlh', 12, 2);
+            $table->string('organik_dlh_fasilitas')->nullable();
+            $table->string('organik_dlh_lokasi')->nullable();
+            $table->decimal('anorganik_sumber', 12, 2);
+            $table->string('anorganik_metode')->nullable();
+            $table->string('anorganik_metode_lokasi')->nullable();
+            $table->unsignedInteger('anorganik_metode_unit')->default(0);
             $table->decimal('pengurangan', 12, 2);
-            $table->decimal('residu', 12, 2);
-            $table->decimal('persen_pengurangan', 6, 2)->nullable();
-            $table->unsignedInteger('jml_bank_sampah');
+            $table->decimal('belum_terkelola', 12, 2);
+            $table->float('persen_pengurangan')->nullable();
+            $table->text('keterangan')->nullable();
             $table->timestamps();
 
-            // Satu kelurahan hanya satu data per bulan
-            $table->unique(['id_desa', 'bulan']);
+            // Satu data sampah per ketua (email) per bulan
+            $table->unique(['email', 'bulan']);
             $table->index('bulan');
         });
     }

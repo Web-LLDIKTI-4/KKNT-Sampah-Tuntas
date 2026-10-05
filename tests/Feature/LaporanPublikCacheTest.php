@@ -37,8 +37,8 @@ class LaporanPublikCacheTest extends TestCase
 
         Kpisampah::create(KpiSampahService::hitung([
             'email' => $mhs->email, 'id_desa' => $desa->id_desa, 'bulan' => $bulan.'-01',
-            'jml_rw_kbs' => 1, 'jml_rw_non_kbs' => 1, 'jml_rumah' => 100, 'jml_rumah_memilah' => 50,
-            'timbulan' => 100, 'pengurangan_organik' => 20, 'pengurangan_anorganik' => 0, 'residu' => 80, 'jml_bank_sampah' => 0,
+            'jml_rw' => 1, 'jml_penduduk' => 300, 'jml_rumah' => 100, 'jml_rumah_memilah' => 50,
+            'timbulan' => 100, 'organik_sumber' => 20, 'organik_dlh' => 0, 'anorganik_sumber' => 0,
         ]));
 
         return $kecamatan;

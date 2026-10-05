@@ -20,8 +20,15 @@ use Illuminate\Support\Facades\DB;
 class KpiSampahService
 {
     private const JUMLAH = [
-        'jml_rw_kbs', 'jml_rw_non_kbs', 'jml_rumah', 'jml_rumah_memilah', 'timbulan',
-        'pengurangan_organik', 'pengurangan_anorganik', 'pengurangan', 'residu', 'jml_bank_sampah',
+        'jml_rw', 'jml_penduduk', 'jml_rumah', 'jml_rumah_memilah', 'timbulan',
+        'organik_sumber', 'organik_metode_unit', 'organik_dlh',
+        'anorganik_sumber', 'anorganik_metode_unit', 'pengurangan', 'belum_terkelola',
+    ];
+
+    // Kolom teks: saat diagregasi digabung (distinct) dengan "; "
+    private const TEKS = [
+        'organik_metode', 'organik_dlh_fasilitas', 'organik_dlh_lokasi',
+        'anorganik_metode', 'anorganik_metode_lokasi', 'keterangan',
     ];
 
     public function desaKetua(string $email): ?string
@@ -71,7 +78,8 @@ class KpiSampahService
     // Persentase & pengurangan selalu dihitung server, nilai dari klien diabaikan
     public static function hitung(array $data): array
     {
-        $data['pengurangan'] = round((float) $data['pengurangan_organik'] + (float) $data['pengurangan_anorganik'], 2);
+        $data['pengurangan'] = round((float) $data['organik_sumber'] + (float) $data['organik_dlh'] + (float) $data['anorganik_sumber'], 2);
+        $data['belum_terkelola'] = round((float) $data['timbulan'] - $data['pengurangan'], 2);
         $data['persen_ketaatan'] = Kpisampah::persen($data['jml_rumah_memilah'], $data['jml_rumah']);
         $data['persen_pengurangan'] = Kpisampah::persen($data['pengurangan'], $data['timbulan']);
 
@@ -95,6 +103,7 @@ class KpiSampahService
             ->groupBy('s.bulan', 's.id_desa', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan', 'm.kodept', 'sp.nm_lemb')
             ->orderByDesc('s.bulan')->orderBy('kc.kecamatan')->orderBy('d.desa')
             ->selectRaw('s.bulan, s.id_desa, d.desa, d.id_kecamatan, kc.kecamatan, m.kodept, sp.nm_lemb as nama_pt')
+            ->selectRaw(collect(self::TEKS)->map(fn ($k) => "GROUP_CONCAT(DISTINCT NULLIF(TRIM(s.$k), '') SEPARATOR '; ') as $k")->implode(', '))
             ->get()
             ->map(function ($row) {
                 foreach (self::JUMLAH as $kolom) {

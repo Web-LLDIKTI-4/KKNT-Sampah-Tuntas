@@ -13,12 +13,15 @@ class Logkegiatan extends Model
     protected $primaryKey = 'id_log'; // Tentukan primary key sesuai dengan struktur tabel
 
     protected $guarded = [];
-    protected $with = ['kpi','mahasiswa','dplmentoring'];
+    protected $with = ['mahasiswa','dplmentoring'];
 
-    public function kpi()
-    {
-        return $this->hasOne(Kpi::class,'id_kpi','id_kpi');
-    }
+    protected $casts = [
+        'memilah' => 'boolean',
+        'organik_kg' => 'float',
+        'anorganik_kg' => 'float',
+        'residu_kg' => 'float',
+    ];
+
     public function mahasiswa()
     {
         return $this->hasOne(Mahasiswa::class,'email','email');

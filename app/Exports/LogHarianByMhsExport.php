@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 class LogHarianByMhsExport implements FromCollection, WithHeadings
 {
     protected $emailMahasiswa;
-    public function __construct($email)
+    public function __construct($email, private bool $showIdentitas = true)
     {
         $this->emailMahasiswa = $email;
     }
@@ -20,44 +20,26 @@ class LogHarianByMhsExport implements FromCollection, WithHeadings
     */
     public function collection()
     {
-        // Ambil data log bulanan
-        $logkegiatan = Logkegiatan::where('email', $this->emailMahasiswa)->get();
-        
-        // Lakukan relasi yang diperlukan dan tambahkan judul kolom
-        $data = $logkegiatan->map(function ($item, $key) {
-            $deskripsi = $item->deskripsi ?? '-';
-            if ($deskripsi !== '-') {
-                $deskripsi = str_replace(
-                    ['<br>', '<br/>', '<br />', '</p>', '</li>'],
-                    "\n",
-                    $deskripsi
-                );
-
-                $deskripsi = strip_tags($deskripsi);
-                $deskripsi = html_entity_decode($deskripsi, ENT_QUOTES | ENT_HTML5);
-
-                // Rapikan spasi tanpa menghapus newline
-                $deskripsi = preg_replace('/[ \t]+/', ' ', $deskripsi);
-
-                // Hilangkan baris kosong berlebih
-                $deskripsi = preg_replace("/\n{3,}/", "\n\n", trim($deskripsi));
-            }
-
-            return [
-                'No' => $key + 1, 
-                'Nama Mahasiswa' => $item->mahasiswa->nama, 
-                'NIM' => $item->mahasiswa->nim,
-                'Perguruan Tinggi' => $item->mahasiswa->sp->nm_lemb, 
-                'Tanggal' => \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y'),
-                'Deskripsi' => $deskripsi,
-                'Volume' => $item->volume,
-                'Satuan' => $item->satuan,
-                'KPI' => $item->kpi->nama_kpi,
-                // Tambahkan kolom lain sesuai kebutuhan
-            ];
-        });
-
-        return $data;
+        return Logkegiatan::where('email', $this->emailMahasiswa)
+            ->with('mahasiswa.sp')
+            ->without('dplmentoring')
+            ->orderBy('tanggal')
+            ->get()
+            ->map(fn ($item, $key) => [
+                $key + 1,
+                $item->mahasiswa?->nama,
+                (string) $item->mahasiswa?->nim,
+                $item->mahasiswa?->sp?->nm_lemb,
+                \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y'),
+                $this->showIdentitas ? $item->nama_kepala_keluarga : 'tidak ditampilkan',
+                $this->showIdentitas ? $item->alamat_rumah : 'tidak ditampilkan',
+                $item->rt,
+                $item->rw,
+                $item->memilah ? 'Ya' : 'Tidak',
+                (float) $item->organik_kg,
+                (float) $item->anorganik_kg,
+                (float) $item->residu_kg,
+            ]);
     }
 
     /**
@@ -65,18 +47,20 @@ class LogHarianByMhsExport implements FromCollection, WithHeadings
      */
     public function headings(): array
     {
-        // Tentukan judul kolom
         return [
             'No',
             'Nama Mahasiswa',
             'NIM',
             'Perguruan Tinggi',
             'Tanggal',
-            'Deskripsi',
-            'Volume',
-            'Satuan',
-            'KPI',
-            // Tambahkan judul kolom lain sesuai kebutuhan
+            'Nama Kepala Keluarga',
+            'Alamat Rumah',
+            'RT',
+            'RW',
+            'Sudah Memilah',
+            'Organik Terkelola (Kg)',
+            'Anorganik Terkelola (Kg)',
+            'Residu (Kg)',
         ];
     }
 }

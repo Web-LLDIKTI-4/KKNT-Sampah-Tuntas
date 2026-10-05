@@ -44,23 +44,24 @@ class KpicapaianSampahQaTest extends TestCase
             'permasalahan' => 'Masalah',
             'solusi' => 'Solusi',
             'kendala' => 'Kendala',
-            'jml_rw_kbs' => 1,
-            'jml_rw_non_kbs' => 1,
+            'jml_rw' => 1,
+            'jml_penduduk' => 10,
             'jml_rumah' => 3,
             'jml_rumah_memilah' => 1,
             'timbulan' => 300,
-            'pengurangan_organik' => 50,
-            'pengurangan_anorganik' => 25.5,
-            'residu' => 10,
-            'jml_bank_sampah' => 0,
+            'organik_sumber' => 30,
+            'organik_metode_unit' => 0,
+            'organik_dlh' => 20,
+            'anorganik_sumber' => 25.5,
+            'anorganik_metode_unit' => 0,
         ];
     }
 
     private function sisa(string $email, string $bulan, ?string $idDesa = null): Kpisampah
     {
         return Kpisampah::create(['email' => $email, 'bulan' => $bulan, 'id_desa' => $idDesa ?? Desa::factory()->create()->id_desa,
-            'jml_rw_kbs' => 0, 'jml_rw_non_kbs' => 0, 'jml_rumah' => 0, 'jml_rumah_memilah' => 0, 'timbulan' => 1,
-            'pengurangan_organik' => 0, 'pengurangan_anorganik' => 0, 'pengurangan' => 0, 'residu' => 0, 'jml_bank_sampah' => 0]);
+            'jml_rw' => 0, 'jml_penduduk' => 0, 'jml_rumah' => 0, 'jml_rumah_memilah' => 0, 'timbulan' => 1,
+            'organik_sumber' => 0, 'organik_dlh' => 0, 'anorganik_sumber' => 0, 'pengurangan' => 0, 'belum_terkelola' => 1]);
     }
 
     public function test_insert_derived_values_rounding_and_timbulan_zero(): void
@@ -70,6 +71,7 @@ class KpicapaianSampahQaTest extends TestCase
         $this->put('kpicapaian/insert', $this->payload())->assertJson(['success' => true]);
         $s = Kpisampah::firstOrFail();
         $this->assertSame(75.5, $s->pengurangan);
+        $this->assertSame(224.5, $s->belum_terkelola);
         $this->assertEqualsWithDelta(25.17, $s->persen_pengurangan, 0.01);
         $this->assertEqualsWithDelta(33.33, $s->persen_ketaatan, 0.01);
         $this->assertSame(Kpicapaian::firstOrFail()->bulan, $s->bulan->toDateString());
@@ -77,7 +79,7 @@ class KpicapaianSampahQaTest extends TestCase
         // Timbulan & rumah 0 → tidak error (bagi nol)
         $this->put('kpicapaian/insert', $this->payload([
             'bulan' => '2026-04-02', 'jml_rumah' => 0, 'jml_rumah_memilah' => 0,
-            'timbulan' => 0, 'pengurangan_organik' => 0, 'pengurangan_anorganik' => 0,
+            'timbulan' => 0, 'organik_sumber' => 0, 'organik_dlh' => 0, 'anorganik_sumber' => 0,
         ]))->assertJson(['success' => true]);
         $this->assertDatabaseCount('kpi_sampah', 2);
     }
@@ -103,12 +105,12 @@ class KpicapaianSampahQaTest extends TestCase
         $capaian = Kpicapaian::firstOrFail();
         $id = Kpisampah::firstOrFail()->id_sampah;
 
-        $this->put('kpicapaian/update', $this->payload(['id_capaian' => $capaian->id_capaian, 'bulan' => '2026-03-28', 'residu' => 99]))
+        $this->put('kpicapaian/update', $this->payload(['id_capaian' => $capaian->id_capaian, 'bulan' => '2026-03-28', 'keterangan' => 'Revisi']))
             ->assertJson(['success' => true]);
 
         $this->assertDatabaseCount('kpi_sampah', 1);
         $this->assertSame($id, Kpisampah::firstOrFail()->id_sampah);
-        $this->assertSame(99.0, Kpisampah::firstOrFail()->residu);
+        $this->assertSame('Revisi', Kpisampah::firstOrFail()->keterangan);
     }
 
     public function test_update_to_month_of_other_capaian_rejected_and_sampah_untouched(): void
@@ -196,7 +198,7 @@ class KpicapaianSampahQaTest extends TestCase
         // Edit dengan baris sampah → field terisi
         $this->sisa($user->email, '2026-02-01');
         $this->get('kpicapaian/edit/'.$capaian->id_capaian)->assertOk()
-            ->assertSee('name="timbulan" class="form-control form-control-sm" required min="0" max="9999999999" step="0.01" value="1"', false);
+            ->assertSee('name="timbulan" id="sampah-timbulan" class="form-control form-control-sm" required min="0" max="9999999999" step="0.01" value="1"', false);
 
         // Form menu lama tetap render
         $this->get('kpisampah/tambah')->assertOk()->assertSee('name="timbulan"', false);
@@ -217,12 +219,16 @@ class KpicapaianSampahQaTest extends TestCase
         $this->sisa($user->email, '2026-02-01');
 
         $list = $this->get('kpisampah/listdata')->assertOk()->assertDontSee('>Aksi<', false)->getContent();
-        $this->assertSame(preg_match_all('/<th[ >]/', $list), substr_count($list, '{data:'));
+        // Header bertingkat: hanya th daun (tanpa colspan) yang sejajar dengan kolom DataTables
+        $this->assertSame(preg_match_all('/<th(?![^>]*colspan)[ >]/', $list), substr_count($list, '{data:'));
         $this->assertStringNotContainsString("data: 'action'", $list);
 
         $json = $this->getJson('kpisampah/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->json('data.0');
         $this->assertArrayNotHasKey('action', $json);
+        foreach (['jml_rw', 'jml_penduduk', 'organik_sumber', 'organik_dlh', 'anorganik_sumber', 'pengurangan', 'belum_terkelola', 'keterangan'] as $kolom) {
+            $this->assertArrayHasKey($kolom, $json);
+        }
 
         $this->get('kpicapaian')->assertOk()->assertDontSee('Tambah Data Sampah');
         $this->get('kpisampah')->assertOk();

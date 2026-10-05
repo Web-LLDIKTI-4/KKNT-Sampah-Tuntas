@@ -155,8 +155,9 @@ class BebanSeeder extends Seeder
             foreach ($hariKerja as $tanggal) {
                 $this->tambah('logkegiatan', [
                     'id_log' => (string) Str::uuid7(), 'email' => $email, 'tanggal' => $tanggal,
-                    'deskripsi' => 'Pendampingan pemilahan sampah warga', 'volume' => (string) mt_rand(1, 20),
-                    'satuan' => 'kegiatan', 'id_kpi' => $kpi[mt_rand(0, count($kpi) - 1)], 'tautan' => null,
+                    'nama_kepala_keluarga' => 'KK Beban '.mt_rand(1, 999), 'alamat_rumah' => 'Jl. Beban No. '.mt_rand(1, 99),
+                    'rt' => sprintf('%03d', mt_rand(1, 15)), 'rw' => sprintf('%03d', mt_rand(1, 10)), 'memilah' => mt_rand(0, 1),
+                    'organik_kg' => mt_rand(0, 500) / 100, 'anorganik_kg' => mt_rand(0, 300) / 100, 'residu_kg' => mt_rand(0, 200) / 100,
                 ] + $this->waktu());
                 $this->tambah('kehadiran', [
                     'id_kehadiran' => (string) Str::uuid7(), 'email' => $email, 'tanggal' => $tanggal, 'status_kehadiran' => 'hadir',
@@ -178,15 +179,18 @@ class BebanSeeder extends Seeder
         foreach ([3, 2, 1] as $mundur) {
             $timbulan = $rumah * mt_rand(12, 18);
             $organik = round($timbulan * mt_rand(3, 30) / 100, 2);
+            $dlh = round($timbulan * mt_rand(0, 5) / 100, 2);
             $anorganik = round($timbulan * mt_rand(2, 10) / 100, 2);
 
             $this->tambah('kpi_sampah', KpiSampahService::hitung([
                 'id_sampah' => (string) Str::uuid7(), 'id_pjdesa' => $idPj, 'email' => $email, 'id_desa' => $idDesa,
                 'bulan' => now()->startOfMonth()->subMonths($mundur)->toDateString(),
-                'jml_rw_kbs' => mt_rand(1, 5), 'jml_rw_non_kbs' => mt_rand(2, 8), 'jml_rumah' => $rumah,
+                'jml_rw' => mt_rand(3, 13), 'jml_penduduk' => $rumah * 4, 'jml_rumah' => $rumah,
                 'jml_rumah_memilah' => (int) round($rumah * mt_rand(20, 80) / 100), 'timbulan' => $timbulan,
-                'pengurangan_organik' => $organik, 'pengurangan_anorganik' => $anorganik,
-                'residu' => round($timbulan - $organik - $anorganik, 2), 'jml_bank_sampah' => mt_rand(0, 3),
+                'organik_sumber' => $organik, 'organik_metode' => 'Komposting', 'organik_metode_unit' => mt_rand(0, 3),
+                'organik_dlh' => $dlh, 'organik_dlh_fasilitas' => null, 'organik_dlh_lokasi' => null,
+                'anorganik_sumber' => $anorganik, 'anorganik_metode' => 'Bank Sampah', 'anorganik_metode_lokasi' => null,
+                'anorganik_metode_unit' => mt_rand(0, 3), 'keterangan' => null,
             ]) + $this->waktu());
         }
     }

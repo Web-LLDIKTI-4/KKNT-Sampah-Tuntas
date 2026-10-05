@@ -248,7 +248,6 @@ class SimulasiSeeder extends Seeder
 
     private function aktivitas(Collection $kpis): void
     {
-        $kpiIds = $kpis->pluck('id_kpi')->values();
         $mentoring = Dplmentoring::pluck('email_dpl', 'email_mahasiswa');
 
         foreach (Mahasiswa::whereIn('email', $mentoring->keys())->get() as $mhs) {
@@ -271,7 +270,6 @@ class SimulasiSeeder extends Seeder
                     Logkegiatan::factory()->create([
                         'email' => $mhs->email,
                         'tanggal' => $tanggal->toDateString(),
-                        'id_kpi' => $kpiIds->random(),
                     ]);
                 }
             }
