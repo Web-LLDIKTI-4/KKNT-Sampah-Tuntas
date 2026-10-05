@@ -40,6 +40,31 @@
   text-transform: none;
 }
 
+/* Baris lokasi program: latar primary, teks putih tanpa uppercase; box-shadow none agar hover/striped tidak menimpa */
+.capaian-publik .capaian-lokasi > th {
+  color: #fff;
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  box-shadow: none;
+  text-transform: none;
+}
+
+/* Link drill kecamatan/kelurahan: warna teks tema; yang aktif (td.fw-bold) & hover tetap biru */
+.capaian-publik a[data-drill] {
+  color: var(--bs-heading-color);
+}
+
+.capaian-publik .fw-bold > a[data-drill],
+.capaian-publik a[data-drill]:hover,
+.capaian-publik a[data-drill]:focus-visible {
+  color: var(--bs-link-color);
+}
+
+.capaian-publik a[data-drill]:hover,
+.capaian-publik a[data-drill]:focus-visible {
+  text-decoration: underline;
+}
+
 /* Tabel PTS 8 kolom: padding dirapatkan agar muat di desktop */
 .capaian-publik .table-pts > :not(caption) > * > * {
   padding-left: 0.5rem;

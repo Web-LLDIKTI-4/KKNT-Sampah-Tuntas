@@ -78,10 +78,10 @@
                 </thead>
                 <tbody>
                     @forelse ($kecamatan as $lokasi)
-                        <tr class="table-light">
-                            <th colspan="2" scope="rowgroup" class="text-primary">{{ $lokasi->nama_lokasi }}</th>
+                        <tr class="capaian-lokasi">
+                            <th colspan="2" scope="rowgroup">{{ $lokasi->nama_lokasi }}</th>
                             <th class="text-center">{{ $persen($lokasi->persen) }}</th>
-                            <th class="text-center">@if ($k = $klasterOf($lokasi->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</th>
+                            <th class="text-center">{{ $klasterOf($lokasi->klaster)['label'] ?? '-' }}</th>
                         </tr>
                         @foreach ($lokasi->kecamatan as $kec)
                             <tr>
