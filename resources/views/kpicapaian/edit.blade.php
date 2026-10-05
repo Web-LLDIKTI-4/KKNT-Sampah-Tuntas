@@ -39,7 +39,7 @@
                 $statusCapaian = [
                     [
                         'status' => 'Y',
-                        'label' => 'Sudah Selesai'
+                        'label' => 'Sudah'
                     ],
                     [
                         'status' => 'P',
@@ -47,7 +47,7 @@
                     ],
                     [
                         'status' => 'N',
-                        'label' => 'Belum Ditindaklanjuti'
+                        'label' => 'Belum'
                     ],
                 ];
             @endphp

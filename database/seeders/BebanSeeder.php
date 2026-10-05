@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Kpi;
 use App\Models\Kpicapaian;
+use App\Models\Kpisampah;
 use App\Models\LokasiProgram;
 use App\Services\KpiSampahService;
 use Illuminate\Database\Seeder;
@@ -60,6 +61,8 @@ class BebanSeeder extends Seeder
             $this->perguruanTinggi($noPt, $lokasi[$noPt % count($lokasi)], $kelurahan[$noPt - 1], $kpi, $hariKerja);
         }
         $this->flushSemua();
+        // Insert massal tanpa event model; reset cache publik manual
+        Kpisampah::forgetPublicCache();
 
         $this->command?->info(sprintf(
             'Data beban: %s mahasiswa, %s kelompok, %s log harian, %s kehadiran (%.0f detik).',

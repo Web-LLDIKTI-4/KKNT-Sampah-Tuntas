@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Auth\LaporanPublikRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Kpisampah;
 use App\Models\LokasiProgram;
 use App\Models\Panduan;
 use App\Services\KpiSampahService;
@@ -87,7 +88,9 @@ class LoginController extends Controller
     // Halaman publik: di-cache per kombinasi filter agar query berat tidak jalan di setiap kunjungan
     private function laporanData(KpiSampahService $sampah, array $filter): array
     {
-        return Cache::remember('login.capaian.v2.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter));
+        $versi = Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY, '0');
+
+        return Cache::remember('login.capaian.v2.'.$versi.'.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter));
     }
 
     /**

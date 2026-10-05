@@ -9,11 +9,18 @@ class Kpicapaian extends Model
 {
     use HasFactory, HasUuids, OwnedByEmail;
 
-    public const STATUS = ['Y' => 'Sudah Selesai', 'P' => 'Proses', 'N' => 'Belum Ditindaklanjuti'];
+    public const STATUS = ['Y' => 'Sudah', 'P' => 'Proses', 'N' => 'Belum'];
 
     public const BADGE = ['Y' => 'bg-success', 'P' => 'bg-warning', 'N' => 'bg-danger'];
 
-    // Badge berwarna tindak lanjut; status tidak dikenal dianggap Belum Ditindaklanjuti
+    // Persen tuntas di halaman publik dihitung dari capaian; cache publik ikut direset
+    protected static function booted(): void
+    {
+        static::saved(fn () => Kpisampah::forgetPublicCache());
+        static::deleted(fn () => Kpisampah::forgetPublicCache());
+    }
+
+    // Badge berwarna tindak lanjut; status tidak dikenal dianggap Belum
     public static function statusBadge(?string $status): string
     {
         $status = array_key_exists((string) $status, self::STATUS) ? $status : 'N';

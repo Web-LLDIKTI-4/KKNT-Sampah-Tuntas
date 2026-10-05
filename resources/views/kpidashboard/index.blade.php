@@ -14,7 +14,7 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Ringkasan</h5>
         @if (in_array(auth()->user()->role, ['admin', 'kepala'], true))
-            <x-button.export :url="route('rekapsampah.export')" id="kpi-export" label="Export" size="sm" class="text-nowrap" />
+            <x-button.export :url="route('rekapsampah.export')" id="kpi-export" label="Export" size="sm" class="btn-filter" />
         @endif
     </div>
     <div class="card-body">
@@ -56,7 +56,7 @@
     </div>
     <div class="card-body">
         <div data-drilldown="{{ route('dashboardkpi') }}">
-            @include('laporan._drilldown', $laporan)
+            @include('laporan._capaian_publik', $laporan)
         </div>
     </div>
 </div>

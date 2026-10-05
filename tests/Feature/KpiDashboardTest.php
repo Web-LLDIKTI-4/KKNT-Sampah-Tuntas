@@ -87,8 +87,8 @@ class KpiDashboardTest extends TestCase
         $this->loginAs('kepala');
 
         $this->get('dashboardkpi?kodept='.$this->pt1->npsn, ['X-Requested-With' => 'XMLHttpRequest'])
-            ->assertOk()->assertViewIs('laporan._drilldown')
-            ->assertSee('Sebaran Lokasi (Kecamatan)')->assertDontSee('Ringkasan');
+            ->assertOk()->assertViewIs('laporan._capaian_publik')
+            ->assertSee('Capaian Keseluruhan')->assertDontSee('Ringkasan');
         $this->get('dashboardkpi')->assertOk()->assertViewIs('kpidashboard.index')->assertSee('Ringkasan');
     }
 

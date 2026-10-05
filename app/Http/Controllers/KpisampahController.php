@@ -9,6 +9,8 @@ use App\Models\Kpisampah;
 use App\Models\Pjdesa;
 use App\Services\KpiSampahService;
 use App\Support\ActionButtons;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -76,7 +78,11 @@ class KpisampahController extends Controller
 
     public function insert(KpisampahRequest $request)
     {
-        Kpisampah::create($this->payload($request) + ['id_desa' => $request->idDesa()]);
+        try {
+            Kpisampah::create($this->payload($request) + ['id_desa' => $request->idDesa()]);
+        } catch (UniqueConstraintViolationException) {
+            return $this->duplikat();
+        }
 
         return $this->saved('Data sampah bulanan berhasil disimpan');
     }
@@ -95,7 +101,11 @@ class KpisampahController extends Controller
             return $this->notFound();
         }
 
-        $data->update($this->payload($request));
+        try {
+            $data->update($this->payload($request));
+        } catch (UniqueConstraintViolationException) {
+            return $this->duplikat();
+        }
 
         return $this->saved('Data sampah bulanan berhasil disimpan');
     }
@@ -110,6 +120,16 @@ class KpisampahController extends Controller
         $data->delete();
 
         return $this->deleted();
+    }
+
+    // Race lolos validasi tapi kena UNIQUE(email, bulan); format sama dengan error validasi AJAX
+    private function duplikat(): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'message' => 'Data gagal disimpan!',
+            'errors' => ['bulan' => [KpisampahRequest::PESAN_DUPLIKAT]],
+        ]);
     }
 
     private function payload(KpisampahRequest $request): array

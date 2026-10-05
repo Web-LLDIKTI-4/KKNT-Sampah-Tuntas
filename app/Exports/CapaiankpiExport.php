@@ -20,11 +20,11 @@ class CapaiankpiExport implements FromCollection, WithHeadings
     {
         switch ($status) {
             case 'Y':
-                return 'Sudah Selesai';
+                return 'Sudah';
             case 'P':
                 return 'Proses';
             default:
-                return 'Belum Ditindaklanjuti';
+                return 'Belum';
         }
     }
 

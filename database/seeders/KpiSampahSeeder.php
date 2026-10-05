@@ -9,7 +9,7 @@ use Illuminate\Database\Seeder;
 
 /**
  * Data sampah bulanan dummy: setiap kelurahan ketua kelompok diisi 3 bulan terakhir,
- * ketua ke-3 belum mengisi bulan terakhir. Aman dijalankan ulang (updateOrCreate per kelurahan & bulan).
+ * ketua ke-3 belum mengisi bulan terakhir. Aman dijalankan ulang (updateOrCreate per ketua & bulan).
  * Jalankan: php artisan db:seed --class=KpiSampahSeeder
  */
 class KpiSampahSeeder extends Seeder
@@ -25,22 +25,23 @@ class KpiSampahSeeder extends Seeder
             }
 
             $rumah = mt_rand(200, 600);
-            foreach ([3, 2, 1] as $mundur) {
-                if ($i === 2 && $mundur === 1) {
+            // 3 bulan terakhir termasuk bulan berjalan (sama dengan bulan capaian)
+            foreach ([2, 1, 0] as $mundur) {
+                if ($i === 2 && $mundur === 0) {
                     continue;
                 }
 
-                $progres = (4 - $mundur) * 5;
+                $progres = (3 - $mundur) * 5;
                 $timbulan = $rumah * mt_rand(12, 18);
                 // Rentang lebar agar klaster hijau (>= 20%), kuning (10% – < 20%), dan merah (< 10%) semuanya muncul
                 $organik = round($timbulan * mt_rand($progres - 4, 15 + $progres) / 100, 2);
                 $anorganik = round($timbulan * mt_rand(2, 8) / 100, 2);
 
                 Kpisampah::updateOrCreate(
-                    ['id_desa' => $idDesa, 'bulan' => now()->startOfMonth()->subMonths($mundur)->toDateString()],
+                    ['email' => $pj->email, 'bulan' => now()->startOfMonth()->subMonths($mundur)->toDateString()],
                     KpiSampahService::hitung([
                         'id_pjdesa' => $pj->id_pjdesa,
-                        'email' => $pj->email,
+                        'id_desa' => $idDesa,
                         'jml_rw_kbs' => mt_rand(1, 5),
                         'jml_rw_non_kbs' => mt_rand(2, 8),
                         'jml_rumah' => $rumah,

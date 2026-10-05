@@ -11,11 +11,11 @@ class KpiDashboardController extends Controller
     public function index(KpiDashboardRequest $request, KpiRekapService $rekap, KpiSampahService $sampah)
     {
         $filter = $this->filter($request);
-        $laporan = $sampah->drilldown($filter);
+        $laporan = $sampah->drilldownPublik($filter);
 
         // Navigasi laporan berjenjang (juga dari dashboard home) memuat ulang bagian laporan saja
         if ($request->ajax()) {
-            return view('laporan._drilldown', $laporan);
+            return view('laporan._capaian_publik', $laporan);
         }
 
         return view('kpidashboard.index', [
@@ -35,6 +35,7 @@ class KpiDashboardController extends Controller
             'bulan' => $request->validated('bulan'),
             'id_kecamatan' => $request->validated('kecamatan'),
             'id_desa' => $request->validated('desa'),
+            'klaster' => $request->validated('klaster'),
         ];
     }
 }

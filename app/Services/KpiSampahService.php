@@ -51,13 +51,31 @@ class KpiSampahService
         return $data;
     }
 
-    public function detail(array $filter): Collection
+    // 1 baris per (bulan, kelurahan, PT): angka dijumlah, persentase dihitung ulang dari total.
+    // $perKetua (role PT, ditentukan controller): 1 baris per isian ketua + nama ketua
+    public function detail(array $filter, bool $perKetua = false): Collection
     {
-        return $this->query($filter)
+        if ($perKetua) {
+            return $this->query($filter)
+                ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', 'm.kodept')
+                ->orderByDesc('s.bulan')->orderBy('kc.kecamatan')->orderBy('d.desa')
+                ->select('s.*', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan', 'm.nama as nama_ketua', 'sp.nm_lemb as nama_pt')
+                ->get();
+        }
+
+        return $this->withJumlah($this->query($filter))
             ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', 'm.kodept')
+            ->groupBy('s.bulan', 's.id_desa', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan', 'm.kodept', 'sp.nm_lemb')
             ->orderByDesc('s.bulan')->orderBy('kc.kecamatan')->orderBy('d.desa')
-            ->select('s.*', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan', 'm.nama as nama_ketua', 'sp.nm_lemb as nama_pt')
-            ->get();
+            ->selectRaw('s.bulan, s.id_desa, d.desa, d.id_kecamatan, kc.kecamatan, m.kodept, sp.nm_lemb as nama_pt')
+            ->get()
+            ->map(function ($row) {
+                foreach (self::JUMLAH as $kolom) {
+                    $row->$kolom = $row->{'total_'.$kolom};
+                }
+
+                return $this->isiPersen($row);
+            });
     }
 
     /**
@@ -79,11 +97,11 @@ class KpiSampahService
     /**
      * Detail kelurahan dikelompokkan per bulan -> kecamatan, beserta total kecamatan (dijumlah dari kelurahannya).
      */
-    public function detailPerKecamatan(array $filter): Collection
+    public function detailPerKecamatan(array $filter, bool $perKetua = false): Collection
     {
         $total = $this->rekapKecamatan($filter)->keyBy(fn ($r) => $r->bulan.'|'.$r->id_kecamatan);
 
-        return $this->detail($filter)
+        return $this->detail($filter, $perKetua)
             ->groupBy('bulan')
             ->map(fn (Collection $perBulan, $bulan) => (object) [
                 'bulan' => $bulan,
@@ -192,14 +210,16 @@ class KpiSampahService
      */
     public function drilldownPublik(array $filter): array
     {
-        $data = $this->drilldown(['bulan' => $filter['bulan'] ?? null, 'id_kecamatan' => $filter['id_kecamatan'] ?? null, 'id_desa' => $filter['id_desa'] ?? null], true);
+        // kodept: dashboard PT/admin; halaman login tanpa kodept (semua PT)
+        $kodept = $filter['kodept'] ?? null;
+        $data = $this->drilldown(['bulan' => $filter['bulan'] ?? null, 'id_kecamatan' => $filter['id_kecamatan'] ?? null, 'id_desa' => $filter['id_desa'] ?? null, 'kodept' => $kodept], true);
         $bulan = $data['params']['bulan'];
         $klaster = $filter['klaster'] ?? null;
         $cocok = fn ($k) => ! $klaster || $k === $klaster;
 
-        $persenLokasi = $bulan ? $this->totalPer('lokasi', ['bulan' => $bulan]) : collect();
+        $persenLokasi = $bulan ? $this->totalPer('lokasi', ['bulan' => $bulan, 'kodept' => $kodept]) : collect();
         $persenPt = $bulan && $data['params']['desa']
-            ? $this->totalPer('kodept', ['bulan' => $bulan, 'id_desa' => $data['params']['desa']])
+            ? $this->totalPer('kodept', ['bulan' => $bulan, 'id_desa' => $data['params']['desa'], 'kodept' => $kodept])
             : collect();
 
         $data['params']['klaster'] = $klaster;
@@ -219,7 +239,9 @@ class KpiSampahService
             ->each(fn ($r) => $r->klaster = Kpisampah::klaster($r->persen, true))
             ->filter(fn ($r) => $cocok($r->klaster))->values();
 
-        $data['kelompok'] = $data['kelompok']->each(function ($r) use ($persenPt) {
+        $data['kelompok'] = $data['kelompok']->each(function ($r) use ($persenPt, $bulan) {
+            // Detail hanya capaian bulan terpilih; ketua tanpa isian tampil baris kosong (detailPublik)
+            $r->capaian = $r->capaian->filter(fn ($c) => $bulan && str_starts_with((string) $c->bulan, $bulan))->values();
             $r->persen_pt = $persenPt[$r->kodept]->persen_pengurangan ?? null;
             $r->klaster_pt = Kpisampah::klaster($r->persen_pt, true);
         })->filter(fn ($r) => $cocok($r->klaster_pt));

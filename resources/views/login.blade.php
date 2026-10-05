@@ -428,6 +428,13 @@
           border-color: #667eea;
       }
 
+      /* Tombol Detail tabel capaian: selalu biru solid */
+      .btn-icon.btn-primary {
+          color: #fff;
+          background: #667eea;
+          border-color: #667eea;
+      }
+
       @media (prefers-reduced-motion: reduce) {
           .lokasi-item,
           .lokasi-item-img img,
@@ -619,67 +626,6 @@
           border: 0;
           border-radius: 14px;
           box-shadow: 0 8px 22px rgba(20, 24, 70, 0.14);
-        }
-
-        /* Header boleh wrap agar tabel 3 kolom muat di HP */
-        .laporan-card .table th {
-          white-space: normal;
-        }
-
-        /* Tabel PTS 9 kolom: padding dirapatkan agar muat di desktop */
-        .laporan-card .table-pts > :not(caption) > * > * {
-          padding-left: 0.5rem;
-          padding-right: 0.5rem;
-        }
-
-        @media (max-width: 575px) {
-          .laporan-card .table > :not(caption) > * > * {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-          }
-
-          .laporan-card .table th {
-            font-size: 0.7rem;
-            letter-spacing: 0;
-          }
-        }
-
-        /* Toolbar Capaian: select & tombol satu baris, tinggi seragam; turun baris rapi di layar kecil */
-        .capaian-toolbar .capaian-field {
-          flex: 1 1 140px;
-          max-width: 220px;
-        }
-
-        .capaian-toolbar .form-select,
-        .capaian-toolbar .capaian-action {
-          height: auto;
-          min-height: 2.5rem;
-        }
-
-        /* Netralkan .btn-primary global (tombol Masuk) agar Unduh PNG = Reset */
-        .capaian-toolbar .capaian-action,
-        .capaian-toolbar .capaian-action:hover {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          flex: 0 0 auto;
-          width: auto;
-          min-width: 9rem;
-          padding: 0.375rem 1rem;
-          border-radius: 0.375rem;
-          box-shadow: none;
-          transform: none;
-        }
-
-        @media (max-width: 575px) {
-          .capaian-toolbar .capaian-field {
-            max-width: none;
-          }
-
-          .capaian-toolbar .capaian-action,
-          .capaian-toolbar .capaian-action:hover {
-            flex: 1 1 100%;
-          }
         }
 
         /* Tab Panduan: daftar dokumen publik */

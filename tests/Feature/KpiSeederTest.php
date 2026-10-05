@@ -20,17 +20,19 @@ class KpiSeederTest extends TestCase
     {
         $this->seed(SimulasiSeeder::class);
 
-        $this->assertSame(3, Kpi::count());
-        $this->assertSame(12, Pjdesa::where('email', 'like', '%@kknt.test')->count());
+        $this->assertSame(1, Kpi::count());
+        $this->assertSame(['Pengurangan Sampah Rumah Tangga', 20.0, '%'], [Kpi::first()->nama_kpi, (float) Kpi::first()->target, Kpi::first()->satuan]);
+        $this->assertSame(12 * 3, Pjdesa::where('email', 'like', '%@kknt.test')->count());
         $this->assertTrue(Kpicapaian::where('status_capaian', 'Y')->exists());
-        $this->assertSame(12 * 3 - 1, Kpisampah::count());
+        $this->assertSame(12 * 3 * 3 - 1, Kpisampah::count());
+        $this->assertSame(12 * 3, Kpicapaian::count());
 
         // Dijalankan ulang tidak menggandakan data maupun menambah ketua
         $jumlah = Kpicapaian::count();
         $this->seed(KpiSeeder::class);
         $this->assertSame($jumlah, Kpicapaian::count());
-        $this->assertSame(3, Kpi::count());
-        $this->assertSame(12, Pjdesa::count());
+        $this->assertSame(1, Kpi::count());
+        $this->assertSame(12 * 3, Pjdesa::count());
 
         $this->assertOnePtPerKelurahan();
     }
@@ -51,5 +53,25 @@ class KpiSeederTest extends TestCase
 
         $this->assertSame(0, DB::table('mahasiswa_lokasi')->where('tahun', '<>', now()->year)->count());
         $this->assertSame(12, Kpisampah::distinct()->count('id_desa'));
+    }
+
+    public function test_each_pt_has_three_ketua_with_one_report_per_month(): void
+    {
+        $this->seed(SimulasiSeeder::class);
+
+        $ketuaPerPt = DB::table('pj_desa as p')
+            ->join('mahasiswa as m', 'm.email', '=', 'p.email')
+            ->where('p.email', 'like', '%@kknt.test')
+            ->groupBy('m.kodept')
+            ->selectRaw('m.kodept, COUNT(*) as jumlah')
+            ->pluck('jumlah', 'kodept');
+        $this->assertCount(12, $ketuaPerPt);
+        $this->assertTrue($ketuaPerPt->every(fn ($n) => (int) $n === 3));
+
+        foreach (['kpi_capaian', 'kpi_sampah'] as $tabel) {
+            $maks = DB::table($tabel)->selectRaw('COUNT(*) as n')->groupBy('email', 'bulan')->get()->max('n');
+            $this->assertSame(1, (int) $maks, "$tabel: >1 data per ketua per bulan");
+            $this->assertSame(0, DB::table($tabel)->whereNotIn('email', Pjdesa::select('email'))->count(), "$tabel: email bukan ketua");
+        }
     }
 }

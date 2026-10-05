@@ -93,7 +93,7 @@ class KpiSampahTest extends TestCase
         $this->loginKetua();
         $this->put('kpisampah/insert', $this->payload())->assertJson(['success' => true]);
 
-        $this->put('kpisampah/insert', $this->payload())->assertJsonPath('errors.bulan.0', 'Data kelurahan ini untuk bulan tersebut sudah ada!');
+        $this->put('kpisampah/insert', $this->payload())->assertJsonPath('errors.bulan.0', 'Anda sudah mengisi data sampah untuk bulan tersebut!');
         $this->put('kpisampah/insert', $this->payload(['bulan' => now()->addMonth()->format('Y-m')]))->assertJsonPath('success', false);
         $this->put('kpisampah/insert', $this->payload(['bulan' => '2026-13']))->assertJsonPath('success', false);
         $this->put('kpisampah/insert', $this->payload(['bulan' => now()->subMonths(2)->format('Y-m'), 'jml_rumah_memilah' => 201]))
@@ -216,7 +216,7 @@ class KpiSampahTest extends TestCase
         $bulan = now()->subMonth()->format('Y-m');
         $data = $this->duaPt($bulan);
         $kpi = Kpi::factory()->create(['nama_kpi' => 'Bank Sampah']);
-        Kpicapaian::factory()->create(['email' => $data[1]['ketua']->email, 'id_kpi' => $kpi->id_kpi, 'permasalahan' => 'Warga <b>belum</b> memilah', 'status_capaian' => 'P']);
+        Kpicapaian::factory()->create(['email' => $data[1]['ketua']->email, 'id_kpi' => $kpi->id_kpi, 'permasalahan' => 'Warga <b>belum</b> memilah', 'status_capaian' => 'P', 'bulan' => $bulan.'-01']);
 
         $laporan = app(KpiSampahService::class)->drilldown([
             'id_kecamatan' => $data['kecamatan']->id_kecamatan,
@@ -231,11 +231,11 @@ class KpiSampahTest extends TestCase
 
         $this->loginAs('admin');
         $this->get('dashboardkpi?kecamatan='.$data['kecamatan']->id_kecamatan.'&desa='.$data[1]['desa']->id_desa, ['X-Requested-With' => 'XMLHttpRequest'])
-            ->assertOk()->assertViewIs('laporan._drilldown')
+            ->assertOk()->assertViewIs('laporan._capaian_publik')
             ->assertViewHas('kelompok', fn ($k) => $k->first()->jumlah_ketua === 1)
             ->assertSee('Kec Uji')->assertSee('10,00%')->assertDontSee('Capaian 50,00%')
             ->assertSee('Warga &lt;b&gt;belum&lt;/b&gt; memilah', false)->assertSee('Proses')
-            ->assertSee('table-success')->assertSee('table-warning');
+            ->assertSee('<span class="badge bg-success">Hijau</span></td>', false)->assertSee('<span class="badge bg-warning">Kuning</span></td>', false);
     }
 
     public function test_pt_dashboard_only_shows_its_own_kelompok(): void
@@ -257,15 +257,49 @@ class KpiSampahTest extends TestCase
         $sampah = app(KpiSampahService::class);
         $rows = (new DataSampahSheet($sampah->detail([]), $sampah->rekapKecamatan([])))->array();
 
-        // Kolom A-Z persis format rekap: 16 kolom kelurahan + 10 kolom total kecamatan
+        // Kolom A-Z: 16 kolom kelurahan + 10 kolom total bulan
         $this->assertCount(26, $rows[0]);
         $this->assertSame(['Bulan', 'Persentase Pengurangan Sampah (%)'], [$rows[0][0], $rows[0][25]]);
         $this->assertCount(3, $rows);
         $this->assertSame(['Univ Lebih', 'Univ Rendah'], [$rows[1][2], $rows[2][2]]);
-        // Total kecamatan hanya di baris pertama: timbulan 200, pengurangan 35 => 17,5%
+        // Total bulan hanya di baris pertama: timbulan 200, pengurangan 35 => 17,5%
         $this->assertEquals([200.0, 35.0, 0.175], [$rows[1][19], $rows[1][22], $rows[1][25]]);
         $this->assertNull($rows[2][19]);
         $this->assertSame(0, $rows[1][15]);
+    }
+
+    public function test_export_total_columns_are_per_bulan_merged_over_all_kecamatan(): void
+    {
+        $bulan = now()->subMonth()->format('Y-m');
+        $dua = $this->duaPt($bulan); // Kec Uji: timbulan 200, pengurangan 35
+        $kecLain = Kecamatan::factory()->create(['kecamatan' => 'Kec Zeta']);
+        $desaLain = Desa::factory()->create(['id_kecamatan' => $kecLain->id_kecamatan]);
+        $mhs = Mahasiswa::factory()->create(['kodept' => Satuanpendidikan::factory()->create()->npsn]);
+        $this->isi($mhs->email, $desaLain->id_desa, $bulan, []); // timbulan 100, pengurangan 20
+
+        $sampah = app(KpiSampahService::class);
+        $sheet = new DataSampahSheet($sampah->detail([]), $sampah->rekapKecamatan([]));
+        $rows = $sheet->array();
+        $prop = fn (string $nama) => (new \ReflectionProperty($sheet, $nama))->getValue($sheet);
+
+        // 1 nilai per bulan: 300 timbulan, 55 pengurangan -> 18,33% (rumah 300, memilah 150 -> 50%)
+        $this->assertCount(4, $rows);
+        $this->assertEquals([300, 150, 0.5, 300.0, 55.0, 0.1833], [$rows[1][16], $rows[1][17], $rows[1][18], $rows[1][19], $rows[1][22], $rows[1][25]]);
+        $this->assertNull($rows[2][19]);
+        $this->assertNull($rows[3][19]);
+        // Q-Z & A di-merge per bulan (baris 2-4), B tetap per kecamatan (Kec Uji baris 2-3)
+        $merges = $prop('merges');
+        foreach (['A', 'Q', 'U', 'Z'] as $kolom) {
+            $this->assertContains("{$kolom}2:{$kolom}4", $merges);
+        }
+        $this->assertContains('B2:B3', $merges);
+        $this->assertNotContains('Q2:Q3', $merges);
+        $this->assertSame(Kpisampah::KLASTER['kuning']['rgb'], $prop('warna')['Z2']);
+
+        // Mengikuti filter export: hanya PT Univ Lebih (timbulan 100, pengurangan 25)
+        $filter = ['kodept' => $dua[0]['pt']->npsn];
+        $rows = (new DataSampahSheet($sampah->detail($filter), $sampah->rekapKecamatan($filter)))->array();
+        $this->assertEquals([100.0, 25.0, 0.25], [$rows[1][19], $rows[1][22], $rows[1][25]]);
     }
 
     public function test_pt_klaster_thresholds_and_filtering(): void
@@ -306,5 +340,129 @@ class KpiSampahTest extends TestCase
 
         $this->getJson('login/laporan?kecamatan=bukan-uuid')->assertUnprocessable();
         $this->getJson('login/laporan?kecamatan='.$kecamatanLain->id_kecamatan.'&desa='.$data[1]['desa']->id_desa)->assertUnprocessable();
+    }
+
+    private function ketuaDiDesa(string $idDesa): User
+    {
+        $user = $this->loginKetua();
+        Mahasiswa_lokasi::where('id_mahasiswa', $user->mahasiswa->id_mahasiswa)->update(['id_desa' => $idDesa]);
+
+        return $user;
+    }
+
+    public function test_rekap_groups_per_pt_for_admin_and_per_ketua_for_pt(): void
+    {
+        $desa = Desa::factory()->create();
+        $pt = Satuanpendidikan::factory()->create(['nm_lemb' => 'Univ Tiga Ketua']);
+        $ptLain = Satuanpendidikan::factory()->create(['nm_lemb' => 'Univ Lain']);
+        $bulan = now()->subMonth()->format('Y-m');
+        // 3 ketua 1 PT: timbulan 100+200+300 = 600, pengurangan 20+40+60 = 120 -> 20%; rumah 300, memilah 150 -> 50%
+        foreach ([1, 2, 3] as $n) {
+            $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'nama' => 'Ketua Rahasia '.$n]);
+            $this->isi($mhs->email, $desa->id_desa, $bulan, [
+                'timbulan' => 100 * $n, 'pengurangan_organik' => 10 * $n, 'pengurangan_anorganik' => 10 * $n, 'residu' => 80 * $n,
+            ]);
+        }
+        $this->isi(Mahasiswa::factory()->create(['kodept' => $ptLain->npsn])->email, $desa->id_desa, $bulan, []);
+
+        $rows = app(KpiSampahService::class)->detail([])->where('id_desa', $desa->id_desa)->keyBy('nama_pt');
+        $this->assertCount(2, $rows);
+        $r = $rows['Univ Tiga Ketua'];
+        $this->assertEquals([3, 3, 300, 150, 600.0, 60.0, 60.0, 120.0, 480.0, 0], [
+            (int) $r->jml_rw_kbs, (int) $r->jml_rw_non_kbs, (int) $r->jml_rumah, (int) $r->jml_rumah_memilah, (float) $r->timbulan,
+            (float) $r->pengurangan_organik, (float) $r->pengurangan_anorganik, (float) $r->pengurangan, (float) $r->residu, (int) $r->jml_bank_sampah,
+        ]);
+        $this->assertEquals(20.0, $r->persen_pengurangan);
+        $this->assertEquals(50.0, $r->persen_ketaatan);
+
+        // Total kecamatan tetap dari semua isian (700 timbulan)
+        $total = app(KpiSampahService::class)->rekapKecamatan(['bulan' => $bulan])->firstWhere('id_kecamatan', $desa->id_kecamatan);
+        $this->assertEquals(700.0, (float) $total->total_timbulan);
+
+        $this->loginAs('admin');
+        $this->get('rekapsampah?bulan='.$bulan)->assertOk()
+            ->assertViewHas('perBulan', fn ($p) => self::jumlahBaris($p) === 2)
+            ->assertSee('Univ Tiga Ketua')->assertDontSee('Ketua Rahasia');
+
+        // Role PT: 1 baris per ketua + nama ketua; total kecamatan tetap dari PT tsb (600)
+        $this->loginAs('pt', ['email' => $pt->npsn]);
+        $this->get('rekapsampah?bulan='.$bulan)->assertOk()
+            ->assertViewHas('perBulan', fn ($p) => self::jumlahBaris($p) === 3
+                && (float) $p->first()->kecamatan->first()->total->total_timbulan === 600.0)
+            ->assertSee('Ketua Rahasia 1')->assertSee('Ketua Rahasia 3')->assertDontSee('Univ Lain');
+
+        // Export mode per ketua: nama ketua di kolom PT, struktur kolom sama
+        $sampah = app(KpiSampahService::class);
+        $filter = ['bulan' => $bulan, 'kodept' => $pt->npsn];
+        $rows = (new DataSampahSheet($sampah->detail($filter, true), $sampah->rekapKecamatan($filter)))->array();
+        $this->assertCount(4, $rows);
+        $this->assertCount(count($rows[0]), $rows[1]);
+        $this->assertStringContainsString('Univ Tiga Ketua – Ketua Rahasia', $rows[1][2]);
+    }
+
+    public function test_second_ketua_in_same_kelurahan_and_month_can_save(): void
+    {
+        $desa = Desa::factory()->create()->id_desa;
+        $this->ketuaDiDesa($desa);
+        $this->put('kpisampah/insert', $this->payload())->assertJson(['success' => true]);
+
+        $this->ketuaDiDesa($desa);
+        $this->put('kpisampah/insert', $this->payload())->assertJson(['success' => true]);
+
+        $this->assertSame(2, Kpisampah::where('id_desa', $desa)->where('bulan', now()->subMonth()->format('Y-m-01'))->count());
+    }
+
+    public function test_same_ketua_same_month_rejected_but_other_month_and_own_edit_pass(): void
+    {
+        $this->loginKetua();
+        $this->put('kpisampah/insert', $this->payload())->assertJson(['success' => true]);
+
+        $this->put('kpisampah/insert', $this->payload(['timbulan' => 500]))
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('errors.bulan.0', 'Anda sudah mengisi data sampah untuk bulan tersebut!');
+        $this->put('kpisampah/insert', $this->payload(['bulan' => now()->subMonths(2)->format('Y-m')]))->assertJson(['success' => true]);
+
+        $data = Kpisampah::where('bulan', now()->subMonth()->format('Y-m-01'))->sole();
+        $this->put('kpisampah/update', $this->payload(['id_sampah' => $data->id_sampah, 'timbulan' => 800]))->assertJson(['success' => true]);
+        $this->assertEquals(800, $data->fresh()->timbulan);
+
+        // Edit tidak boleh dipindah ke bulan yang sudah terisi oleh ketua yang sama
+        $this->put('kpisampah/update', $this->payload(['id_sampah' => $data->id_sampah, 'bulan' => now()->subMonths(2)->format('Y-m')]))
+            ->assertJsonPath('errors.bulan.0', 'Anda sudah mengisi data sampah untuk bulan tersebut!');
+
+        $this->assertSame(2, Kpisampah::count());
+    }
+
+    public function test_kpi_sampah_test_seeder_gives_pt_twenty_percent_and_is_rerunnable(): void
+    {
+        $this->seed(\Database\Seeders\KpiSampahTestSeeder::class);
+        $this->seed(\Database\Seeders\KpiSampahTestSeeder::class);
+
+        $total = app(KpiSampahService::class)->totalPer('kodept', ['bulan' => now()->format('Y-m')])['049901'];
+        $this->assertEquals(20.0, $total->persen_pengurangan);
+        $this->assertEquals(40.0, $total->persen_ketaatan);
+        $this->assertSame(3, Kpisampah::where('email', 'like', '%@sampahtest.test')->count());
+        $this->assertSame(1, Kpisampah::where('email', 'like', '%@sampahtest.test')->distinct()->count('id_desa'));
+    }
+
+    public function test_unique_race_on_insert_returns_duplicate_json_not_500(): void
+    {
+        $this->loginKetua();
+        // Simulasi race: baris (email, bulan) yang sama masuk tepat setelah validasi lolos
+        $sekali = false;
+        Kpisampah::creating(function (Kpisampah $model) use (&$sekali) {
+            if ($sekali) {
+                return;
+            }
+            $sekali = true;
+            Kpisampah::withoutEvents(fn () => Kpisampah::create(collect($model->getAttributes())->except($model->getKeyName())->all()));
+        });
+
+        $this->put('kpisampah/insert', $this->payload())
+            ->assertOk()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('errors.bulan.0', 'Anda sudah mengisi data sampah untuk bulan tersebut!');
+
+        $this->assertSame(1, Kpisampah::count());
     }
 }

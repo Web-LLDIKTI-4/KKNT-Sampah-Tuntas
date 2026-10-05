@@ -3,7 +3,6 @@
     use App\Models\Kpisampah;
     use Illuminate\Support\Carbon;
     $num = fn ($v) => number_format($v, 0, ',', '.');
-    $sel = fn ($k) => Kpisampah::KLASTER[$k]['sel'] ?? '';
     $klasterOf = fn ($k) => Kpisampah::KLASTER[$k] ?? null;
     $persen = fn ($p) => Kpisampah::formatPersen($p === null ? null : (float) $p);
     $namaBulan = $params['bulan'] ? Carbon::parse($params['bulan'].'-01')->translatedFormat('F Y') : null;
@@ -11,7 +10,7 @@
     $persenTotal = $total_keseluruhan->persen_pengurangan ?? null;
     $klasterTotal = Kpisampah::klaster($persenTotal, true);
 @endphp
-<div data-drilldown-root data-params='@json($params)'>
+<div class="capaian-publik" data-drilldown-root data-params='@json($params)'>
     <div class="capaian-toolbar d-flex flex-wrap align-items-end justify-content-end gap-2 mb-3">
         <div class="capaian-field">
             <label class="form-label small mb-1" for="capaianBulan">Bulan</label>
@@ -33,12 +32,12 @@
             </select>
         </div>
         @if ($isDefault)
-            <button type="button" class="btn btn-sm btn-primary capaian-action" data-png-download
+            <button type="button" class="btn btn-sm btn-primary btn-filter capaian-action" data-png-download title="Unduh PNG"
                 data-png-lib="{{ asset('assets/vendor/libs/html-to-image/html-to-image.js') }}">
-                <i class="ri-download-2-line me-1" aria-hidden="true"></i> Unduh PNG
+                <i class="ri-download-2-line me-1" aria-hidden="true"></i> PNG
             </button>
         @else
-            <button type="button" class="btn btn-sm btn-outline-secondary capaian-action" data-drill-reset>
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-filter capaian-action" data-drill-reset title="Reset filter">
                 <i class="ri-refresh-line me-1" aria-hidden="true"></i> Reset
             </button>
         @endif
@@ -79,13 +78,13 @@
                 </thead>
                 <tbody>
                     @forelse ($kecamatan as $lokasi)
-                        <tr class="{{ $sel($lokasi->klaster) ?: 'table-light' }}">
-                            <th colspan="2" scope="rowgroup">{{ $lokasi->nama_lokasi }}</th>
+                        <tr class="table-light">
+                            <th colspan="2" scope="rowgroup" class="text-primary">{{ $lokasi->nama_lokasi }}</th>
                             <th class="text-center">{{ $persen($lokasi->persen) }}</th>
                             <th class="text-center">@if ($k = $klasterOf($lokasi->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</th>
                         </tr>
                         @foreach ($lokasi->kecamatan as $kec)
-                            <tr class="{{ $sel($kec->klaster) }}">
+                            <tr>
                                 <td class="text-center">{{ $loop->iteration }}</td>
                                 <td @class(['fw-bold' => $kec->id_kecamatan === $params['kecamatan']])>
                                     <a href="#" data-drill='@json(['kecamatan' => $kec->id_kecamatan, 'desa' => null])'>{{ $kec->kecamatan }}</a>
@@ -122,7 +121,7 @@
                 </thead>
                 <tbody>
                     @forelse ($kelurahan as $kel)
-                        <tr class="{{ $sel($kel->klaster) }}">
+                        <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
                             <td @class(['fw-bold' => $kel->id_desa === $params['desa']])>
                                 <a href="#" data-drill='@json(['desa' => $kel->id_desa])'>{{ $kel->desa }}</a>
@@ -157,7 +156,7 @@
                 </thead>
                 <tbody>
                     @forelse ($kelompok as $row)
-                        <tr class="{{ $sel($row->klaster_pt) }}">
+                        <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
                             <td>{{ $row->nama_pt }}</td>
                             <td>{{ $row->lokasi }}</td>
@@ -167,7 +166,7 @@
                             <td class="text-center">{{ $persen($row->persen_pt) }}</td>
                             <td class="text-center">@if ($k = $klasterOf($row->klaster_pt))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                             <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-icon btn-outline-primary" data-detail-toggle="detail-{{ $row->kodept }}"
+                                <button type="button" class="btn btn-sm btn-icon btn-primary" data-detail-toggle="detail-{{ $row->kodept }}"
                                     title="Detail" aria-label="Detail {{ $row->nama_pt }}">
                                     <i class="ri-eye-line" aria-hidden="true"></i>
                                 </button>
@@ -178,12 +177,12 @@
                                 <table class="table table-sm table-bordered mb-0 bg-white table-pts">
                                     <thead>
                                         <tr>
-                                            <th class="text-start">Permasalahan</th>
-                                            <th class="text-start">Solusi</th>
-                                            <th class="text-start">Kebutuhan Dukungan</th>
-                                            <th class="text-start">Tindak Lanjut</th>
-                                            <th class="text-start">Ketua Kelompok</th>
-                                            <th class="text-start">No. Kontak</th>
+                                            <th class="text-center">Permasalahan</th>
+                                            <th class="text-center">Solusi</th>
+                                            <th class="text-center">Kebutuhan Dukungan</th>
+                                            <th class="text-center">Tindak Lanjut</th>
+                                            <th class="text-center">Ketua Kelompok</th>
+                                            <th class="text-center">No. Kontak</th>
                                         </tr>
                                     </thead>
                                     <tbody>

@@ -13,6 +13,7 @@ use App\Models\Kecamatan;
 use App\Models\Kehadiran;
 use App\Models\Kpi;
 use App\Models\Kpicapaian;
+use App\Models\Kpisampah;
 use App\Models\Logbulanan;
 use App\Models\Logkegiatan;
 use App\Models\LokasiProgram;
@@ -32,15 +33,17 @@ use Illuminate\Support\Str;
 
 /**
  * Simulasi lengkap: 3 lokasi program, 12 kelurahan, 12 PT; 1 PT hanya di 1 kelurahan dan 1 kelurahan hanya 1 PT.
- * Per PT: 1 DPL + 1 kelompok (1 ketua + 3 anggota) + 2 mahasiswa tambahan, semuanya di kelurahan PT tersebut,
- * beserta kehadiran, log harian/bulanan, capaian KPI, data sampah bulanan 3 bulan terakhir, laporan DPL, dan penilaian.
+ * Per PT: 1 DPL + 3 kelompok (1 ketua + 4 anggota) + 2 mahasiswa tambahan, semuanya di kelurahan PT tersebut;
+ * 1 KPI (Pengurangan Sampah Rumah Tangga, target 20%); tiap ketua tepat 1 capaian KPI (bulan berjalan), beserta kehadiran, log harian/bulanan, capaian KPI, data sampah bulanan 3 bulan terakhir, laporan DPL, dan penilaian.
  * Jalankan: php artisan migrate:fresh --seed && php artisan db:seed --class=SimulasiSeeder
  */
 class SimulasiSeeder extends Seeder
 {
     private const DOMAIN = '@kknt.test';
 
-    private const ANGGOTA_PER_KELOMPOK = 3;
+    private const KELOMPOK_PER_PT = 3;
+
+    private const ANGGOTA_PER_KELOMPOK = 4;
 
     private const HARI_KEHADIRAN = 14;
 
@@ -51,7 +54,7 @@ class SimulasiSeeder extends Seeder
         'Kota Cimahi' => ['Cimahi Tengah' => ['Baros', 'Setiamanah'], 'Cimahi Utara' => ['Cibabat', 'Pasirkaliki']],
     ];
 
-    private const KPI = ['Pengurangan Sampah Rumah Tangga', 'Bank Sampah', 'Pengolahan Sampah Organik'];
+    private const KPI = 'Pengurangan Sampah Rumah Tangga';
 
     private string $password;
 
@@ -76,7 +79,10 @@ class SimulasiSeeder extends Seeder
             $this->user('pt', $pt->npsn, $pt->nm_lemb, ket: 'Login memakai NPSN');
 
             [$lokasi, $desa] = $penempatan[$i];
-            $this->kelompok($pt, $i + 1, $lokasi, $desa, $kpis);
+            $dpl = $this->dpl($pt, $i + 1, $lokasi);
+            foreach (range(1, self::KELOMPOK_PER_PT) as $k) {
+                $this->kelompok($pt, $i + 1, $k, $lokasi, $desa, $dpl, $kpis);
+            }
         }
 
         $this->belumPilihLokasi($pts->first());
@@ -84,6 +90,7 @@ class SimulasiSeeder extends Seeder
         $this->sebaranMahasiswa($pts, $penempatan);
         $this->call(KpiSampahSeeder::class);
 
+        $this->akun[] = ['mahasiswa', '-', Mahasiswa::count().' mahasiswa', 'Anggota: mhs{m}.k{n}.pt{i}.<lokasi>'.self::DOMAIN];
         $this->command?->table(['Role', 'Login', 'Nama', 'Keterangan'], $this->akun);
     }
 
@@ -122,7 +129,7 @@ class SimulasiSeeder extends Seeder
 
     private function kpi(): Collection
     {
-        return collect(self::KPI)->map(fn ($nama) => Kpi::create(['nama_kpi' => $nama]));
+        return collect([Kpi::create(['nama_kpi' => self::KPI, 'target' => Kpisampah::TARGET_PENGURANGAN, 'satuan' => '%'])]);
     }
 
     private function perguruanTinggi(): Collection
@@ -148,16 +155,21 @@ class SimulasiSeeder extends Seeder
             ]));
     }
 
-    private function kelompok(Satuanpendidikan $pt, int $noPt, LokasiProgram $lokasi, Desa $desa, Collection $kpis): void
+    private function dpl(Satuanpendidikan $pt, int $noPt, LokasiProgram $lokasi): Dpl
     {
-        $suffix = '.pt'.$noPt.'.'.Str::slug($lokasi->nama_lokasi, '').self::DOMAIN;
-
         $dpl = Dpl::factory()->create([
-            'email' => 'dpl'.$suffix,
+            'email' => 'dpl.pt'.$noPt.'.'.Str::slug($lokasi->nama_lokasi, '').self::DOMAIN,
             'kodept' => $pt->npsn,
             'location_program' => $lokasi->id,
         ]);
         $this->user('dpl', $dpl->email, $dpl->nama, $lokasi->id, ket: $pt->nm_lemb.' – '.$lokasi->nama_lokasi);
+
+        return $dpl;
+    }
+
+    private function kelompok(Satuanpendidikan $pt, int $noPt, int $noKelompok, LokasiProgram $lokasi, Desa $desa, Dpl $dpl, Collection $kpis): void
+    {
+        $suffix = '.k'.$noKelompok.'.pt'.$noPt.'.'.Str::slug($lokasi->nama_lokasi, '').self::DOMAIN;
 
         $prefixes = collect(['ketua'])->merge(collect(range(1, self::ANGGOTA_PER_KELOMPOK))->map(fn ($n) => 'mhs'.$n));
         foreach ($prefixes as $prefix) {
@@ -168,7 +180,7 @@ class SimulasiSeeder extends Seeder
                 'location_program' => $lokasi->id,
             ]);
             $this->user('mahasiswa', $mhs->email, $mhs->nama, $lokasi->id, $isKetua ? 'pjdesa' : null,
-                ($isKetua ? 'Ketua kelompok' : 'Anggota').' – Desa '.$desa->desa);
+                ($isKetua ? 'Ketua kelompok' : 'Anggota').' '.$noKelompok.' – Desa '.$desa->desa, tampil: $isKetua);
 
             Mahasiswa_lokasi::create([
                 'tahun' => (int) date('Y'),
@@ -180,10 +192,8 @@ class SimulasiSeeder extends Seeder
 
             if ($isKetua) {
                 $pj = Pjdesa::create(['email' => $mhs->email, 'id_desa' => $desa->id_desa]);
-                // UNIQUE(email, bulan): tiap KPI di bulan berbeda, mundur dari bulan ini
-                foreach ($kpis->values() as $mundur => $kpi) {
-                    $this->capaian($pj, $kpi, $mundur);
-                }
+                // 1 capaian per ketua di bulan berjalan
+                $this->capaian($pj, $kpis->first());
             }
         }
     }
@@ -221,19 +231,16 @@ class SimulasiSeeder extends Seeder
         }
     }
 
-    // Isian permasalahan/solusi per KPI; sebagian ketua belum mengisi
-    private function capaian(Pjdesa $pj, Kpi $kpi, int $mundur): void
+    // Isian sesuai KpicapaianRequest (tautan http/https, teks wajib); bulan disimpan awal bulan seperti controller
+    private function capaian(Pjdesa $pj, Kpi $kpi): void
     {
         $acak = mt_rand(1, 100);
-        if ($acak > 85) {
-            return;
-        }
 
         Kpicapaian::factory()->create([
             'id_kpi' => $kpi->id_kpi,
             'id_pjdesa' => $pj->id_pjdesa,
             'email' => $pj->email,
-            'bulan' => now()->startOfMonth()->subMonths($mundur)->toDateString(),
+            'bulan' => now()->startOfMonth()->toDateString(),
             'status_capaian' => $acak <= 60 ? 'Y' : ($acak <= 75 ? 'P' : 'N'),
         ]);
     }
@@ -322,7 +329,7 @@ class SimulasiSeeder extends Seeder
         ]);
     }
 
-    private function user(string $role, string $email, string $nama, ?string $lokasi = null, ?string $akses = null, string $ket = ''): void
+    private function user(string $role, string $email, string $nama, ?string $lokasi = null, ?string $akses = null, string $ket = '', bool $tampil = true): void
     {
         // Admin bisa sudah dibuat AdminSeeder; timpa agar tidak bentrok unique
         if ($role === 'admin' && $admin = User::where('email', $email)->first()) {
@@ -339,6 +346,8 @@ class SimulasiSeeder extends Seeder
             'akses' => $akses,
         ]);
 
-        $this->akun[] = [$role, $email, $nama, $ket];
+        if ($tampil) {
+            $this->akun[] = [$role, $email, $nama, $ket];
+        }
     }
 }

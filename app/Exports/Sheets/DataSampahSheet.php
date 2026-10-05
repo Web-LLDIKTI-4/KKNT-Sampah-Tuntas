@@ -15,7 +15,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 /**
- * Data sampah per kelurahan (kiri) + total per kecamatan per bulan (kanan, sel di-merge per kecamatan).
+ * Data sampah per kelurahan (kiri) + total per bulan (kanan, sel di-merge per bulan seperti kolom Bulan).
  * Sel persentase pengurangan diwarnai sesuai klaster (hijau/kuning/merah).
  */
 class DataSampahSheet implements FromArray, WithTitle, WithEvents, WithStrictNullComparison
@@ -55,34 +55,36 @@ class DataSampahSheet implements FromArray, WithTitle, WithEvents, WithStrictNul
 
     public function array(): array
     {
-        $total = $this->rekapKecamatan->keyBy(fn ($r) => $r->bulan.'|'.$r->id_kecamatan);
+        $total = $this->totalPerBulan();
         $rows = [self::HEADINGS];
         $baris = 2;
 
         $urut = $this->detail->sortBy([['bulan', 'asc'], ['kecamatan', 'asc'], ['nama_pt', 'asc'], ['desa', 'asc']]);
         foreach ($urut->groupBy('bulan') as $bulan => $perBulan) {
             $awalBulan = $baris;
-            foreach ($perBulan->groupBy('id_kecamatan') as $idKecamatan => $perKecamatan) {
+            $t = $total[$bulan] ?? null;
+            foreach ($perBulan->groupBy('id_kecamatan') as $perKecamatan) {
                 $awalKecamatan = $baris;
-                $t = $total[$bulan.'|'.$idKecamatan] ?? null;
-                foreach ($perKecamatan->values() as $i => $r) {
+                foreach ($perKecamatan->values() as $r) {
                     $rows[] = [
-                        Carbon::parse($bulan)->translatedFormat('F Y'), $r->kecamatan, $r->nama_pt ?? '-', $r->desa,
+                        Carbon::parse($bulan)->translatedFormat('F Y'), $r->kecamatan,
+                        // Mode per ketua: nama ketua ikut di kolom PT (struktur kolom tetap)
+                        ($r->nama_pt ?? '-').(isset($r->email) ? ' – '.($r->nama_ketua ?? $r->email) : ''), $r->desa,
                         (int) $r->jml_rw_kbs, (int) $r->jml_rw_non_kbs, (int) $r->jml_rumah, (int) $r->jml_rumah_memilah,
                         $this->pecahan($r->persen_ketaatan), (float) $r->timbulan, (float) $r->pengurangan_organik,
                         (float) $r->pengurangan_anorganik, (float) $r->pengurangan, (float) $r->residu,
                         $this->pecahan($r->persen_pengurangan), (int) $r->jml_bank_sampah,
-                        ...($i === 0 && $t ? $this->kolomTotal($t) : array_fill(0, count(self::KOLOM_TOTAL), null)),
+                        ...($baris === $awalBulan && $t ? $this->kolomTotal($t) : array_fill(0, count(self::KOLOM_TOTAL), null)),
                     ];
                     $this->warnai("O$baris", $r->persen_pengurangan);
                     $baris++;
                 }
-                $this->warnai("Z$awalKecamatan", $t?->persen_pengurangan);
-                foreach (['B', ...self::KOLOM_TOTAL] as $kolom) {
-                    $this->merge($kolom, $awalKecamatan, $baris - 1);
-                }
+                $this->merge('B', $awalKecamatan, $baris - 1);
             }
-            $this->merge('A', $awalBulan, $baris - 1);
+            $this->warnai("Z$awalBulan", $t?->persen_pengurangan);
+            foreach (['A', ...self::KOLOM_TOTAL] as $kolom) {
+                $this->merge($kolom, $awalBulan, $baris - 1);
+            }
         }
         $this->barisAkhir = $baris - 1;
 
@@ -129,6 +131,23 @@ class DataSampahSheet implements FromArray, WithTitle, WithEvents, WithStrictNul
             }
             $sheet->freezePane('E2');
         }];
+    }
+
+    // Total per bulan = jumlah semua kecamatan (sesuai filter export); persen dihitung ulang dari total
+    private function totalPerBulan(): Collection
+    {
+        $kolom = ['jml_rumah', 'jml_rumah_memilah', 'timbulan', 'pengurangan_organik', 'pengurangan_anorganik', 'pengurangan', 'residu', 'jml_bank_sampah'];
+
+        return $this->rekapKecamatan->groupBy('bulan')->map(function (Collection $rows) use ($kolom) {
+            $t = new \stdClass;
+            foreach ($kolom as $k) {
+                $t->{'total_'.$k} = round($rows->sum(fn ($r) => (float) $r->{'total_'.$k}), 2);
+            }
+            $t->persen_ketaatan = Kpisampah::persen($t->total_jml_rumah_memilah, $t->total_jml_rumah);
+            $t->persen_pengurangan = Kpisampah::persen($t->total_pengurangan, $t->total_timbulan);
+
+            return $t;
+        });
     }
 
     private function kolomTotal(object $t): array

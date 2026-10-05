@@ -38,7 +38,7 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-md-2">
+        <div class="col-md">
             <label class="form-label small mb-1">Klaster</label>
             <select name="klaster" class="form-select form-select-sm">
                 <option value="">Semua Klaster</option>
@@ -47,9 +47,9 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-md-1">
+        <div class="col-md-auto">
             <a href="{{ route('rekapsampah.export', array_filter(['bulan' => $pilihanBulan, 'kecamatan' => $filter['id_kecamatan'], 'kodept' => $filter['kodept'], 'klaster' => $filter['klaster']])) }}"
-               class="btn btn-sm btn-success w-100" title="Export sesuai filter & klaster"><i class="ri-file-excel-2-line"></i></a>
+               class="btn btn-sm btn-success btn-filter w-100" title="Export sesuai filter & klaster"><i class="ri-file-excel-2-line" aria-hidden="true"></i> Export</a>
         </div>
     @endunless
 </form>
@@ -148,7 +148,7 @@
                                 <td rowspan="{{ $kec->rows->count() + 1 }}" class="fw-medium align-top">{{ $kec->kecamatan ?? '-' }}</td>
                             @endif
                             <td>{{ $row->desa }}</td>
-                            <td>{{ $row->nama_pt ?? '-' }}<div class="small text-muted">{{ $row->nama_ketua ?? $row->email }}</div></td>
+                            <td>{{ $row->nama_pt ?? '-' }}@isset($row->email)<div class="small text-muted">{{ $row->nama_ketua ?? $row->email }}</div>@endisset</td>
                             <td class="text-end">{{ $angka($row->jml_rw_kbs) }}</td>
                             <td class="text-end">{{ $angka($row->jml_rw_non_kbs) }}</td>
                             <td class="text-end">{{ $angka($row->jml_rumah) }}</td>

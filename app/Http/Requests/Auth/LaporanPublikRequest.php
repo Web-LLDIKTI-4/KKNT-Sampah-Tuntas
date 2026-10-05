@@ -31,7 +31,7 @@ class LaporanPublikRequest extends FormRequest
 
     private function bulanTersedia(): array
     {
-        return Cache::remember('login.bulanList', now()->addMinutes(10), fn () => app(KpiSampahService::class)->bulanList()->all());
+        return Cache::remember(Kpisampah::PUBLIC_BULAN_CACHE_KEY, now()->addMinutes(10), fn () => app(KpiSampahService::class)->bulanList()->all());
     }
 
     public function filter(): array

@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Models\Concerns\OwnedByEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class Kpisampah extends Model
 {
@@ -24,6 +26,24 @@ class Kpisampah extends Model
         'residu' => 'float',
         'persen_pengurangan' => 'float',
     ];
+
+    // Cache halaman publik (login); di-reset hook model & seeder agar UUID/bulan di HTML tidak basi
+    public const PUBLIC_BULAN_CACHE_KEY = 'login.bulanList';
+
+    public const PUBLIC_VERSION_CACHE_KEY = 'login.capaian.ver';
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => self::forgetPublicCache());
+        static::deleted(fn () => self::forgetPublicCache());
+    }
+
+    // Key capaian berisi md5 filter, jadi diganti versinya (entry lama kedaluwarsa sendiri)
+    public static function forgetPublicCache(): void
+    {
+        Cache::forget(self::PUBLIC_BULAN_CACHE_KEY);
+        Cache::forever(self::PUBLIC_VERSION_CACHE_KEY, (string) Str::ulid());
+    }
 
     // Target KPI terpenuhi bila persentase pengurangan sampah per bulan minimal 20%
     public const TARGET_PENGURANGAN = 20.0;

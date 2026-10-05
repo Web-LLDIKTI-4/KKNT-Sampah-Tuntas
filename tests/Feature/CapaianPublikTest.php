@@ -136,7 +136,83 @@ class CapaianPublikTest extends TestCase
             ->assertSee('25,00%')
             // Revisi-5/6: no. kontak ketua boleh tampil, email tidak
             ->assertDontSee($this->d['ketua_hijau']->email)->assertDontSee($this->d['ketua_kosong']->email);
-        $this->assertStringContainsString('table-success', $res->getContent());
+        // Badge klaster di sel tabel (diakhiri </td>/</th>), bukan legend di atas tabel
+        $this->assertStringContainsString('<span class="badge bg-success">Hijau</span></t', $res->getContent());
+    }
+
+    public function test_detail_publik_only_shows_capaian_of_selected_bulan(): void
+    {
+        // Sampah hanya di $this->bulan (default publik); capaian ketua ada di bulan tsb dan bulan berjalan
+        $bulanLain = now()->format('Y-m');
+        Kpicapaian::factory()->create(['email' => $this->d['ketua_hijau']->email, 'bulan' => $this->bulan.'-01', 'permasalahan' => 'Masalah Bulan Ini']);
+        Kpicapaian::factory()->create(['email' => $this->d['ketua_hijau']->email, 'bulan' => $bulanLain.'-01', 'permasalahan' => 'Masalah Bulan Lain']);
+        $filter = ['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $this->d['desaA']->id_desa];
+
+        $data = $this->publik($filter);
+        $this->assertSame($this->bulan, $data['params']['bulan']);
+        $kelompok = $data['kelompok']->keyBy('nama_pt');
+        $this->assertSame(['Masalah Bulan Ini'], $kelompok['Univ Hijau']->capaian->pluck('permasalahan')->all());
+        // Ketua tanpa isian bulan tsb tetap tampil sebagai baris kosong
+        $this->assertNull($kelompok['Univ Tanpa Data']->detail->first()->permasalahan);
+
+        $this->get('login/laporan?kecamatan='.$filter['id_kecamatan'].'&desa='.$filter['id_desa'])->assertOk()
+            ->assertSee('Masalah Bulan Ini')->assertDontSee('Masalah Bulan Lain');
+    }
+
+    public function test_drilldown_publik_with_kodept_only_contains_that_pt(): void
+    {
+        $kodept = $this->d['pt_hijau']->npsn;
+        $data = $this->publik(['kodept' => $kodept, 'id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $this->d['desaA']->id_desa]);
+
+        // Hanya lokasi/kecamatan/kelurahan/PT milik Univ Hijau; persen & total dari data PT tsb (25/100)
+        $this->assertSame(['Kota Alfa'], $data['kecamatan']->pluck('nama_lokasi')->all());
+        $this->assertEquals(25.0, $data['kecamatan']->first()->persen);
+        $this->assertSame(['Kec Alfa'], $data['kecamatan']->first()->kecamatan->pluck('kecamatan')->all());
+        $this->assertSame(['Desa Satu'], $data['kelurahan']->pluck('desa')->all());
+        $this->assertSame(['Univ Hijau'], $data['kelompok']->pluck('nama_pt')->all());
+        $this->assertEquals(25.0, $data['total']->persen_pengurangan);
+
+        // Tanpa kodept (halaman login) tetap semua PT
+        $this->assertEquals(15.0, $this->publik()['total']->persen_pengurangan);
+    }
+
+    public function test_pt_dashboard_cannot_see_other_pt_via_kodept_or_wilayah_and_login_cache_unaffected(): void
+    {
+        $hijau = $this->d['pt_hijau']->npsn;
+        $url = 'dashboardkpi?kodept='.$hijau.'&kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa;
+
+        // Cache login terisi lebih dulu (tanpa kodept)
+        $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa)->assertOk()
+            ->assertSee('Univ Hijau')->assertSee('Univ Tanpa Data');
+
+        // PT Merah membuka wilayah & kodept milik PT lain: tetap terkunci ke PT Merah
+        $this->loginAs('pt', ['email' => $this->d['pt_merah']->npsn]);
+        $this->get($url)->assertOk()
+            ->assertViewHas('laporan', fn ($l) => $l['kelompok']->isEmpty()
+                && $l['kecamatan']->pluck('nama_lokasi')->all() === ['Kabupaten Beta']
+                && $l['total']->persen_pengurangan == 5.0)
+            ->assertDontSee('Univ Hijau')->assertDontSee('Ketua Univ Hijau')->assertDontSee('Univ Tanpa Data');
+        $this->get($url, ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->assertViewIs('laporan._capaian_publik')
+            ->assertDontSee('Univ Hijau')->assertDontSee('Kec Alfa')->assertDontSee('Kota Alfa');
+
+        // Admin boleh memilih kodept: hanya PT tsb
+        $this->loginAs('admin');
+        $this->get($url, ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()
+            ->assertSee('Univ Hijau')->assertDontSee('Univ Tanpa Data');
+
+        // Halaman login (tamu) tetap semua PT setelah akses dashboard
+        $this->app['auth']->guard()->logout();
+        $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa)->assertOk()
+            ->assertSee('Univ Hijau')->assertSee('Univ Tanpa Data');
+        $this->get('login/laporan?kodept='.$hijau.'&kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa)->assertOk()
+            ->assertSee('Univ Tanpa Data');
+    }
+
+    public function test_dashboard_rejects_invalid_klaster(): void
+    {
+        $this->loginAs('admin');
+        $this->get('dashboardkpi?klaster=ungu')->assertSessionHasErrors('klaster');
+        $this->get('dashboardkpi?klaster=hijau')->assertSessionDoesntHaveErrors('klaster');
     }
 
     public function test_klaster_filters_rows_without_recalculating(): void
@@ -235,13 +311,17 @@ class CapaianPublikTest extends TestCase
         $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan)->assertOk()->assertSee('data-drill-reset', false);
     }
 
-    public function test_dashboard_keeps_inclusive_threshold_and_old_partial(): void
+    public function test_dashboard_uses_public_partial_and_strict_threshold(): void
     {
-        // Kec Alfa tepat 20,00%: hijau di dashboard (>=), kuning di publik (>)
-        $this->get('login/laporan')->assertOk()->assertSee('table-warning')->assertDontSee('table-success');
+        // Kec Alfa tepat 20,00%: kuning di publik & dashboard (> 20%)
+        $this->get('login/laporan')->assertOk()
+            ->assertSee('<span class="badge bg-warning">Kuning</span></t', false)
+            ->assertDontSee('<span class="badge bg-success">Hijau</span></t', false);
         $this->loginAs('admin');
         $this->get('dashboardkpi', ['X-Requested-With' => 'XMLHttpRequest'])
-            ->assertOk()->assertViewIs('laporan._drilldown')
-            ->assertSee('table-success')->assertDontSee('data-png-download', false)->assertDontSee('name="klaster"', false);
+            ->assertOk()->assertViewIs('laporan._capaian_publik')
+            ->assertSee('<span class="badge bg-warning">Kuning</span></t', false)
+            ->assertDontSee('<span class="badge bg-success">Hijau</span></t', false)
+            ->assertSee('data-png-download', false)->assertSee('name="klaster"', false);
     }
 }

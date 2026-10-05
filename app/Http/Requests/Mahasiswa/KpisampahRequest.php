@@ -15,6 +15,8 @@ class KpisampahRequest extends AjaxFormRequest
         'pengurangan_organik', 'pengurangan_anorganik', 'residu', 'jml_bank_sampah',
     ];
 
+    public const PESAN_DUPLIKAT = 'Anda sudah mengisi data sampah untuk bulan tersebut!';
+
     private ?string $idDesa = null;
 
     public function rules(): array
@@ -67,12 +69,13 @@ class KpisampahRequest extends AjaxFormRequest
                 return;
             }
 
-            $duplikat = Kpisampah::where('id_desa', $this->idDesa)
+            // 1 data per ketua per bulan
+            $duplikat = Kpisampah::where('email', $this->user()->email)
                 ->where('bulan', $this->input('bulan').'-01')
                 ->when($this->input('id_sampah'), fn ($q, $id) => $q->whereKeyNot($id))
                 ->exists();
             if ($duplikat) {
-                $validator->errors()->add('bulan', 'Data kelurahan ini untuk bulan tersebut sudah ada!');
+                $validator->errors()->add('bulan', self::PESAN_DUPLIKAT);
             }
         }];
     }
