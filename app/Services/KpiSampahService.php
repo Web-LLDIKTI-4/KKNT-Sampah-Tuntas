@@ -296,6 +296,30 @@ class KpiSampahService
     }
 
     /**
+     * Export "Capaian Program" (admin): lokasi -> kecamatan (dari drilldownPublik) + SEMUA kelurahan berpenempatan
+     * per lokasi|kecamatan. Ikut filter bulan & klaster, ambang strict seperti halaman publik.
+     */
+    public function capaianProgram(array $filter): array
+    {
+        $data = $this->drilldownPublik(['bulan' => $filter['bulan'] ?? null, 'klaster' => $filter['klaster'] ?? null]);
+        $bulan = $data['params']['bulan'];
+        $klaster = $data['params']['klaster'];
+        $persenDesa = $bulan ? $this->totalPer('desa', ['bulan' => $bulan]) : collect();
+
+        $kelurahan = $this->penempatanKetua(null)->whereNotNull('id_kecamatan')
+            ->unique(fn ($r) => $r->location_program.'|'.$r->id_desa)->sortBy('desa')
+            ->map(function ($r) use ($persenDesa) {
+                $persen = $persenDesa[$r->id_desa]->persen_pengurangan ?? null;
+
+                return (object) ['kunci' => $r->location_program.'|'.$r->id_kecamatan, 'desa' => $r->desa, 'persen' => $persen, 'klaster' => Kpisampah::klaster($persen, true)];
+            })
+            ->filter(fn ($r) => ! $klaster || $r->klaster === $klaster)
+            ->groupBy('kunci');
+
+        return ['bulan' => $bulan, 'klaster' => $klaster, 'lokasi' => $data['kecamatan'], 'kelurahan' => $kelurahan];
+    }
+
+    /**
      * Klaster tiap PT dari persentase pengurangan sampah gabungan kelurahannya (sesuai filter bulan/kecamatan).
      */
     public function klasterPt(array $filter): Collection

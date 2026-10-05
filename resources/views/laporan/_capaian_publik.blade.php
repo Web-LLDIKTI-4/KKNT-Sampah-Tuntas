@@ -2,6 +2,7 @@
 @php
     use App\Models\Kpisampah;
     use Illuminate\Support\Carbon;
+    use Illuminate\Support\Facades\Route;
     $num = fn ($v) => number_format($v, 0, ',', '.');
     $klasterOf = fn ($k) => Kpisampah::KLASTER[$k] ?? null;
     $persen = fn ($p) => Kpisampah::formatPersen($p === null ? null : (float) $p);
@@ -9,6 +10,13 @@
     $isDefault = ! $params['kecamatan'] && ! $params['desa'] && ! $params['klaster'];
     $persenTotal = $total_keseluruhan->persen_pengurangan ?? null;
     $klasterTotal = Kpisampah::klaster($persenTotal, true);
+    // Export Excel menggantikan PNG: guest (login) & admin (dashboard); kepala & pt tetap PNG
+    $exportRoute = match (true) {
+        auth()->guest() => 'login.laporan.export',
+        auth()->user()->role === 'admin' => 'dashboardkpi.export-capaian',
+        default => null,
+    };
+    $exportCapaian = $exportRoute && Route::has($exportRoute);
 @endphp
 <div class="capaian-publik" data-drilldown-root data-params='@json($params)'>
     <div class="capaian-toolbar d-flex flex-wrap align-items-end justify-content-end gap-2 mb-3">
@@ -31,7 +39,12 @@
                 @endforeach
             </select>
         </div>
-        @if ($isDefault)
+        @if ($isDefault && $exportCapaian)
+            <a href="{{ route($exportRoute, array_filter(['bulan' => $params['bulan'], 'klaster' => $params['klaster']])) }}"
+                class="btn btn-sm btn-success btn-filter capaian-action" title="Export Excel capaian program">
+                <i class="ri-file-excel-2-line me-1" aria-hidden="true"></i> Export
+            </a>
+        @elseif ($isDefault)
             <button type="button" class="btn btn-sm btn-primary btn-filter capaian-action" data-png-download title="Unduh PNG"
                 data-png-lib="{{ asset('assets/vendor/libs/html-to-image/html-to-image.js') }}">
                 <i class="ri-download-2-line me-1" aria-hidden="true"></i> PNG

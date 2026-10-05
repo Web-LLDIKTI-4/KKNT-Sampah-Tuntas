@@ -22,6 +22,7 @@ use App\Http\Controllers\KpiController;
 use App\Http\Controllers\KpicapaianController;
 use App\Http\Controllers\LapcapaiankpiController;
 use App\Http\Controllers\KpiDashboardController;
+use App\Http\Controllers\CapaianProgramExportController;
 use App\Http\Controllers\KpisampahController;
 use App\Http\Controllers\RekapsampahController;
 use App\Http\Controllers\NilaifreeformController;
@@ -75,6 +76,8 @@ Route::middleware('guest')->group(function () {
     Route::put('login', [LoginController::class, 'proseslogin'])->middleware('throttle:30,1');
     Route::get('login/token', [LoginController::class, 'token'])->middleware('throttle:30,1')->name('login.token');
     Route::get('login/laporan', [LoginController::class, 'laporan'])->middleware('throttle:30,1')->name('login.laporan');
+    // Generate xlsx lebih berat: throttle lebih ketat
+    Route::get('login/laporan/export', [CapaianProgramExportController::class, 'publik'])->middleware('throttle:10,1')->name('login.laporan.export');
 });
 
 Route::middleware('auth')->group(function () {
@@ -309,6 +312,11 @@ Route::middleware(['auth', 'role:admin,pt,kepala'])->group(function () {
 
 Route::middleware(['auth', 'role:admin,kepala'])->group(function () {
     Route::get('rekapsampah/export', [RekapsampahController::class, 'export'])->name('rekapsampah.export');
+});
+
+// Export Capaian Program (Laporan Kegiatan dashboard): khusus admin
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('dashboardkpi/export-capaian', CapaianProgramExportController::class)->name('dashboardkpi.export-capaian');
 });
 
 Route::middleware(['auth', 'role:dpl,pt,kepala'])->group(function () {
