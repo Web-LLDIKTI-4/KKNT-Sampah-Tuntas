@@ -40,7 +40,7 @@
   text-transform: none;
 }
 
-/* Tabel PTS 9 kolom: padding dirapatkan agar muat di desktop */
+/* Tabel PTS 8 kolom: padding dirapatkan agar muat di desktop */
 .capaian-publik .table-pts > :not(caption) > * > * {
   padding-left: 0.5rem;
   padding-right: 0.5rem;

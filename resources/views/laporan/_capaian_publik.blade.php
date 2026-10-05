@@ -148,7 +148,6 @@
                         <th class="text-center">Lokasi</th>
                         <th class="text-center">JML. MHS</th>
                         <th class="text-center">JML. DPL</th>
-                        <th class="text-center">Ketua Kelompok</th>
                         <th class="text-center">Persentase Pengurangan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                         <th class="text-center">Detail</th>
@@ -162,7 +161,6 @@
                             <td>{{ $row->lokasi }}</td>
                             <td class="text-center">{{ $num($row->jumlah_mahasiswa) }}</td>
                             <td class="text-center">{{ $num($row->jumlah_dpl) }}</td>
-                            <td class="text-center">{{ $num($row->jumlah_ketua) }}</td>
                             <td class="text-center">{{ $persen($row->persen_pt) }}</td>
                             <td class="text-center">@if ($k = $klasterOf($row->klaster_pt))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                             <td class="text-center">
@@ -173,7 +171,7 @@
                             </td>
                         </tr>
                         <tr id="detail-{{ $row->kodept }}" class="d-none">
-                            <td colspan="9" class="bg-lighter text-start">
+                            <td colspan="8" class="bg-lighter text-start">
                                 <table class="table table-sm table-bordered mb-0 bg-white table-pts">
                                     <thead>
                                         <tr>
@@ -203,7 +201,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="9" class="text-center text-muted">Belum ada PTS di kelurahan/desa ini</td></tr>
+                        <tr><td colspan="8" class="text-center text-muted">Belum ada PTS di kelurahan/desa ini</td></tr>
                     @endforelse
                 </tbody>
             </table>
