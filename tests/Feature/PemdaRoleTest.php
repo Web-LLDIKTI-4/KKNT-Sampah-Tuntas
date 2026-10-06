@@ -54,7 +54,7 @@ class PemdaRoleTest extends TestCase
             $this->put('admlogbulanan/updatenilai', [])->assertForbidden();
             $this->put('ptevaluasikegiatan/insert', [])->assertForbidden();
             $this->post('dpllaporan/tambah', [])->assertForbidden();
-            $this->put('kpicapaian/insert', [])->assertNotFound();
+            $this->put('kpicapaian/insert', [])->assertForbidden();
             $this->put('profile/update', [])->assertStatus(200);
         }
     }

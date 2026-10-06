@@ -13,6 +13,9 @@
                     <th>Kebutuhan Dukungan</th>
                     <th>Tindak Lanjut</th>
                     <th>Tautan</th>
+                    @if ($isKetua ?? false)
+                        <th width="1">Aksi</th>
+                    @endif
                 </tr>
             </x-slot:thead>
         </x-datatable>
@@ -79,7 +82,10 @@
                 }
             },
             {data: 'status_capaian', name: 'status_capaian', className: 'text-center'},
-            {data: 'tautan', name: 'tautan'}
+            {data: 'tautan', name: 'tautan'},
+            @if ($isKetua ?? false)
+                {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
+            @endif
         ],
         layout: {
             top1: {

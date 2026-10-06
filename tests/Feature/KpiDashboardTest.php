@@ -137,8 +137,8 @@ class KpiDashboardTest extends TestCase
         $this->get('kpitarget')->assertNotFound();
         $this->get('user')->assertRedirect(route('home'));
         $this->get('admlaporandpl')->assertRedirect(route('home'));
-        // Route tulis kpicapaian sudah dihapus (read-only)
-        $this->put('kpicapaian/insert', [])->assertNotFound();
+        // Tulis kpicapaian khusus ketua kelompok
+        $this->put('kpicapaian/insert', [])->assertForbidden();
     }
 
     public function test_kepala_opens_pt_menu_read_only(): void

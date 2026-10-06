@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\SafeValueBinder;
 use App\Models\Mahasiswa;
 use App\Models\User;
 use Illuminate\Database\Query\Builder;
@@ -9,9 +10,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-use Maatwebsite\Excel\DefaultValueBinder;
-use PhpOffice\PhpSpreadsheet\Cell\Cell;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -25,7 +23,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  * Log harian lengkap, di-scope per role: admin/kepala/pemda semua, pt mahasiswa PT-nya,
  * dpl mahasiswa bimbingan, mahasiswa datanya sendiri.
  */
-class LogHarianLengkapExport extends DefaultValueBinder implements WithCustomValueBinder, FromQuery, WithMapping, WithHeadings, WithEvents, WithStrictNullComparison, WithColumnWidths
+class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueBinder, FromQuery, WithMapping, WithHeadings, WithEvents, WithStrictNullComparison, WithColumnWidths
 {
     private bool $showIdentitas;
 
@@ -109,18 +107,6 @@ class LogHarianLengkapExport extends DefaultValueBinder implements WithCustomVal
             $sheet->getStyle('A1:P'.$sheet->getHighestRow())->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $sheet->getStyle('N2:P'.$sheet->getHighestRow())->getNumberFormat()->setFormatCode('#,##0.00');
         }];
-    }
-
-    // Teks input user berawalan "=" ditulis sebagai string, bukan formula
-    public function bindValue(Cell $cell, $value)
-    {
-        if (is_string($value) && str_starts_with($value, '=')) {
-            $cell->setValueExplicit($value, DataType::TYPE_STRING);
-
-            return true;
-        }
-
-        return parent::bindValue($cell, $value);
     }
 
     // Anti-IDOR: scope wajib di query, bukan dari input

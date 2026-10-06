@@ -42,8 +42,12 @@
 </div>
 
 <div class="card">
-    <div class="card-header">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
         <h5 class="mb-0">Riwayat Capaian KPI</h5>
+        {{-- Input capaian hanya ketua kelompok --}}
+        @if ($isKetua ?? false)
+            <x-button :modal="url('kpicapaian/tambah')" title="Tambah Data" icon="ri-add-circle-line">Tambah Data</x-button>
+        @endif
     </div>
     <div class="card-body">
         <p id="resultcontent">loading data...</p>
@@ -51,6 +55,9 @@
 </div>
 <script>
     $(function () {
+        $('#modalku').on('show.bs.modal', function () {
+            $(this).find('.modal-dialog').removeClass('modal-sm modal-lg modal-xl').addClass('modal-xl');
+        });
         $("#resultcontent").load("{{ url('kpicapaian/listdata') }}");
     });
 </script>

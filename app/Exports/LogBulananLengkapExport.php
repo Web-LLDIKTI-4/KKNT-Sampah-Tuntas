@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\SafeValueBinder;
 use App\Models\Mahasiswa;
 use App\Models\User;
 use Illuminate\Database\Query\Builder;
@@ -14,10 +15,7 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
-use Maatwebsite\Excel\DefaultValueBinder;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Cell\Cell;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -25,7 +23,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 /**
  * Log bulanan seluruh mahasiswa dalam cakupan role: admin/kepala/pemda semua, pt mahasiswa PT-nya, dpl bimbingan.
  */
-class LogBulananLengkapExport extends DefaultValueBinder implements WithCustomValueBinder, FromQuery, WithMapping, WithHeadings, WithEvents, WithStrictNullComparison, WithColumnWidths
+class LogBulananLengkapExport extends SafeValueBinder implements WithCustomValueBinder, FromQuery, WithMapping, WithHeadings, WithEvents, WithStrictNullComparison, WithColumnWidths
 {
     public function __construct(private User $user, private ?string $bulan = null) {}
 
@@ -80,18 +78,6 @@ class LogBulananLengkapExport extends DefaultValueBinder implements WithCustomVa
             $sheet->getStyle("A1:I$akhir")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $sheet->getStyle("H2:H$akhir")->getAlignment()->setWrapText(true)->setVertical(Alignment::VERTICAL_TOP);
         }];
-    }
-
-    // Teks input user berawalan "=" ditulis sebagai string, bukan formula
-    public function bindValue(Cell $cell, $value)
-    {
-        if (is_string($value) && str_starts_with($value, '=')) {
-            $cell->setValueExplicit($value, DataType::TYPE_STRING);
-
-            return true;
-        }
-
-        return parent::bindValue($cell, $value);
     }
 
     // HTML deskripsi → teks biasa (sama dengan LogBulananByMhsExport)

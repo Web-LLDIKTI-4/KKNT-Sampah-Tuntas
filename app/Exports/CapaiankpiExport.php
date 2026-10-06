@@ -2,12 +2,15 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\SafeValueBinder;
 use App\Models\Kpicapaian;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class CapaiankpiExport implements FromCollection, WithHeadings
+// Binder anti-formula: permasalahan/solusi/kendala teks bebas dari ketua
+class CapaiankpiExport extends SafeValueBinder implements WithCustomValueBinder, FromCollection, WithHeadings
 {
     protected $emailMahasiswa;
 
@@ -43,7 +46,8 @@ class CapaiankpiExport implements FromCollection, WithHeadings
         } elseif (auth()->user()->role === 'pt') {
             $kpicapaian = Kpicapaian::whereIn('email', \App\Models\Mahasiswa::visibleTo(auth()->user())->select('email'))->get();
         } elseif ($this->emailMahasiswa) {
-            $kpicapaian = Kpicapaian::where('email', $this->emailMahasiswa)->get();
+            // Scope sama dengan listdataserver (ketua/anggota kelompok)
+            $kpicapaian = Kpicapaian::visibleToMahasiswa($this->emailMahasiswa)->get();
         } else {
             $kpicapaian = Kpicapaian::all();
 

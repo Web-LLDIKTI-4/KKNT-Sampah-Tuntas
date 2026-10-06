@@ -2,15 +2,13 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\SafeValueBinder;
 use App\Models\Kehadiran;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\DefaultValueBinder;
-use PhpOffice\PhpSpreadsheet\Cell\Cell;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
-class LogKehadiranByMhsExport extends DefaultValueBinder implements WithCustomValueBinder, FromCollection, WithHeadings
+class LogKehadiranByMhsExport extends SafeValueBinder implements WithCustomValueBinder, FromCollection, WithHeadings
 {
     protected $email;
 
@@ -64,15 +62,4 @@ class LogKehadiranByMhsExport extends DefaultValueBinder implements WithCustomVa
         ];
     }
 
-    // Teks input user berawalan "=" ditulis sebagai string, bukan formula
-    public function bindValue(Cell $cell, $value)
-    {
-        if (is_string($value) && str_starts_with($value, '=')) {
-            $cell->setValueExplicit($value, DataType::TYPE_STRING);
-
-            return true;
-        }
-
-        return parent::bindValue($cell, $value);
-    }
 }

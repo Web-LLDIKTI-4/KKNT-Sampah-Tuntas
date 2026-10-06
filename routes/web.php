@@ -389,6 +389,11 @@ Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function (
     Route::get('kpicapaian', [KpicapaianController::class, 'index']);
     Route::get('kpicapaian/listdata', [KpicapaianController::class, 'listdata'])->name('kpicapaian.listdata');
     Route::get('kpicapaian/listdataserver', [KpicapaianController::class, 'listdataserver'])->name('kpicapaian.listdataserver');
+    Route::get('kpicapaian/tambah', [KpicapaianController::class, 'tambah']);
+    Route::put('kpicapaian/insert', [KpicapaianController::class, 'insert'])->middleware('throttle:sensitive');
+    Route::get('kpicapaian/edit/{id_capaian}', [KpicapaianController::class, 'edit']);
+    Route::put('kpicapaian/update', [KpicapaianController::class, 'update'])->middleware('throttle:sensitive');
+    Route::put('kpicapaian/destroy', [KpicapaianController::class, 'destroy'])->middleware('throttle:sensitive');
     Route::get('kpicapaian/export', [KpicapaianController::class, 'export']);
 
     Route::get('logbulanan', [LogbulananController::class, 'index']);

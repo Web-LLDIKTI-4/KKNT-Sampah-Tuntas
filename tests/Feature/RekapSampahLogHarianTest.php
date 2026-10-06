@@ -238,17 +238,19 @@ class RekapSampahLogHarianTest extends TestCase
         $this->get('kpicapaian')->assertOk()->assertSee('belum terdaftar di lokasi KKN');
     }
 
-    public function test_route_data_sampah_dan_tulis_kpicapaian_sudah_404(): void
+    public function test_route_data_sampah_sudah_404_dan_form_capaian_tanpa_sampah(): void
     {
         $ketua = $this->loginAs('mahasiswa', ['akses' => 'pjdesa']);
         Pjdesa::create(['email' => $ketua->email, 'id_desa' => Desa::factory()->create()->id_desa]);
 
-        foreach (['kpisampah', 'kpisampah/listdata', 'kpisampah/listdataserver', 'kpisampah/tambah', 'kpicapaian/tambah'] as $uri) {
+        foreach (['kpisampah', 'kpisampah/listdata', 'kpisampah/listdataserver', 'kpisampah/tambah'] as $uri) {
             $this->get($uri)->assertNotFound();
         }
-        foreach (['kpisampah/insert', 'kpisampah/update', 'kpisampah/destroy', 'kpicapaian/insert', 'kpicapaian/update', 'kpicapaian/destroy'] as $uri) {
+        foreach (['kpisampah/insert', 'kpisampah/update', 'kpisampah/destroy'] as $uri) {
             $this->put($uri, [])->assertNotFound();
         }
+        // Form capaian ketua ada lagi, tapi tanpa input sampah
+        $this->get('kpicapaian/tambah')->assertOk()->assertDontSee('organik_kg', false)->assertDontSee('data-sampah-form', false);
         $this->get('home')->assertOk()->assertDontSee(url('kpisampah'), false);
     }
 

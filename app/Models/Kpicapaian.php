@@ -1,6 +1,8 @@
 <?php
 namespace App\Models;
 use App\Models\Concerns\OwnedByEmail;
+use App\Services\KpiSampahService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -47,5 +49,16 @@ class Kpicapaian extends Model
             'email', // foreign key di kpicapaian
             'email_mahasiswa'      // owner key di dplmentoring
         );
+    }
+
+    // Tampilan mahasiswa: ketua miliknya; anggota capaian ketua (Pjdesa) di desa penempatannya
+    public function scopeVisibleToMahasiswa(Builder $query, string $email): Builder
+    {
+        if (Pjdesa::where('email', $email)->exists()) {
+            return $query->where($this->qualifyColumn('email'), $email);
+        }
+        $idDesa = app(KpiSampahService::class)->desaMahasiswa($email);
+
+        return $query->whereHas('pjdesa', fn ($q) => $idDesa ? $q->where('id_desa', $idDesa) : $q->whereRaw('1 = 0'));
     }
 }
