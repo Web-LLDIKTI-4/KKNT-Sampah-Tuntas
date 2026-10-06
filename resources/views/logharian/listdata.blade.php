@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<x-button.export url="{{ url('admlogharian/export') }}">Export Data</x-button.export>
+<x-button.export-bulan :url="route('logharian.export')" label="Export Semua Log Harian" />
 
 <script type="text/javascript">
   $(function () {

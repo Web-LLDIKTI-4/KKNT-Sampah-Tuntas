@@ -6,11 +6,12 @@ use App\Models\Desa;
 use App\Models\Kecamatan;
 use App\Models\Kpicapaian;
 use App\Models\Kpisampah;
+use App\Models\Logkegiatan;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
+use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
-use App\Services\KpiSampahService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -34,12 +35,11 @@ class LaporanPublikCacheTest extends TestCase
         $pt = Satuanpendidikan::factory()->create();
         $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'location_program' => $lokasi->id]);
         Pjdesa::create(['email' => $mhs->email, 'id_desa' => $desa->id_desa]);
-
-        Kpisampah::create(KpiSampahService::hitung([
-            'email' => $mhs->email, 'id_desa' => $desa->id_desa, 'bulan' => $bulan.'-01',
-            'jml_rw' => 1, 'jml_penduduk' => 300, 'jml_rumah' => 100, 'jml_rumah_memilah' => 50,
-            'timbulan' => 100, 'organik_sumber' => 20, 'organik_dlh' => 0, 'anorganik_sumber' => 0,
-        ]));
+        Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $desa->id_desa, 'user_in_up' => $mhs->email]);
+        Logkegiatan::factory()->create([
+            'email' => $mhs->email, 'tanggal' => $bulan.'-01',
+            'organik_kg' => 20, 'anorganik_kg' => 0, 'residu_kg' => 80,
+        ]);
 
         return $kecamatan;
     }
@@ -55,7 +55,7 @@ class LaporanPublikCacheTest extends TestCase
         $this->get('/login/laporan?bulan='.$bulanLama.'&kecamatan='.$lama->id_kecamatan)->assertOk();
 
         // Seed ulang: tabel dikosongkan tanpa event (seperti migrate:fresh), data baru dibuat lewat model
-        foreach (['kpi_sampah', 'pj_desa', 'mahasiswa', 'desa', 'kecamatan'] as $tabel) {
+        foreach (['logkegiatan', 'mahasiswa_lokasi', 'pj_desa', 'mahasiswa', 'desa', 'kecamatan'] as $tabel) {
             DB::table($tabel)->delete();
         }
         $baru = $this->wilayahDanSampah('Baru', $bulanBaru);
@@ -72,6 +72,17 @@ class LaporanPublikCacheTest extends TestCase
         $this->assertNotSame($versi, $setelahSimpan);
 
         $capaian->delete();
+        $this->assertNotSame($setelahSimpan, Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY));
+    }
+
+    public function test_logkegiatan_change_resets_public_cache_version(): void
+    {
+        $versi = Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY);
+        $log = Logkegiatan::factory()->create();
+        $setelahSimpan = Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY);
+        $this->assertNotSame($versi, $setelahSimpan);
+
+        $log->delete();
         $this->assertNotSame($setelahSimpan, Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY));
     }
 

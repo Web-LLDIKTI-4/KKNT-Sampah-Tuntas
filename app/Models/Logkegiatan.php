@@ -22,6 +22,13 @@ class Logkegiatan extends Model
         'residu_kg' => 'float',
     ];
 
+    // Rekap sampah publik bersumber dari log harian: reset cache halaman login
+    protected static function booted(): void
+    {
+        static::saved(fn () => Kpisampah::forgetPublicCache());
+        static::deleted(fn () => Kpisampah::forgetPublicCache());
+    }
+
     public function mahasiswa()
     {
         return $this->hasOne(Mahasiswa::class,'email','email');

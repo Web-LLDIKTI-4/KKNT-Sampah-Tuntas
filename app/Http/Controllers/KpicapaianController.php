@@ -3,33 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Exports\CapaiankpiExport;
-use App\Http\Controllers\Concerns\RespondsWithJson;
-use App\Http\Requests\Mahasiswa\KpicapaianRequest;
-use App\Http\Requests\Mahasiswa\KpisampahRequest;
 use App\Models\Desa;
-use App\Models\Kpi;
 use App\Models\Kpicapaian;
-use App\Models\Kpisampah;
-use App\Models\Pjdesa;
 use App\Services\KpiSampahService;
-use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class KpicapaianController extends Controller
 {
-    use RespondsWithJson;
-
-    private const FIELDS = ['id_kpi', 'status_capaian', 'tautan', 'permasalahan', 'solusi', 'kendala'];
-
-    public function index()
+    // Read-only: rekap sampah desa mahasiswa dari log harian (semua bulan)
+    public function index(Request $request, KpiSampahService $sampah)
     {
-        return view('kpicapaian.index');
+        $idDesa = $sampah->desaMahasiswa($request->user()->email);
+        $filter = ['id_desa' => $idDesa];
+
+        return view('kpicapaian.index', [
+            'desa' => $idDesa ? Desa::with('kecamatan')->find($idDesa) : null,
+            'rekap' => $idDesa ? $sampah->rekapLldikti($filter) : collect(),
+            'total' => $idDesa ? $sampah->total($filter) : null,
+        ]);
     }
 
     public function listdata()
@@ -65,86 +60,8 @@ class KpicapaianController extends Controller
             ->editColumn('kendala', fn (Kpicapaian $row) => nl2br(e($row->kendala)))
             ->editColumn('status_capaian', fn (Kpicapaian $row) => Kpicapaian::statusBadge($row->status_capaian))
             ->editColumn('tautan', fn (Kpicapaian $row) => HtmlSanitizer::link($row->tautan))
-            ->addColumn('action', fn (Kpicapaian $row) => ActionButtons::make(
-                urlEdit: url('kpicapaian/edit/'.$row->id_capaian),
-                urlDelete: url('kpicapaian/destroy'),
-                idField: 'id_capaian',
-                idValue: $row->id_capaian,
-            ))
-            ->rawColumns(['lokasi', 'action', 'tautan', 'status_capaian', 'permasalahan', 'solusi', 'kendala'])
+            ->rawColumns(['lokasi', 'tautan', 'status_capaian', 'permasalahan', 'solusi', 'kendala'])
             ->make(true);
-    }
-
-    public function tambah(Request $request, KpiSampahService $sampah)
-    {
-        return view('kpicapaian.tambah', [
-            'kpi' => Kpi::orderBy('nama_kpi')->get(),
-            'desa' => $this->desaKetua($request->user()->email, $sampah),
-        ]);
-    }
-
-    public function insert(KpicapaianRequest $request, KpiSampahService $sampah)
-    {
-        try {
-            DB::transaction(function () use ($request, $sampah) {
-                Kpicapaian::create($this->payload($request));
-                $this->simpanSampah($request, $sampah, null);
-            });
-        } catch (UniqueConstraintViolationException) {
-            // Race: dua submit bersamaan lolos validasi, UNIQUE(email,bulan) menolak yang kedua
-            return $this->failed(KpicapaianRequest::DUPLIKAT_BULAN);
-        }
-
-        return $this->saved('Capaian Key performance indicator berhasil disimpan');
-    }
-
-    public function edit(Request $request, string $id_capaian, KpiSampahService $sampahService)
-    {
-        $capaian = Kpicapaian::ownedBy($request->user())->findOrFail($id_capaian);
-        $sampah = Kpisampah::ownedBy($request->user())->with('desa.kecamatan')
-            ->where('bulan', $capaian->bulan)->first();
-
-        return view('kpicapaian.edit', [
-            'data' => $capaian,
-            'kpi' => Kpi::orderBy('nama_kpi')->get(),
-            'sampah' => $sampah,
-            'desa' => $sampah?->desa ?? $this->desaKetua($request->user()->email, $sampahService),
-        ]);
-    }
-
-    public function update(KpicapaianRequest $request, KpiSampahService $sampah)
-    {
-        $capaian = Kpicapaian::ownedBy($request->user())->find($request->validated('id_capaian'));
-        if (! $capaian) {
-            return $this->notFound();
-        }
-
-        try {
-            DB::transaction(function () use ($request, $sampah, $capaian) {
-                $bulanLama = $capaian->bulan;
-                $capaian->update($this->payload($request));
-                $this->simpanSampah($request, $sampah, $bulanLama);
-            });
-        } catch (UniqueConstraintViolationException) {
-            return $this->failed(KpicapaianRequest::DUPLIKAT_BULAN);
-        }
-
-        return $this->saved('Capaian key performance indicator berhasil disimpan');
-    }
-
-    public function destroy(Request $request, KpiSampahService $sampah)
-    {
-        $capaian = Kpicapaian::ownedBy($request->user())->find($request->input('id_capaian'));
-        if (! $capaian) {
-            return $this->notFound();
-        }
-
-        DB::transaction(function () use ($capaian, $sampah) {
-            $capaian->delete();
-            $sampah->hapusDariCapaian($capaian->email, $capaian->bulan);
-        });
-
-        return $this->deleted();
     }
 
     public function export(Request $request)
@@ -153,35 +70,5 @@ class KpicapaianController extends Controller
         $email = $user->role === 'mahasiswa' ? $user->email : null;
 
         return Excel::download(new CapaiankpiExport($email), 'capaian_kpi_'.date('Y-m-d_H-i-s').'.xlsx');
-    }
-
-    // Bulan sampah = bulan capaian
-    private function simpanSampah(KpicapaianRequest $request, KpiSampahService $sampah, ?string $bulanLama): void
-    {
-        $sampah->simpanDariCapaian(
-            $request->user()->email,
-            $bulanLama,
-            $request->bulan(),
-            $request->safe()->only(KpisampahRequest::SAMPAH_FIELDS),
-            $request->idDesa(),
-        );
-    }
-
-    private function desaKetua(string $email, KpiSampahService $sampah): ?Desa
-    {
-        $idDesa = $sampah->desaKetua($email);
-
-        return $idDesa ? Desa::with('kecamatan')->find($idDesa) : null;
-    }
-
-    private function payload(KpicapaianRequest $request): array
-    {
-        $email = $request->user()->email;
-
-        return $request->safe()->only(self::FIELDS) + [
-            'bulan' => $request->bulan(),
-            'email' => $email,
-            'id_pjdesa' => Pjdesa::where('email', $email)->value('id_pjdesa'),
-        ];
     }
 }

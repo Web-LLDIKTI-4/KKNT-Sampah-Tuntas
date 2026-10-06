@@ -5,6 +5,9 @@
 <x-page-header title="Log Bulanan Mahasiswa" subtitle="Data Log Bulanan" /> 
 
 <div class="card">
+    <div class="card-header">
+        <x-button.export-bulan :url="route('export.logbulanan')" label="Export Semua Log Bulanan" />
+    </div>
     <div class="card-body">
         <p id="resultcontent">loading data...</p>
     </div>

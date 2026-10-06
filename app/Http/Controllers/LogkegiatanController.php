@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\LogHarianExport;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\LogkegiatanRequest;
 use App\Models\Kehadiran;
 use App\Models\Logkegiatan;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class LogkegiatanController extends Controller
@@ -87,10 +85,5 @@ class LogkegiatanController extends Controller
         $log->delete();
 
         return $this->deleted();
-    }
-
-    public function export(Request $request)
-    {
-        return Excel::download(new LogHarianExport($request->user()->email), 'log_harian-'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

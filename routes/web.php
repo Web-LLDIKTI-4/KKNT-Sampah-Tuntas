@@ -23,7 +23,8 @@ use App\Http\Controllers\KpicapaianController;
 use App\Http\Controllers\LapcapaiankpiController;
 use App\Http\Controllers\KpiDashboardController;
 use App\Http\Controllers\CapaianProgramExportController;
-use App\Http\Controllers\KpisampahController;
+use App\Http\Controllers\LogExportController;
+use App\Http\Controllers\LogharianExportController;
 use App\Http\Controllers\RekapsampahController;
 use App\Http\Controllers\NilaifreeformController;
 
@@ -168,7 +169,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admlaporandpl/listdatagrouping', [AdmlaporandplController::class, 'listdatagrouping'])->name('admlaporandpl.listdatagrouping');
     Route::get('admlaporandpl/listdata/{email}', [AdmlaporandplController::class, 'listdata'])->name('admlaporandpl.listdata');
     Route::get('admlaporandpl/listdataserver/{email}', [AdmlaporandplController::class, 'listdataserver'])->name('admlaporandpl.listdataserver');
-    Route::get('admlaporandpl/export/{email}', [AdmlaporandplController::class, 'export']);
+    Route::get('admlaporandpl/export/{email}', [AdmlaporandplController::class, 'export'])->middleware('throttle:3,1');
 
     Route::get('admlogharian', [AdmlogharianController::class, 'index']);
     Route::get('admlogharian/listdata', [AdmlogharianController::class, 'listdata'])->name('admlogharian.listdata');
@@ -278,14 +279,14 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function ()
     Route::get('admlogkegiatan/listdatagrouping', [AdmlogkegiatanController::class, 'listdatagrouping'])->name('admlogkegiatan.listdatagrouping');
     Route::get('admlogkegiatan/listdata/{email}', [AdmlogkegiatanController::class, 'listdata'])->name('admlogkegiatan.listdata');
     Route::get('admlogkegiatan/listdataserver/{email}', [AdmlogkegiatanController::class, 'listdataserver'])->name('admlogkegiatan.listdataserver');
-    Route::get('admlogkegiatan/export/{email}', [AdmlogkegiatanController::class, 'export']);
+    Route::get('admlogkegiatan/export/{email}', [AdmlogkegiatanController::class, 'export'])->middleware('throttle:3,1');
  
     Route::get('admlogbulanan', [AdmlogbulananController::class, 'index']);
     Route::get('admlogbulanan/listdatagroup', [AdmlogbulananController::class, 'listdatagroup'])->name('admlogbulanan.listdatagroup');
     Route::get('admlogbulanan/listdatagrouping', [AdmlogbulananController::class, 'listdatagrouping'])->name('admlogbulanan.listdatagrouping');
     Route::get('admlogbulanan/listdata/{email}', [AdmlogbulananController::class, 'listdata'])->name('admlogbulanan.listdata');
     Route::get('admlogbulanan/listdataserver/{email}', [AdmlogbulananController::class, 'listdataserver'])->name('admlogbulanan.listdataserver');
-    Route::get('admlogbulanan/export/{email}', [AdmlogbulananController::class, 'export']);
+    Route::get('admlogbulanan/export/{email}', [AdmlogbulananController::class, 'export'])->middleware('throttle:3,1');
     Route::get('admlogbulanan/formpenilaian/{id}', [AdmlogbulananController::class, 'formpenilaian']);
     Route::put('admlogbulanan/updatenilai', [AdmlogbulananController::class, 'updatenilai']);
     
@@ -294,7 +295,7 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function ()
     Route::get('admlogkehadiran/listdatagrouping', [AdmlogkehadiranController::class, 'listdatagrouping'])->name('admlogkehadiran.listdatagrouping');
     Route::get('admlogkehadiran/listdata/{email}', [AdmlogkehadiranController::class, 'listdata'])->name('admlogkehadiran.listdata');
     Route::get('admlogkehadiran/listdataserver/{email}', [AdmlogkehadiranController::class, 'listdataserver'])->name('admlogkehadiran.listdataserver');
-    Route::get('admlogkehadiran/export/{email}', [AdmlogkehadiranController::class, 'export']);
+    Route::get('admlogkehadiran/export/{email}', [AdmlogkehadiranController::class, 'export'])->middleware('throttle:3,1');
 
 });
 
@@ -384,16 +385,10 @@ Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function (
     Route::get('logkegiatan/edit/{id_log}', [LogkegiatanController::class, 'edit']);
     Route::put('logkegiatan/update', [LogkegiatanController::class, 'update']);
     Route::put('logkegiatan/destroy', [LogkegiatanController::class, 'destroy']);
-    Route::get('logkegiatan/export', [LogkegiatanController::class, 'export']);
 
     Route::get('kpicapaian', [KpicapaianController::class, 'index']);
     Route::get('kpicapaian/listdata', [KpicapaianController::class, 'listdata'])->name('kpicapaian.listdata');
     Route::get('kpicapaian/listdataserver', [KpicapaianController::class, 'listdataserver'])->name('kpicapaian.listdataserver');
-    Route::get('kpicapaian/tambah', [KpicapaianController::class, 'tambah']);
-    Route::put('kpicapaian/insert', [KpicapaianController::class, 'insert']);
-    Route::get('kpicapaian/edit/{id_capaian}', [KpicapaianController::class, 'edit']);
-    Route::put('kpicapaian/update', [KpicapaianController::class, 'update']);
-    Route::put('kpicapaian/destroy', [KpicapaianController::class, 'destroy']);
     Route::get('kpicapaian/export', [KpicapaianController::class, 'export']);
 
     Route::get('logbulanan', [LogbulananController::class, 'index']);
@@ -415,16 +410,15 @@ Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function (
     Route::put('tugasakhir/destroy', [TugasakhirController::class, 'destroy']);
 });
 
-// Data sampah bulanan: hanya ketua kelompok yang bisa mengubah (dicek di KpisampahRequest)
-Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
-    Route::get('kpisampah', [KpisampahController::class, 'index']);
-    Route::get('kpisampah/listdata', [KpisampahController::class, 'listdata']);
-    Route::get('kpisampah/listdataserver', [KpisampahController::class, 'listdataserver'])->name('kpisampah.listdataserver');
-    Route::get('kpisampah/tambah', [KpisampahController::class, 'tambah']);
-    Route::put('kpisampah/insert', [KpisampahController::class, 'insert'])->middleware('throttle:sensitive');
-    Route::get('kpisampah/edit/{id_sampah}', [KpisampahController::class, 'edit'])->whereUuid('id_sampah');
-    Route::put('kpisampah/update', [KpisampahController::class, 'update'])->middleware('throttle:sensitive');
-    Route::put('kpisampah/destroy', [KpisampahController::class, 'destroy'])->middleware('throttle:sensitive');
+// Export log harian lengkap; scope data per role di LogHarianLengkapExport
+Route::middleware(['auth', 'role:admin,kepala,pemda,pt,dpl,mahasiswa', 'user.guard'])->group(function () {
+    Route::get('logharian/export', LogharianExportController::class)->middleware('throttle:3,1')->name('logharian.export');
+});
+
+// Export keseluruhan log bulanan & kehadiran (mahasiswa pakai export miliknya)
+Route::middleware(['auth', 'role:admin,kepala,pemda,pt,dpl', 'user.guard'])->group(function () {
+    Route::get('export/logbulanan', [LogExportController::class, 'logbulanan'])->middleware('throttle:3,1')->name('export.logbulanan');
+    Route::get('export/logkehadiran', [LogExportController::class, 'logkehadiran'])->middleware('throttle:3,1')->name('export.logkehadiran');
 });
 
 Route::middleware(['auth', 'role:pt,kepala,pemda'])->group(function () {

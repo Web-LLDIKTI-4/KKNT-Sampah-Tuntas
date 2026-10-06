@@ -18,10 +18,15 @@ class KpiDashboardController extends Controller
             return view('laporan._capaian_publik', $laporan);
         }
 
+        // Rekap LLDIKTI ikut bulan laporan (default bulan terakhir yang ada log)
+        $filterRekap = ['bulan' => $laporan['params']['bulan'], 'kodept' => $filter['kodept']];
+
         return view('kpidashboard.index', [
             'isPt' => $request->user()->role === 'pt',
             'summary' => $rekap->summary(['kodept' => $filter['kodept']]),
             'laporan' => $laporan,
+            'rekap' => $sampah->rekapLldikti($filterRekap),
+            'total' => $sampah->total($filterRekap),
         ]);
     }
 

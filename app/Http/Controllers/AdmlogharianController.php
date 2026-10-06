@@ -7,10 +7,8 @@ use Session;
 use App\Models\Mahasiswa;
 use DataTables;
 use App\Models\Logkegiatan;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
-use App\Exports\LogkegiatanExport;
 use DB;
 use App\Support\ActionButtons;
 class AdmlogharianController extends Controller
@@ -66,7 +64,9 @@ class AdmlogharianController extends Controller
             ->make(true);
         }
     }
-    public function export(){
-        return Excel::download(new LogkegiatanExport, 'logharian_mahasiswa.xlsx');
+    // Link lama → export log harian lengkap (ber-scope & throttle)
+    public function export(Request $request)
+    {
+        return redirect()->route('logharian.export', $request->only('bulan'));
     }
 }

@@ -11,25 +11,14 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Data sampah bulanan per kelurahan yang diisi ketua kelompok.
- * Kelurahan ketua = pilihan lokasi mahasiswa tahun berjalan, fallback penempatan pj_desa.
- * Rekap kecamatan per bulan dijumlahkan dari kelurahannya; persentase dihitung dari total.
+ * Rekap sampah dari log harian mahasiswa (logkegiatan), per bulan + kelurahan.
+ * Kelurahan log = lokasi mahasiswa (mahasiswa_lokasi) tahun terbaru.
+ * Persentase dihitung dari total: ketaatan = memilah/rumah, penurunan = terkelola/dihasilkan.
  *
- * Filter: bulan (Y-m), id_kecamatan, id_desa, kodept, lokasi (lokasi program ketua).
+ * Filter: bulan (Y-m), id_kecamatan, id_desa, kodept, lokasi, kodept_in.
  */
 class KpiSampahService
 {
-    private const JUMLAH = [
-        'jml_rw', 'jml_penduduk', 'jml_rumah', 'jml_rumah_memilah', 'timbulan',
-        'organik_sumber', 'organik_metode_unit', 'organik_dlh',
-        'anorganik_sumber', 'anorganik_metode_unit', 'pengurangan', 'belum_terkelola',
-    ];
-
-    // Kolom teks: saat diagregasi digabung (distinct) dengan "; "
-    private const TEKS = [
-        'organik_metode', 'organik_dlh_fasilitas', 'organik_dlh_lokasi',
-        'anorganik_metode', 'anorganik_metode_lokasi', 'keterangan',
-    ];
 
     public function desaKetua(string $email): ?string
     {
@@ -47,34 +36,6 @@ class KpiSampahService
 
         return $pilihan ?? $pj->id_desa;
     }
-
-    // Capaian + sampah = satu data: baris bulan lama ikut pindah, sisa baris di bulan baru ditimpa
-    public function simpanDariCapaian(string $email, ?string $bulanLama, string $bulan, array $data, ?string $idDesa): Kpisampah
-    {
-        $lama = $bulanLama ? Kpisampah::where('email', $email)->where('bulan', $bulanLama)->first() : null;
-        $baru = Kpisampah::where('email', $email)->where('bulan', $bulan)
-            ->when($lama, fn ($q) => $q->whereKeyNot($lama->getKey()))->first();
-        if ($lama && $baru) {
-            $baru->delete();
-            $baru = null;
-        }
-
-        // id_desa baris lama tetap; hanya baris baru memakai desa ketua
-        $row = $lama ?? $baru ?? new Kpisampah(['email' => $email, 'id_desa' => $idDesa]);
-        $row->fill(self::hitung($data) + [
-            'bulan' => $bulan,
-            'id_pjdesa' => Pjdesa::where('email', $email)->value('id_pjdesa'),
-        ]);
-        $row->save();
-
-        return $row;
-    }
-
-    public function hapusDariCapaian(string $email, string $bulan): void
-    {
-        Kpisampah::where('email', $email)->where('bulan', $bulan)->first()?->delete();
-    }
-
     // Persentase & pengurangan selalu dihitung server, nilai dari klien diabaikan
     public static function hitung(array $data): array
     {
@@ -87,31 +48,40 @@ class KpiSampahService
     }
 
     // 1 baris per (bulan, kelurahan, PT): angka dijumlah, persentase dihitung ulang dari total.
-    // $perKetua (role PT, ditentukan controller): 1 baris per isian ketua + nama ketua
-    public function detail(array $filter, bool $perKetua = false): Collection
+    // Kelurahan mahasiswa = mahasiswa_lokasi tahun terbaru (sama dengan sumber rekap log harian)
+    public function desaMahasiswa(string $email): ?string
     {
-        if ($perKetua) {
-            return $this->query($filter)
-                ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', 'm.kodept')
-                ->orderByDesc('s.bulan')->orderBy('kc.kecamatan')->orderBy('d.desa')
-                ->select('s.*', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan', 'm.nama as nama_ketua', 'sp.nm_lemb as nama_pt')
-                ->get();
-        }
+        return DB::table('mahasiswa_lokasi as ml')
+            ->join('mahasiswa as m', 'm.id_mahasiswa', '=', 'ml.id_mahasiswa')
+            ->where('m.email', $email)
+            ->whereNotNull('ml.id_desa')
+            ->orderByDesc('ml.tahun')
+            ->value('ml.id_desa');
+    }
 
+    /**
+     * Format LLDIKTI: bulan -> kecamatan -> kelurahan (baris A–L), urut bulan terbaru.
+     */
+    public function rekapLldikti(array $filter): Collection
+    {
         return $this->withJumlah($this->query($filter))
-            ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', 'm.kodept')
-            ->groupBy('s.bulan', 's.id_desa', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan', 'm.kodept', 'sp.nm_lemb')
+            ->groupBy('s.bulan', 's.id_desa', 'd.desa', 'kc.id_kecamatan', 'kc.kecamatan')
             ->orderByDesc('s.bulan')->orderBy('kc.kecamatan')->orderBy('d.desa')
-            ->selectRaw('s.bulan, s.id_desa, d.desa, d.id_kecamatan, kc.kecamatan, m.kodept, sp.nm_lemb as nama_pt')
-            ->selectRaw(collect(self::TEKS)->map(fn ($k) => "GROUP_CONCAT(DISTINCT NULLIF(TRIM(s.$k), '') SEPARATOR '; ') as $k")->implode(', '))
+            ->selectRaw('s.bulan, s.id_desa, d.desa, kc.id_kecamatan, kc.kecamatan')
             ->get()
-            ->map(function ($row) {
-                foreach (self::JUMLAH as $kolom) {
-                    $row->$kolom = $row->{'total_'.$kolom};
-                }
-
-                return $this->isiPersen($row);
-            });
+            ->map(fn ($row) => $this->isiPersen($row))
+            ->groupBy('bulan')
+            ->map(fn (Collection $perBulan, $bulan) => (object) [
+                'bulan' => substr($bulan, 0, 7),
+                'nama_bulan' => Carbon::parse($bulan)->translatedFormat('F Y'),
+                'kecamatan' => $perBulan->groupBy(fn ($r) => (string) $r->id_kecamatan)
+                    ->map(fn (Collection $rows) => (object) [
+                        'id_kecamatan' => $rows->first()->id_kecamatan,
+                        'kecamatan' => $rows->first()->kecamatan,
+                        'desa' => $rows->values(),
+                    ])->values(),
+            ])
+            ->values();
     }
 
     /**
@@ -130,44 +100,10 @@ class KpiSampahService
             ->map(fn ($row) => $this->isiPersen($row));
     }
 
-    /**
-     * Detail kelurahan dikelompokkan per bulan -> kecamatan, beserta total kecamatan (dijumlah dari kelurahannya).
-     */
-    public function detailPerKecamatan(array $filter, bool $perKetua = false): Collection
-    {
-        $total = $this->rekapKecamatan($filter)->keyBy(fn ($r) => $r->bulan.'|'.$r->id_kecamatan);
-
-        return $this->detail($filter, $perKetua)
-            ->groupBy('bulan')
-            ->map(fn (Collection $perBulan, $bulan) => (object) [
-                'bulan' => $bulan,
-                'kecamatan' => $perBulan->sortBy('kecamatan')->groupBy('id_kecamatan')
-                    ->map(fn (Collection $rows, $idKecamatan) => (object) [
-                        'kecamatan' => $rows->first()->kecamatan,
-                        'rows' => $rows->sortBy([['desa', 'asc'], ['nama_pt', 'asc']])->values(),
-                        'total' => $total[$bulan.'|'.$idKecamatan] ?? null,
-                    ])->values(),
-            ])
-            ->values();
-    }
-
-    /**
-     * Satu baris per bulan per kecamatan.
-     */
-    public function rekapKecamatan(array $filter): Collection
-    {
-        return $this->withJumlah($this->query($filter))
-            ->groupBy('s.bulan', 'kc.id_kecamatan', 'kc.kecamatan')
-            ->orderByDesc('s.bulan')->orderBy('kc.kecamatan')
-            ->selectRaw('s.bulan, kc.id_kecamatan, kc.kecamatan, COUNT(DISTINCT s.id_desa) as jml_kelurahan')
-            ->get()
-            ->map(fn ($row) => $this->isiPersen($row));
-    }
-
     public function total(array $filter): object
     {
         return $this->isiPersen($this->withJumlah($this->query($filter))
-            ->selectRaw('COUNT(*) as jml_data')
+            ->selectRaw('COUNT(*) as jml_data, COUNT(DISTINCT s.id_desa) as jml_desa')
             ->first());
     }
 
@@ -437,14 +373,29 @@ class KpiSampahService
             ];
         })->sortBy('nama_pt')->values();
     }
-
+    // Satu baris per log: bulan (Y-m-01), kelurahan mahasiswa, kunci rumah
     private function query(array $filter): Builder
     {
-        return DB::table('kpi_sampah as s')
+        $lokasiTerakhir = DB::table('mahasiswa_lokasi')
+            ->whereNotNull('id_desa')
+            ->groupBy('id_mahasiswa')
+            ->selectRaw('id_mahasiswa, MAX(tahun) as tahun');
+
+        $log = DB::table('logkegiatan as l')
+            ->join('mahasiswa as lm', 'lm.email', '=', 'l.email')
+            ->joinSub($lokasiTerakhir, 'lt', 'lt.id_mahasiswa', '=', 'lm.id_mahasiswa')
+            ->join('mahasiswa_lokasi as ml', fn ($j) => $j->on('ml.id_mahasiswa', '=', 'lt.id_mahasiswa')->on('ml.tahun', '=', 'lt.tahun'))
+            ->when($filter['bulan'] ?? null, function (Builder $q, $v) {
+                $awal = Carbon::createFromFormat('Y-m-d', $v.'-01')->startOfDay();
+                $q->whereBetween('l.tanggal', [$awal->toDateString(), $awal->copy()->endOfMonth()->toDateString()]);
+            })
+            ->selectRaw("l.email, ml.id_desa, DATE_FORMAT(l.tanggal, '%Y-%m-01') as bulan, l.memilah, l.organik_kg, l.anorganik_kg, l.residu_kg")
+            ->selectRaw("CONCAT_WS('|', ml.id_desa, l.nama_kepala_keluarga, l.alamat_rumah, l.rt, l.rw) as rumah");
+
+        return DB::query()->fromSub($log, 's')
             ->join('desa as d', 'd.id_desa', '=', 's.id_desa')
             ->leftJoin('kecamatan as kc', 'kc.id_kecamatan', '=', 'd.id_kecamatan')
             ->leftJoin('mahasiswa as m', 'm.email', '=', 's.email')
-            ->when($filter['bulan'] ?? null, fn (Builder $q, $v) => $q->where('s.bulan', $v.'-01'))
             ->when($filter['id_kecamatan'] ?? null, fn (Builder $q, $v) => $q->where('d.id_kecamatan', $v))
             ->when($filter['id_desa'] ?? null, fn (Builder $q, $v) => $q->where('s.id_desa', $v))
             ->when($filter['kodept'] ?? null, fn (Builder $q, $v) => $q->where('m.kodept', $v))
@@ -455,17 +406,26 @@ class KpiSampahService
 
     private function withJumlah(Builder $query): Builder
     {
-        foreach (self::JUMLAH as $kolom) {
-            $query->selectRaw("COALESCE(SUM(s.$kolom), 0) as total_$kolom");
-        }
-
-        return $query;
+        return $query->selectRaw('COUNT(DISTINCT s.rumah) as total_jml_rumah')
+            ->selectRaw('COUNT(DISTINCT CASE WHEN s.memilah = 1 THEN s.rumah END) as total_jml_rumah_memilah')
+            ->selectRaw('COALESCE(SUM(s.organik_kg), 0) as total_organik')
+            ->selectRaw('COALESCE(SUM(s.anorganik_kg), 0) as total_anorganik')
+            ->selectRaw('COALESCE(SUM(s.residu_kg), 0) as total_residu');
     }
 
+    // Field baris rekap (kolom D–L LLDIKTI); persen null bila pembagi 0
     private function isiPersen(object $row): object
     {
-        $row->persen_ketaatan = Kpisampah::persen($row->total_jml_rumah_memilah, $row->total_jml_rumah);
-        $row->persen_pengurangan = Kpisampah::persen($row->total_pengurangan, $row->total_timbulan);
+        $row->jml_rumah = (int) $row->total_jml_rumah;
+        $row->jml_rumah_memilah = (int) $row->total_jml_rumah_memilah;
+        $row->organik = round((float) $row->total_organik, 2);
+        $row->anorganik = round((float) $row->total_anorganik, 2);
+        $row->residu = round((float) $row->total_residu, 2);
+        $row->total_terkelola = round($row->organik + $row->anorganik, 2);
+        $row->total_dihasilkan = round($row->total_terkelola + $row->residu, 2);
+        $row->persen_ketaatan = Kpisampah::persen($row->jml_rumah_memilah, $row->jml_rumah);
+        $row->persen_penurunan = Kpisampah::persen($row->total_terkelola, $row->total_dihasilkan);
+        $row->persen_pengurangan = $row->persen_penurunan;
 
         return $row;
     }

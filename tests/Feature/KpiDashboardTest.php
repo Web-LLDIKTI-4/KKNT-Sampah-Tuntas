@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Exports\Sheets\DataSampahSheet;
+use App\Exports\Sheets\RekapLldiktiSheet;
 use App\Models\Desa;
 use App\Models\Dpl;
 use App\Models\LokasiProgram;
@@ -137,7 +137,8 @@ class KpiDashboardTest extends TestCase
         $this->get('kpitarget')->assertNotFound();
         $this->get('user')->assertRedirect(route('home'));
         $this->get('admlaporandpl')->assertRedirect(route('home'));
-        $this->put('kpicapaian/insert', [])->assertForbidden();
+        // Route tulis kpicapaian sudah dihapus (read-only)
+        $this->put('kpicapaian/insert', [])->assertNotFound();
     }
 
     public function test_kepala_opens_pt_menu_read_only(): void
@@ -161,16 +162,16 @@ class KpiDashboardTest extends TestCase
         $this->put('setting/update', [])->assertJsonValidationErrors('plama', 'errors');
     }
 
-    public function test_admin_and_kepala_can_export_data_sampah_but_pt_cannot(): void
+    public function test_admin_and_kepala_can_export_rekap_sampah_but_pt_cannot(): void
     {
-        Excel::fake();
-        Excel::matchByRegex();
-
         foreach (['admin', 'kepala'] as $role) {
+            // Fake baru per role: nama file berbasis detik, 2 download beda detik = regex cocok 2 file
+            Excel::fake();
+            Excel::matchByRegex();
             $this->loginAs($role);
             $this->get('dashboardkpi')->assertOk()->assertSee('id="kpi-export"', false);
             $this->get('rekapsampah/export?klaster=merah')->assertOk();
-            Excel::assertDownloaded('/^data_sampah_merah_.+\.xlsx$/', fn (DataSampahSheet $sheet) => $sheet->title() === 'Data Sampah');
+            Excel::assertDownloaded('/^rekap_sampah_merah_.+\.xlsx$/', fn (RekapLldiktiSheet $sheet) => $sheet->title() === 'Rekap Sampah');
         }
 
         $this->loginAs('pt', ['email' => $this->pt1->npsn]);

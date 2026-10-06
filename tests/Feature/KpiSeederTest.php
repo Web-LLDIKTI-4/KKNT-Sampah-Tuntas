@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Kpi;
 use App\Models\Kpicapaian;
-use App\Models\Kpisampah;
 use App\Models\Pjdesa;
 use Database\Seeders\SimulasiSeeder;
 use Database\Seeders\KpiSeeder;
@@ -24,7 +23,6 @@ class KpiSeederTest extends TestCase
         $this->assertSame(['Pengurangan Sampah Rumah Tangga', 20.0, '%'], [Kpi::first()->nama_kpi, (float) Kpi::first()->target, Kpi::first()->satuan]);
         $this->assertSame(12 * 3, Pjdesa::where('email', 'like', '%@kknt.test')->count());
         $this->assertTrue(Kpicapaian::where('status_capaian', 'Y')->exists());
-        $this->assertSame(12 * 3 * 3 - 1, Kpisampah::count());
         $this->assertSame(12 * 3, Kpicapaian::count());
 
         // Dijalankan ulang tidak menggandakan data maupun menambah ketua
@@ -52,7 +50,6 @@ class KpiSeederTest extends TestCase
         $this->assertTrue($penempatan->groupBy('id_desa')->every(fn ($rows) => $rows->count() === 1));
 
         $this->assertSame(0, DB::table('mahasiswa_lokasi')->where('tahun', '<>', now()->year)->count());
-        $this->assertSame(12, Kpisampah::distinct()->count('id_desa'));
     }
 
     public function test_each_pt_has_three_ketua_with_one_report_per_month(): void
@@ -68,7 +65,8 @@ class KpiSeederTest extends TestCase
         $this->assertCount(12, $ketuaPerPt);
         $this->assertTrue($ketuaPerPt->every(fn ($n) => (int) $n === 3));
 
-        foreach (['kpi_capaian', 'kpi_sampah'] as $tabel) {
+        // kpi_sampah tidak di-seed lagi (rekap dari logkegiatan)
+        foreach (['kpi_capaian'] as $tabel) {
             $maks = DB::table($tabel)->selectRaw('COUNT(*) as n')->groupBy('email', 'bulan')->get()->max('n');
             $this->assertSame(1, (int) $maks, "$tabel: >1 data per ketua per bulan");
             $this->assertSame(0, DB::table($tabel)->whereNotIn('email', Pjdesa::select('email'))->count(), "$tabel: email bukan ketua");

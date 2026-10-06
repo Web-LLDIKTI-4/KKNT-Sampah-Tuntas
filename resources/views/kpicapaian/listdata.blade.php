@@ -13,7 +13,6 @@
                     <th>Kebutuhan Dukungan</th>
                     <th>Tindak Lanjut</th>
                     <th>Tautan</th>
-                    <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
         </x-datatable>
@@ -80,8 +79,7 @@
                 }
             },
             {data: 'status_capaian', name: 'status_capaian', className: 'text-center'},
-            {data: 'tautan', name: 'tautan'},
-            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible: @json(in_array(auth()->user()->akses, ['pjdesa']))},
+            {data: 'tautan', name: 'tautan'}
         ],
         layout: {
             top1: {

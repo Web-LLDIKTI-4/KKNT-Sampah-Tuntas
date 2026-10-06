@@ -407,11 +407,6 @@
                 <li class="nav-item">
                     <a class="nav-link fw-medium" href="{{ url('kpicapaian') }}">Capaian KPI</a>
                 </li>
-                @if (Auth::user()->akses === 'pjdesa')
-                    <li class="nav-item">
-                        <a class="nav-link fw-medium" href="{{ url('kpisampah') }}">Data Sampah</a>
-                    </li>
-                @endif
                 <li class="nav-item">
                     <a class="nav-link fw-medium" href="{{ url('tugasakhir') }}">Laporan Akhir</a>
                 </li>

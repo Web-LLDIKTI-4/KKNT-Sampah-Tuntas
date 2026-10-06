@@ -54,7 +54,7 @@ class PemdaRoleTest extends TestCase
             $this->put('admlogbulanan/updatenilai', [])->assertForbidden();
             $this->put('ptevaluasikegiatan/insert', [])->assertForbidden();
             $this->post('dpllaporan/tambah', [])->assertForbidden();
-            $this->put('kpicapaian/insert', [])->assertForbidden();
+            $this->put('kpicapaian/insert', [])->assertNotFound();
             $this->put('profile/update', [])->assertStatus(200);
         }
     }
@@ -101,22 +101,18 @@ class PemdaRoleTest extends TestCase
         $this->assertSame('kepala', $pemda->fresh()->role);
     }
 
-    public function test_kpicapaian_shows_data_sampah_section_only_for_ketua(): void
+    public function test_kpicapaian_read_only_without_data_sampah_form(): void
     {
         $ketua = $this->loginAs('mahasiswa', ['akses' => 'pjdesa']);
         Pjdesa::create(['email' => $ketua->email, 'id_desa' => Desa::factory()->create()->id_desa]);
 
         $this->get('kpicapaian')->assertOk()
             ->assertSee('id="resultcontent"', false)
-            ->assertSee('id="resultcontent-sampah"', false)
-            ->assertSee(json_encode(url('kpisampah/listdata')), false)
-            ->assertSee('data-sampah-form', false);
-        $this->get('kpisampah/listdata')->assertOk()->assertSee('dataTableSampah', false)->assertDontSee('id="dataTable"', false);
-        $this->get('kpisampah/tambah')->assertOk()->assertSee('data-reload="#dataTableSampah"', false);
-
-        $this->loginAs('mahasiswa');
-        $this->get('kpicapaian')->assertOk()
-            ->assertSee('id="resultcontent"', false)
-            ->assertDontSee('resultcontent-sampah', false);
+            ->assertSee('Persentase Penurunan Sampah [(J/K)*100%]', false)
+            ->assertDontSee('resultcontent-sampah', false)
+            ->assertDontSee('data-sampah-form', false)
+            ->assertDontSee('kpisampah', false);
+        $this->get('kpisampah/listdata')->assertNotFound();
+        $this->get('kpisampah/tambah')->assertNotFound();
     }
 }

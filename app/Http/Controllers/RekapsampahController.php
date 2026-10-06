@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\Sheets\DataSampahSheet;
+use App\Exports\Sheets\RekapLldiktiSheet;
 use App\Http\Requests\RekapSampahRequest;
 use App\Models\Kecamatan;
 use App\Models\Mahasiswa;
@@ -24,8 +24,7 @@ class RekapsampahController extends Controller
             'filter' => $filter,
             'klasterPt' => $klasterPt,
             'total' => $sampah->total($filter),
-            // PT: 1 baris per ketua; admin/kepala: teragregasi per PT
-            'perBulan' => $sampah->detailPerKecamatan($filter, $isPt),
+            'rekap' => $sampah->rekapLldikti($filter),
             'bulanList' => $sampah->bulanList($isPt ? $filter['kodept'] : null),
             'kecamatanList' => Kecamatan::orderBy('kecamatan')->get(['id_kecamatan', 'kecamatan']),
             'ptList' => $isPt ? collect() : Satuanpendidikan::whereIn('npsn', Mahasiswa::whereNotNull('kodept')->select('kodept'))
@@ -33,15 +32,14 @@ class RekapsampahController extends Controller
         ]);
     }
 
-    // Format Excel resmi (per kelurahan), mengikuti filter & klaster aktif
+    // Format LLDIKTI (per kelurahan), mengikuti filter & klaster aktif
     public function export(RekapSampahRequest $request, KpiSampahService $sampah)
     {
         [$filter] = $this->filter($request, $sampah);
-        $perKetua = $request->user()->role === 'pt';
 
         return Excel::download(
-            new DataSampahSheet($sampah->detail($filter, $perKetua)),
-            'data_sampah_'.($filter['klaster'] ?? 'semua').'_'.date('Y-m-d_H-i-s').'.xlsx'
+            new RekapLldiktiSheet($sampah->rekapLldikti($filter)),
+            'rekap_sampah_'.($filter['klaster'] ?? 'semua').'_'.date('Y-m-d_H-i-s').'.xlsx'
         );
     }
 

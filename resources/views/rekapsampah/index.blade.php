@@ -5,7 +5,7 @@
 <x-page-header
     icon="ri-recycle-line"
     :title="$isPt ? 'Rekap Data Sampah Perguruan Tinggi' : 'Rekap Data Sampah'"
-    subtitle="Data sampah bulanan per kelurahan yang diisi ketua kelompok, dijumlahkan per kecamatan setiap bulan." />
+    subtitle="Rekap sampah bulanan per kelurahan dari log harian mahasiswa, dikelompokkan per bulan dan kecamatan (format LLDIKTI)." />
 
 <div class="card">
     <div class="card-body">

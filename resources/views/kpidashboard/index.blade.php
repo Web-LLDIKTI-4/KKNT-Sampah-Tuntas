@@ -49,6 +49,16 @@
     </div>
 </div>
 
+<div class="card mb-6">
+    <div class="card-header">
+        <h5 class="mb-1">Rekap Sampah per Bulan</h5>
+        <p class="mb-0 card-subtitle">Dari log harian mahasiswa · penurunan sampah {{ \App\Models\Kpisampah::formatPersen($total->persen_penurunan) }}</p>
+    </div>
+    <div class="card-body">
+        @include('rekapsampah._lldikti', ['rekap' => $rekap])
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header">
         <h5 class="mb-1">Laporan Kegiatan</h5>

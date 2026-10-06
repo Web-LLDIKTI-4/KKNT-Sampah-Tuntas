@@ -25,7 +25,7 @@
     </div>
 </div>
 
-<x-button.export url="{{ url('logkegiatan/export') }}" />
+<x-button.export :url="route('logharian.export')" label="Export Log Harian" />
 
 <script type="text/javascript">
   $(function () {

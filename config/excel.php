@@ -243,7 +243,7 @@ return [
         | Drivers: memory|illuminate|batch
         |
         */
-        'driver'      => 'memory',
+        'driver'      => 'batch',
 
         /*
         |--------------------------------------------------------------------------
@@ -272,7 +272,8 @@ return [
         |
         */
         'illuminate'  => [
-            'store' => null,
+            // Store khusus agar cache batch export (berisi PII) tidak masuk tabel cache database
+            'store' => 'file',
         ],
 
         /*

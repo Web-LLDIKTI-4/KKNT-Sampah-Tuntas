@@ -4,9 +4,13 @@ namespace App\Exports;
 
 use App\Models\Kehadiran;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
-class LogKehadiranByMhsExport implements FromCollection, WithHeadings
+class LogKehadiranByMhsExport extends DefaultValueBinder implements WithCustomValueBinder, FromCollection, WithHeadings
 {
     protected $email;
 
@@ -33,8 +37,8 @@ class LogKehadiranByMhsExport implements FromCollection, WithHeadings
                 'Nama Perguruan Tinggi' => $item->mahasiswa->sp->nm_lemb ?? 'Perguruan Tinggi tidak tersedia',
                 'Tanggal' => \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y'),
                 'Status Kehadiran' => ucfirst($item->status_kehadiran),
-                'Jam Masuk' => \Carbon\Carbon::parse($item->waktu_masuk)->format('H:i:s'),
-                'Jam Pulang' => \Carbon\Carbon::parse($item->waktu_pulang)->format('H:i:s'),
+                'Jam Masuk' => $item->waktu_masuk ? \Carbon\Carbon::parse($item->waktu_masuk)->format('H:i:s') : '-',
+                'Jam Pulang' => $item->waktu_pulang ? \Carbon\Carbon::parse($item->waktu_pulang)->format('H:i:s') : '-',
             ];
         });
 
@@ -58,5 +62,17 @@ class LogKehadiranByMhsExport implements FromCollection, WithHeadings
             'Jam Masuk',
             'Jam Pulang',
         ];
+    }
+
+    // Teks input user berawalan "=" ditulis sebagai string, bukan formula
+    public function bindValue(Cell $cell, $value)
+    {
+        if (is_string($value) && str_starts_with($value, '=')) {
+            $cell->setValueExplicit($value, DataType::TYPE_STRING);
+
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
     }
 }

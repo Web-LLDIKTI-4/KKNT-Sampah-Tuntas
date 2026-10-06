@@ -89,7 +89,6 @@ class SimulasiSeeder extends Seeder
         $this->belumPilihLokasi($pts->first());
         $this->aktivitas($kpis);
         $this->sebaranMahasiswa($pts, $penempatan);
-        $this->call(KpiSampahSeeder::class);
 
         $this->akun[] = ['mahasiswa', '-', Mahasiswa::count().' mahasiswa', 'Anggota: mhs{m}.k{n}.pt{i}.<lokasi>'.self::DOMAIN];
         $this->command?->table(['Role', 'Login', 'Nama', 'Keterangan'], $this->akun);

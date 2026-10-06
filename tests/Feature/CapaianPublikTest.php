@@ -7,8 +7,10 @@ use App\Models\Desa;
 use App\Models\Kecamatan;
 use App\Models\Kpicapaian;
 use App\Models\Kpisampah;
+use App\Models\Logkegiatan;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
+use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
 use App\Services\KpiSampahService;
@@ -30,7 +32,7 @@ class CapaianPublikTest extends TestCase
     /**
      * Lokasi A / Kec Alfa: Desa Satu (Univ Hijau 25%, Univ Tanpa Data tanpa isian) + Desa Tiga (Univ Kuning 15%)
      * -> kecamatan & lokasi = 40/200 = 20,00%. Lokasi B / Kec Beta / Desa Dua: Univ Merah 5%. Total = 45/300 = 15%.
-     * kpi_sampah unik per (id_desa, bulan): satu kelurahan hanya punya satu isian per bulan.
+     * Sumber: logkegiatan; kelurahan = mahasiswa_lokasi ketua.
      */
     protected function setUp(): void
     {
@@ -57,16 +59,22 @@ class CapaianPublikTest extends TestCase
         $pt = Satuanpendidikan::factory()->create(['nm_lemb' => $namaPt]);
         $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'nama' => 'Ketua '.$namaPt, 'location_program' => $lokasi->id]);
         Pjdesa::create(['email' => $mhs->email, 'id_desa' => $desa->id_desa]);
+        Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $desa->id_desa, 'user_in_up' => $mhs->email]);
         $this->d['pt_'.$key] = $pt;
         $this->d['ketua_'.$key] = $mhs;
         if ($pengurangan === null) {
             return;
         }
-        Kpisampah::create(KpiSampahService::hitung([
-            'email' => $mhs->email, 'id_desa' => $desa->id_desa, 'bulan' => $this->bulan.'-01',
-            'jml_rw' => 1, 'jml_penduduk' => 300, 'jml_rumah' => 100, 'jml_rumah_memilah' => 50,
-            'timbulan' => 100, 'organik_sumber' => $pengurangan, 'organik_dlh' => 0, 'anorganik_sumber' => 0,
-        ]));
+        $this->logSampah($mhs, $this->bulan, $pengurangan);
+    }
+
+    // Kelurahan log = mahasiswa_lokasi; 1 log: terkelola = $terkelola kg dari total 100 kg
+    private function logSampah(Mahasiswa $mhs, string $bulan, float $terkelola): void
+    {
+        Logkegiatan::factory()->create([
+            'email' => $mhs->email, 'tanggal' => $bulan.'-10', 'memilah' => true,
+            'organik_kg' => $terkelola, 'anorganik_kg' => 0, 'residu_kg' => 100 - $terkelola,
+        ]);
     }
 
     private function publik(array $filter = []): array
@@ -291,12 +299,9 @@ class CapaianPublikTest extends TestCase
         $desaKosong = Desa::factory()->create(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'desa' => 'Desa Kosong']);
         $mhs = Mahasiswa::factory()->create(['location_program' => $this->d['lokasiA']->id, 'kodept' => $this->d['pt_hijau']->npsn]);
         Pjdesa::create(['email' => $mhs->email, 'id_desa' => $desaKosong->id_desa]);
+        Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $desaKosong->id_desa, 'user_in_up' => $mhs->email]);
         // Data bulan lain tidak boleh ikut ke bulan terpilih
-        Kpisampah::create(KpiSampahService::hitung([
-            'email' => $mhs->email, 'id_desa' => $desaKosong->id_desa, 'bulan' => now()->subMonths(2)->format('Y-m').'-01',
-            'jml_rw' => 1, 'jml_penduduk' => 300, 'jml_rumah' => 100, 'jml_rumah_memilah' => 50,
-            'timbulan' => 100, 'organik_sumber' => 90, 'organik_dlh' => 0, 'anorganik_sumber' => 0,
-        ]));
+        $this->logSampah($mhs, now()->subMonths(2)->format('Y-m'), 90);
         // Kelurahan tepat 20% -> Kuning (ambang strict > 20%)
         $this->ketua('pas', 'Univ Pas', $this->d['lokasiA'], Desa::factory()->create(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'desa' => 'Desa Pas']), 20);
 

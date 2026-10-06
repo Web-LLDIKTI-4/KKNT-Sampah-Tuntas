@@ -1,33 +1,57 @@
 @extends('layouts.app')
 @section('title','Capaian KPI')
 @section('container')
-<x-crud-index
-    title="Capaian Key Performance Indicator (KPI)"
-    :list-url="url('kpicapaian/listdata')"
-    :add-url="auth()->user()->akses === 'pjdesa' ? url('kpicapaian/tambah') : null"
-    modal-size="modal-xl" />
+@php
+    use App\Models\Kpisampah;
+    $berat = fn ($v) => Kpisampah::formatAngka($v, 2);
+@endphp
 
-{{-- List data sampah (diisi lewat form capaian); edit & hapus via endpoint kpisampah --}}
-@if (auth()->user()->akses === 'pjdesa')
-    <div class="mt-8">
-        <x-crud-index
-            id="resultcontent-sampah"
-            title="Data Sampah Bulanan Kelurahan"
-            :list-url="url('kpisampah/listdata')"
-            modal-size="modal-xl" />
+<x-page-header
+    icon="ri-line-chart-line"
+    title="Capaian Key Performance Indicator (KPI)"
+    :subtitle="$desa ? 'Rekap sampah Kel. '.$desa->desa.', Kec. '.($desa->kecamatan?->kecamatan ?? '-').' dari log harian mahasiswa.' : 'Rekap sampah dari log harian mahasiswa.'" />
+
+{{-- Read-only: rekap dihitung otomatis dari log harian --}}
+<div class="card mb-6">
+    <div class="card-body">
+        @if ($desa)
+            <div class="d-flex flex-wrap gap-5 mb-4">
+                <div>
+                    <div class="small text-muted">Persentase Penurunan Sampah</div>
+                    <x-status-pengurangan :persen="$total->persen_penurunan" class="fs-6" />
+                </div>
+                <div>
+                    <div class="small text-muted">Ketaatan Pemilahan</div>
+                    <div class="fw-medium">{{ Kpisampah::formatPersen($total->persen_ketaatan) }}</div>
+                </div>
+                <div>
+                    <div class="small text-muted">Total Sampah Dihasilkan</div>
+                    <div class="fw-medium">{{ $berat($total->total_dihasilkan) }} kg</div>
+                </div>
+                <div>
+                    <div class="small text-muted">Total Sampah Terkelola</div>
+                    <div class="fw-medium">{{ $berat($total->total_terkelola) }} kg</div>
+                </div>
+            </div>
+            @include('rekapsampah._lldikti', ['rekap' => $rekap])
+            <p class="small text-muted mt-3 mb-0">Tambah atau perbaiki data lewat menu <a href="{{ url('logkegiatan') }}">Log Harian</a>.</p>
+        @else
+            <div class="alert alert-warning mb-0">Anda belum terdaftar di lokasi KKN (kelurahan), sehingga rekap belum dapat ditampilkan.</div>
+        @endif
     </div>
-    <script>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Riwayat Capaian KPI</h5>
+    </div>
+    <div class="card-body">
+        <p id="resultcontent">loading data...</p>
+    </div>
+</div>
+<script>
     $(function () {
-        // Simpan capaian juga mengubah data sampah → muat ulang tabel sampah
-        $(document).on('ajax-form:saved', 'form[data-sampah-form]:not([data-reload])', function () {
-            var $table = $('#dataTableSampah');
-            if ($table.length && $.fn.DataTable.isDataTable($table)) {
-                $table.DataTable().ajax.reload(null, false);
-            }
-        });
+        $("#resultcontent").load("{{ url('kpicapaian/listdata') }}");
     });
-    </script>
-@endif
-{{-- Hitung otomatis untuk form capaian & form sampah --}}
-@include('kpisampah._hitung')
+</script>
 @stop
