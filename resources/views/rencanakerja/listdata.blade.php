@@ -1,3 +1,4 @@
+@php($canAct = in_array(Auth::user()->role, ['admin', 'pt']))
 <div class="row">
     <div class="col-12 table-responsive">
         <x-datatable id="dataTable" tableClass="table table-bordered table-sm">
@@ -11,7 +12,7 @@
                     <th>Tahun</th>
                     <th>File</th>
                     <th>Diunggah</th>
-                    @if (!Auth::user()->isPemantau())
+                    @if ($canAct)
                         <th width="1">Aksi</th>
                     @endif
                 </tr>
@@ -30,8 +31,8 @@
         {data: 'tahun', name: 'tahun', className: 'text-center'},
         {data: 'file', name: 'nama_file'},
         {data: 'created_at', name: 'created_at', searchable: false},
-        @if (!Auth::user()->isPemantau())
-            {data: 'action', name: 'action', orderable: false, searchable: false},
+        @if ($canAct)
+        {data: 'action', name: 'action', orderable: false, searchable: false},
         @endif
     ];
 
@@ -40,7 +41,7 @@
         lengthChange: true,
         processing: true,
         serverSide: true,
-        order: [[columns.length - 2, 'desc']],
+        order: [[columns.length - {{ $canAct ? 2 : 1 }}, 'desc']],
         ajax: "{{ route('rencanakerja.listdataserver') }}",
         language: {
             search: "",

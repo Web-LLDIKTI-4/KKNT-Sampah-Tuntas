@@ -312,8 +312,8 @@ Route::middleware(['auth', 'role:admin,pt,kepala,pemda'])->group(function () {
     Route::get('rekapsampah', [RekapsampahController::class, 'index'])->name('rekapsampah');
 });
 
-// Rencana Kerja PT: pt kelola miliknya, admin edit/hapus semua, kepala/pemda lihat; aksi dijaga RencanaKerjaPolicy
-Route::middleware(['auth', 'role:admin,pt,kepala,pemda'])->group(function () {
+// Rencana Kerja PT: pt kelola miliknya, admin edit/hapus semua, role lain lihat; aksi dijaga RencanaKerjaPolicy
+Route::middleware(['auth', 'role:admin,pt,kepala,pemda,dpl,mahasiswa', 'user.guard'])->group(function () {
     Route::get('rencanakerja', [RencanaKerjaController::class, 'index'])->name('rencanakerja');
     Route::get('rencanakerja/listdata', [RencanaKerjaController::class, 'listdata'])->name('rencanakerja.listdata');
     Route::get('rencanakerja/listdataserver', [RencanaKerjaController::class, 'listdataserver'])->name('rencanakerja.listdataserver');
@@ -321,8 +321,8 @@ Route::middleware(['auth', 'role:admin,pt,kepala,pemda'])->group(function () {
     Route::put('rencanakerja/insert', [RencanaKerjaController::class, 'insert'])->middleware('throttle:sensitive')->name('rencanakerja.insert');
     Route::get('rencanakerja/edit/{id_rencana_kerja}', [RencanaKerjaController::class, 'edit'])->whereUuid('id_rencana_kerja')->name('rencanakerja.edit');
     Route::put('rencanakerja/update', [RencanaKerjaController::class, 'update'])->middleware('throttle:sensitive')->name('rencanakerja.update');
-    Route::put('rencanakerja/destroy', [RencanaKerjaController::class, 'destroy'])->name('rencanakerja.destroy');
-    Route::get('rencanakerja/download/{id_rencana_kerja}', [RencanaKerjaController::class, 'download'])->whereUuid('id_rencana_kerja')->name('rencanakerja.download');
+    Route::put('rencanakerja/destroy', [RencanaKerjaController::class, 'destroy'])->middleware('throttle:sensitive')->name('rencanakerja.destroy');
+    Route::get('rencanakerja/view/{id_rencana_kerja}', [RencanaKerjaController::class, 'view'])->whereUuid('id_rencana_kerja')->name('rencanakerja.view');
 });
 
 Route::middleware(['auth', 'role:admin,kepala,pemda'])->group(function () {

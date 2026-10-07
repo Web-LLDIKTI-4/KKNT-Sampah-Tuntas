@@ -11,7 +11,8 @@ class RencanaKerjaRequest extends AjaxFormRequest
 {
     public const MAX_KILOBYTES = 10240;
 
-    public const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx'];
+    // Hanya PDF agar semua dokumen bisa dilihat inline di browser
+    public const ALLOWED_EXTENSIONS = ['pdf'];
 
     public const MIN_TAHUN = 2020;
 
@@ -51,7 +52,7 @@ class RencanaKerjaRequest extends AjaxFormRequest
             'file.required' => 'Dokumen rencana kerja harus diunggah.',
             'file.uploaded' => $this->describeFailedUpload(),
             'file.file' => 'Dokumen rencana kerja gagal diunggah.',
-            'file.mimes' => 'Format file harus pdf, doc, docx, xls, atau xlsx.',
+            'file.mimes' => 'Format file harus PDF.',
             'file.max' => 'Ukuran file maksimal 10MB.',
         ];
     }

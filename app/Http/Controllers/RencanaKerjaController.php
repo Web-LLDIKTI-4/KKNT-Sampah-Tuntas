@@ -59,6 +59,8 @@ class RencanaKerjaController extends Controller
             ->addColumn('file', fn (RencanaKerja $row) => $this->renderFileCell($row))
             ->editColumn('created_at', fn (RencanaKerja $row) => $this->renderUploadedCell($row))
             ->addColumn('action', fn (RencanaKerja $row) => $this->renderActionCell($user, $row))
+            // Hanya kolom tampil yang boleh dicari/diurutkan (cegah blind search ke uploader.*, file_path)
+            ->whitelist(['pt.nm_lemb', 'judul', 'tahun', 'nama_file', 'created_at'])
             ->rawColumns(['judul', 'file', 'created_at', 'action'])
             // Jangan kirim path internal storage & data mentah lain ke browser
             ->only(['DT_RowIndex', 'pt', 'judul', 'tahun', 'file', 'created_at', 'action'])
@@ -150,13 +152,18 @@ class RencanaKerjaController extends Controller
         return $this->deleted();
     }
 
-    public function download(Request $request, string $id_rencana_kerja): StreamedResponse
+    // Tampilkan PDF inline di browser (tanpa download)
+    public function view(Request $request, string $id_rencana_kerja): StreamedResponse
     {
         $rencanaKerja = RencanaKerja::visibleTo($request->user())->findOrFail($id_rencana_kerja);
         Gate::authorize('view', $rencanaKerja);
+        abort_unless($rencanaKerja->mime === 'application/pdf', 404, 'Dokumen rencana kerja bukan PDF.');
         abort_unless(Storage::disk(RencanaKerja::DISK)->exists($rencanaKerja->file_path), 404, 'File rencana kerja tidak ditemukan.');
 
-        return Storage::disk(RencanaKerja::DISK)->download($rencanaKerja->file_path, $rencanaKerja->nama_file);
+        return Storage::disk(RencanaKerja::DISK)->response($rencanaKerja->file_path, $rencanaKerja->nama_file, [
+            'Content-Type' => 'application/pdf',
+            'X-Content-Type-Options' => 'nosniff',
+        ], 'inline');
     }
 
     private function denyUnless(string $ability, RencanaKerja $rencanaKerja): ?JsonResponse
@@ -186,7 +193,7 @@ class RencanaKerjaController extends Controller
         ];
     }
 
-    // Karakter kontrol (CR/LF) dibuang karena nama dipakai di header download
+    // Karakter kontrol (CR/LF) dibuang karena nama dipakai di header Content-Disposition
     private function sanitizeClientFileName(UploadedFile $uploadedFile): string
     {
         $cleanName = trim(preg_replace('/[\x00-\x1F\x7F]/u', '', basename($uploadedFile->getClientOriginalName())) ?? '');
@@ -215,8 +222,9 @@ class RencanaKerjaController extends Controller
 
     private function renderFileCell(RencanaKerja $row): string
     {
-        return '<a href="'.e(route('rencanakerja.download', $row->id_rencana_kerja)).'" class="d-inline-flex align-items-center gap-1 text-wrap">'
-            .'<i class="ri-download-2-line"></i>'.e($row->nama_file).'</a>'
+        return '<span class="d-block text-wrap">'.e($row->nama_file).'</span>'
+            .'<a href="'.e(route('rencanakerja.view', $row->id_rencana_kerja)).'" target="_blank" rel="noopener" class="d-inline-flex align-items-center gap-1">'
+            .'<i class="ri-eye-line"></i>Lihat</a>'
             .'<small class="d-block text-body-secondary">'.e(FileSize::format($row->ukuran)).'</small>';
     }
 

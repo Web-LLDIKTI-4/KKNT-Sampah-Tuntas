@@ -266,6 +266,11 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('rencanakerja') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                         <div class="col-12 col-lg">
@@ -419,6 +424,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link fw-medium" href="{{ url('tugasakhir') }}">Laporan Akhir</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-medium" href="{{ url('rencanakerja') }}">Rencana Kerja</a>
                 </li>
             @endif
         </ul>

@@ -15,6 +15,9 @@ class RencanaKerja extends Model
     // File disimpan privat; akses hanya lewat route download
     public const DISK = 'local';
 
+    // Role yang boleh melihat daftar; pt hanya miliknya, sisanya semua PT
+    public const VIEWER_ROLES = ['admin', 'pt', 'kepala', 'pemda', 'dpl', 'mahasiswa'];
+
     protected $table = 'rencana_kerja';
     protected $primaryKey = 'id_rencana_kerja';
     protected $keyType = 'string';
@@ -47,11 +50,11 @@ class RencanaKerja extends Model
 
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
-        return match ($user->role) {
-            'admin', 'kepala', 'pemda' => $query,
-            'pt' => $query->where('kodept', $user->email),
-            default => $query->whereRaw('1 = 0'),
-        };
+        if ($user->role === 'pt') {
+            return $query->where('kodept', $user->email);
+        }
+
+        return in_array($user->role, self::VIEWER_ROLES, true) ? $query : $query->whereRaw('1 = 0');
     }
 
     public function pt()

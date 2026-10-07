@@ -9,12 +9,16 @@ class RencanaKerjaPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['admin', 'pt', 'kepala', 'pemda'], true);
+        return in_array($user->role, RencanaKerja::VIEWER_ROLES, true);
     }
 
     public function view(User $user, RencanaKerja $rencanaKerja): bool
     {
-        return $user->role === 'admin' || $user->isPemantau() || $this->isOwner($user, $rencanaKerja);
+        if ($user->role === 'pt') {
+            return $this->isOwner($user, $rencanaKerja);
+        }
+
+        return $this->viewAny($user);
     }
 
     public function create(User $user): bool

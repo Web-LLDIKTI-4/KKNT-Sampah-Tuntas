@@ -33,16 +33,17 @@
         </label>
         @if ($rencanaKerja)
             <div class="d-flex align-items-center gap-2 mb-2 p-2 border rounded">
-                <i class="ri-file-text-line ri-22px text-primary"></i>
+                <i class="ri-file-pdf-2-line ri-22px text-danger"></i>
                 <div class="text-truncate">
-                    <a href="{{ route('rencanakerja.download', $rencanaKerja->id_rencana_kerja) }}" class="fw-medium">{{ $rencanaKerja->nama_file }}</a>
+                    <a href="{{ route('rencanakerja.view', $rencanaKerja->id_rencana_kerja) }}" target="_blank" rel="noopener" class="fw-medium" title="Lihat PDF di tab baru">{{ $rencanaKerja->nama_file }}</a>
                     <small class="d-block text-body-secondary">File saat ini &middot; {{ \App\Support\FileSize::format($rencanaKerja->ukuran) }}</small>
                 </div>
+                <a href="{{ route('rencanakerja.view', $rencanaKerja->id_rencana_kerja) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary ms-auto flex-shrink-0"><i class="ri-eye-line me-1"></i>Lihat</a>
             </div>
         @endif
         <input type="file" id="{{ $fieldPrefix }}file" name="file" class="form-control"
-            accept=".pdf,.doc,.docx,.xls,.xlsx" data-max-bytes="{{ $maxUploadBytes }}" @required(! $rencanaKerja)>
-        <div class="form-text">PDF, Word, atau Excel. Maksimal {{ $maxUploadLabel }}.</div>
+            accept=".pdf,application/pdf" data-max-bytes="{{ $maxUploadBytes }}" @required(! $rencanaKerja)>
+        <div class="form-text">Hanya PDF. Maksimal {{ $maxUploadLabel }}.</div>
     </div>
 </div>
 <script>

@@ -4,10 +4,13 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
+use App\Models\Desa;
+use App\Models\Pjdesa;
 use App\Models\RencanaKerja;
 use App\Models\Satuanpendidikan;
 use App\Models\User;
@@ -122,13 +125,13 @@ class RencanaKerjaTest extends TestCase
         $this->put('rencanakerja/update', $this->validPayload([
             'id_rencana_kerja' => $rencanaKerja->id_rencana_kerja,
             'judul' => 'Rencana Baru',
-            'file' => UploadedFile::fake()->create('baru.xlsx', 30, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+            'file' => UploadedFile::fake()->create('baru.pdf', 30, 'application/pdf'),
         ]))->assertJson(['success' => true]);
 
         $rencanaKerja->refresh();
         Storage::disk(RencanaKerja::DISK)->assertMissing($oldFilePath);
         Storage::disk(RencanaKerja::DISK)->assertExists($rencanaKerja->file_path);
-        $this->assertSame('baru.xlsx', $rencanaKerja->nama_file);
+        $this->assertSame('baru.pdf', $rencanaKerja->nama_file);
         $this->assertSame('Rencana Baru', $rencanaKerja->judul);
     }
 
@@ -160,14 +163,28 @@ class RencanaKerjaTest extends TestCase
         Storage::disk(RencanaKerja::DISK)->assertMissing($rencanaKerja->file_path);
     }
 
-    public function test_pt_can_download_own_file(): void
+    public function test_pt_can_view_own_pdf_inline(): void
     {
         $this->loginPt($this->ptA);
         $rencanaKerja = $this->createWithFile($this->ptA, ['nama_file' => 'rencana-2026.pdf']);
 
-        $this->get('rencanakerja/download/'.$rencanaKerja->id_rencana_kerja)
+        $response = $this->get('rencanakerja/view/'.$rencanaKerja->id_rencana_kerja)
             ->assertOk()
-            ->assertDownload('rencana-2026.pdf');
+            ->assertHeader('Content-Type', 'application/pdf')
+            ->assertHeader('X-Content-Type-Options', 'nosniff');
+        $this->assertStringStartsWith('inline; filename=', $response->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('rencana-2026.pdf', $response->headers->get('Content-Disposition'));
+    }
+
+    public function test_download_route_no_longer_exists(): void
+    {
+        $this->loginPt($this->ptA);
+        $rencanaKerja = $this->createWithFile($this->ptA);
+
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('rencanakerja.download'));
+        $this->get('rencanakerja/download/'.$rencanaKerja->id_rencana_kerja)->assertNotFound();
+        $this->listJson()->assertOk()->assertJsonPath('data.0.file', fn (string $cell) => str_contains($cell, route('rencanakerja.view', $rencanaKerja->id_rencana_kerja))
+            && str_contains($cell, 'target="_blank"') && ! str_contains($cell, 'download'));
     }
 
     // --- IDOR antar PT ---
@@ -188,13 +205,13 @@ class RencanaKerjaTest extends TestCase
         $this->assertStringNotContainsString('Milik B', $response->getContent());
     }
 
-    public function test_pt_cannot_edit_update_delete_or_download_other_pt(): void
+    public function test_pt_cannot_edit_update_delete_or_view_other_pt(): void
     {
         $milikB = $this->createWithFile($this->ptB, ['judul' => 'Milik B']);
         $this->loginPt($this->ptA);
 
         $this->get('rencanakerja/edit/'.$milikB->id_rencana_kerja)->assertNotFound();
-        $this->get('rencanakerja/download/'.$milikB->id_rencana_kerja)->assertNotFound();
+        $this->get('rencanakerja/view/'.$milikB->id_rencana_kerja)->assertNotFound();
 
         $this->put('rencanakerja/update', $this->validPayload([
             'id_rencana_kerja' => $milikB->id_rencana_kerja,
@@ -213,7 +230,7 @@ class RencanaKerjaTest extends TestCase
         $this->loginPt($this->ptA);
 
         $this->get('rencanakerja/edit/bukan-uuid')->assertNotFound();
-        $this->get('rencanakerja/download/1')->assertNotFound();
+        $this->get('rencanakerja/view/1')->assertNotFound();
         $this->put('rencanakerja/destroy', ['id_rencana_kerja' => 'bukan-uuid'])->assertNotFound();
         $this->put('rencanakerja/destroy', ['id_rencana_kerja' => ['array']])->assertNotFound();
         $this->put('rencanakerja/update', $this->validPayload(['id_rencana_kerja' => 'x']))
@@ -305,6 +322,107 @@ class RencanaKerjaTest extends TestCase
         }
     }
 
+    public function test_ketua_pjdesa_can_list_and_view_but_not_write(): void
+    {
+        $rencanaKerja = $this->createWithFile($this->ptA);
+        $this->createWithFile($this->ptB);
+        $user = $this->loginAs('mahasiswa', ['akses' => 'pjdesa']);
+        Pjdesa::create(['email' => $user->email, 'id_desa' => Desa::factory()->create()->id_desa]);
+
+        $this->get('rencanakerja')->assertOk()->assertDontSee(route('rencanakerja.tambah'), false);
+        $this->listJson()->assertOk()->assertJsonPath('recordsTotal', 2)->assertJsonPath('data.0.action', '');
+        $this->get('rencanakerja/view/'.$rencanaKerja->id_rencana_kerja)->assertOk()->assertHeader('Content-Type', 'application/pdf');
+
+        $this->get('rencanakerja/edit/'.$rencanaKerja->id_rencana_kerja)->assertForbidden();
+        $this->put('rencanakerja/insert', $this->validPayload())->assertForbidden();
+        $this->put('rencanakerja/update', $this->validPayload(['id_rencana_kerja' => $rencanaKerja->id_rencana_kerja]))->assertForbidden();
+        $this->put('rencanakerja/destroy', ['id_rencana_kerja' => $rencanaKerja->id_rencana_kerja])->assertForbidden();
+        $this->assertDatabaseCount('rencana_kerja', 2);
+    }
+
+    public function test_menu_for_all_roles_and_aksi_column_only_for_admin_and_pt(): void
+    {
+        $menuLink = 'href="'.url('rencanakerja').'"';
+        // role => [login, punya kolom Aksi, punya kolom PT]
+        $cases = [
+            'admin' => [fn () => $this->loginAs('admin'), true, true],
+            'pt' => [fn () => $this->loginPt($this->ptA), true, false],
+            'kepala' => [fn () => $this->loginAs('kepala'), false, true],
+            'pemda' => [fn () => $this->loginAs('pemda'), false, true],
+            'dpl' => [fn () => $this->loginAs('dpl'), false, true],
+            'mahasiswa' => [fn () => $this->loginAs('mahasiswa'), false, true],
+            'ketua' => [function () {
+                $user = $this->loginAs('mahasiswa', ['akses' => 'pjdesa']);
+                Pjdesa::create(['email' => $user->email, 'id_desa' => Desa::factory()->create()->id_desa]);
+            }, false, true],
+        ];
+
+        foreach ($cases as $role => [$login, $hasAksi, $hasPt]) {
+            $login();
+
+            $this->get('rencanakerja')->assertOk()->assertSee($menuLink, false);
+            $html = $this->get('rencanakerja/listdata')->assertOk()->getContent();
+
+            $this->assertSame($hasAksi, str_contains($html, '>Aksi</th>'), "{$role}: header Aksi");
+            $this->assertSame($hasAksi, str_contains($html, "data: 'action'"), "{$role}: kolom JS action");
+
+            [$headers, $jsColumns] = $this->parseListdataColumns($html);
+            $this->assertCount(count($jsColumns), $headers, "{$role}: jumlah <th> harus sama dengan kolom JS");
+            $this->assertCount(5 + (int) $hasAksi + (int) $hasPt, $headers, "{$role}: jumlah kolom");
+
+            // Sort default harus tetap mengarah ke kolom Diunggah
+            preg_match('/order:\s*\[\[columns\.length - (\d+)/', $html, $order);
+            $this->assertNotEmpty($order, "{$role}: order default");
+            $this->assertSame('created_at', $jsColumns[count($jsColumns) - (int) $order[1]], "{$role}: sort default");
+        }
+    }
+
+    // Ambil teks <th> di thead dan daftar `data` di array kolom JS
+    private function parseListdataColumns(string $html): array
+    {
+        preg_match('/<thead[^>]*>(.*?)<\/thead>/s', $html, $thead);
+        preg_match_all('/<th\b[^>]*>(.*?)<\/th>/s', $thead[1] ?? '', $headers);
+        preg_match('/var columns = \[(.*?)\];/s', $html, $columns);
+        preg_match_all("/\{data:\s*'([^']+)'/", $columns[1] ?? '', $jsColumns);
+
+        return [array_map('trim', $headers[1]), $jsColumns[1]];
+    }
+
+    public function test_global_search_and_order_never_touch_sensitive_columns(): void
+    {
+        $uploader = User::factory()->role('pt')->create(['email' => $this->ptA->npsn]);
+        $this->createWithFile($this->ptA)->forceFill(['uploaded_by' => $uploader->id])->save();
+        $this->createWithFile($this->ptB);
+        $this->loginAs('dpl');
+
+        $columns = [];
+        foreach (['uploader.password', 'file_path', 'kodept', 'uploader.email', 'judul'] as $name) {
+            $columns[] = ['data' => $name, 'name' => $name, 'searchable' => 'true', 'orderable' => 'true',
+                'search' => ['value' => '', 'regex' => 'false']];
+        }
+
+        foreach ([0, 1, 2, 3] as $orderIndex) {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+
+            $this->getJson('rencanakerja/listdataserver?'.http_build_query([
+                'draw' => 1, 'start' => 0, 'length' => 10, 'columns' => $columns,
+                'order' => [['column' => $orderIndex, 'dir' => 'asc']],
+                'search' => ['value' => 'rencana-kerja', 'regex' => 'false'],
+            ]), self::AJAX)->assertOk()->assertJsonMissingPath('data.0.file_path');
+
+            $sql = strtolower(collect(DB::getQueryLog())->pluck('query')->implode("\n"));
+            DB::disableQueryLog();
+
+            $this->assertMatchesRegularExpression('/judul`?\)?\s+like/', $sql, 'kontrol: search kolom whitelist tetap jalan');
+            $this->assertStringNotContainsString('password', $sql, "order index {$orderIndex}");
+            foreach (['file_path', 'kodept', 'email'] as $column) {
+                $this->assertDoesNotMatchRegularExpression('/`?'.$column.'`?\s+like/', $sql, "search {$column}");
+                $this->assertDoesNotMatchRegularExpression('/order by[^\n]*'.$column.'/', $sql, "order {$column}");
+            }
+        }
+    }
+
     public function test_admin_cannot_create(): void
     {
         $this->loginAs('admin');
@@ -315,14 +433,14 @@ class RencanaKerjaTest extends TestCase
         $this->assertDatabaseCount('rencana_kerja', 0);
     }
 
-    // --- Kepala & Pemda: read-only ---
+    // --- Kepala, Pemda, DPL, Mahasiswa: read-only ---
 
-    public function test_pemantau_can_list_and_download_all(): void
+    public function test_viewer_roles_can_list_and_view_all(): void
     {
         $milikA = $this->createWithFile($this->ptA, ['nama_file' => 'a.pdf']);
         $this->createWithFile($this->ptB);
 
-        foreach (['kepala', 'pemda'] as $role) {
+        foreach (['kepala', 'pemda', 'dpl', 'mahasiswa'] as $role) {
             $this->loginAs($role);
 
             $this->get('rencanakerja')->assertOk()->assertDontSee(route('rencanakerja.tambah'), false);
@@ -330,15 +448,15 @@ class RencanaKerjaTest extends TestCase
             $this->assertSame('', $response->json('data.0.action'), $role);
             $this->assertSame('', $response->json('data.1.action'), $role);
 
-            $this->get('rencanakerja/download/'.$milikA->id_rencana_kerja)->assertOk()->assertDownload('a.pdf');
+            $this->get('rencanakerja/view/'.$milikA->id_rencana_kerja)->assertOk()->assertHeader('Content-Type', 'application/pdf');
         }
     }
 
-    public function test_pemantau_cannot_write(): void
+    public function test_viewer_roles_cannot_write(): void
     {
         $rencanaKerja = $this->createWithFile($this->ptA);
 
-        foreach (['kepala', 'pemda'] as $role) {
+        foreach (['kepala', 'pemda', 'dpl', 'mahasiswa'] as $role) {
             $this->loginAs($role);
 
             $this->get('rencanakerja/tambah')->assertForbidden();
@@ -354,19 +472,11 @@ class RencanaKerjaTest extends TestCase
 
     // --- Role lain & guest ---
 
-    public function test_other_roles_are_redirected_home(): void
+    public function test_mahasiswa_without_lokasi_is_redirected_to_profile(): void
     {
-        $rencanaKerja = $this->createWithFile($this->ptA);
+        $this->actingAs(User::factory()->role('mahasiswa')->create());
 
-        foreach (['dpl', 'mahasiswa'] as $role) {
-            $this->loginAs($role);
-
-            $this->get('rencanakerja')->assertRedirect(route('home'));
-            $this->get('rencanakerja/download/'.$rencanaKerja->id_rencana_kerja)->assertRedirect(route('home'));
-            $this->put('rencanakerja/destroy', ['id_rencana_kerja' => $rencanaKerja->id_rencana_kerja])->assertRedirect(route('home'));
-        }
-
-        $this->assertDatabaseCount('rencana_kerja', 1);
+        $this->get('rencanakerja')->assertRedirect(route('mhsprofile'));
     }
 
     public function test_guest_is_redirected_to_login(): void
@@ -392,6 +502,8 @@ class RencanaKerjaTest extends TestCase
             'php renamed pdf' => $this->realUpload('shell.pdf', '<?php system($_GET["c"]); ?>'),
             'exe' => UploadedFile::fake()->create('virus.exe', 5, 'application/x-msdownload'),
             'html' => UploadedFile::fake()->create('xss.html', 5, 'text/html'),
+            'docx' => UploadedFile::fake()->create('rencana.docx', 5, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+            'xlsx' => UploadedFile::fake()->create('rencana.xlsx', 5, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
             'too large' => UploadedFile::fake()->create('besar.pdf', 10241, 'application/pdf'),
             'missing' => null,
         ];
@@ -453,12 +565,49 @@ class RencanaKerjaTest extends TestCase
         $this->assertStringNotContainsString('cana<b>', $content);
     }
 
-    public function test_download_missing_file_returns_404(): void
+    public function test_view_missing_file_returns_404(): void
     {
         $this->loginPt($this->ptA);
         $rencanaKerja = RencanaKerja::factory()->forPt($this->ptA->npsn)->create();
 
-        $this->get('rencanakerja/download/'.$rencanaKerja->id_rencana_kerja)->assertNotFound();
+        $this->get('rencanakerja/view/'.$rencanaKerja->id_rencana_kerja)->assertNotFound();
+    }
+
+    // Data lama sebelum upload dibatasi PDF tidak disajikan inline
+    public function test_view_non_pdf_returns_404(): void
+    {
+        $this->loginPt($this->ptA);
+        $rencanaKerja = $this->createWithFile($this->ptA, ['mime' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']);
+
+        $this->get('rencanakerja/view/'.$rencanaKerja->id_rencana_kerja)->assertNotFound();
+    }
+
+    public function test_listdataserver_ignores_non_whitelisted_columns(): void
+    {
+        $uploader = User::factory()->role('pt')->create(['email' => $this->ptA->npsn]);
+        $rencanaKerja = $this->createWithFile($this->ptA);
+        $rencanaKerja->forceFill(['uploaded_by' => $uploader->id])->save();
+        $this->createWithFile($this->ptB);
+        $this->loginAs('mahasiswa');
+
+        $probes = [
+            'uploader.password' => substr($uploader->password, 0, 7),
+            'file_path' => 'rencana-kerja',
+            'kodept' => $this->ptA->npsn,
+        ];
+
+        foreach ($probes as $column => $value) {
+            $query = http_build_query([
+                'draw' => 1, 'start' => 0, 'length' => 10,
+                'columns' => [['data' => $column, 'name' => $column, 'searchable' => 'true', 'orderable' => 'true',
+                    'search' => ['value' => $value, 'regex' => 'false']]],
+                'order' => [['column' => 0, 'dir' => 'asc']],
+                'search' => ['value' => '', 'regex' => 'false'],
+            ]);
+
+            $this->getJson('rencanakerja/listdataserver?'.$query, self::AJAX)
+                ->assertOk()->assertJsonPath('recordsFiltered', 2);
+        }
     }
 
     // --- Model / DB ---
