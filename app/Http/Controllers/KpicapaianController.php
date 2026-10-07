@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\CapaiankpiExport;
+use App\Exports\Sheets\CapaianKpiPeriodeSheet;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\KpicapaianRequest;
 use App\Models\Desa;
@@ -142,12 +143,25 @@ class KpicapaianController extends Controller
         return $this->deleted();
     }
 
-    public function export(Request $request)
+    public function export(Request $request, KpiSampahService $sampah)
     {
         $user = $request->user();
-        $email = $user->role === 'mahasiswa' ? $user->email : null;
+        $file = 'capaian_kpi_'.date('Y-m-d_H-i-s').'.xlsx';
 
-        return Excel::download(new CapaiankpiExport($email), 'capaian_kpi_'.date('Y-m-d_H-i-s').'.xlsx');
+        if ($user->role !== 'mahasiswa') {
+            return Excel::download(new CapaiankpiExport(), $file);
+        }
+
+        // Mahasiswa: blok per periode (data sampah desa + capaian KPI); tanpa desa → sampah kosong
+        $idDesa = $sampah->desaMahasiswa($user->email);
+        $capaian = Kpicapaian::visibleToMahasiswa($user->email)
+            ->with(['kpi', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
+            ->orderByDesc('bulan')->orderByDesc('created_at')->get();
+
+        return Excel::download(new CapaianKpiPeriodeSheet(
+            $idDesa ? $sampah->rekapLldikti(['id_desa' => $idDesa]) : collect(),
+            $capaian,
+        ), $file);
     }
 
     // Ketua kelompok = mahasiswa yang punya baris Pjdesa

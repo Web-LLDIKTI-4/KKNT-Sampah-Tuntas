@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
  * Rekap sampah format LLDIKTI (A–L) dari KpiSampahService::rekapLldikti(); Bulan & Kecamatan di-merge per grup.
@@ -49,21 +50,10 @@ class RekapLldiktiSheet implements FromArray, WithTitle, WithEvents, WithStrictN
         $baris = 2;
 
         foreach ($this->rekap as $grupBulan) {
-            $awalBulan = $baris;
-            foreach ($grupBulan->kecamatan as $kec) {
-                $awalKecamatan = $baris;
-                foreach ($kec->desa as $r) {
-                    $rows[] = [
-                        $grupBulan->nama_bulan, $kec->kecamatan ?? '-', $r->desa ?? '-',
-                        $r->jml_rumah, $r->jml_rumah_memilah, $this->pecahan($r->persen_ketaatan),
-                        $r->organik, $r->anorganik, $r->residu,
-                        $r->total_terkelola, $r->total_dihasilkan, $this->pecahan($r->persen_penurunan),
-                    ];
-                    $baris++;
-                }
-                $this->merge('B', $awalKecamatan, $baris - 1);
-            }
-            $this->merge('A', $awalBulan, $baris - 1);
+            [$isi, $merges] = self::grupBulan($grupBulan, $baris);
+            array_push($rows, ...$isi);
+            array_push($this->merges, ...$merges);
+            $baris += count($isi);
         }
         $this->barisAkhir = $baris - 1;
 
@@ -80,39 +70,77 @@ class RekapLldiktiSheet implements FromArray, WithTitle, WithEvents, WithStrictN
                 $sheet->mergeCells($range);
             }
 
-            $sheet->getStyle('A1:L1')->applyFromArray([
-                'font' => ['bold' => true],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFF00']],
-                'alignment' => ['wrapText' => true, 'horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-            ]);
-            $sheet->getStyle("A1:L$akhir")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-
-            if ($akhir >= 2) {
-                $sheet->getStyle("A2:B$akhir")->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
-                $sheet->getStyle("D2:E$akhir")->getNumberFormat()->setFormatCode('#,##0');
-                $sheet->getStyle("G2:K$akhir")->getNumberFormat()->setFormatCode('#,##0.00');
-                foreach (['F', 'L'] as $kolom) {
-                    $sheet->getStyle("{$kolom}2:$kolom$akhir")->getNumberFormat()->setFormatCode('0.00%');
-                }
-            }
-
-            $sheet->getRowDimension(1)->setRowHeight(45);
-            foreach (range('A', 'L') as $kolom) {
-                $sheet->getColumnDimension($kolom)->setWidth($kolom === 'C' ? 22 : 16);
-            }
+            self::gaya($sheet, 1, $akhir);
+            self::lebarKolom($sheet);
             $sheet->freezePane('D2');
         }];
     }
 
-    private function merge(string $kolom, int $awal, int $akhir): void
+    // Baris A–L satu grup bulan mulai $baris + range merge Bulan (A) & Kecamatan (B)
+    public static function grupBulan(object $grupBulan, int $baris): array
     {
-        if ($akhir > $awal) {
-            $this->merges[] = "$kolom$awal:$kolom$akhir";
+        $rows = [];
+        $merges = [];
+        $awalBulan = $baris;
+        foreach ($grupBulan->kecamatan as $kec) {
+            $awalKecamatan = $baris;
+            foreach ($kec->desa as $r) {
+                $rows[] = self::baris($grupBulan, $kec, $r);
+                $baris++;
+            }
+            if ($baris - 1 > $awalKecamatan) {
+                $merges[] = "B$awalKecamatan:B".($baris - 1);
+            }
+        }
+        if ($baris - 1 > $awalBulan) {
+            $merges[] = "A$awalBulan:A".($baris - 1);
+        }
+
+        return [$rows, $merges];
+    }
+
+    // Style tabel LLDIKTI: header di baris $header, data s.d. $akhir
+    public static function gaya(Worksheet $sheet, int $header, int $akhir): void
+    {
+        $sheet->getStyle("A$header:L$header")->applyFromArray([
+            'font' => ['bold' => true],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFF00']],
+            'alignment' => ['wrapText' => true, 'horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getStyle("A$header:L$akhir")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        $awal = $header + 1;
+        if ($akhir >= $awal) {
+            $sheet->getStyle("A$awal:B$akhir")->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
+            $sheet->getStyle("D$awal:E$akhir")->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->getStyle("G$awal:K$akhir")->getNumberFormat()->setFormatCode('#,##0.00');
+            foreach (['F', 'L'] as $kolom) {
+                $sheet->getStyle("$kolom$awal:$kolom$akhir")->getNumberFormat()->setFormatCode('0.00%');
+            }
+        }
+        $sheet->getRowDimension($header)->setRowHeight(45);
+    }
+
+    public static function lebarKolom(Worksheet $sheet): void
+    {
+        foreach (range('A', 'L') as $kolom) {
+            $sheet->getColumnDimension($kolom)->setWidth($kolom === 'C' ? 22 : 16);
         }
     }
 
+    // Isi kolom A–L satu desa; dipakai ulang CapaianKpiPeriodeSheet
+    public static function baris(object $grupBulan, object $kec, object $r): array
+    {
+        return [
+            $grupBulan->nama_bulan, $kec->kecamatan ?? '-', $r->desa ?? '-',
+            $r->jml_rumah, $r->jml_rumah_memilah, self::pecahan($r->persen_ketaatan),
+            $r->organik, $r->anorganik, $r->residu,
+            $r->total_terkelola, $r->total_dihasilkan, self::pecahan($r->persen_penurunan),
+        ];
+    }
+
     // Persen → pecahan untuk format 0.00%; pembagi 0 → '-'
-    private function pecahan(?float $persen): float|string
+    public static function pecahan(?float $persen): float|string
     {
         return $persen === null ? '-' : round($persen / 100, 4);
     }

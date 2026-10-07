@@ -139,6 +139,11 @@
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Panduan
                                         </a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('rencanakerja') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                             <div class="col-12 col-lg">
@@ -191,7 +196,7 @@
                                     </li>
                                 </ul>
                             </div>
-                            <div class="col-lg-4 d-none d-lg-block">
+                          {{--  <div class="col-lg-4 d-none d-lg-block">
                                 <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
                                     <div class="avatar avatar-sm flex-shrink-0 me-2">
                                     <span class="avatar-initial rounded bg-label-primary"><i class="ri-lock-unlock-line"></i></span>
@@ -204,14 +209,14 @@
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Structure Form
                                         </a>
                                     </li>
-                                    {{-- <li class="nav-item">
+                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admfreeform') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Free Form
                                         </a>
-                                    </li>                --}}
+                                    </li>               
                             
                                 </ul>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </li>
@@ -246,12 +251,12 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kelola Mahasiswa
                                     </a>
                                 </li>
-                                <li class="nav-item">
+                               {{--  <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplkonversinilai') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai
                                     </a>
                                 </li>
-                                {{-- <li class="nav-item">
+                               <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplfreeform') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai Free Form
                                     </a>
@@ -331,7 +336,7 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Mahasiswa
                                     </a>
                                 </li>
-                                @if (Auth::user()->role === 'pt')
+                                {{-- @if (Auth::user()->role === 'pt')
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplkonversinilai') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai
@@ -342,11 +347,16 @@
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
                                         </a>
                                     </li>
-                                @endif
+                                @endif --}}
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url(Auth::user()->isPemantau() ? 'admevaluasikegiatan' : 'ptevaluasikegiatan') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i>
                                         <span data-i18n="Pricing">Evaluasi Kegiatan</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('rencanakerja') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja
                                     </a>
                                 </li>
                             </ul>

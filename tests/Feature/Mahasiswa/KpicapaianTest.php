@@ -271,10 +271,10 @@ class KpicapaianTest extends TestCase
         $ws = IOFactory::load($path)->getActiveSheet();
         @unlink($path);
 
-        // G = Permasalahan, H = Solusi
+        // F = Permasalahan, G = Solusi (tanpa kolom No)
+        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('F2')->getDataType());
+        $this->assertSame($formula, $ws->getCell('F2')->getValue());
         $this->assertSame(DataType::TYPE_STRING, $ws->getCell('G2')->getDataType());
-        $this->assertSame($formula, $ws->getCell('G2')->getValue());
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('H2')->getDataType());
-        $this->assertSame('=1+1', $ws->getCell('H2')->getValue());
+        $this->assertSame('=1+1', $ws->getCell('G2')->getValue());
     }
 }

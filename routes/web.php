@@ -42,6 +42,7 @@ use App\Http\Controllers\DplfreeformController;
 use App\Http\Controllers\KecamatanController;
 use App\Http\Controllers\PanduanController;
 use App\Http\Controllers\PanduanPublikController;
+use App\Http\Controllers\RencanaKerjaController;
 use App\Http\Controllers\DesaController;
 use App\Http\Controllers\PjdesaController;
 use App\Http\Controllers\DesaprofileController;
@@ -309,6 +310,19 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function ()
 Route::middleware(['auth', 'role:admin,pt,kepala,pemda'])->group(function () {
     Route::get('dashboardkpi', [KpiDashboardController::class, 'index'])->name('dashboardkpi');
     Route::get('rekapsampah', [RekapsampahController::class, 'index'])->name('rekapsampah');
+});
+
+// Rencana Kerja PT: pt kelola miliknya, admin edit/hapus semua, kepala/pemda lihat; aksi dijaga RencanaKerjaPolicy
+Route::middleware(['auth', 'role:admin,pt,kepala,pemda'])->group(function () {
+    Route::get('rencanakerja', [RencanaKerjaController::class, 'index'])->name('rencanakerja');
+    Route::get('rencanakerja/listdata', [RencanaKerjaController::class, 'listdata'])->name('rencanakerja.listdata');
+    Route::get('rencanakerja/listdataserver', [RencanaKerjaController::class, 'listdataserver'])->name('rencanakerja.listdataserver');
+    Route::get('rencanakerja/tambah', [RencanaKerjaController::class, 'tambah'])->name('rencanakerja.tambah');
+    Route::put('rencanakerja/insert', [RencanaKerjaController::class, 'insert'])->middleware('throttle:sensitive')->name('rencanakerja.insert');
+    Route::get('rencanakerja/edit/{id_rencana_kerja}', [RencanaKerjaController::class, 'edit'])->whereUuid('id_rencana_kerja')->name('rencanakerja.edit');
+    Route::put('rencanakerja/update', [RencanaKerjaController::class, 'update'])->middleware('throttle:sensitive')->name('rencanakerja.update');
+    Route::put('rencanakerja/destroy', [RencanaKerjaController::class, 'destroy'])->name('rencanakerja.destroy');
+    Route::get('rencanakerja/download/{id_rencana_kerja}', [RencanaKerjaController::class, 'download'])->whereUuid('id_rencana_kerja')->name('rencanakerja.download');
 });
 
 Route::middleware(['auth', 'role:admin,kepala,pemda'])->group(function () {
