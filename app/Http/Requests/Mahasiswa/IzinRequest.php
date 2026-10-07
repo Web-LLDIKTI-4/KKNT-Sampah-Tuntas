@@ -30,8 +30,8 @@ class IzinRequest extends AjaxFormRequest
     public function messages(): array
     {
         return [
-            'status_kehadiran.required' => 'Jenis izin harus dipilih.',
-            'status_kehadiran.in' => 'Jenis izin tidak valid.',
+            'status_kehadiran.required' => 'Status kehadiran harus dipilih.',
+            'status_kehadiran.in' => 'Status kehadiran tidak valid.',
             'keterangan.required' => 'Keterangan harus diisi.',
         ];
     }

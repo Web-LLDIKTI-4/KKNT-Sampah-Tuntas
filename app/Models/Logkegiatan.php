@@ -4,7 +4,7 @@ use App\Models\Concerns\OwnedByEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon; 
+
 class Logkegiatan extends Model
 {
     use HasFactory, HasUuids, OwnedByEmail;
@@ -15,24 +15,16 @@ class Logkegiatan extends Model
     protected $guarded = [];
     protected $with = ['mahasiswa','dplmentoring'];
 
-    protected $casts = [
-        'memilah' => 'boolean',
-        'organik_kg' => 'float',
-        'anorganik_kg' => 'float',
-        'residu_kg' => 'float',
-    ];
-
-    // Rekap sampah publik bersumber dari log harian: reset cache halaman login
-    protected static function booted(): void
-    {
-        static::saved(fn () => Kpisampah::forgetPublicCache());
-        static::deleted(fn () => Kpisampah::forgetPublicCache());
-    }
-
     public function mahasiswa()
     {
         return $this->hasOne(Mahasiswa::class,'email','email');
     }
+
+    public function kpi()
+    {
+        return $this->belongsTo(Kpi::class, 'id_kpi', 'id_kpi');
+    }
+
     public function dplmentoring()
     {
         return $this->hasOne(Dplmentoring::class,'email_mahasiswa','email');

@@ -29,6 +29,7 @@ use App\Http\Controllers\RekapsampahController;
 use App\Http\Controllers\NilaifreeformController;
 
 use App\Http\Controllers\LogkegiatanController;
+use App\Http\Controllers\PendataanPemilahanSampahController;
 use App\Http\Controllers\AdmlogkegiatanController;
 use App\Http\Controllers\AdmlogkehadiranController;
 use App\Http\Controllers\AdmlogbulananController;
@@ -427,6 +428,26 @@ Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function (
     Route::get('tugasakhir/edit/{id_tugasakhir}', [TugasakhirController::class, 'edit']);
     Route::put('tugasakhir/update', [TugasakhirController::class, 'update']);
     Route::put('tugasakhir/destroy', [TugasakhirController::class, 'destroy']);
+});
+
+Route::middleware(['auth', 'role:admin,dpl,pt,kepala,pemda,mahasiswa', 'user.guard'])->group(function () {
+    Route::get('pendataanpemilahan', [PendataanPemilahanSampahController::class, 'index'])->name('pendataanpemilahan.index');
+    Route::get('pendataanpemilahan/listdata', [PendataanPemilahanSampahController::class, 'listdata']);
+    Route::get('pendataanpemilahan/listdataserver', [PendataanPemilahanSampahController::class, 'listdataserver'])->name('pendataanpemilahan.listdataserver');
+    Route::get('pendataanpemilahan/listdatagroup', [PendataanPemilahanSampahController::class, 'listdatagroup'])->name('pendataanpemilahan.listdatagroup');
+    Route::get('pendataanpemilahan/listdatagrouping', [PendataanPemilahanSampahController::class, 'listdatagrouping'])->name('pendataanpemilahan.listdatagrouping');
+    Route::get('pendataanpemilahan/listdata/{email}', [PendataanPemilahanSampahController::class, 'detail'])->name('pendataanpemilahan.listdata.mahasiswa');
+    Route::get('pendataanpemilahan/listdataserver/{email}', [PendataanPemilahanSampahController::class, 'listdataserver'])->name('pendataanpemilahan.listdataserver.mahasiswa');
+    Route::get('pendataanpemilahan/export/{email}', [PendataanPemilahanSampahController::class, 'export'])->middleware('throttle:3,1')->name('pendataanpemilahan.export.mahasiswa');
+});
+
+Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
+    Route::get('pendataanpemilahan/tambah', [PendataanPemilahanSampahController::class, 'tambah']);
+    Route::put('pendataanpemilahan/insert', [PendataanPemilahanSampahController::class, 'insert']);
+    Route::get('pendataanpemilahan/edit/{id_pendataan}', [PendataanPemilahanSampahController::class, 'edit']);
+    Route::put('pendataanpemilahan/update', [PendataanPemilahanSampahController::class, 'update']);
+    Route::put('pendataanpemilahan/destroy', [PendataanPemilahanSampahController::class, 'destroy']);
+    Route::get('pendataanpemilahan/export', [PendataanPemilahanSampahController::class, 'export'])->middleware('throttle:3,1')->name('pendataanpemilahan.export');
 });
 
 // Export log harian lengkap; scope data per role di LogHarianLengkapExport

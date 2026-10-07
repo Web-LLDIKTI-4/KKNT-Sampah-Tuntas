@@ -1,4 +1,4 @@
-{{-- Rekap sampah dari log harian format LLDIKTI; filter dimuat ulang lewat public/js/drilldown.js --}}
+{{-- Rekap pendataan pemilahan sampah format LLDIKTI; filter dimuat ulang lewat public/js/drilldown.js --}}
 @php
     use App\Models\Kpisampah;
     use Illuminate\Support\Carbon;

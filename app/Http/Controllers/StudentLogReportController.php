@@ -29,6 +29,21 @@ abstract class StudentLogReportController extends Controller
 
     abstract protected function exportFor(string $email);
 
+    protected function constrainCountedLogs($query): void
+    {
+        $query->whereNotNull('deskripsi');
+    }
+
+    protected function showGroupActionColumn(): bool
+    {
+        return true;
+    }
+
+    protected function groupedStudentName(Mahasiswa $student): string
+    {
+        return $student->nama ?? 'Nama tidak tersedia';
+    }
+
     public function index()
     {
         return view($this->viewPrefix().'.index');
@@ -45,22 +60,24 @@ abstract class StudentLogReportController extends Controller
 
         $query = Mahasiswa::visibleTo($request->user())
             ->with('sp')
-            ->withCount($this->logRelation())
+            ->withCount([$this->logRelation().' as count_log' => fn ($query) => $this->constrainCountedLogs($query)])
             ->orderByDesc('created_at');
-        $countColumn = $this->logRelation().'_count';
 
-        return DataTables::eloquent($query)
+        $table = DataTables::eloquent($query)
             ->addIndexColumn()
             ->addColumn('nim', fn ($row) => $row->nim ?? 'NIM tidak tersedia')
-            ->addColumn('nama_mahasiswa', fn ($row) => $row->nama ?? 'Nama tidak tersedia')
+            ->addColumn('nama_mahasiswa', fn ($row) => $this->groupedStudentName($row))
             ->addColumn('email', fn ($row) => $row->email ?? 'Email tidak tersedia')
             ->addColumn('nm_lemb', fn ($row) => $row->sp->nm_lemb ?? 'Perguruan Tinggi tidak tersedia')
-            ->addColumn('count_log', fn ($row) => $row->{$countColumn})
-            ->addColumn('action', fn ($row) => ActionButtons::make(
+            ->addColumn('count_log', fn ($row) => $row->count_log);
+
+        if ($this->showGroupActionColumn()) {
+            $table->addColumn('action', fn ($row) => ActionButtons::make(
                 urlView: url($this->routePrefix().'/listdata/'.rawurlencode($row->email)),
-            ))
-            ->rawColumns(['action'])
-            ->make(true);
+            ));
+        }
+
+        return $table->rawColumns($this->showGroupActionColumn() ? ['action'] : ['nama_mahasiswa'])->make(true);
     }
 
     public function listdata()

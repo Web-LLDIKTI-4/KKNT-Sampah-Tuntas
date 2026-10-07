@@ -26,7 +26,7 @@ class KpicapaianController extends Controller
 
     private const FIELDS = ['id_kpi', 'status_capaian', 'tautan', 'permasalahan', 'solusi', 'kendala'];
 
-    // Read-only: rekap sampah desa mahasiswa dari log harian (semua bulan)
+    // Read-only: rekap sampah desa mahasiswa dari pendataan pemilahan (semua bulan)
     public function index(Request $request, KpiSampahService $sampah)
     {
         $idDesa = $sampah->desaMahasiswa($request->user()->email);

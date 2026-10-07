@@ -36,6 +36,7 @@ class LogbulananController extends Controller
             'tahun' => $periode['tahun'],
             'isi' => Logbulanan::ownedBy($user)->where($periode)->first(),
             'logharian' => Logkegiatan::ownedBy($user)
+                ->whereNotNull('deskripsi')
                 ->whereYear('tanggal', $periode['tahun'])
                 ->whereMonth('tanggal', $periode['bulan'])
                 ->orderBy('tanggal')

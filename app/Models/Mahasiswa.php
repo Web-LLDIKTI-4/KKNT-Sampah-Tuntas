@@ -53,6 +53,11 @@ class Mahasiswa extends Model
     {
         return $this->hasMany(Logkegiatan::class,'email','email');
     }
+
+    public function pendataanPemilahanSampah()
+    {
+        return $this->hasMany(PendataanPemilahanSampah::class, 'email', 'email');
+    }
     public function logbulanan()
     {
         return $this->hasMany(Logbulanan::class,'email','email');

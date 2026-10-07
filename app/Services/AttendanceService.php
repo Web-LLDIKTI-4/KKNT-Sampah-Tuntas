@@ -6,9 +6,9 @@ use App\Models\Kehadiran;
 
 class AttendanceService
 {
-    public const IZIN_STATUSES = ['izin', 'sakit', 'cuti'];
+    public const IZIN_STATUSES = ['izin', 'sakit', 'cuti', 'kuliah'];
 
-    private const BLOCKING_STATUSES = ['izin', 'sakit', 'cuti', 'libur nasional'];
+    private const BLOCKING_STATUSES = ['izin', 'sakit', 'cuti', 'kuliah', 'libur nasional'];
 
     /**
      * Jarak dua titik dalam meter (rumus haversine).

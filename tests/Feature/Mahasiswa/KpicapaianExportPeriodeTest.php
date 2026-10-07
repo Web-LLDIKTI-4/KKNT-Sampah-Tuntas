@@ -8,7 +8,7 @@ use App\Exports\Sheets\RekapLldiktiSheet;
 use App\Models\Desa;
 use App\Models\Kpi;
 use App\Models\Kpicapaian;
-use App\Models\Logkegiatan;
+use App\Models\PendataanPemilahanSampah;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
@@ -36,7 +36,7 @@ class KpicapaianExportPeriodeTest extends TestCase
 
     private function log(string $email, string $tanggal, array $attr = []): void
     {
-        Logkegiatan::factory()->create($attr + [
+        PendataanPemilahanSampah::factory()->create($attr + [
             'email' => $email, 'tanggal' => $tanggal,
             'nama_kepala_keluarga' => 'Budi', 'alamat_rumah' => 'Jl. Melati 1', 'rt' => '001', 'rw' => '002',
             'memilah' => true, 'organik_kg' => 2, 'anorganik_kg' => 1, 'residu_kg' => 1,

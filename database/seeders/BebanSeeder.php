@@ -65,10 +65,11 @@ class BebanSeeder extends Seeder
         Kpisampah::forgetPublicCache();
 
         $this->command?->info(sprintf(
-            'Data beban: %s mahasiswa, %s kelompok, %s log harian, %s kehadiran (%.0f detik).',
+            'Data beban: %s mahasiswa, %s kelompok, %s log harian, %s pendataan sampah, %s kehadiran (%.0f detik).',
             number_format(DB::table('mahasiswa')->where('email', 'like', '%'.self::DOMAIN)->count()),
             number_format(DB::table('pj_desa')->where('email', 'like', '%'.self::DOMAIN)->count()),
             number_format(DB::table('logkegiatan')->where('email', 'like', '%'.self::DOMAIN)->count()),
+            number_format(DB::table('pendataan_pemilahan_sampah')->where('email', 'like', '%'.self::DOMAIN)->count()),
             number_format(DB::table('kehadiran')->where('email', 'like', '%'.self::DOMAIN)->count()),
             microtime(true) - $mulai,
         ));
@@ -155,6 +156,11 @@ class BebanSeeder extends Seeder
             foreach ($hariKerja as $tanggal) {
                 $this->tambah('logkegiatan', [
                     'id_log' => (string) Str::uuid7(), 'email' => $email, 'tanggal' => $tanggal,
+                    'deskripsi' => 'Kegiatan pendampingan dan edukasi warga.',
+                    'volume' => '1', 'satuan' => 'kegiatan', 'id_kpi' => $kpi[0] ?? null, 'tautan' => null,
+                ] + $this->waktu());
+                $this->tambah('pendataan_pemilahan_sampah', [
+                    'id_pendataan' => (string) Str::uuid7(), 'email' => $email, 'tanggal' => $tanggal,
                     'nama_kepala_keluarga' => 'KK Beban '.mt_rand(1, 999), 'alamat_rumah' => 'Jl. Beban No. '.mt_rand(1, 99),
                     'rt' => sprintf('%03d', mt_rand(1, 15)), 'rw' => sprintf('%03d', mt_rand(1, 10)), 'memilah' => mt_rand(0, 1),
                     'organik_kg' => mt_rand(0, 500) / 100, 'anorganik_kg' => mt_rand(0, 300) / 100, 'residu_kg' => mt_rand(0, 200) / 100,

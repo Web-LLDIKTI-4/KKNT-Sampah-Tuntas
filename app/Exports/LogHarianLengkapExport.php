@@ -25,12 +25,8 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  */
 class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueBinder, FromQuery, WithMapping, WithHeadings, WithEvents, WithStrictNullComparison, WithColumnWidths
 {
-    private bool $showIdentitas;
-
     public function __construct(private User $user, private ?string $bulan = null)
     {
-        // Identitas rumah tangga disembunyikan untuk pt/kepala/pemda (sama dengan admlogkegiatan)
-        $this->showIdentitas = in_array($user->role, ['admin', 'dpl', 'mahasiswa'], true);
     }
 
     public function query(): Builder
@@ -41,7 +37,9 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
             ->selectRaw('id_mahasiswa, MAX(tahun) as tahun');
 
         return DB::table('logkegiatan as l')
+            ->whereNotNull('l.deskripsi')
             ->leftJoin('mahasiswa as m', 'm.email', '=', 'l.email')
+            ->leftJoin('kpi as k', 'k.id_kpi', '=', 'l.id_kpi')
             ->leftJoinSub($lokasiTerakhir, 'lt', 'lt.id_mahasiswa', '=', 'm.id_mahasiswa')
             ->leftJoin('mahasiswa_lokasi as ml', fn ($j) => $j->on('ml.id_mahasiswa', '=', 'lt.id_mahasiswa')->on('ml.tahun', '=', 'lt.tahun'))
             ->leftJoin('desa as d', 'd.id_desa', '=', 'ml.id_desa')
@@ -53,7 +51,7 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
                 $q->whereBetween('l.tanggal', [$awal->toDateString(), $awal->copy()->endOfMonth()->toDateString()]);
             })
             ->orderBy('l.tanggal')->orderBy('l.created_at')->orderBy('l.id_log')
-            ->select('l.*', 'm.nama', 'm.phone', 'lp.nama_lokasi', 'kc.kecamatan', 'd.desa');
+            ->select('l.*', 'm.nama', 'm.phone', 'lp.nama_lokasi', 'kc.kecamatan', 'd.desa', 'k.nama_kpi');
     }
 
     public function map($row): array
@@ -67,14 +65,11 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
             $row->nama_lokasi,
             $row->kecamatan,
             $row->desa,
-            $this->showIdentitas ? $row->nama_kepala_keluarga : 'tidak ditampilkan',
-            $this->showIdentitas ? $row->alamat_rumah : 'tidak ditampilkan',
-            $row->rt,
-            $row->rw,
-            $row->memilah ? 'Ya' : 'Tidak',
-            (float) $row->organik_kg,
-            (float) $row->anorganik_kg,
-            (float) $row->residu_kg,
+            strip_tags((string) $row->deskripsi),
+            $row->volume,
+            $row->satuan,
+            $row->nama_kpi,
+            $row->tautan,
         ];
     }
 
@@ -82,8 +77,8 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
     {
         return [
             'Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak', 'Tanggal',
-            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'Nama Kepala Keluarga', 'Alamat Rumah',
-            'RT', 'RW', 'Memilah (Ya/Tidak)', 'Organik (Kg)', 'Anorganik (Kg)', 'Residu (Kg)',
+            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'Deskripsi Kegiatan',
+            'Volume', 'Satuan', 'KPI', 'Tautan Bukti',
         ];
     }
 
@@ -92,7 +87,7 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
     {
         return [
             'A' => 20, 'B' => 28, 'C' => 28, 'D' => 16, 'E' => 12, 'F' => 20, 'G' => 20, 'H' => 22,
-            'I' => 24, 'J' => 30, 'K' => 6, 'L' => 6, 'M' => 12, 'N' => 14, 'O' => 14, 'P' => 14,
+            'I' => 45, 'J' => 14, 'K' => 18, 'L' => 24, 'M' => 35,
         ];
     }
 
@@ -100,12 +95,11 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
     {
         return [AfterSheet::class => function (AfterSheet $event) {
             $sheet = $event->sheet->getDelegate();
-            $sheet->getStyle('A1:P1')->applyFromArray([
+            $sheet->getStyle('A1:M1')->applyFromArray([
                 'font' => ['bold' => true],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFF00']],
             ]);
-            $sheet->getStyle('A1:P'.$sheet->getHighestRow())->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-            $sheet->getStyle('N2:P'.$sheet->getHighestRow())->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle('A1:M'.$sheet->getHighestRow())->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }];
     }
 

@@ -15,14 +15,11 @@ class LogkegiatanFactory extends Factory
         return [
             'email' => fake()->unique()->safeEmail(),
             'tanggal' => fake()->dateTimeBetween('-60 days')->format('Y-m-d'),
-            'nama_kepala_keluarga' => fake()->name(),
-            'alamat_rumah' => fake()->streetAddress(),
-            'rt' => sprintf('%03d', fake()->numberBetween(1, 15)),
-            'rw' => sprintf('%03d', fake()->numberBetween(1, 10)),
-            'memilah' => fake()->boolean(),
-            'organik_kg' => fake()->randomFloat(2, 0, 5),
-            'anorganik_kg' => fake()->randomFloat(2, 0, 3),
-            'residu_kg' => fake()->randomFloat(2, 0, 2),
+            'deskripsi' => fake()->paragraph(),
+            'volume' => fake()->randomFloat(2, 0, 100),
+            'satuan' => 'kegiatan',
+            'id_kpi' => null,
+            'tautan' => null,
         ];
     }
 }

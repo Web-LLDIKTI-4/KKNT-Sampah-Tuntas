@@ -160,6 +160,11 @@
                                         </a>
                                     </li>
                                     <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('pendataanpemilahan.index') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Pemilahan Sampah Penduduk
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogbulanan') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Bulanan Mahasiswa
                                         </a>
@@ -287,6 +292,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('pendataanpemilahan.index') }}">
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Pemilahan Sampah Penduduk
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogbulanan') }}">
                                     <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Bulanan
                                 </a>
@@ -380,6 +390,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('pendataanpemilahan.index') }}">
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Pemilahan Sampah Penduduk
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogbulanan') }}">
                                     <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Bulanan Mahasiswa
                                 </a>
@@ -415,6 +430,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link fw-medium" href="{{ url('logkegiatan') }}">Log Harian</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-medium" href="{{ url('pendataanpemilahan') }}">Data Pemilahan Sampah Penduduk</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link fw-medium" href="{{ url('logbulanan') }}">Log Bulanan</a>

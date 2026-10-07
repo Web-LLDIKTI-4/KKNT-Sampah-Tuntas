@@ -38,6 +38,7 @@ class AdmlogharianController extends Controller
             })
             ->addColumn('jumlah_log', function($row) {
                 $log_mhs = Logkegiatan::where('email', $row->email)
+                ->whereNotNull('deskripsi')
                 ->select(DB::raw('count(distinct tanggal) as count'))
                 ->value('count');
                 return $log_mhs;
@@ -58,7 +59,7 @@ class AdmlogharianController extends Controller
     {
         if ($request->ajax()) { 
             // Menemukan semua mahasiswa dengan kodept yang sesuai
-            $data = Logkegiatan::where("email", $request->email)->get();           
+            $data = Logkegiatan::where("email", $request->email)->whereNotNull('deskripsi')->get();
             return DataTables::of($data)
             ->addIndexColumn()
             ->make(true);

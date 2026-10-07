@@ -9,6 +9,7 @@ use App\Models\Kehadiran;
 use App\Models\Kpicapaian;
 use App\Models\Logbulanan;
 use App\Models\Logkegiatan;
+use App\Models\PendataanPemilahanSampah;
 use App\Models\Mahasiswa;
 use App\Models\Nilaikonversi;
 use App\Models\Pjdesa;
@@ -63,7 +64,7 @@ class UserAccountService
 
         DB::transaction(function () use ($user, $old, $newEmail) {
             if ($user->role === 'mahasiswa') {
-                foreach ([Mahasiswa::class, Kehadiran::class, Logkegiatan::class, Logbulanan::class, Pjdesa::class, Kpicapaian::class] as $model) {
+                foreach ([Mahasiswa::class, Kehadiran::class, Logkegiatan::class, PendataanPemilahanSampah::class, Logbulanan::class, Pjdesa::class, Kpicapaian::class] as $model) {
                     $model::where('email', $old)->update(['email' => $newEmail]);
                 }
                 Dplmentoring::where('email_mahasiswa', $old)->update(['email_mahasiswa' => $newEmail]);

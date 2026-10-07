@@ -5,45 +5,45 @@ namespace App\Http\Requests\Mahasiswa;
 use App\Http\Requests\AjaxFormRequest;
 use Illuminate\Validation\Rule;
 
-// Log harian survei rumah tangga
 class LogkegiatanRequest extends AjaxFormRequest
 {
     public const FIELDS = [
-        'tanggal', 'nama_kepala_keluarga', 'alamat_rumah', 'rt', 'rw',
-        'memilah', 'organik_kg', 'anorganik_kg', 'residu_kg',
+        'tanggal', 'deskripsi', 'volume', 'satuan', 'id_kpi', 'tautan',
     ];
+
+    protected array $htmlFields = ['deskripsi'];
 
     public function rules(): array
     {
-        $berat = ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:99999999'];
-
         return [
             'id_log' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'uuid'],
             'tanggal' => ['required', 'date', 'before_or_equal:today'],
-            'nama_kepala_keluarga' => ['required', 'string', 'max:150', 'not_regex:/^[=+\-@]/'],
-            'alamat_rumah' => ['required', 'string', 'max:255', 'not_regex:/^[=+\-@]/'],
-            'rt' => ['required', 'string', 'max:5', 'regex:/^[0-9A-Za-z]+$/'],
-            'rw' => ['required', 'string', 'max:5', 'regex:/^[0-9A-Za-z]+$/'],
-            'memilah' => ['required', 'boolean'],
-            'organik_kg' => $berat,
-            'anorganik_kg' => $berat,
-            'residu_kg' => $berat,
+            'deskripsi' => [
+                'required', 'string', 'max:65000',
+                Rule::unique('logkegiatan', 'deskripsi')
+                    ->where('email', $this->user()->email)
+                    ->where('tanggal', $this->input('tanggal'))
+                    ->ignore($this->input('id_log'), 'id_log'),
+            ],
+            'volume' => ['required', 'numeric', 'min:0', 'max:1000000'],
+            'satuan' => ['required', 'string', 'max:255'],
+            'id_kpi' => ['required', 'uuid', 'exists:kpi,id_kpi'],
+            'tautan' => ['nullable', 'url:http,https', 'max:255'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            '*.required' => 'Kolom ini harus diisi.',
-            '*.numeric' => 'Nilai harus berupa angka.',
-            '*.min' => 'Nilai tidak boleh negatif.',
-            '*.max' => 'Nilai melebihi batas maksimum.',
-            '*.decimal' => 'Maksimal 2 angka di belakang koma.',
-            '*.not_regex' => 'Teks tidak boleh diawali tanda = + - @.',
-            'rt.regex' => 'RT hanya boleh berisi huruf/angka.',
-            'rw.regex' => 'RW hanya boleh berisi huruf/angka.',
-            'memilah.boolean' => 'Pilih Ya atau Tidak.',
+            'deskripsi.required' => 'Deskripsi harus di isi.',
+            'deskripsi.unique' => 'Deskripsi sudah digunakan!',
+            'tanggal.required' => 'Tanggal harus di isi.',
             'tanggal.before_or_equal' => 'Tanggal tidak boleh melebihi hari ini.',
+            'volume.required' => 'Volume harus di isi.',
+            'volume.numeric' => 'Volume harus berupa angka.',
+            'satuan.required' => 'Satuan harus di isi.',
+            'id_kpi.required' => 'KPI harus dipilih.',
+            'tautan.url' => 'Tautan harus berupa URL http/https yang valid.',
         ];
     }
 }

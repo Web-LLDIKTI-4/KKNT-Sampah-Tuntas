@@ -10,6 +10,7 @@ use App\Models\Kehadiran;
 use App\Models\Kpicapaian;
 use App\Models\Logbulanan;
 use App\Models\Logkegiatan;
+use App\Models\PendataanPemilahanSampah;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\Nilaikonversi;
@@ -27,7 +28,7 @@ class PersonDeletionService
     {
         DB::transaction(function () use ($mahasiswa) {
             $email = $mahasiswa->email;
-            foreach ([Kehadiran::class, Logkegiatan::class, Logbulanan::class, Pjdesa::class, Kpicapaian::class, Tugasakhir::class] as $model) {
+            foreach ([Kehadiran::class, Logkegiatan::class, PendataanPemilahanSampah::class, Logbulanan::class, Pjdesa::class, Kpicapaian::class, Tugasakhir::class] as $model) {
                 $model::where('email', $email)->delete();
             }
             foreach ([Nilaikonversi::class, Freeform::class, Mahasiswa_lokasi::class] as $model) {

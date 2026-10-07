@@ -13,7 +13,7 @@
                 @endforeach
             @endif
         </select>
-        <label>Status Izin</label>
+        <label>Status Kehadiran</label>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <textarea name="keterangan" class="form-control" required maxlength="1000"></textarea>

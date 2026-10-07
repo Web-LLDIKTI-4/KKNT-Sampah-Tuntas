@@ -22,6 +22,7 @@ class LogkehadiranController extends Controller
         'izin' => ['bg-warning', 'Izin'],
         'sakit' => ['bg-danger', 'Sakit'],
         'cuti' => ['bg-info', 'Cuti'],
+        'kuliah' => ['bg-primary', 'Kuliah'],
     ];
 
     public function __construct(private AttendanceService $attendance) {}

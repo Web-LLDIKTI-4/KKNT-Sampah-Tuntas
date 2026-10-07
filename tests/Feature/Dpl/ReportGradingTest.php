@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Dpl;
 
+use App\Exports\LogHarianByMhsExport;
 use App\Models\Dplmentoring;
+use App\Models\Kpi;
 use App\Models\Logbulanan;
 use App\Models\Logkegiatan;
 use App\Models\Mahasiswa;
@@ -56,6 +58,47 @@ class ReportGradingTest extends TestCase
 
         $this->getJson("admlogkegiatan/listdataserver/{$mhs->email}?draw=1&start=0&length=10", $this->ajax)
             ->assertOk()->assertJsonPath('recordsTotal', 1);
+    }
+
+    public function test_student_log_detail_and_export_use_daily_log_columns(): void
+    {
+        Excel::fake();
+        $this->loginAs('admin');
+        $mhs = Mahasiswa::factory()->create();
+        $kpi = Kpi::factory()->create(['nama_kpi' => 'Pengelolaan Sampah']);
+        $log = Logkegiatan::factory()->create([
+            'email' => $mhs->email,
+            'tanggal' => '2026-10-01',
+            'deskripsi' => '<p>Membersihkan lingkungan</p>',
+            'volume' => '2',
+            'satuan' => 'kegiatan',
+            'id_kpi' => $kpi->id_kpi,
+            'tautan' => 'https://example.test/bukti',
+        ]);
+
+        $row = $this->getJson("admlogkegiatan/listdataserver/{$mhs->email}?draw=1&start=0&length=10", $this->ajax)
+            ->assertOk()
+            ->json('data.0');
+
+        $this->assertSame('Membersihkan lingkungan', strip_tags($row['deskripsi']));
+        $this->assertSame('2', (string) $row['volume']);
+        $this->assertSame('kegiatan', $row['satuan']);
+        $this->assertSame('Pengelolaan Sampah', $row['nama_kpi']);
+        $this->assertSame('<a href="https://example.test/bukti" target="_blank" rel="noopener noreferrer">Lihat bukti</a>', $row['tautan']);
+
+        $this->get("admlogkegiatan/export/{$mhs->email}")->assertOk();
+        Excel::matchByRegex();
+        Excel::assertDownloaded('/^logharian_mahasiswa_.+\.xlsx$/', function (LogHarianByMhsExport $export) {
+            $this->assertSame([
+                'No', 'Tanggal', 'Deskripsi Kegiatan', 'Volume', 'Satuan', 'KPI', 'Tautan Bukti',
+            ], $export->headings());
+            $this->assertSame([
+                1, '01-10-2026', 'Membersihkan lingkungan', '2', 'kegiatan',
+                'Pengelolaan Sampah', 'https://example.test/bukti',
+            ], $export->collection()->first());
+
+            return true;
+        });
     }
 
     public function test_only_mentor_dpl_can_grade_log_bulanan(): void

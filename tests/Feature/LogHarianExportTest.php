@@ -33,7 +33,7 @@ class LogHarianExportTest extends TestCase
         foreach (['mhsA1' => 'ptA', 'mhsA2' => 'ptA', 'mhsB1' => 'ptB'] as $key => $pt) {
             $mhs = Mahasiswa::factory()->create(['kodept' => $this->d[$pt]->npsn, 'email' => $key.'@uji.test']);
             Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => Desa::factory()->create()->id_desa, 'user_in_up' => $mhs->email]);
-            Logkegiatan::factory()->create(['email' => $mhs->email, 'tanggal' => '2026-09-05', 'nama_kepala_keluarga' => 'KK '.$key]);
+            Logkegiatan::factory()->create(['email' => $mhs->email, 'tanggal' => '2026-09-05', 'deskripsi' => 'Kegiatan '.$key]);
             $this->d[$key] = $mhs;
         }
         Dplmentoring::create(['email_mahasiswa' => 'mhsA1@uji.test', 'email_dpl' => 'dplA@uji.test']);
@@ -142,10 +142,10 @@ class LogHarianExportTest extends TestCase
         $this->get('logharian/export')->assertRedirect(route('login'));
     }
 
-    public function test_kolom_header_kuning_identitas_dan_anti_formula(): void
+    public function test_kolom_header_kuning_log_harian_dan_anti_formula(): void
     {
         $mhs = $this->d['mhsA1'];
-        Logkegiatan::where('email', $mhs->email)->update(['nama_kepala_keluarga' => '=HYPERLINK("http://x","klik")', 'memilah' => true]);
+        Logkegiatan::where('email', $mhs->email)->update(['deskripsi' => '=HYPERLINK("http://x","klik")']);
 
         $sheet = function (User $user) {
             $path = tempnam(sys_get_temp_dir(), 'log').'.xlsx';
@@ -159,16 +159,15 @@ class LogHarianExportTest extends TestCase
         $ws = $sheet($this->user('dpl', 'dplA@uji.test'));
         $this->assertSame([
             'Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak', 'Tanggal',
-            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'Nama Kepala Keluarga', 'Alamat Rumah',
-            'RT', 'RW', 'Memilah (Ya/Tidak)', 'Organik (Kg)', 'Anorganik (Kg)', 'Residu (Kg)',
-        ], $ws->rangeToArray('A1:P1')[0]);
-        $this->assertSame('FFFF00', $ws->getStyle('P1')->getFill()->getStartColor()->getRGB());
+            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'Deskripsi Kegiatan',
+            'Volume', 'Satuan', 'KPI', 'Tautan Bukti',
+        ], $ws->rangeToArray('A1:M1')[0]);
+        $this->assertSame('FFFF00', $ws->getStyle('M1')->getFill()->getStartColor()->getRGB());
         $this->assertTrue($ws->getStyle('A1')->getFont()->getBold());
-        $this->assertNotSame('none', $ws->getStyle('P2')->getBorders()->getBottom()->getBorderStyle());
+        $this->assertNotSame('none', $ws->getStyle('M2')->getBorders()->getBottom()->getBorderStyle());
         $this->assertSame('mhsA1@uji.test', $ws->getCell('B2')->getValue());
         $this->assertSame($mhs->nama, $ws->getCell('C2')->getValue());
         $this->assertSame('05/09/2026', $ws->getCell('E2')->getValue());
-        $this->assertSame('Ya', $ws->getCell('M2')->getValue());
         $this->assertSame(DataType::TYPE_STRING, $ws->getCell('I2')->getDataType());
         $this->assertStringStartsWith('=HYPERLINK', $ws->getCell('I2')->getValue());
 
@@ -176,10 +175,6 @@ class LogHarianExportTest extends TestCase
         $this->assertSame(16, (int) $ws->getColumnDimension('D')->getWidth());
         $this->assertFalse($ws->getColumnDimension('B')->getAutoSize());
 
-        // pt/kepala/pemda: identitas rumah tangga disembunyikan
-        $ws = $sheet($this->user('kepala', 'kepala@uji.test'));
-        $this->assertSame('tidak ditampilkan', $ws->getCell('I2')->getValue());
-        $this->assertSame('tidak ditampilkan', $ws->getCell('J2')->getValue());
     }
 
     public function test_email_dan_kontak_mahasiswa_tampil_untuk_semua_role(): void

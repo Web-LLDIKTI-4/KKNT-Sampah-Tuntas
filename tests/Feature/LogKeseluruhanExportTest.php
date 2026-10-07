@@ -241,7 +241,7 @@ class LogKeseluruhanExportTest extends TestCase
         $this->assertSame('Timestamp', $ws->getCell('A1')->getValue());
         $this->assertSame(4, $ws->getHighestRow());
         $this->assertSame('mhsA1@uji.test', $ws->getCell('B4')->getValue());
-        $this->assertSame('FFFF00', $ws->getStyle('P1')->getFill()->getStartColor()->getRGB());
+        $this->assertSame('FFFF00', $ws->getStyle('M1')->getFill()->getStartColor()->getRGB());
 
         $ws = $this->sheet(new LogBulananLengkapExport($admin));
         $this->assertSame(7, $ws->getHighestRow());

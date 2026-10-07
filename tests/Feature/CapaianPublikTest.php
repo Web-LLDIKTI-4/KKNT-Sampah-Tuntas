@@ -7,7 +7,7 @@ use App\Models\Desa;
 use App\Models\Kecamatan;
 use App\Models\Kpicapaian;
 use App\Models\Kpisampah;
-use App\Models\Logkegiatan;
+use App\Models\PendataanPemilahanSampah;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
@@ -32,7 +32,7 @@ class CapaianPublikTest extends TestCase
     /**
      * Lokasi A / Kec Alfa: Desa Satu (Univ Hijau 25%, Univ Tanpa Data tanpa isian) + Desa Tiga (Univ Kuning 15%)
      * -> kecamatan & lokasi = 40/200 = 20,00%. Lokasi B / Kec Beta / Desa Dua: Univ Merah 5%. Total = 45/300 = 15%.
-     * Sumber: logkegiatan; kelurahan = mahasiswa_lokasi ketua.
+     * Sumber: pendataan pemilahan sampah; kelurahan = mahasiswa_lokasi ketua.
      */
     protected function setUp(): void
     {
@@ -71,7 +71,7 @@ class CapaianPublikTest extends TestCase
     // Kelurahan log = mahasiswa_lokasi; 1 log: terkelola = $terkelola kg dari total 100 kg
     private function logSampah(Mahasiswa $mhs, string $bulan, float $terkelola): void
     {
-        Logkegiatan::factory()->create([
+        PendataanPemilahanSampah::factory()->create([
             'email' => $mhs->email, 'tanggal' => $bulan.'-10', 'memilah' => true,
             'organik_kg' => $terkelola, 'anorganik_kg' => 0, 'residu_kg' => 100 - $terkelola,
         ]);

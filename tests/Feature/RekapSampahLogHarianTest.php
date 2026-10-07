@@ -7,6 +7,7 @@ use App\Models\Desa;
 use App\Models\Kecamatan;
 use App\Models\Kpisampah;
 use App\Models\Logkegiatan;
+use App\Models\PendataanPemilahanSampah;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
@@ -34,9 +35,9 @@ class RekapSampahLogHarianTest extends TestCase
         return $mhs;
     }
 
-    private function log(Mahasiswa $mhs, array $attr = []): Logkegiatan
+    private function log(Mahasiswa $mhs, array $attr = []): PendataanPemilahanSampah
     {
-        return Logkegiatan::factory()->create($attr + [
+        return PendataanPemilahanSampah::factory()->create($attr + [
             'email' => $mhs->email, 'tanggal' => self::BULAN.'-10',
             'nama_kepala_keluarga' => 'Budi', 'alamat_rumah' => 'Jl. Melati 1', 'rt' => '001', 'rw' => '002',
             'memilah' => true, 'organik_kg' => 1, 'anorganik_kg' => 1, 'residu_kg' => 1,
@@ -96,6 +97,29 @@ class RekapSampahLogHarianTest extends TestCase
         $sheet = new RekapLldiktiSheet($this->rekap());
         $this->assertSame('-', $sheet->array()[1][11]);
         $this->assertEquals(0.0, $sheet->array()[1][5]);
+    }
+
+    public function test_rekap_menggunakan_pendataan_bukan_log_kegiatan(): void
+    {
+        $desa = Desa::factory()->create();
+        $mhs = $this->mahasiswaDi($desa);
+        Logkegiatan::factory()->create([
+            'email' => $mhs->email,
+            'tanggal' => self::BULAN.'-10',
+            'nama_kepala_keluarga' => 'Budi',
+            'alamat_rumah' => 'Jl. Melati',
+            'rt' => '001',
+            'rw' => '001',
+            'memilah' => true,
+            'organik_kg' => 10,
+            'anorganik_kg' => 0,
+            'residu_kg' => 0,
+        ]);
+
+        $this->assertTrue($this->rekap()->isEmpty());
+
+        $this->log($mhs, ['organik_kg' => 3, 'anorganik_kg' => 0, 'residu_kg' => 1]);
+        $this->assertEquals(3.0, $this->barisDesa($this->rekap(), self::BULAN, $desa->id_desa)->organik);
     }
 
     public function test_grup_bulan_kecamatan_desa_dan_lokasi_terbaru(): void
@@ -209,9 +233,9 @@ class RekapSampahLogHarianTest extends TestCase
         $this->get('dashboardkpi?kodept='.$pt->npsn)->assertOk()->assertDontSee('Desa Render');
 
         // Data kosong tetap render
-        Logkegiatan::query()->delete();
+        PendataanPemilahanSampah::query()->delete();
         $this->loginAs('admin');
-        $this->get('rekapsampah')->assertOk()->assertSee('Belum ada data log harian');
+        $this->get('rekapsampah')->assertOk()->assertSee('Belum ada data Data Pemilahan Sampah Penduduk');
         $this->get('dashboardkpi')->assertOk();
     }
 

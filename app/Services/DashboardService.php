@@ -32,7 +32,7 @@ class DashboardService
                 ? Kpicapaian::where('email', $email)->distinct()->count('id_kpi')
                 : 0,
             'jumlahlogbulanan' => Logbulanan::where('email', $email)->distinct()->count('bulan'),
-            'jumlahlogkegiatan' => Logkegiatan::where('email', $email)->distinct()->count('tanggal'),
+            'jumlahlogkegiatan' => Logkegiatan::where('email', $email)->whereNotNull('deskripsi')->distinct()->count('tanggal'),
             'kehadiran' => Kehadiran::where('email', $email)->whereDate('tanggal', today())->first(),
         ] + $this->common();
     }
@@ -49,7 +49,7 @@ class DashboardService
                 ->whereIn('id_mahasiswa', Mahasiswa::whereIn('email', $mentees)->select('id_mahasiswa'))
                 ->distinct()->count('id_mahasiswa'),
             'jumlahlogbulanan' => $this->distinctPairs('logkegiatan_bulanan', 'bulan', $mentees),
-            'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', $mentees),
+            'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', $mentees, 'deskripsi'),
             'jumlahdpl' => 0,
         ] + $this->common();
     }
@@ -62,7 +62,7 @@ class DashboardService
             'jumlahlaporandpl' => Dpllaporan::whereIn('email', Dpl::where('kodept', $user->email)->select('email'))->count(),
             'jumlahmahasiswa' => Mahasiswa::visibleTo($user)->count(),
             'jumlahlogbulanan' => $this->distinctPairs('logkegiatan_bulanan', 'bulan', $emails),
-            'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', $emails),
+            'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', $emails, 'deskripsi'),
             'jumlahdpl' => Dpl::where('kodept', $user->email)->count(),
             'kpiHome' => $this->kpiHome(['kodept' => $user->email], false),
         ] + $this->common();
@@ -75,7 +75,7 @@ class DashboardService
             'jumlahlaporandpl' => Dpllaporan::count(),
             'jumlahmahasiswa' => Mahasiswa::count(),
             'jumlahlogbulanan' => $this->distinctPairs('logkegiatan_bulanan', 'bulan'),
-            'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal'),
+            'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', null, 'deskripsi'),
             'kpiHome' => $this->kpiHome([], true),
         ] + $this->common();
     }
@@ -95,7 +95,7 @@ class DashboardService
             'jumlahlaporandpl' => Dpllaporan::count(),
             'jumlahmahasiswa' => Mahasiswa::count(),
             'jumlahlogbulanan' => $this->distinctPairs('logkegiatan_bulanan', 'bulan'),
-            'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal'),
+            'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', null, 'deskripsi'),
             'jumlahdplmentoring' => Dplmentoring::count(),
             'jumlahdplnilaikonversi' => Nilaikonversi::whereIn(
                 'id_mahasiswa',
@@ -115,9 +115,12 @@ class DashboardService
     }
 
     // Jumlah kombinasi unik (email, kolom), mis. hari aktif per mahasiswa
-    private function distinctPairs(string $table, string $column, ?Builder $emails = null): int
+    private function distinctPairs(string $table, string $column, ?Builder $emails = null, ?string $notNull = null): int
     {
         $query = DB::table($table)->select('email', $column)->distinct();
+        if ($notNull) {
+            $query->whereNotNull($notNull);
+        }
         if ($emails) {
             $query->whereIn('email', $emails->toBase());
         }

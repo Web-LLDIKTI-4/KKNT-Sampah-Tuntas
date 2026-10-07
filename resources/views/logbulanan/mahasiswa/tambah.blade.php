@@ -10,7 +10,7 @@
         <table class="table table-striped table-sm" id="tabel-data">
             <thead>
                 <tr>
-                    <th width="1%">No</th><th>Tanggal</th><th>Kepala Keluarga</th><th>Alamat (RT/RW)</th><th>Memilah</th><th>Organik (kg)</th><th>Anorganik (kg)</th><th>Residu (kg)</th>
+                    <th width="1%">No</th><th>Tanggal</th><th>Deskripsi Kegiatan</th><th>Volume</th><th>Satuan</th>
                 </tr>
             </thead>
             <tbody>
@@ -18,12 +18,9 @@
                     <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $row->tanggal }}</td>
-                    <td>{{ $row->nama_kepala_keluarga }}</td>
-                    <td>{{ $row->alamat_rumah }} (RT {{ $row->rt }}/RW {{ $row->rw }})</td>
-                    <td class="text-center">{{ $row->memilah ? 'Ya' : 'Tidak' }}</td>
-                    <td class="text-end">{{ number_format($row->organik_kg, 2, ',', '.') }}</td>
-                    <td class="text-end">{{ number_format($row->anorganik_kg, 2, ',', '.') }}</td>
-                    <td class="text-end">{{ number_format($row->residu_kg, 2, ',', '.') }}</td>
+                    <td>{!! \App\Support\HtmlSanitizer::clean($row->deskripsi) !!}</td>
+                    <td class="text-end">{{ $row->volume }}</td>
+                    <td>{{ $row->satuan }}</td>
                     </tr>
                 @endforeach
             </tbody>

@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Rekap sampah dari log harian mahasiswa (logkegiatan), per bulan + kelurahan.
+ * Rekap sampah dari Data Pemilahan Sampah Penduduk, per bulan + kelurahan.
  * Kelurahan log = lokasi mahasiswa (mahasiswa_lokasi) tahun terbaru.
  * Persentase dihitung dari total: ketaatan = memilah/rumah, penurunan = terkelola/dihasilkan.
  *
@@ -48,7 +48,7 @@ class KpiSampahService
     }
 
     // 1 baris per (bulan, kelurahan, PT): angka dijumlah, persentase dihitung ulang dari total.
-    // Kelurahan mahasiswa = mahasiswa_lokasi tahun terbaru (sama dengan sumber rekap log harian)
+    // Kelurahan mahasiswa = mahasiswa_lokasi tahun terbaru (sama dengan sumber pendataan pemilahan)
     public function desaMahasiswa(string $email): ?string
     {
         return DB::table('mahasiswa_lokasi as ml')
@@ -381,16 +381,16 @@ class KpiSampahService
             ->groupBy('id_mahasiswa')
             ->selectRaw('id_mahasiswa, MAX(tahun) as tahun');
 
-        $log = DB::table('logkegiatan as l')
-            ->join('mahasiswa as lm', 'lm.email', '=', 'l.email')
+        $log = DB::table('pendataan_pemilahan_sampah as p')
+            ->join('mahasiswa as lm', 'lm.email', '=', 'p.email')
             ->joinSub($lokasiTerakhir, 'lt', 'lt.id_mahasiswa', '=', 'lm.id_mahasiswa')
             ->join('mahasiswa_lokasi as ml', fn ($j) => $j->on('ml.id_mahasiswa', '=', 'lt.id_mahasiswa')->on('ml.tahun', '=', 'lt.tahun'))
             ->when($filter['bulan'] ?? null, function (Builder $q, $v) {
                 $awal = Carbon::createFromFormat('Y-m-d', $v.'-01')->startOfDay();
-                $q->whereBetween('l.tanggal', [$awal->toDateString(), $awal->copy()->endOfMonth()->toDateString()]);
+                $q->whereBetween('p.tanggal', [$awal->toDateString(), $awal->copy()->endOfMonth()->toDateString()]);
             })
-            ->selectRaw("l.email, ml.id_desa, DATE_FORMAT(l.tanggal, '%Y-%m-01') as bulan, l.memilah, l.organik_kg, l.anorganik_kg, l.residu_kg")
-            ->selectRaw("CONCAT_WS('|', ml.id_desa, l.nama_kepala_keluarga, l.alamat_rumah, l.rt, l.rw) as rumah");
+            ->selectRaw("p.email, ml.id_desa, DATE_FORMAT(p.tanggal, '%Y-%m-01') as bulan, p.memilah, p.organik_kg, p.anorganik_kg, p.residu_kg")
+            ->selectRaw("CONCAT_WS('|', ml.id_desa, p.nama_kepala_keluarga, p.alamat_rumah, p.rt, p.rw) as rumah");
 
         return DB::query()->fromSub($log, 's')
             ->join('desa as d', 'd.id_desa', '=', 's.id_desa')

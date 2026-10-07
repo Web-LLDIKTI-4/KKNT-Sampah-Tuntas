@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\LogkegiatanRequest;
 use App\Models\Kehadiran;
+use App\Models\Kpi;
 use App\Models\Logkegiatan;
 use App\Support\ActionButtons;
+use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -30,23 +32,31 @@ class LogkegiatanController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $data = Logkegiatan::ownedBy($request->user())->without(['mahasiswa', 'dplmentoring'])->orderByDesc('tanggal')->get();
+        $data = Logkegiatan::ownedBy($request->user())
+            ->whereNotNull('deskripsi')
+            ->without(['mahasiswa', 'dplmentoring'])
+            ->with('kpi')
+            ->orderByDesc('tanggal')
+            ->get();
 
         return DataTables::of($data)
             ->addIndexColumn()
+            ->addColumn('nama_kpi', fn (Logkegiatan $row) => $row->kpi->nama_kpi ?? '')
+            ->editColumn('deskripsi', fn (Logkegiatan $row) => HtmlSanitizer::clean($row->deskripsi))
+            ->addColumn('tautan', fn (Logkegiatan $row) => HtmlSanitizer::link($row->tautan, 'Lihat bukti'))
             ->addColumn('action', fn (Logkegiatan $row) => ActionButtons::make(
                 urlEdit: url('logkegiatan/edit/'.$row->id_log),
                 urlDelete: url('logkegiatan/destroy'),
                 idField: 'id_log',
                 idValue: $row->id_log,
             ))
-            ->rawColumns(['action'])
+            ->rawColumns(['deskripsi', 'tautan', 'action'])
             ->make(true);
     }
 
     public function tambah()
     {
-        return view('logkegiatan.mahasiswa.tambah');
+        return view('logkegiatan.mahasiswa.tambah', ['kpi' => Kpi::orderBy('nama_kpi')->get()]);
     }
 
     public function insert(LogkegiatanRequest $request)
@@ -59,13 +69,14 @@ class LogkegiatanController extends Controller
     public function edit(Request $request, string $id_log)
     {
         return view('logkegiatan.mahasiswa.edit', [
-            'data' => Logkegiatan::ownedBy($request->user())->findOrFail($id_log),
+            'data' => Logkegiatan::ownedBy($request->user())->whereNotNull('deskripsi')->findOrFail($id_log),
+            'kpi' => Kpi::orderBy('nama_kpi')->get(),
         ]);
     }
 
     public function update(LogkegiatanRequest $request)
     {
-        $log = Logkegiatan::ownedBy($request->user())->find($request->validated('id_log'));
+        $log = Logkegiatan::ownedBy($request->user())->whereNotNull('deskripsi')->find($request->validated('id_log'));
         if (! $log) {
             return $this->notFound();
         }
@@ -77,7 +88,7 @@ class LogkegiatanController extends Controller
 
     public function destroy(Request $request)
     {
-        $log = Logkegiatan::ownedBy($request->user())->find($request->input('id_log'));
+        $log = Logkegiatan::ownedBy($request->user())->whereNotNull('deskripsi')->find($request->input('id_log'));
         if (! $log) {
             return $this->notFound();
         }

@@ -64,6 +64,19 @@ class KehadiranTest extends TestCase
             ->assertSessionHas('error', 'Anda sudah mengajukan sakit hari ini.');
     }
 
+    public function test_kuliah_is_a_valid_blocking_attendance_status(): void
+    {
+        $this->loginAs('mahasiswa');
+
+        $this->put('logkehadiran/insertizin', ['status_kehadiran' => 'kuliah', 'keterangan' => 'Mengikuti perkuliahan'])
+            ->assertJson(['success' => true]);
+        $this->from('home')->put('logkehadiran/insert', ['mode' => 'datang'] + $this->coords)
+            ->assertSessionHas('error', 'Anda sudah mengajukan kuliah hari ini.');
+        $this->getJson('logkehadiran/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()
+            ->assertJsonPath('data.0.status_kehadiran', '<span class="badge bg-primary">Kuliah</span>');
+    }
+
     public function test_listdata_is_scoped_to_owner(): void
     {
         $user = $this->loginAs('mahasiswa');

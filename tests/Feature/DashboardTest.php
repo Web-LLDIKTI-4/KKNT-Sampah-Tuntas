@@ -6,6 +6,7 @@ use App\Models\Dpl;
 use App\Models\Dplmentoring;
 use App\Models\Logkegiatan;
 use App\Models\Mahasiswa;
+use App\Models\PendataanPemilahanSampah;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -46,5 +47,14 @@ class DashboardTest extends TestCase
 
         $this->get('ptmahasiswa')->assertOk();
         $this->get('nilaifreeform')->assertNotFound();
+    }
+
+    public function test_population_waste_entries_are_not_counted_as_daily_activity_logs(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        Logkegiatan::factory()->create(['email' => $user->email]);
+        PendataanPemilahanSampah::factory()->create(['email' => $user->email]);
+
+        $this->get('home')->assertOk()->assertViewHas('jumlahlogkegiatan', 1);
     }
 }
