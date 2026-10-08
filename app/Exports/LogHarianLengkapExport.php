@@ -78,7 +78,7 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
         return [
             'Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak', 'Tanggal',
             'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'Deskripsi Kegiatan',
-            'Volume', 'Satuan', 'KPI', 'Tautan Bukti',
+            'Volume/Kuantitas Output', 'Satuan', 'Aktivitas', 'Tautan Bukti',
         ];
     }
 

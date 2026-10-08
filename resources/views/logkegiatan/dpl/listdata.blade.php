@@ -1,8 +1,8 @@
 @extends('layouts.app')
-@section('title', 'Log Harian')
+@section('title', 'Log Aktivitas')
 @section('container')
 
-<x-page-header title="Log Harian" subtitle="Data Log Harian" />
+<x-page-header title="Log Aktivitas" subtitle="Data Log Aktivitas" />
 
 <div class="card">
     <div class="card-body">
@@ -14,9 +14,9 @@
                             <th width="1">No</th>
                             <th>Tanggal</th>
                             <th>Deskripsi Kegiatan</th>
-                            <th>Volume</th>
+                            <th>Volume/Kuantitas Output</th>
                             <th>Satuan</th>
-                            <th>KPI</th>
+                            <th>Aktivitas</th>
                             <th>Tautan Bukti</th>
                         </tr>
                     </thead>

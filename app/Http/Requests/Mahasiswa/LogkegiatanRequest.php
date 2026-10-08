@@ -46,9 +46,17 @@ class LogkegiatanRequest extends AjaxFormRequest
                 ->whereIn('status_kehadiran', AttendanceService::BLOCKING_STATUSES)
                 ->exists();
             if ($blocked) {
-                $validator->errors()->add('tanggal', 'Tidak bisa menambah log harian karena status kehadiran hari ini bukan hadir.');
+                $validator->errors()->add('tanggal', 'Tidak bisa menambah log aktivitas karena status kehadiran hari ini bukan hadir.');
             }
         }];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'volume' => 'Volume/Kuantitas Output',
+            'id_kpi' => 'Aktivitas',
+        ];
     }
 
     public function messages(): array
@@ -58,10 +66,10 @@ class LogkegiatanRequest extends AjaxFormRequest
             'deskripsi.unique' => 'Deskripsi sudah digunakan!',
             'tanggal.required' => 'Tanggal harus di isi.',
             'tanggal.before_or_equal' => 'Tanggal tidak boleh melebihi hari ini.',
-            'volume.required' => 'Volume harus di isi.',
-            'volume.numeric' => 'Volume harus berupa angka.',
+            'volume.required' => 'Volume/Kuantitas Output harus di isi.',
+            'volume.numeric' => 'Volume/Kuantitas Output harus berupa angka.',
             'satuan.required' => 'Satuan harus di isi.',
-            'id_kpi.required' => 'KPI harus dipilih.',
+            'id_kpi.required' => 'Aktivitas harus dipilih.',
             'tautan.url' => 'Tautan harus berupa URL http/https yang valid.',
         ];
     }

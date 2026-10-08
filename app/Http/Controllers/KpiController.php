@@ -53,7 +53,7 @@ class KpiController extends Controller
     {
         Kpi::create($request->safe()->only(self::FIELDS));
 
-        return $this->saved('Key performance indicator berhasil disimpan');
+        return $this->saved('Aktivitas berhasil disimpan');
     }
 
     public function edit(string $id_kpi)
@@ -65,7 +65,7 @@ class KpiController extends Controller
     {
         Kpi::findOrFail($request->validated('id_kpi'))->update($request->safe()->only(self::FIELDS));
 
-        return $this->saved('Key performance indicator berhasil disimpan');
+        return $this->saved('Aktivitas berhasil disimpan');
     }
 
     public function destroy(Request $request)

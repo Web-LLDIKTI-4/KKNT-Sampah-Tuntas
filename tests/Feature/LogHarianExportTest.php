@@ -160,7 +160,7 @@ class LogHarianExportTest extends TestCase
         $this->assertSame([
             'Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak', 'Tanggal',
             'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'Deskripsi Kegiatan',
-            'Volume', 'Satuan', 'KPI', 'Tautan Bukti',
+            'Volume/Kuantitas Output', 'Satuan', 'Aktivitas', 'Tautan Bukti',
         ], $ws->rangeToArray('A1:M1')[0]);
         $this->assertSame('FFFF00', $ws->getStyle('M1')->getFill()->getStartColor()->getRGB());
         $this->assertTrue($ws->getStyle('A1')->getFont()->getBold());

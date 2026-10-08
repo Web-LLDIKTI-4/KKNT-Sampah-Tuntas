@@ -8,9 +8,9 @@
                     {{-- <th>Id LOG </th> --}}
                     <th>Tanggal</th>
                     <th>Deskripsi Kegiatan</th>
-                    <th>Volume</th>
+                    <th>Volume/Kuantitas Output</th>
                     <th>Satuan</th>
-                    <th>KPI</th>
+                    <th>Aktivitas</th>
                     <th>Tautan Bukti</th>
                     <th width="1">Aksi</th>
                 </tr>
@@ -22,7 +22,7 @@
     </div>
 </div>
 
-<x-button.export :url="route('logharian.export')" label="Export Log Harian" />
+<x-button.export :url="route('logharian.export')" label="Export Log Aktivitas" />
 
 <script type="text/javascript">
   $(function () {

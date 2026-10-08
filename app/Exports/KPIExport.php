@@ -24,7 +24,7 @@ class KPIExport implements FromCollection, WithHeadings
     {
         return [
             'No.',
-            'Nama KPI',
+            'Nama Aktivitas',
         ];
     }
 }

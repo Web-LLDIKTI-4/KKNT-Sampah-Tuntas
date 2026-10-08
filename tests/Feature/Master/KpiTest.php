@@ -18,7 +18,7 @@ class KpiTest extends TestCase
 
         $this->put('kpi/insert', ['nama_kpi' => 'Digitalisasi UMKM'])->assertJson(['success' => true]);
         $this->put('kpi/insert', ['nama_kpi' => 'Digitalisasi UMKM'])
-            ->assertJsonPath('errors.nama_kpi.0', 'Key performance indicator sudah ada!');
+            ->assertJsonPath('errors.nama_kpi.0', 'Nama aktivitas sudah ada!');
 
         $kpi = Kpi::where('nama_kpi', 'Digitalisasi UMKM')->firstOrFail();
         $this->put('kpi/update', ['id_kpi' => $kpi->id_kpi, 'nama_kpi' => 'Digitalisasi Desa'])->assertJson(['success' => true]);

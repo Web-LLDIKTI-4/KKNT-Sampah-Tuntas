@@ -151,7 +151,7 @@
                             </div>
                         </div>
                         <div class="ms-3 d-flex flex-column">
-                            <h6 class="mb-1">Log Harian Mahasiswa</h6>
+                            <h6 class="mb-1">Log Aktivitas Mahasiswa</h6>
                             <small>{{$jumlahlogkegiatan}} Kegiatan</small>
                         </div>  
                     </div>

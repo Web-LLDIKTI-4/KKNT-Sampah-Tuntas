@@ -90,7 +90,7 @@ class ReportGradingTest extends TestCase
         Excel::matchByRegex();
         Excel::assertDownloaded('/^logharian_mahasiswa_.+\.xlsx$/', function (LogHarianByMhsExport $export) {
             $this->assertSame([
-                'No', 'Tanggal', 'Deskripsi Kegiatan', 'Volume', 'Satuan', 'KPI', 'Tautan Bukti',
+                'No', 'Tanggal', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Aktivitas', 'Tautan Bukti',
             ], $export->headings());
             $this->assertSame([
                 1, '01-10-2026', 'Membersihkan lingkungan', '2', 'kegiatan',

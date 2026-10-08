@@ -63,7 +63,7 @@ class LogkegiatanController extends Controller
     {
         Logkegiatan::create($request->safe()->only(LogkegiatanRequest::FIELDS) + ['email' => $request->user()->email]);
 
-        return $this->saved('Log harian berhasil disimpan');
+        return $this->saved('Log aktivitas berhasil disimpan');
     }
 
     public function edit(Request $request, string $id_log)
@@ -83,7 +83,7 @@ class LogkegiatanController extends Controller
 
         $log->update($request->safe()->only(LogkegiatanRequest::FIELDS));
 
-        return $this->saved('Log harian berhasil disimpan');
+        return $this->saved('Log aktivitas berhasil disimpan');
     }
 
     public function destroy(Request $request)

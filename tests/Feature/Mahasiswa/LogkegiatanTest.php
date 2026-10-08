@@ -111,7 +111,7 @@ class LogkegiatanTest extends TestCase
             ->assertSee('Deskripsi Kegiatan')
             ->assertSee('Volume')
             ->assertSee('Satuan')
-            ->assertSee('KPI')
+            ->assertSee('Aktivitas')
             ->assertSee('Tautan Bukti')
             ->assertDontSee('Nama Kepala Keluarga');
 

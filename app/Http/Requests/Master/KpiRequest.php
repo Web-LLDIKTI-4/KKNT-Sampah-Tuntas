@@ -20,11 +20,18 @@ class KpiRequest extends AjaxFormRequest
         ];
     }
 
+    public function attributes(): array
+    {
+        return [
+            'nama_kpi' => 'Nama Aktivitas',
+        ];
+    }
+
     public function messages(): array
     {
         return [
-            'nama_kpi.required' => 'Key performance indicator harus di isi',
-            'nama_kpi.unique' => 'Key performance indicator sudah ada!',
+            'nama_kpi.required' => 'Nama aktivitas harus di isi',
+            'nama_kpi.unique' => 'Nama aktivitas sudah ada!',
             'target.numeric' => 'Target harus berupa angka.',
             'target.min' => 'Target tidak boleh negatif.',
             'target.decimal' => 'Target maksimal 2 angka di belakang koma.',

@@ -5,8 +5,8 @@
             <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
-                    <th>Id KPI </th>
-                    <th>Nama KPI</th>
+                    <th>Id Aktivitas </th>
+                    <th>Nama Aktivitas</th>
                     <th>Target</th>
                     <th>Satuan</th>
                     <th width="1">Aksi</th>

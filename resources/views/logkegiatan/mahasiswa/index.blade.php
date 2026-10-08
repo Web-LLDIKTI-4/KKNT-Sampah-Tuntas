@@ -1,15 +1,15 @@
 @extends('layouts.app')
-@section('title','Log Harian')
+@section('title','Log Aktivitas')
 @section('container')
 
 <x-page-header /> 
 
 <div class="card">
     <div class="card-header">
-        <x-button id="btnTambahLog" variant="dark" style="background-color: black; color: white;" :modal="url('logkegiatan/tambah')" icon="ri-add-line" title="Tambah Log Harian" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, \App\Services\AttendanceService::BLOCKING_STATUSES)">
-            Tambah Log Harian
+        <x-button id="btnTambahLog" variant="dark" style="background-color: black; color: white;" :modal="url('logkegiatan/tambah')" icon="ri-add-line" title="Tambah Log Aktivitas" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, \App\Services\AttendanceService::BLOCKING_STATUSES)">
+            Tambah Log Aktivitas
         </x-button>
-        <x-button.export :url="route('logharian.export')" label="Export Log Harian" />
+        <x-button.export :url="route('logharian.export')" label="Export Log Aktivitas" />
     </div>
     <div class="card-body">
         <p id="resultcontent">loading data...</p>

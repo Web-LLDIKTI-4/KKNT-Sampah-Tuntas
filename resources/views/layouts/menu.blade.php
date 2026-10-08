@@ -94,7 +94,7 @@
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kpi') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                            <span data-i18n="Pricing">Kelola KPI</span>
+                                            <span data-i18n="Pricing">Kelola Aktivitas</span>
                                         </a>
                                     </li>
                     
@@ -156,7 +156,7 @@
                                 <ul class="nav flex-column">
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkegiatan') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Harian Mahasiswa
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Aktivitas Mahasiswa
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -288,7 +288,7 @@
                         <ul class="nav flex-column">
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkegiatan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Harian
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Aktivitas
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -386,7 +386,7 @@
                         <ul class="nav flex-column">
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkegiatan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Harian Mahasiswa
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Aktivitas Mahasiswa
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -429,7 +429,7 @@
                     <a class="nav-link fw-medium" href="{{ url('logkehadiran') }}">Kehadiran</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('logkegiatan') }}">Log Harian</a>
+                    <a class="nav-link fw-medium" href="{{ url('logkegiatan') }}">Log Aktivitas</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link fw-medium" href="{{ url('pendataanpemilahan') }}">Pendataan Sampah Penduduk</a>

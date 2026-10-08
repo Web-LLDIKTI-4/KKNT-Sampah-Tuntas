@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<x-button.export-bulan :url="route('logharian.export')" label="Export Semua Log Harian" />
+<x-button.export-bulan :url="route('logharian.export')" label="Export Semua Log Aktivitas" />
 
 <script type="text/javascript">
   $(function () {

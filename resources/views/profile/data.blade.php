@@ -334,8 +334,8 @@
                                 <span class="avatar-initial rounded-3 bg-label-info"><i class="ri-check-line text-info ri-24px"></i></span>
                             </div>
                             <div class="media-body ml-3">
-                                <a href="{{ url('logkegiatan') }}" class="stretched-link h6 mb-1">Log Harian</a>
-                                <p class="mb-0 text-sm">Informasi log harian</p>
+                                <a href="{{ url('logkegiatan') }}" class="stretched-link h6 mb-1">Log Aktivitas</a>
+                                <p class="mb-0 text-sm">Informasi log aktivitas</p>
                             </div>
                         </div>
                     </div>

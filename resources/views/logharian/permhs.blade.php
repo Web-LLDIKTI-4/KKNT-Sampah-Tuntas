@@ -14,7 +14,7 @@
                     <th width="1">No</th>
                     <th>Tanggal</th>
                     <th>Deskripsi Kegiatan</th>
-                    <th>Volume</th>
+                    <th>Volume/Kuantitas Output</th>
                     <th>Satuan</th>
                 </tr>
             </x-slot:thead>

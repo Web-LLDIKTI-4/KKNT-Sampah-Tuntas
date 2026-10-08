@@ -47,9 +47,9 @@ class LogHarianByMhsExport extends SafeValueBinder implements FromCollection, Wi
             'No',
             'Tanggal',
             'Deskripsi Kegiatan',
-            'Volume',
+            'Volume/Kuantitas Output',
             'Satuan',
-            'KPI',
+            'Aktivitas',
             'Tautan Bukti',
         ];
     }
