@@ -30,8 +30,8 @@ class AkunPimpinanSeeder extends Seeder
         ]));
         $this->akun[] = ['admin', $email, 'Administrator', 'Password di-reset'];
 
-        $this->user('kepala', 'kepala'.self::DOMAIN, 'Kepala LLDIKTI');
-        $this->user('pemda', 'pemda'.self::DOMAIN, 'Pemerintah Daerah');
+        // $this->user('kepala', 'kepala'.self::DOMAIN, 'Kepala LLDIKTI');
+        // $this->user('pemda', 'pemda'.self::DOMAIN, 'Pemerintah Daerah');
 
         $this->tampilkanAkun();
     }
