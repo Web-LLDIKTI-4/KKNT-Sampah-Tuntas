@@ -9,9 +9,9 @@
 <x-page-header
     icon="ri-line-chart-line"
     title="Capaian Key Performance Indicator (KPI)"
-    :subtitle="$desa ? 'Rekap sampah Kel. '.$desa->desa.', Kec. '.($desa->kecamatan?->kecamatan ?? '-').' dari Data Pemilahan Sampah Penduduk.' : 'Rekap sampah dari Data Pemilahan Sampah Penduduk.'" />
+    :subtitle="$desa ? 'Rekap sampah Kel. '.$desa->desa.', Kec. '.($desa->kecamatan?->kecamatan ?? '-').' dari Pendataan Pemilahan Sampah Penduduk.' : 'Rekap sampah dari Pendataan Pemilahan Sampah Penduduk.'" />
 
-{{-- Read-only: rekap dihitung otomatis dari Data Pemilahan Sampah Penduduk --}}
+{{-- Read-only: rekap dihitung otomatis dari Pendataan Pemilahan Sampah Penduduk --}}
 <div class="card mb-6">
     <div class="card-body">
         @if ($desa)
@@ -34,7 +34,7 @@
                 </div>
             </div>
             @include('rekapsampah._lldikti', ['rekap' => $rekap])
-            <p class="small text-muted mt-3 mb-0">Tambah atau perbaiki data lewat menu <a href="{{ url('pendataanpemilahan') }}">Data Pemilahan Sampah Penduduk</a>.</p>
+            <p class="small text-muted mt-3 mb-0">Tambah atau perbaiki data lewat menu <a href="{{ url('pendataanpemilahan') }}">Pendataan Pemilahan Sampah Penduduk</a>.</p>
         @else
             <div class="alert alert-warning mb-0">Anda belum terdaftar di lokasi KKN (kelurahan), sehingga rekap belum dapat ditampilkan.</div>
         @endif
