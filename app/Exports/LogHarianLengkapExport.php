@@ -25,8 +25,12 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  */
 class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueBinder, FromQuery, WithMapping, WithHeadings, WithEvents, WithStrictNullComparison, WithColumnWidths
 {
+    // Mahasiswa: kolom identitas & lokasi disembunyikan, sama dengan tabel log aktivitas
+    private bool $modeMahasiswa;
+
     public function __construct(private User $user, private ?string $bulan = null)
     {
+        $this->modeMahasiswa = $user->role === 'mahasiswa';
     }
 
     public function query(): Builder
@@ -56,38 +60,50 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
 
     public function map($row): array
     {
+        $tanggal = Carbon::parse($row->tanggal)->format('d/m/Y');
+        $kegiatan = [$row->nama_kpi, strip_tags((string) $row->deskripsi), $row->volume, $row->satuan, $row->tautan];
+
+        if ($this->modeMahasiswa) {
+            return [$tanggal, ...$kegiatan];
+        }
+
         return [
             $row->created_at ? Carbon::parse($row->created_at)->format('d/m/Y H:i:s') : null,
             $row->email,
             $row->nama,
             $row->phone,
-            Carbon::parse($row->tanggal)->format('d/m/Y'),
+            $tanggal,
             $row->nama_lokasi,
             $row->kecamatan,
             $row->desa,
-            strip_tags((string) $row->deskripsi),
-            $row->volume,
-            $row->satuan,
-            $row->nama_kpi,
-            $row->tautan,
+            ...$kegiatan,
         ];
     }
 
     public function headings(): array
     {
+        $kegiatan = ['Aktivitas', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
+
+        if ($this->modeMahasiswa) {
+            return ['Tanggal', ...$kegiatan];
+        }
+
         return [
             'Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak', 'Tanggal',
-            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'Deskripsi Kegiatan',
-            'Volume/Kuantitas Output', 'Satuan', 'Aktivitas', 'Tautan Bukti',
+            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', ...$kegiatan,
         ];
     }
 
     // Lebar manual: ShouldAutoSize menghitung tiap sel (boros memori)
     public function columnWidths(): array
     {
+        if ($this->modeMahasiswa) {
+            return ['A' => 12, 'B' => 24, 'C' => 45, 'D' => 14, 'E' => 18, 'F' => 35];
+        }
+
         return [
             'A' => 20, 'B' => 28, 'C' => 28, 'D' => 16, 'E' => 12, 'F' => 20, 'G' => 20, 'H' => 22,
-            'I' => 45, 'J' => 14, 'K' => 18, 'L' => 24, 'M' => 35,
+            'I' => 24, 'J' => 45, 'K' => 14, 'L' => 18, 'M' => 35,
         ];
     }
 
@@ -95,11 +111,12 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
     {
         return [AfterSheet::class => function (AfterSheet $event) {
             $sheet = $event->sheet->getDelegate();
-            $sheet->getStyle('A1:M1')->applyFromArray([
+            $akhir = $this->modeMahasiswa ? 'F' : 'M';
+            $sheet->getStyle("A1:{$akhir}1")->applyFromArray([
                 'font' => ['bold' => true],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFF00']],
             ]);
-            $sheet->getStyle('A1:M'.$sheet->getHighestRow())->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle("A1:{$akhir}".$sheet->getHighestRow())->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }];
     }
 

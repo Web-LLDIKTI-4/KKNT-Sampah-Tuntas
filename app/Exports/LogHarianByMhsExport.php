@@ -33,10 +33,10 @@ class LogHarianByMhsExport extends SafeValueBinder implements FromCollection, Wi
             ->map(fn ($item, $key) => [
                 $key + 1,
                 Carbon::parse($item->tanggal)->format('d-m-Y'),
+                $item->kpi?->nama_kpi,
                 strip_tags((string) $item->deskripsi),
                 $item->volume,
                 $item->satuan,
-                $item->kpi?->nama_kpi,
                 $item->tautan,
             ]);
     }
@@ -46,10 +46,10 @@ class LogHarianByMhsExport extends SafeValueBinder implements FromCollection, Wi
         return [
             'No',
             'Tanggal',
+            'Aktivitas',
             'Deskripsi Kegiatan',
             'Volume/Kuantitas Output',
             'Satuan',
-            'Aktivitas',
             'Tautan Bukti',
         ];
     }

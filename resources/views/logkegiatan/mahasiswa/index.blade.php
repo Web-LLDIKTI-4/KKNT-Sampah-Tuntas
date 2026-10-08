@@ -9,7 +9,6 @@
         <x-button id="btnTambahLog" variant="dark" style="background-color: black; color: white;" :modal="url('logkegiatan/tambah')" icon="ri-add-line" title="Tambah Log Aktivitas" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, \App\Services\AttendanceService::BLOCKING_STATUSES)">
             Tambah Log Aktivitas
         </x-button>
-        <x-button.export :url="route('logharian.export')" label="Export Log Aktivitas" />
     </div>
     <div class="card-body">
         <p id="resultcontent">loading data...</p>

@@ -76,6 +76,12 @@
       .landing-footer {
         flex-shrink: 0;
       }
+      /* Semua header tabel rata tengah; selector html:not(...) mengalahkan .text-start/.text-end (!important) dari className kolom DataTables */
+      table thead th,
+      html:not([dir=rtl]) table thead th:is(.text-start, .text-end) {
+        text-align: center !important;
+        vertical-align: middle !important;
+      }
     </style>
   </head>
 
