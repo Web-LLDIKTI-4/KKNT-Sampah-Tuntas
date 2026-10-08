@@ -1,8 +1,8 @@
 @extends('layouts.app')
-@section('title', 'Pendataan Pemilahan Sampah Penduduk')
+@section('title', 'Pendataan Sampah Penduduk')
 @section('container')
 
-<x-page-header title="Pendataan Pemilahan Sampah Penduduk" />
+<x-page-header title="Pendataan Sampah Penduduk" />
 
 <div class="card">
     <div class="card-header">

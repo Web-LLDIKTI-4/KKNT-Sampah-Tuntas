@@ -161,7 +161,7 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('pendataanpemilahan.index') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Pendataan Pemilahan Sampah Penduduk
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Pendataan Sampah Penduduk
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -293,7 +293,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('pendataanpemilahan.index') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Pendataan Pemilahan Sampah Penduduk
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Pendataan Sampah Penduduk
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -391,7 +391,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('pendataanpemilahan.index') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Pendataan Pemilahan Sampah Penduduk
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Pendataan Sampah Penduduk
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -432,7 +432,7 @@
                     <a class="nav-link fw-medium" href="{{ url('logkegiatan') }}">Log Harian</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('pendataanpemilahan') }}">Pendataan Pemilahan Sampah Penduduk</a>
+                    <a class="nav-link fw-medium" href="{{ url('pendataanpemilahan') }}">Pendataan Sampah Penduduk</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link fw-medium" href="{{ url('logbulanan') }}">Log Bulanan</a>

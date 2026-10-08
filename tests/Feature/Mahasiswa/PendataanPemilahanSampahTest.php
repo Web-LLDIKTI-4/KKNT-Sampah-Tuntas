@@ -36,7 +36,7 @@ class PendataanPemilahanSampahTest extends TestCase
     public function test_mahasiswa_can_add_edit_and_delete_population_waste_data(): void
     {
         $user = $this->loginAs('mahasiswa');
-        $this->get('pendataanpemilahan')->assertOk()->assertSee('Pendataan Pemilahan Sampah Penduduk');
+        $this->get('pendataanpemilahan')->assertOk()->assertSee('Pendataan Sampah Penduduk');
 
         $this->put('pendataanpemilahan/insert', $this->payload())->assertJson(['success' => true]);
         $data = PendataanPemilahanSampah::where('email', $user->email)->firstOrFail();
@@ -110,7 +110,7 @@ class PendataanPemilahanSampahTest extends TestCase
         foreach (['admin', 'dpl', 'pt', 'kepala', 'pemda', 'mahasiswa'] as $role) {
             $this->loginAs($role);
             $this->get('pendataanpemilahan')->assertOk()
-                ->assertSee('Pendataan Pemilahan Sampah Penduduk')
+                ->assertSee('Pendataan Sampah Penduduk')
                 ->assertSee(url('pendataanpemilahan'));
         }
     }

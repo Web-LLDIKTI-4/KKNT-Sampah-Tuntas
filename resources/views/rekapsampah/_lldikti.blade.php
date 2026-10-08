@@ -53,7 +53,7 @@
                     @endforeach
                 @endforeach
             @empty
-                <tr><td colspan="12" class="text-center text-muted">Belum ada data Pendataan Pemilahan Sampah Penduduk</td></tr>
+                <tr><td colspan="12" class="text-center text-muted">Belum ada data Pendataan Sampah Penduduk</td></tr>
             @endforelse
         </tbody>
     </table>

@@ -235,7 +235,7 @@ class RekapSampahLogHarianTest extends TestCase
         // Data kosong tetap render
         PendataanPemilahanSampah::query()->delete();
         $this->loginAs('admin');
-        $this->get('rekapsampah')->assertOk()->assertSee('Belum ada data Pendataan Pemilahan Sampah Penduduk');
+        $this->get('rekapsampah')->assertOk()->assertSee('Belum ada data Pendataan Sampah Penduduk');
         $this->get('dashboardkpi')->assertOk();
     }
 

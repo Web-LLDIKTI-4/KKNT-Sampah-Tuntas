@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Rekap sampah dari Pendataan Pemilahan Sampah Penduduk, per bulan + kelurahan.
+ * Rekap sampah dari Pendataan Sampah Penduduk, per bulan + kelurahan.
  * Kelurahan log = lokasi mahasiswa (mahasiswa_lokasi) tahun terbaru.
  * Persentase dihitung dari total: ketaatan = memilah/rumah, penurunan = terkelola/dihasilkan.
  *
