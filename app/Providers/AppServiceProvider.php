@@ -31,5 +31,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Unduhan panduan publik di halaman login: per IP, cegah penyedotan bandwidth
         RateLimiter::for('public-download', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
+
+        // DT_RowIndex (addIndexColumn) bukan kolom DB: abaikan saat search/sort engine query/eloquent.
+        // Key string wajib: blacklist dari addColumn() (key numerik) menimpa index config saat di-merge Yajra
+        config(['datatables.columns.blacklist.dt_row_index' => 'DT_RowIndex']);
     }
 }

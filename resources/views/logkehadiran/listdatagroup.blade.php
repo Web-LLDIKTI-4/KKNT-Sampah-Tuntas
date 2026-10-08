@@ -34,7 +34,7 @@
                 {data: 'nim', name: 'nim', className: 'text-center'},
                 {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
                 {data: 'nm_lemb', name: 'nm_lemb'},
-                {data: 'count_log', name: 'count_log', className: 'text-center'},
+                {data: 'count_log', name: 'count_log', className: 'text-center', searchable: false},
                 {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
             ],
         });

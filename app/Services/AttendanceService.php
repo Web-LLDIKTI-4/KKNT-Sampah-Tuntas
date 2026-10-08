@@ -8,7 +8,7 @@ class AttendanceService
 {
     public const IZIN_STATUSES = ['izin', 'sakit', 'cuti', 'kuliah'];
 
-    private const BLOCKING_STATUSES = ['izin', 'sakit', 'cuti', 'kuliah', 'libur nasional'];
+    public const BLOCKING_STATUSES = ['izin', 'sakit', 'cuti', 'kuliah', 'libur nasional'];
 
     /**
      * Jarak dua titik dalam meter (rumus haversine).

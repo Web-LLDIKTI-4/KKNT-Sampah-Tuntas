@@ -115,7 +115,7 @@ class PendataanPemilahanSampahTest extends TestCase
         }
     }
 
-    public function test_non_students_have_read_only_detail_without_action_column(): void
+    public function test_non_students_are_view_only_with_view_action_in_group(): void
     {
         $this->loginAs('admin');
         $student = Mahasiswa::factory()->create(['email' => 'student@pps.test']);
@@ -132,10 +132,14 @@ class PendataanPemilahanSampahTest extends TestCase
         $grouped = $this->getJson('pendataanpemilahan/listdatagrouping?draw=1&start=0&length=10', $this->ajax)
             ->assertOk()
             ->assertJsonPath('recordsTotal', 1)
-            ->assertJsonPath('data.0.count_log', 3)
-            ->assertJsonMissingPath('data.0.action');
-        $this->assertStringContainsString('/pendataanpemilahan/listdata/student%40pps.test', $grouped->json('data.0.nama_mahasiswa'));
-        $this->get('pendataanpemilahan/listdatagroup')->assertOk()->assertDontSee('Aksi');
+            ->assertJsonPath('data.0.count_log', 3);
+        $action = (string) $grouped->json('data.0.action');
+        $this->assertStringContainsString('/pendataanpemilahan/listdata/student%40pps.test', $action);
+        $this->assertStringContainsString('Lihat Data', $action);
+        $this->assertStringNotContainsString('Ubah Data', $action);
+        $this->assertStringNotContainsString('btn-delete', $action);
+        $this->assertStringNotContainsString('<a', (string) $grouped->json('data.0.nama_mahasiswa'));
+        $this->get('pendataanpemilahan/listdatagroup')->assertOk()->assertSee('Aksi')->assertSee("data: 'action'", false);
         $this->get('pendataanpemilahan/tambah')->assertRedirect();
     }
 
@@ -210,5 +214,75 @@ class PendataanPemilahanSampahTest extends TestCase
         Excel::assertDownloaded('/^pendataan_pemilahan_.+_2026-05_.+\.xlsx$/', function (PendataanPemilahanSampahByMhsExport $export) {
             return $export->collection()->count() === 1;
         });
+    }
+
+    private function dtColumns(array $names): array
+    {
+        return collect($names)->map(fn ($c) => [
+            'data' => $c, 'name' => $c,
+            'searchable' => $c === 'DT_RowIndex' ? 'false' : 'true',
+            'orderable' => $c === 'DT_RowIndex' ? 'false' : 'true',
+            'search' => ['value' => '', 'regex' => 'false'],
+        ])->all();
+    }
+
+    public function test_reviewer_detail_search_memilah_and_tanggal(): void
+    {
+        $this->loginAs('admin');
+        $m = Mahasiswa::factory()->create(['email' => 'det@pps.test']);
+        PendataanPemilahanSampah::factory()->create(['email' => $m->email, 'memilah' => true, 'tanggal' => '2026-09-30']);
+        PendataanPemilahanSampah::factory()->create(['email' => $m->email, 'memilah' => false, 'tanggal' => '2026-10-01']);
+        $cols = $this->dtColumns(['DT_RowIndex', 'tanggal', 'nama_kepala_keluarga', 'alamat_rumah', 'rt', 'rw', 'memilah']);
+        $url = 'pendataanpemilahan/listdataserver/'.rawurlencode($m->email).'?';
+
+        foreach (['Tidak' => '01-10-2026', '30-09-2026' => '30-09-2026'] as $keyword => $tanggal) {
+            $this->getJson($url.http_build_query(['draw' => 1, 'start' => 0, 'length' => 10, 'columns' => $cols,
+                'search' => ['value' => $keyword, 'regex' => 'false']]), $this->ajax)
+                ->assertOk()->assertJsonPath('recordsFiltered', 1)->assertJsonPath('data.0.tanggal', $tanggal);
+        }
+    }
+
+    public function test_sort_tanggal_is_chronological_for_student_and_reviewer(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => '2026-09-30']);
+        PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => '2026-10-01']);
+        $params = ['draw' => 1, 'start' => 0, 'length' => 10,
+            'columns' => $this->dtColumns(['DT_RowIndex', 'tanggal']), 'order' => [['column' => 1, 'dir' => 'desc']]];
+
+        $this->getJson('pendataanpemilahan/listdataserver?'.http_build_query($params), $this->ajax)
+            ->assertOk()->assertJsonPath('data.0.tanggal', '01-10-2026');
+
+        $this->loginAs('admin');
+        $this->getJson('pendataanpemilahan/listdataserver/'.rawurlencode($user->email).'?'.http_build_query($params), $this->ajax)
+            ->assertOk()->assertJsonPath('data.0.tanggal', '01-10-2026');
+        $params['order'][0]['dir'] = 'asc';
+        $this->getJson('pendataanpemilahan/listdataserver/'.rawurlencode($user->email).'?'.http_build_query($params), $this->ajax)
+            ->assertOk()->assertJsonPath('data.0.tanggal', '30-09-2026');
+    }
+
+    public function test_student_cannot_view_other_student_detail_or_export(): void
+    {
+        $this->loginAs('mahasiswa');
+        $other = Mahasiswa::factory()->create(['email' => 'lain@pps.test']);
+        PendataanPemilahanSampah::factory()->create(['email' => $other->email]);
+
+        $this->get('pendataanpemilahan/listdata/'.rawurlencode($other->email))->assertNotFound();
+        $this->getJson('pendataanpemilahan/listdataserver/'.rawurlencode($other->email).'?draw=1&start=0&length=10', $this->ajax)->assertNotFound();
+        $this->get('pendataanpemilahan/export/'.rawurlencode($other->email))->assertNotFound();
+        $this->getJson('pendataanpemilahan/listdatagrouping?draw=1&start=0&length=10', $this->ajax)->assertJsonPath('recordsTotal', 0);
+    }
+
+    public function test_dpl_cannot_edit_or_delete_student_records(): void
+    {
+        $dpl = $this->loginAs('dpl');
+        $m = Mahasiswa::factory()->create(['email' => 'bimb@pps.test']);
+        Dplmentoring::create(['email_mahasiswa' => $m->email, 'email_dpl' => $dpl->email]);
+        $row = PendataanPemilahanSampah::factory()->create(['email' => $m->email]);
+
+        $this->get('pendataanpemilahan/edit/'.$row->id_pendataan)->assertRedirect();
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $row->id_pendataan, 'rt' => '999']))->assertRedirect();
+        $this->put('pendataanpemilahan/destroy', ['id_pendataan' => $row->id_pendataan])->assertRedirect();
+        $this->assertDatabaseHas('pendataan_pemilahan_sampah', ['id_pendataan' => $row->id_pendataan, 'rt' => $row->rt]);
     }
 }

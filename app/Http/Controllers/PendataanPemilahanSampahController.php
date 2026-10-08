@@ -35,18 +35,6 @@ class PendataanPemilahanSampahController extends StudentLogReportController
 
     protected function constrainCountedLogs($query): void {}
 
-    protected function showGroupActionColumn(): bool
-    {
-        return false;
-    }
-
-    protected function groupedStudentName(Mahasiswa $student): string
-    {
-        return '<a href="'.e(url(
-            $this->routePrefix().'/listdata/'.rawurlencode($student->email)
-        )).'">'.e($student->nama ?? 'Nama tidak tersedia').'</a>';
-    }
-
     public function index(?Request $request = null)
     {
         $request ??= request();
@@ -74,20 +62,15 @@ class PendataanPemilahanSampahController extends StudentLogReportController
         abort_unless($request->ajax() && $request->user()->role === 'mahasiswa', 404);
 
         $data = PendataanPemilahanSampah::ownedBy($request->user())
-            ->without('mahasiswa')
-            ->orderByDesc('tanggal')
-            ->get();
+            ->unless($this->userSorts(), fn ($q) => $q->orderByDesc('tanggal'));
 
-        return DataTables::of($data)
-            ->addIndexColumn()
+        return $this->withPemilahanFilters(DataTables::eloquent($data))
             ->addColumn('action', fn (PendataanPemilahanSampah $row) => ActionButtons::make(
                 urlEdit: url('pendataanpemilahan/edit/'.$row->id_pendataan),
                 urlDelete: url('pendataanpemilahan/destroy'),
                 idField: 'id_pendataan',
                 idValue: $row->id_pendataan,
             ))
-            ->editColumn('tanggal', fn (PendataanPemilahanSampah $row) => date('d-m-Y', strtotime($row->tanggal)))
-            ->editColumn('memilah', fn (PendataanPemilahanSampah $row) => $row->memilah ? 'Ya' : 'Tidak')
             ->rawColumns(['action'])
             ->make(true);
     }
@@ -101,14 +84,27 @@ class PendataanPemilahanSampahController extends StudentLogReportController
 
     protected function detailTable(string $email): DataTableAbstract
     {
-        return DataTables::of(PendataanPemilahanSampah::where('email', $email)
-            ->without('mahasiswa')
-            ->orderBy('tanggal')
-            ->orderBy('created_at')
-            ->get())
-            ->addIndexColumn()
+        return $this->withPemilahanFilters(DataTables::eloquent(PendataanPemilahanSampah::where('email', $email)
+            ->unless($this->userSorts(), fn ($q) => $q->orderBy('tanggal')->orderBy('created_at'))));
+    }
+
+    // Eloquent: sort tanggal kronologis di SQL; search pakai teks tampilan (d-m-Y, Ya/Tidak)
+    private function withPemilahanFilters(DataTableAbstract $table): DataTableAbstract
+    {
+        return $table->addIndexColumn()
             ->editColumn('tanggal', fn (PendataanPemilahanSampah $row) => date('d-m-Y', strtotime($row->tanggal)))
-            ->editColumn('memilah', fn (PendataanPemilahanSampah $row) => $row->memilah ? 'Ya' : 'Tidak');
+            ->filterColumn('tanggal', fn ($q, $k) => $this->filterTanggal($q, $k))
+            ->editColumn('memilah', fn (PendataanPemilahanSampah $row) => $row->memilah ? 'Ya' : 'Tidak')
+            ->filterColumn('memilah', function ($q, $k) {
+                $k = strtolower(trim($k));
+                [$ya, $tidak] = [str_contains('ya', $k), str_contains('tidak', $k)];
+                match (true) {
+                    $ya && $tidak => $q->whereNotNull('memilah'),
+                    $ya => $q->where('memilah', true),
+                    $tidak => $q->where('memilah', false),
+                    default => $q->whereRaw('1 = 0'),
+                };
+            });
     }
 
     protected function exportFor(string $email)

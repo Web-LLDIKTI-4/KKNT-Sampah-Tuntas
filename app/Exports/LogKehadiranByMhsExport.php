@@ -25,7 +25,7 @@ class LogKehadiranByMhsExport extends SafeValueBinder implements WithCustomValue
     public function collection()
     {
         // Ambil data berdasarkan email jika diperlukan
-        $kehadiran = Kehadiran::with(['mahasiswa'])->where('email', $this->email)->get();
+        $kehadiran = Kehadiran::with(['mahasiswa.sp'])->where('email', $this->email)->orderBy('tanggal')->get();
 
         $data = $kehadiran->map(function ($item, $key) {
             return [
@@ -34,7 +34,7 @@ class LogKehadiranByMhsExport extends SafeValueBinder implements WithCustomValue
                 'Nama Mahasiswa' => $item->mahasiswa->nama ?? 'Nama tidak tersedia',
                 'Nama Perguruan Tinggi' => $item->mahasiswa->sp->nm_lemb ?? 'Perguruan Tinggi tidak tersedia',
                 'Tanggal' => \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y'),
-                'Status Kehadiran' => ucfirst($item->status_kehadiran),
+                'Status Kehadiran' => ucfirst((string) $item->status_kehadiran),
                 'Jam Masuk' => $item->waktu_masuk ? \Carbon\Carbon::parse($item->waktu_masuk)->format('H:i:s') : '-',
                 'Jam Pulang' => $item->waktu_pulang ? \Carbon\Carbon::parse($item->waktu_pulang)->format('H:i:s') : '-',
             ];

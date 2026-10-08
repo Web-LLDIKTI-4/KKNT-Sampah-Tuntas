@@ -24,7 +24,7 @@
                 </table>
             </div>
         </div>
-        <x-button.export url="{{ url('admlogkegiatan/export/'.request()->route('email')) }}" />
+        <x-button.export url="{{ url('admlogkegiatan/export/'.rawurlencode(request()->route('email'))) }}" />
     </div>
 </div>
 
@@ -44,12 +44,12 @@
                 infoEmpty: "Tidak ada data yang ditemukan",
             },
             columns: [
-                {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', searchable: false},
+                {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
                 {data: 'tanggal', name: 'tanggal', className: 'text-center'},
                 {data: 'deskripsi', name: 'deskripsi'},
                 {data: 'volume', name: 'volume', className: 'text-end'},
                 {data: 'satuan', name: 'satuan'},
-                {data: 'nama_kpi', name: 'nama_kpi'},
+                {data: 'nama_kpi', name: 'nama_kpi', orderable: false},
                 {data: 'tautan', name: 'tautan', orderable: false, searchable: false},
             ]
         });

@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Kpi;
 use App\Models\Kpicapaian;
 use App\Models\Pjdesa;
-use Database\Seeders\SimulasiSeeder;
+use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\KpiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +17,7 @@ class KpiSeederTest extends TestCase
 
     public function test_seeder_creates_kpi_dummy_data_and_is_rerunnable(): void
     {
-        $this->seed(SimulasiSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
         $this->assertSame(1, Kpi::count());
         $this->assertSame(['Pengurangan Sampah Rumah Tangga', 20.0, '%'], [Kpi::first()->nama_kpi, (float) Kpi::first()->target, Kpi::first()->satuan]);
@@ -54,7 +54,7 @@ class KpiSeederTest extends TestCase
 
     public function test_each_pt_has_three_ketua_with_one_report_per_month(): void
     {
-        $this->seed(SimulasiSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
         $ketuaPerPt = DB::table('pj_desa as p')
             ->join('mahasiswa as m', 'm.email', '=', 'p.email')

@@ -23,7 +23,7 @@
         serverSide: true,
         ajax: "{{ route('ptpeserta.listdataserver') }}",
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
             {data: 'kodept', name: 'kodept'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'jumlah_mhs', name: 'jumlah_mhs'},

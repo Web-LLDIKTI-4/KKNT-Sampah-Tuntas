@@ -3,6 +3,8 @@
 namespace Tests\Feature\Mahasiswa;
 
 use App\Models\Kehadiran;
+use App\Models\Mahasiswa;
+use App\Services\AttendanceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -85,5 +87,47 @@ class KehadiranTest extends TestCase
 
         $this->getJson('logkehadiran/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertJsonPath('recordsTotal', 1);
+    }
+
+    public function test_dashboard_and_log_page_render_disabled_for_every_blocking_status(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+
+        foreach (AttendanceService::BLOCKING_STATUSES as $status) {
+            Kehadiran::query()->delete();
+            Kehadiran::factory()->create(['email' => $user->email, 'tanggal' => today(), 'status_kehadiran' => $status]);
+
+            $home = $this->get('home')->assertOk()->getContent();
+            $this->assertSame(1, preg_match('/<a[^>]*id="btnTambahLog"[^>]*>/', $home, $m), $status);
+            $this->assertStringContainsString('aria-disabled="true"', $m[0], $status);
+            $this->assertMatchesRegularExpression('/<button[^>]*disabled[^>]*>\s*(<i[^>]*><\/i>)?\s*Datang/', $home, $status);
+            $this->assertStringContainsString('role="alert"', $home, $status);
+
+            $log = $this->get('logkegiatan')->assertOk()->getContent();
+            preg_match('/<a[^>]*id="btnTambahLog"[^>]*>/', $log, $m);
+            $this->assertStringContainsString('aria-disabled="true"', $m[0] ?? '', $status);
+        }
+
+        Kehadiran::query()->delete();
+        $home = $this->get('home')->assertOk()->getContent();
+        preg_match('/<a[^>]*id="btnTambahLog"[^>]*>/', $home, $m);
+        $this->assertStringNotContainsString('aria-disabled', $m[0]);
+    }
+
+    public function test_admin_detail_shows_status_badge_including_libur_nasional(): void
+    {
+        $this->loginAs('admin');
+        $m = Mahasiswa::factory()->create(['email' => 'hadir@pps.test']);
+        Kehadiran::factory()->create(['email' => $m->email, 'tanggal' => today()->subDays(2), 'status_kehadiran' => 'kuliah']);
+        Kehadiran::factory()->create(['email' => $m->email, 'tanggal' => today()->subDay(), 'status_kehadiran' => 'libur nasional']);
+
+        $this->get('admlogkehadiran/listdata/'.rawurlencode($m->email))->assertOk()
+            ->assertSee('<th class="text-center">Status</th>', false)
+            ->assertSee("data: 'status_kehadiran'", false);
+        $res = $this->getJson('admlogkehadiran/listdataserver/'.rawurlencode($m->email).'?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk();
+        $badges = collect($res->json('data'))->pluck('status_kehadiran')->all();
+        $this->assertContains('<span class="badge bg-primary">Kuliah</span>', $badges);
+        $this->assertContains('<span class="badge bg-dark">Libur Nasional</span>', $badges);
     }
 }

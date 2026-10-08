@@ -23,7 +23,15 @@ class LogkehadiranController extends Controller
         'sakit' => ['bg-danger', 'Sakit'],
         'cuti' => ['bg-info', 'Cuti'],
         'kuliah' => ['bg-primary', 'Kuliah'],
+        'libur nasional' => ['bg-dark', 'Libur Nasional'],
     ];
+
+    public static function badge(?string $status): string
+    {
+        [$class, $label] = self::BADGE[$status] ?? ['bg-secondary', 'Belum Absen'];
+
+        return '<span class="badge '.$class.'">'.$label.'</span>';
+    }
 
     public function __construct(private AttendanceService $attendance) {}
 
@@ -43,11 +51,7 @@ class LogkehadiranController extends Controller
 
         return DataTables::of(Kehadiran::ownedBy($request->user())->orderByDesc('tanggal')->get())
             ->addIndexColumn()
-            ->editColumn('status_kehadiran', function (Kehadiran $row) {
-                [$class, $label] = self::BADGE[$row->status_kehadiran] ?? ['bg-secondary', 'Belum Absen'];
-
-                return '<span class="badge '.$class.'">'.$label.'</span>';
-            })
+            ->editColumn('status_kehadiran', fn (Kehadiran $row) => self::badge($row->status_kehadiran))
             ->editColumn('tanggal', fn (Kehadiran $row) => $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-')
             ->editColumn('waktu_masuk', fn (Kehadiran $row) => $row->waktu_masuk ? date('H:i:s', strtotime($row->waktu_masuk)).' WIB' : '-')
             ->editColumn('waktu_pulang', fn (Kehadiran $row) => $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)).' WIB' : '-')

@@ -26,6 +26,9 @@ class AdmlogkehadiranController extends StudentLogReportController
         return 'logkehadiran';
     }
 
+    // Tabel kehadiran tidak punya kolom deskripsi: hitung semua baris
+    protected function constrainCountedLogs($query): void {}
+
     protected function detailTable(string $email): DataTableAbstract
     {
         return DataTables::of(Kehadiran::where('email', $email)->with('mahasiswa.sp')->orderByDesc('tanggal')->get())
@@ -33,12 +36,13 @@ class AdmlogkehadiranController extends StudentLogReportController
             ->addColumn('nim', fn ($row) => $row->mahasiswa->nim ?? 'NIM tidak tersedia')
             ->addColumn('nama_mahasiswa', fn ($row) => $row->mahasiswa->nama ?? 'Nama tidak tersedia')
             ->addColumn('nm_lemb', fn ($row) => $row->mahasiswa->sp->nm_lemb ?? 'Perguruan Tinggi tidak tersedia')
+            ->editColumn('status_kehadiran', fn ($row) => LogkehadiranController::badge($row->status_kehadiran))
             ->editColumn('tanggal', fn ($row) => $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-')
             ->editColumn('waktu_masuk', fn ($row) => $row->waktu_masuk ? date('H:i:s', strtotime($row->waktu_masuk)).' WIB' : '-')
             ->editColumn('waktu_pulang', fn ($row) => $row->waktu_pulang ? date('H:i:s', strtotime($row->waktu_pulang)).' WIB' : '-')
             ->addColumn('coordinates_datang', fn ($row) => ActionButtons::map($row->latitude_datang, $row->longitude_datang))
             ->addColumn('coordinates_pulang', fn ($row) => ActionButtons::map($row->latitude_pulang, $row->longitude_pulang))
-            ->rawColumns(['coordinates_datang', 'coordinates_pulang']);
+            ->rawColumns(['status_kehadiran', 'coordinates_datang', 'coordinates_pulang']);
     }
 
     protected function exportFor(string $email)

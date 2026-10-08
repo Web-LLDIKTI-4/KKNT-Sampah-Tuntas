@@ -6,6 +6,7 @@ use App\Models\Kpi;
 use App\Models\Logkegiatan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use App\Models\Kehadiran;
 use Tests\TestCase;
 
 class LogkegiatanTest extends TestCase
@@ -129,5 +130,41 @@ class LogkegiatanTest extends TestCase
 
         $this->put('logkegiatan/insert', $this->payload())->assertRedirect();
         $this->assertDatabaseCount('logkegiatan', 0);
+    }
+
+    public function test_pt_cannot_create_daily_log(): void
+    {
+        $pt = $this->loginAs('pt');
+
+        $this->put('logkegiatan/insert', $this->payload())->assertRedirect();
+        $this->get('logkegiatan')->assertRedirect();
+        $this->assertDatabaseMissing('logkegiatan', ['email' => $pt->email]);
+    }
+
+    public function test_blocking_attendance_status_rejects_new_daily_log_but_allows_update(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $log = Logkegiatan::factory()->create(['email' => $user->email, 'tanggal' => today()->subDay()->toDateString()]);
+        $this->put('logkehadiran/insertizin', ['status_kehadiran' => 'kuliah', 'keterangan' => 'Kuliah'])
+            ->assertJson(['success' => true]);
+
+        $this->put('logkegiatan/insert', $this->payload())->assertJsonValidationErrors(['tanggal'], 'errors');
+        $this->assertDatabaseCount('logkegiatan', 1);
+
+        $this->put('logkegiatan/update', $this->payload([
+            'id_log' => $log->id_log,
+            'tanggal' => $log->tanggal,
+            'deskripsi' => '<p>Diperbarui</p>',
+        ]))->assertJson(['success' => true]);
+    }
+
+    public function test_add_button_disabled_when_status_is_blocking(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        Kehadiran::factory()->create(['email' => $user->email, 'tanggal' => today(), 'status_kehadiran' => 'kuliah']);
+
+        $html = $this->get('logkegiatan')->assertOk()->getContent();
+        $this->assertSame(1, preg_match('/<a[^>]*id="btnTambahLog"[^>]*>/', $html, $m));
+        $this->assertStringContainsString('aria-disabled="true"', $m[0]);
     }
 }

@@ -3,12 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Database\Seeders\AdminSeeder;
+use Database\Seeders\AkunPimpinanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
-class AdminSeederTest extends TestCase
+// Akun admin, kepala, pemda (pengganti AdminSeeder)
+class AkunPimpinanSeederTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -17,7 +18,7 @@ class AdminSeederTest extends TestCase
     private function seedAdmin(?string $password = 'password-aman-123', ?string $email = self::EMAIL): void
     {
         config(['app.seed_password' => $password, 'app.seed_admin_email' => $email]);
-        (new AdminSeeder)->run();
+        (new AkunPimpinanSeeder)->run();
     }
 
     private function asProduction(): void
@@ -67,5 +68,27 @@ class AdminSeederTest extends TestCase
         $this->seedAdmin('pendek');
 
         $this->assertTrue(Hash::check('pendek', User::where('email', self::EMAIL)->value('password')));
+    }
+
+    public function test_creates_kepala_and_pemda_once_with_seed_password(): void
+    {
+        $this->seedAdmin('password-aman-123');
+        $this->seedAdmin('password-aman-123');
+
+        foreach (['kepala' => 'kepala@kknt.test', 'pemda' => 'pemda@kknt.test'] as $role => $email) {
+            $this->assertSame(1, User::where('role', $role)->count(), $role);
+            $this->assertSame($role, User::where('email', $email)->value('role'));
+            $this->assertTrue(Hash::check('password-aman-123', User::where('email', $email)->value('password')));
+        }
+    }
+
+    public function test_does_not_touch_non_seed_accounts(): void
+    {
+        $asli = User::factory()->role('kepala')->create(['email' => 'kepala@lldikti.go.id', 'password' => Hash::make('rahasia-asli')]);
+
+        $this->seedAdmin();
+
+        $this->assertTrue(Hash::check('rahasia-asli', $asli->fresh()->password));
+        $this->assertSame('kepala', $asli->fresh()->role);
     }
 }

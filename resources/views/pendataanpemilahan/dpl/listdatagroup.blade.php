@@ -8,6 +8,7 @@
                 <th>Email</th>
                 <th>Perguruan Tinggi</th>
                 <th class="text-center">Jumlah Pendataan</th>
+                <th class="text-center" width="1">Aksi</th>
             </tr>
         </thead>
     </table>
@@ -33,6 +34,7 @@
                 {data: 'email', name: 'email'},
                 {data: 'nm_lemb', name: 'nm_lemb'},
                 {data: 'count_log', name: 'count_log', className: 'text-center', searchable: false},
+                {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
             ],
         });
     });

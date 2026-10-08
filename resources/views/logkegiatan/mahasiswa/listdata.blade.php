@@ -45,7 +45,7 @@
             {data: 'deskripsi', name: 'deskripsi'},
             {data: 'volume', name: 'volume', className: 'text-end'},
             {data: 'satuan', name: 'satuan'},
-            {data: 'nama_kpi', name: 'nama_kpi'},
+            {data: 'nama_kpi', name: 'nama_kpi', orderable: false},
             {data: 'tautan', name: 'tautan', orderable: false, searchable: false},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],

@@ -197,9 +197,8 @@ class LogHarianExportTest extends TestCase
         $this->actingAs($this->user('mahasiswa', 'mhsA1@uji.test'));
         $this->get('logkegiatan/listdata')->assertOk()->assertSee(route('logharian.export'), false);
 
-        // 4 halaman log: tombol "Export Semua" + input bulan opsional
+        // 3 halaman log: tombol "Export Semua" + input bulan opsional
         $halaman = [
-            'admlogharian/listdata' => route('logharian.export'),
             'admlogkegiatan' => route('logharian.export'),
             'admlogbulanan' => route('export.logbulanan'),
             'admlogkehadiran' => route('export.logkehadiran'),
@@ -210,10 +209,6 @@ class LogHarianExportTest extends TestCase
         foreach ($users as $role => $email) {
             $this->actingAs($this->user($role, $email));
             foreach ($halaman as $uri => $action) {
-                // admlogharian hanya untuk admin
-                if ($uri === 'admlogharian/listdata' && $role !== 'admin') {
-                    continue;
-                }
                 $html = $this->get($uri)->assertOk()->assertSee('Export Semua')->getContent();
                 $this->assertStringContainsString('action="'.$action.'"', $html, "$role $uri");
                 $this->assertMatchesRegularExpression('/<input type="month" name="bulan"(?![^>]*required)[^>]*>/', $html, "$role $uri");
@@ -221,4 +216,13 @@ class LogHarianExportTest extends TestCase
         }
     }
 
+    public function test_admlogharian_legacy_redirect_ke_admlogkegiatan(): void
+    {
+        $this->actingAs($this->user('admin', 'admin@uji.test'));
+
+        $this->get('admlogharian')->assertRedirect('admlogkegiatan');
+        foreach (['admlogharian/listdata', 'admlogharian/listdataserver', 'admlogharian/permhs/x%40uji.test', 'admlogharian/permhsserver/x%40uji.test'] as $uri) {
+            $this->get($uri)->assertNotFound();
+        }
+    }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Mahasiswa;
 
 use App\Http\Requests\AjaxFormRequest;
+use App\Models\Kehadiran;
+use App\Services\AttendanceService;
 use Illuminate\Validation\Rule;
 
 class LogkegiatanRequest extends AjaxFormRequest
@@ -30,6 +32,23 @@ class LogkegiatanRequest extends AjaxFormRequest
             'id_kpi' => ['required', 'uuid', 'exists:kpi,id_kpi'],
             'tautan' => ['nullable', 'url:http,https', 'max:255'],
         ];
+    }
+
+    // Tolak log baru bila hari ini berstatus izin/sakit/cuti/kuliah/libur
+    public function after(): array
+    {
+        return [function ($validator) {
+            if ($this->isUpdate()) {
+                return;
+            }
+            $blocked = Kehadiran::ownedBy($this->user())
+                ->whereDate('tanggal', today())
+                ->whereIn('status_kehadiran', AttendanceService::BLOCKING_STATUSES)
+                ->exists();
+            if ($blocked) {
+                $validator->errors()->add('tanggal', 'Tidak bisa menambah log harian karena status kehadiran hari ini bukan hadir.');
+            }
+        }];
     }
 
     public function messages(): array

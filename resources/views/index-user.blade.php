@@ -35,11 +35,11 @@
     <div class="card col">
         <div class="card-body">
             <div class="d-flex flex-column flex-md-row gap-3">
-                <x-button variant="secondary" :modal="url('logkehadiran/tambahizin')" icon="ri-add-line" title="Lapor Status Kehadiran" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'kuliah', 'libur nasional']) || $kehadiran && $kehadiran->waktu_masuk">
+                <x-button variant="secondary" :modal="url('logkehadiran/tambahizin')" icon="ri-add-line" title="Lapor Status Kehadiran" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, \App\Services\AttendanceService::BLOCKING_STATUSES) || $kehadiran && $kehadiran->waktu_masuk">
                     Pengajuan Izin
                 </x-button>
 
-                <x-button id="btnTambahLog" variant="dark" style="background-color: black; color: white;" :modal="url('logkegiatan/tambah')" icon="ri-add-line" title="Tambah Log Harian" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'kuliah', 'libur nasional'])">
+                <x-button id="btnTambahLog" variant="dark" style="background-color: black; color: white;" :modal="url('logkegiatan/tambah')" icon="ri-add-line" title="Tambah Log Harian" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, \App\Services\AttendanceService::BLOCKING_STATUSES)">
                     Tambah Log Harian
                 </x-button>
             </div>
@@ -57,7 +57,7 @@
                         <input type="hidden" name="latitude_datang" id="latitude-datang">
                         <input type="hidden" name="longitude_datang" id="longitude-datang">
                         @php
-                            $disableDatang = ($kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'kuliah', 'libur nasional'])) ||
+                            $disableDatang = ($kehadiran && in_array($kehadiran->status_kehadiran, \App\Services\AttendanceService::BLOCKING_STATUSES)) ||
                                             ($kehadiran && $kehadiran->waktu_masuk);
                         @endphp
                         <x-button.save formId="form-datang" variant="primary" icon="ri-time-line" class="w-100" disabled>Datang</x-button.save>
@@ -71,7 +71,7 @@
                         <input type="hidden" name="latitude_pulang" id="latitude-pulang">
                         <input type="hidden" name="longitude_pulang" id="longitude-pulang">
                         @php
-                            $disablePulang = ($kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'kuliah', 'libur nasional'])) ||
+                            $disablePulang = ($kehadiran && in_array($kehadiran->status_kehadiran, \App\Services\AttendanceService::BLOCKING_STATUSES)) ||
                                             (!$kehadiran || !$kehadiran->waktu_masuk) ||
                                             ($kehadiran && $kehadiran->waktu_pulang);
                         @endphp
@@ -80,7 +80,7 @@
                 </div>
             </div>
 
-            @if($kehadiran && in_array($kehadiran->status_kehadiran, ['izin', 'sakit', 'cuti', 'kuliah', 'libur nasional']))
+            @if($kehadiran && in_array($kehadiran->status_kehadiran, \App\Services\AttendanceService::BLOCKING_STATUSES))
                 <div class="alert alert-info d-flex align-items-center mt-3" role="alert">
                     <i class="ri-information-line me-2"></i>
                     <div>Anda sudah mengajukan <strong>{{ ucfirst($kehadiran->status_kehadiran) }}</strong> untuk hari ini.</div>

@@ -16,6 +16,7 @@
                             <th class="text-center">NIM</th>
                             <th class="text-center">Nama</th>
                             <th class="text-center">Nama Perguruan Tinggi</th>
+                            <th class="text-center">Status</th>
                             <th class="text-center">Jam Masuk</th>
                             <th class="text-center">Lokasi Masuk</th>
                             <th class="text-center">Jam Pulang</th>
@@ -50,6 +51,7 @@
                 {data: 'nim', name: 'nim', className: 'text-center'},
                 {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
                 {data: 'nm_lemb', name: 'nm_lemb'},
+                {data: 'status_kehadiran', name: 'status_kehadiran', className: 'text-center'},
                 {data: 'waktu_masuk', name: 'waktu_masuk', className: 'text-center'},
                 {data: 'coordinates_datang', name: 'coordinates_datang', className: 'text-center'},
                 {data: 'waktu_pulang', name: 'waktu_pulang', className: 'text-center'},

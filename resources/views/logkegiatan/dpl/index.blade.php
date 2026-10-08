@@ -15,7 +15,6 @@
 <script>
     $(function(){
         $("#resultcontent").load("{{ url('admlogkegiatan/listdatagroup') }}");
-        $("#resultcontent").load("{{ url('admlogkegiatan/listdata') }}");
     })
 </script>
 @stop 

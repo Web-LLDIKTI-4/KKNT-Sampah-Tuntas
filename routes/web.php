@@ -173,11 +173,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admlaporandpl/listdataserver/{email}', [AdmlaporandplController::class, 'listdataserver'])->name('admlaporandpl.listdataserver');
     Route::get('admlaporandpl/export/{email}', [AdmlaporandplController::class, 'export'])->middleware('throttle:3,1');
 
-    Route::get('admlogharian', [AdmlogharianController::class, 'index']);
-    Route::get('admlogharian/listdata', [AdmlogharianController::class, 'listdata'])->name('admlogharian.listdata');
-    Route::get('admlogharian/listdataserver', [AdmlogharianController::class, 'listdataserver'])->name('admlogharian.listdataserver');
-    Route::get('admlogharian/permhs/{email}', [AdmlogharianController::class, 'permhs'])->name('admlogharian.permhs');
-    Route::get('admlogharian/permhsserver/{email}', [AdmlogharianController::class, 'permhsserver'])->name('admlogharian.permhsserver');
+    // Modul legacy: diganti admlogkegiatan; link export lama tetap redirect
+    Route::redirect('admlogharian', 'admlogkegiatan');
     Route::get('admlogharian/export', [AdmlogharianController::class, 'export']);
 
     Route::get('kecamatan', [KecamatanController::class, 'index']);
@@ -381,7 +378,8 @@ Route::middleware(['auth', 'role:dpl,pt'])->group(function () {
     Route::put('dplkonversinilai/destroy', [DplkonversinilaiController::class, 'destroy']);
 });
 
-Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function () {
+// Kehadiran & log harian: hanya mahasiswa
+Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
     Route::get('logkehadiran', [LogkehadiranController::class, 'index']);
     Route::get('logkehadiran/listdata', [LogkehadiranController::class, 'listdata'])->name('logkehadiran.listdata');
     Route::get('logkehadiran/listdataserver', [LogkehadiranController::class, 'listdataserver'])->name('logkehadiran.listdataserver');
@@ -400,7 +398,9 @@ Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function (
     Route::get('logkegiatan/edit/{id_log}', [LogkegiatanController::class, 'edit']);
     Route::put('logkegiatan/update', [LogkegiatanController::class, 'update']);
     Route::put('logkegiatan/destroy', [LogkegiatanController::class, 'destroy']);
+});
 
+Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function () {
     Route::get('kpicapaian', [KpicapaianController::class, 'index']);
     Route::get('kpicapaian/listdata', [KpicapaianController::class, 'listdata'])->name('kpicapaian.listdata');
     Route::get('kpicapaian/listdataserver', [KpicapaianController::class, 'listdataserver'])->name('kpicapaian.listdataserver');
