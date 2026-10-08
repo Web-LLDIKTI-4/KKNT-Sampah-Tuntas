@@ -2,7 +2,7 @@
 @section('title', 'Pendataan Sampah Penduduk')
 @section('container')
 
-<x-page-header title="Pendataan Sampah Penduduk" subtitle="Data mahasiswa sesuai cakupan akses Anda." />
+<x-page-header title="Pendataan Sampah Penduduk" subtitle="Data Sampah Penduduk Setiap Rumah" />
 
 <div class="card">
     <div class="card-body">
