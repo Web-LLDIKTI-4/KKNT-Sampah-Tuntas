@@ -45,12 +45,25 @@
     <div><span id="memilah_error" class="text-danger"></span></div>
 </fieldset>
 <h6 class="mb-4">Timbulan Sampah (kg)</h6>
-@foreach(['organik' => 'Organik Terkelola', 'anorganik' => 'Anorganik Terkelola', 'residu' => 'Residu'] as $jenis => $label)
-    <div class="mb-6">
-        <div class="form-group form-floating form-floating-outline">
-            <input type="number" name="{{ $jenis }}_kg" id="sampah-{{ $jenis }}" class="form-control form-control-sm" required min="0" max="99999999" step="0.01" value="{{ $nilai($jenis.'_kg') }}">
-            <label for="sampah-{{ $jenis }}">{{ $label }} (kg) {!! $wajib !!}</label>
-        </div>
-        <span id="{{ $jenis }}_kg_error" class="text-danger"></span>
+<div class="mb-6">
+    <div class="form-group form-floating form-floating-outline">
+        <input type="number" name="organik_kg" id="sampah-organik" class="form-control form-control-sm" required min="0" max="99999999" step="0.01" value="{{ $nilai('organik_kg') }}">
+        <label for="sampah-organik">Organik Terkelola (kg) {!! $wajib !!}</label>
     </div>
-@endforeach
+    <span id="organik_kg_error" class="text-danger"></span>
+</div>
+<div class="mb-6">
+    <div class="form-group form-floating form-floating-outline">
+        <input type="number" name="anorganik_kg" id="sampah-anorganik" class="form-control form-control-sm" required min="0" max="99999999" step="0.01" value="{{ $nilai('anorganik_kg') }}">
+        <label for="sampah-anorganik">Anorganik Terkelola (kg) {!! $wajib !!}</label>
+    </div>
+    <span id="anorganik_kg_error" class="text-danger"></span>
+    <span>Ditabung ke bank sampang Dijual/Diambil ke pengepul/pemulung: Disedekahkan ke pemulung; Didaur ulang secara mandiri, dan/atau Diserahkan ke fasilitas pengolahan sampah (TPS 3R, TPST, Pusat Daur Ulang, Insinerator, Motah, Nawasena, dll.)</span>
+</div>
+<div class="mb-6">
+    <div class="form-group form-floating form-floating-outline">
+        <input type="number" name="residu_kg" id="sampah-residu" class="form-control form-control-sm" required min="0" max="99999999" step="0.01" value="{{ $nilai('residu_kg') }}">
+        <label for="sampah-residu">Residu (kg) {!! $wajib !!}</label>
+    </div>
+    <span id="residu_kg_error" class="text-danger"></span>
+</div>

@@ -11,12 +11,12 @@ class DatabaseSeeder extends Seeder
     {
         // Urutan wajib: tiap seeder mengambil prasyarat dari hasil seeder sebelumnya
         $this->call([
-            // WilayahSeeder::class,
-            // KpiMasterSeeder::class,
+            WilayahSeeder::class,
+            KpiMasterSeeder::class,
             AkunPimpinanSeeder::class,
-            // PerguruanTinggiSeeder::class,
-            // DplSeeder::class,
-            // MahasiswaSeeder::class,
+            PerguruanTinggiSeeder::class,
+            DplSeeder::class,
+            MahasiswaSeeder::class,
             // KehadiranSeeder::class,
             // LogHarianSeeder::class,
             // LogBulananSeeder::class,
