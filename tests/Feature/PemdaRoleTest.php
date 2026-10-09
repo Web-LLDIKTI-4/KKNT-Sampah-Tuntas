@@ -41,8 +41,9 @@ class PemdaRoleTest extends TestCase
     {
         Excel::fake();
 
-        $kepala = $this->statuses('kepala');
-        $pemda = $this->statuses('pemda');
+        // Pemda boleh mengelola profil desa, kepala tidak
+        $kepala = array_diff_key($this->statuses('kepala'), ['desaprofile/tambah' => true]);
+        $pemda = array_diff_key($this->statuses('pemda'), ['desaprofile/tambah' => true]);
 
         $this->assertSame($kepala, $pemda);
     }

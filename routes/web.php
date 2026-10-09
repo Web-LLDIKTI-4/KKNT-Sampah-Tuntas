@@ -204,15 +204,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('pjdesa/update', [PjdesaController::class, 'update']);
     Route::put('pjdesa/destroy', [PjdesaController::class, 'destroy']);
 
-    Route::get('desaprofile', [DesaprofileController::class, 'index']);
-    Route::get('desaprofile/listdata', [DesaprofileController::class, 'listdata'])->name('desaprofile.listdata');
-    Route::get('desaprofile/listdataserver', [DesaprofileController::class, 'listdataserver'])->name('desaprofile.listdataserver');
-    Route::get('desaprofile/tambah', [DesaprofileController::class, 'tambah']);
-    Route::put('desaprofile/insert', [DesaprofileController::class, 'insert']);
-    Route::get('desaprofile/edit/{id_profile}', [DesaprofileController::class, 'edit']);
-    Route::put('desaprofile/update', [DesaprofileController::class, 'update']);
-    Route::put('desaprofile/destroy', [DesaprofileController::class, 'destroy']);
-
     Route::get('lokasiprogram', [LokasiprogramController::class, 'index']);
     Route::get('lokasiprogram/listdata', [LokasiprogramController::class, 'listdata'])->name('lokasiprogram.listdata');
     Route::get('lokasiprogram/listdataserver', [LokasiprogramController::class, 'listdataserver'])->name('lokasiprogram.listdataserver');
@@ -256,6 +247,21 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admevaluasikegiatan/pertanyaanevaluasiserver', [AdmevaluasikegiatanController::class, 'pertanyaanevaluasiserver'])->name('admevaluasikegiatan.pertanyaanevaluasiserver');
     Route::put('admevaluasikegiatan/pertanyaanevaluasi/destroy', [AdmevaluasikegiatanController::class, 'destroy'])->name('admevaluasikegiatan.pertanyaanevaluasi.destroy');
 
+});
+
+// Profil desa: semua role dapat melihat; admin & pemda dapat mengelola
+Route::middleware(['auth', 'role:admin,kepala,pemda,pt,dpl,mahasiswa', 'user.guard'])->group(function () {
+    Route::get('desaprofile', [DesaprofileController::class, 'index']);
+    Route::get('desaprofile/listdata', [DesaprofileController::class, 'listdata'])->name('desaprofile.listdata');
+    Route::get('desaprofile/listdataserver', [DesaprofileController::class, 'listdataserver'])->name('desaprofile.listdataserver');
+});
+
+Route::middleware(['auth', 'role:admin,pemda'])->group(function () {
+    Route::get('desaprofile/tambah', [DesaprofileController::class, 'tambah']);
+    Route::put('desaprofile/insert', [DesaprofileController::class, 'insert']);
+    Route::get('desaprofile/edit/{id_profile}', [DesaprofileController::class, 'edit']);
+    Route::put('desaprofile/update', [DesaprofileController::class, 'update']);
+    Route::put('desaprofile/destroy', [DesaprofileController::class, 'destroy']);
 });
 
 // Hasil evaluasi yang juga dipantau kepala (read-only lewat KepalaReadOnly)

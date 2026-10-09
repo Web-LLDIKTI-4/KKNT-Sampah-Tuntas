@@ -276,6 +276,11 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                         <div class="col-12 col-lg">
@@ -374,6 +379,11 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                         <div class="col-12 col-lg">
@@ -425,26 +435,89 @@
                     </div>
                 </li>
             @else
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('logkehadiran') }}">Kehadiran</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('logkegiatan') }}">Log Aktivitas</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('pendataanpemilahan') }}">Pendataan Sampah Penduduk</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('logbulanan') }}">Log Bulanan</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('kpicapaian') }}">Capaian KPI</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('tugasakhir') }}">Laporan Akhir</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" href="{{ url('rencanakerja') }}">Rencana Kerja</a>
+                <li class="nav-item mega-dropdown">
+                    <a
+                        href="javascript:void(0);"
+                        class="nav-link dropdown-toggle navbar-ex-14-mega-dropdown mega-dropdown fw-medium"
+                        aria-expanded="false"
+                        data-bs-toggle="mega-dropdown"
+                        data-trigger="hover">
+                        <span data-i18n="Pages">Kelola Data</span>
+                    </a>
+                    <div class="dropdown-menu p-4 p-lg-6">
+                    <div class="row gy-4">
+                        <div class="col-12 col-lg">
+                            <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
+                                <div class="avatar avatar-sm flex-shrink-0 me-2">
+                                <span class="avatar-initial rounded bg-label-primary"><i class="ri-calendar-check-line"></i></span>
+                                </div>
+                                <span class="ps-1">Kegiatan Harian</span>
+                            </div>
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('logkehadiran') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kehadiran
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('logkegiatan') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Aktivitas
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pendataanpemilahan') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Pendataan Sampah Penduduk
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-12 col-lg">
+                            <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
+                                <div class="avatar avatar-sm flex-shrink-0 me-2">
+                                <span class="avatar-initial rounded bg-label-primary"><i class="ri-image-fill"></i></span>
+                                </div>
+                                <span class="ps-1">Laporan</span>
+                            </div>
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('logbulanan') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Bulanan
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kpicapaian') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('tugasakhir') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-12 col-lg">
+                            <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
+                                <div class="avatar avatar-sm flex-shrink-0 me-2">
+                                <span class="avatar-initial rounded bg-label-primary"><i class="ri-lock-unlock-line"></i></span>
+                                </div>
+                                <span class="ps-1">Perencanaan</span>
+                            </div>
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('rencanakerja') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    </div>
                 </li>
             @endif
         </ul>

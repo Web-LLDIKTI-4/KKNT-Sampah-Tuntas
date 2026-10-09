@@ -17,12 +17,12 @@ class DesaprofileController extends Controller
 
     public function index()
     {
-        return view('desaprofile.index');
+        return view('desaprofile.index', ['canManage' => $this->canManage()]);
     }
 
     public function listdata()
     {
-        return view('desaprofile.listdata');
+        return view('desaprofile.listdata', ['canManage' => $this->canManage()]);
     }
 
     public function listdataserver(Request $request)
@@ -34,12 +34,12 @@ class DesaprofileController extends Controller
             ->addColumn('desa', fn (Desaprofile $row) => $row->desa->desa ?? '')
             ->editColumn('potensi', fn (Desaprofile $row) => HtmlSanitizer::clean($row->potensi))
             ->editColumn('masalah', fn (Desaprofile $row) => HtmlSanitizer::clean($row->masalah))
-            ->addColumn('action', fn (Desaprofile $row) => ActionButtons::make(
+            ->addColumn('action', fn (Desaprofile $row) => $this->canManage() ? ActionButtons::make(
                 urlEdit: url('desaprofile/edit/'.$row->id_profile),
                 urlDelete: url('desaprofile/destroy'),
                 idField: 'id_profile',
                 idValue: $row->id_profile,
-            ))
+            ) : '')
             ->rawColumns(['action', 'potensi', 'masalah'])
             ->make(true);
     }
@@ -82,6 +82,12 @@ class DesaprofileController extends Controller
         $profile->delete();
 
         return $this->deleted();
+    }
+
+    // Admin & pemda mengelola profil desa; role lain hanya melihat
+    private function canManage(): bool
+    {
+        return in_array(auth()->user()->role, ['admin', 'pemda'], true);
     }
 
     private function kecamatanWithDesa()

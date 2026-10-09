@@ -19,7 +19,7 @@ $(function () {
         ajax: "{{ route('perguruantinggi.listdataserver') }}",
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
-            {data: 'npsn', name: 'npsn', className: 'text-center'},
+            {data: 'npsn', name: 'npsn', className: 'text-center', width: '16%'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             // {data: 'jln', name: 'jln'},
         ],

@@ -9,7 +9,9 @@
                     <th>Nama Desa / Kelurahan</th>
                     <th>Potensi</th>
                     <th>Masalah</th>
-                    <th width="1">Aksi</th>
+                    @if ($canManage)
+                        <th width="1">Aksi</th>
+                    @endif
                 </tr>
             </x-slot:thead>
         </x-datatable>
@@ -36,7 +38,9 @@
             {data: 'desa', name: 'desa'},
             {data: 'potensi', name: 'potensi'},
             {data: 'masalah', name: 'masalah'},
+            @if ($canManage)
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
+            @endif
         ],
         columnDefs: [
             {
