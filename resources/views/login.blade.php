@@ -1383,15 +1383,15 @@
                           </div>
 
                           <div>
-                            <label for="petaSorot" class="form-label fw-semibold mb-1">Sorot Desa di Peta:</label>
+                            <label for="petaSorot" class="form-label fw-semibold mb-1">Sorot Kelurahan/Desa di Peta:</label>
                             <select id="petaSorot" class="form-select form-select-sm">
-                              <option value="">-- Pilih Desa untuk Fokus Peta --</option>
+                              <option value="">-- Pilih Kelurahan/Desa untuk Fokus Peta --</option>
                             </select>
                           </div>
 
                           <div class="peta-top">
                             <div class="peta-top-head">
-                              <span><i class="ri-trophy-line text-warning me-1" aria-hidden="true"></i>Top 5 Desa · Pengurangan Sampah Tertinggi</span>
+                              <span><i class="ri-trophy-line text-warning me-1" aria-hidden="true"></i>Top 5 Kelurahan/Desa · Pengurangan Sampah Tertinggi</span>
                               <small class="peta-muted fw-normal">Klik untuk sorot</small>
                             </div>
                             <ol id="petaTop" class="peta-top-list list-unstyled mb-0"></ol>
@@ -1410,7 +1410,7 @@
 
                         <div class="peta-tip">
                             <i class="ri-lightbulb-line" aria-hidden="true"></i>
-                            <span><strong>Tips Interaktif:</strong> Klik lingkaran desa pada peta untuk melihat detail.</span>
+                            <span><strong>Tips Interaktif:</strong> Klik lingkaran kelurahan/desa pada peta untuk melihat detail.</span>
                         </div>
                     </div>
                   </div>
@@ -2038,7 +2038,7 @@ $(function(){
           var tahunRes = res.filter && res.filter.tahun ? res.filter.tahun : petaFilter.tahun;
           petaStatus(rows.length === 0 && res.mode === "pt"
             ? "PT ini belum memiliki mahasiswa di tahun " + tahunRes
-            : "Belum ada desa dengan mahasiswa untuk filter ini.", false);
+            : "Belum ada kelurahan/desa dengan mahasiswa untuk filter ini.", false);
           return;
         }
         petaStatus("", false);
@@ -2057,10 +2057,10 @@ $(function(){
         var ptMode = res.mode === "pt";
         var note = "mahasiswa KKN" + (ptMode ? " · " + $("#petaPt option:selected").text() : "");
         if (summary.desa_tersamar > 0) {
-          note += ". " + summary.desa_tersamar + " desa dengan <3 mahasiswa disamarkan.";
+          note += ". " + summary.desa_tersamar + " kelurahan/desa dengan <3 mahasiswa disamarkan.";
         }
 
-        $("#petaSubtitle").text("Persebaran di " + (summary.jumlah_desa == null ? 0 : summary.jumlah_desa) + " desa, " + (summary.jumlah_kecamatan == null ? 0 : summary.jumlah_kecamatan) + " kecamatan");
+        $("#petaSubtitle").text("Persebaran di " + (summary.jumlah_desa == null ? 0 : summary.jumlah_desa) + " kelurahan/desa, " + (summary.jumlah_kecamatan == null ? 0 : summary.jumlah_kecamatan) + " kecamatan");
         $("#petaSummaryBadge").text(tahun ? "Tahun " + tahun : "Semua Tahun");
         $("#petaTotal").text(summary.total_label == null ? "0" : summary.total_label);
         $("#petaSummaryNote").text(note);
