@@ -159,7 +159,7 @@ class LogHarianExportTest extends TestCase
         $ws = $sheet($this->user('dpl', 'dplA@uji.test'));
         $this->assertSame([
             'Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak', 'Tanggal',
-            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'KPI',
+            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'Kategori Kegiatan',
             'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti',
         ], $ws->rangeToArray('A1:M1')[0]);
         $this->assertSame('FFFF00', $ws->getStyle('M1')->getFill()->getStartColor()->getRGB());
@@ -198,7 +198,7 @@ class LogHarianExportTest extends TestCase
         Logkegiatan::where('email', $mhs->email)->update(['deskripsi' => '=HYPERLINK("http://x","klik")']);
 
         $export = new LogHarianLengkapExport($this->user('mahasiswa', $mhs->email));
-        $header = ['No', 'Tanggal', 'KPI', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
+        $header = ['No', 'Tanggal', 'Kategori Kegiatan', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
         $this->assertSame($header, $export->headings());
         $r = $export->map($export->query()->first());
         $this->assertCount(7, $r);

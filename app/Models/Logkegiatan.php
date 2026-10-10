@@ -20,9 +20,9 @@ class Logkegiatan extends Model
         return $this->hasOne(Mahasiswa::class,'email','email');
     }
 
-    public function kpi()
+    public function kategoriKegiatan()
     {
-        return $this->belongsTo(Kpi::class, 'id_kpi', 'id_kpi');
+        return $this->belongsTo(KategoriKegiatan::class, 'id_kategori', 'id_kategori');
     }
 
     public function dplmentoring()

@@ -5,7 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\Desa;
 use App\Models\Dpl;
 use App\Models\Dplmentoring;
-use App\Models\Kpicapaian;
+use App\Models\CapaianKegiatan;
 use App\Models\Logkegiatan;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
@@ -30,13 +30,13 @@ class PersonMasterTest extends TestCase
         $mhs = Mahasiswa::factory()->create();
         User::factory()->role('mahasiswa')->create(['email' => $mhs->email]);
         Logkegiatan::factory()->create(['email' => $mhs->email]);
-        Kpicapaian::factory()->create(['email' => $mhs->email]);
+        CapaianKegiatan::factory()->create(['email' => $mhs->email]);
         Nilaikonversi::factory()->create(['id_mahasiswa' => $mhs->id_mahasiswa]);
         Dplmentoring::create(['email_mahasiswa' => $mhs->email, 'email_dpl' => 'dpl@pps.test']);
 
         $this->put('mahasiswa/destroy', ['id_mahasiswa' => $mhs->id_mahasiswa])->assertJson(['success' => true]);
 
-        foreach (['mahasiswa' => 'email', 'logkegiatan' => 'email', 'kpi_capaian' => 'email', 'users' => 'email'] as $table => $col) {
+        foreach (['mahasiswa' => 'email', 'logkegiatan' => 'email', 'capaian_kegiatan' => 'email', 'users' => 'email'] as $table => $col) {
             $this->assertDatabaseMissing($table, [$col => $mhs->email]);
         }
         $this->assertDatabaseMissing('nilai_konversi', ['id_mahasiswa' => $mhs->id_mahasiswa]);

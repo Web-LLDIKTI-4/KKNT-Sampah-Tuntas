@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Desa;
+use App\Models\Dpl;
 use App\Models\Kecamatan;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
@@ -298,6 +299,25 @@ class PetaSebaranTest extends TestCase
 
         $desa->delete();
         $this->getJson(route('login.peta'))->assertOk()->assertJsonPath('desa', []);
+    }
+
+    public function test_login_page_renders_public_statistics(): void
+    {
+        $kec = Kecamatan::factory()->create();
+        Desa::factory()->count(3)->create(['id_kecamatan' => $kec->id_kecamatan]);
+        Mahasiswa::factory()->count(2)->create(['kodept' => '041001']);
+        Mahasiswa::factory()->create(['kodept' => '042002']);
+        Dpl::factory()->count(2)->create();
+
+        $this->get(route('login'))->assertOk()->assertSeeInOrder([
+            '<b>3 Mahasiswa</b>', '<b>2 DPL</b>', '<b>2 Perguruan Tinggi.</b>',
+            'disebar ke 1 Kecamatan dan 3 Kelurahan/Desa',
+        ], false);
+
+        // Top 5 desa diurutkan berdasarkan persen pengurangan sampah
+        $this->get(route('login'))
+            ->assertSee('Top 5 Desa · Pengurangan Sampah Tertinggi')
+            ->assertDontSee('Top 5 Desa Terbanyak');
     }
 
     public function test_listdataserver_includes_float_coordinates(): void

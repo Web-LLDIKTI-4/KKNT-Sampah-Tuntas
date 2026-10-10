@@ -5,15 +5,15 @@ namespace Tests\Feature;
 use App\Exports\Sheets\CapaianProgramSheet;
 use App\Models\Desa;
 use App\Models\Kecamatan;
-use App\Models\Kpicapaian;
-use App\Models\Kpisampah;
+use App\Models\CapaianKegiatan;
+use App\Models\PenguranganSampah;
 use App\Models\PendataanPemilahanSampah;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
-use App\Services\KpiSampahService;
+use App\Services\PenguranganSampahService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -89,7 +89,7 @@ class CapaianPublikTest extends TestCase
 
     private function publik(array $filter = []): array
     {
-        return app(KpiSampahService::class)->drilldownPublik($filter + ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]);
+        return app(PenguranganSampahService::class)->drilldownPublik($filter + ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]);
     }
 
     public function test_persen_lokasi_is_cumulative_and_strict_threshold_makes_twenty_yellow(): void
@@ -104,13 +104,13 @@ class CapaianPublikTest extends TestCase
         $this->assertSame('kuning', $lokasi['Kota Alfa']->kecamatan->first()->klaster);
         $this->assertEquals(15.0, $data['total_keseluruhan']->persen_pengurangan);
 
-        $this->assertSame('hijau', Kpisampah::klaster(20.0));
-        $this->assertSame('kuning', Kpisampah::klaster(20.0, true));
-        $this->assertSame('hijau', Kpisampah::klaster(20.01, true));
-        $this->assertSame('kuning', Kpisampah::klaster(10.0, true));
-        $this->assertSame('merah', Kpisampah::klaster(9.99, true));
-        $this->assertSame('table-success', Kpisampah::warnaSel(20.0));
-        $this->assertSame('table-warning', Kpisampah::warnaSel(20.0, true));
+        $this->assertSame('hijau', PenguranganSampah::klaster(20.0));
+        $this->assertSame('kuning', PenguranganSampah::klaster(20.0, true));
+        $this->assertSame('hijau', PenguranganSampah::klaster(20.01, true));
+        $this->assertSame('kuning', PenguranganSampah::klaster(10.0, true));
+        $this->assertSame('merah', PenguranganSampah::klaster(9.99, true));
+        $this->assertSame('table-success', PenguranganSampah::warnaSel(20.0));
+        $this->assertSame('table-warning', PenguranganSampah::warnaSel(20.0, true));
     }
 
     public function test_total_keseluruhan_ignores_kecamatan_and_klaster_filter(): void
@@ -121,18 +121,18 @@ class CapaianPublikTest extends TestCase
         // Publik tidak menghitung total per kecamatan (hemat 1 query)
         $this->assertSame($data['total_keseluruhan'], $data['total']);
         // Dashboard tetap: total terfilter kecamatan
-        $dashboard = app(KpiSampahService::class)->drilldown(['bulan' => null, 'id_kecamatan' => $this->d['kecB']->id_kecamatan]);
+        $dashboard = app(PenguranganSampahService::class)->drilldown(['bulan' => null, 'id_kecamatan' => $this->d['kecB']->id_kecamatan]);
         $this->assertEquals(5.0, $dashboard['total']->persen_pengurangan);
     }
 
     public function test_capaian_strict_only_reaches_hundred_above_target(): void
     {
-        $this->assertEquals(99.99, Kpisampah::capaian(20.0, true));
-        $this->assertEquals(100.0, Kpisampah::capaian(20.01, true));
-        $this->assertEquals(50.0, Kpisampah::capaian(10.0, true));
-        $this->assertNull(Kpisampah::capaian(null, true));
+        $this->assertEquals(99.99, PenguranganSampah::capaian(20.0, true));
+        $this->assertEquals(100.0, PenguranganSampah::capaian(20.01, true));
+        $this->assertEquals(50.0, PenguranganSampah::capaian(10.0, true));
+        $this->assertNull(PenguranganSampah::capaian(null, true));
         // Dashboard tetap inklusif
-        $this->assertEquals(100.0, Kpisampah::capaian(20.0));
+        $this->assertEquals(100.0, PenguranganSampah::capaian(20.0));
     }
 
     public function test_persen_pt_is_per_pt_in_kelurahan_and_ketua_has_names_only(): void
@@ -166,8 +166,8 @@ class CapaianPublikTest extends TestCase
     {
         // Sampah hanya di $this->bulan (default publik); capaian ketua ada di bulan tsb dan bulan berjalan
         $bulanLain = now()->format('Y-m');
-        Kpicapaian::factory()->create(['email' => $this->d['ketua_hijau']->email, 'bulan' => $this->bulan.'-01', 'permasalahan' => 'Masalah Bulan Ini']);
-        Kpicapaian::factory()->create(['email' => $this->d['ketua_hijau']->email, 'bulan' => $bulanLain.'-01', 'permasalahan' => 'Masalah Bulan Lain']);
+        CapaianKegiatan::factory()->create(['email' => $this->d['ketua_hijau']->email, 'bulan' => $this->bulan.'-01', 'permasalahan' => 'Masalah Bulan Ini']);
+        CapaianKegiatan::factory()->create(['email' => $this->d['ketua_hijau']->email, 'bulan' => $bulanLain.'-01', 'permasalahan' => 'Masalah Bulan Lain']);
         $filter = ['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $this->d['desaA']->id_desa];
 
         $data = $this->publik($filter);
@@ -201,7 +201,7 @@ class CapaianPublikTest extends TestCase
     public function test_pt_dashboard_cannot_see_other_pt_via_kodept_or_wilayah_and_login_cache_unaffected(): void
     {
         $hijau = $this->d['pt_hijau']->npsn;
-        $url = 'dashboardkpi?kodept='.$hijau.'&kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa;
+        $url = 'dashboard-pengurangan-sampah?kodept='.$hijau.'&kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa;
 
         // Cache login terisi lebih dulu (tanpa kodept)
         $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa)->assertOk()
@@ -233,16 +233,16 @@ class CapaianPublikTest extends TestCase
     public function test_dashboard_rejects_invalid_klaster(): void
     {
         $this->loginAs('admin');
-        $this->get('dashboardkpi?klaster=ungu')->assertSessionHasErrors('klaster');
-        $this->get('dashboardkpi?klaster=hijau')->assertSessionDoesntHaveErrors('klaster');
+        $this->get('dashboard-pengurangan-sampah?klaster=ungu')->assertSessionHasErrors('klaster');
+        $this->get('dashboard-pengurangan-sampah?klaster=hijau')->assertSessionDoesntHaveErrors('klaster');
     }
 
     public function test_export_capaian_program_admin_only_with_structure_and_fill(): void
     {
         $this->loginAs('admin');
-        $this->get('dashboardkpi/export-capaian?bulan='.$this->bulan)->assertOk()->assertDownload('capaian-program-'.$this->bulan.'.xlsx');
+        $this->get('dashboard-pengurangan-sampah/export-capaian?bulan='.$this->bulan)->assertOk()->assertDownload('capaian-program-'.$this->bulan.'.xlsx');
 
-        $sheet = new CapaianProgramSheet(app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan]));
+        $sheet = new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan]));
         $rows = $sheet->array();
         // Lokasi (urut nama) -> kecamatan -> kelurahan; 1 baris kosong hanya antar lokasi; persen pecahan, klaster strict
         $this->assertSame(['Nama', 'Persentase Pengurangan Sampah (%)', 'Klaster'], $rows[1]);
@@ -255,7 +255,7 @@ class CapaianPublikTest extends TestCase
 
         // Fill warna di file xlsx asli
         $path = tempnam(sys_get_temp_dir(), 'cap').'.xlsx';
-        file_put_contents($path, Excel::raw(new CapaianProgramSheet(app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan])), \Maatwebsite\Excel\Excel::XLSX));
+        file_put_contents($path, Excel::raw(new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan])), \Maatwebsite\Excel\Excel::XLSX));
         $ws = \PhpOffice\PhpSpreadsheet\IOFactory::load($path)->getActiveSheet();
         unlink($path);
         // Lokasi biru gelap + teks putih, kecamatan kuning; kelurahan: hanya sel klaster (C) berwarna klaster
@@ -266,9 +266,9 @@ class CapaianPublikTest extends TestCase
         $this->assertSame('FFFF00', $ws->getStyle('A4')->getFill()->getStartColor()->getRGB());
         $this->assertNotSame('FFFFFF', $ws->getStyle('A4')->getFont()->getColor()->getRGB());
         $this->assertSame(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_NONE, $ws->getStyle('A5')->getFill()->getFillType());
-        $this->assertSame(Kpisampah::KLASTER['merah']['rgb'], $ws->getStyle('C5')->getFill()->getStartColor()->getRGB());
-        $this->assertSame(Kpisampah::KLASTER['hijau']['rgb'], $ws->getStyle('C9')->getFill()->getStartColor()->getRGB());
-        $this->assertSame(Kpisampah::KLASTER['kuning']['rgb'], $ws->getStyle('C10')->getFill()->getStartColor()->getRGB());
+        $this->assertSame(PenguranganSampah::KLASTER['merah']['rgb'], $ws->getStyle('C5')->getFill()->getStartColor()->getRGB());
+        $this->assertSame(PenguranganSampah::KLASTER['hijau']['rgb'], $ws->getStyle('C9')->getFill()->getStartColor()->getRGB());
+        $this->assertSame(PenguranganSampah::KLASTER['kuning']['rgb'], $ws->getStyle('C10')->getFill()->getStartColor()->getRGB());
         // Kelurahan tanpa klaster ("-"): tanpa fill
         $tanpa = new CapaianProgramSheet(['bulan' => $this->bulan, 'klaster' => null, 'kelurahan' => collect(['x|y' => collect([(object) ['desa' => 'Desa Nol', 'persen' => null, 'klaster' => null]])]),
             'lokasi' => collect([(object) ['id_lokasi' => 'x', 'nama_lokasi' => 'Lokasi X', 'persen' => null, 'klaster' => null,
@@ -289,7 +289,7 @@ class CapaianPublikTest extends TestCase
         }
 
         // Filter klaster ikut: merah hanya Kabupaten Beta
-        $merah = (new CapaianProgramSheet(app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan, 'klaster' => 'merah'])))->array();
+        $merah = (new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan, 'klaster' => 'merah'])))->array();
         $this->assertStringContainsString('Klaster Merah', $merah[0][0]);
         $this->assertSame(['Kabupaten Beta', 'Kec Beta', 'Desa Dua'], array_values(array_filter(array_column(array_slice($merah, 2), 0), fn ($n) => $n && $n !== 'Kelurahan')));
     }
@@ -298,9 +298,9 @@ class CapaianPublikTest extends TestCase
     {
         // Middleware role proyek menolak dengan redirect ke home (pola sama dengan rekapsampah/export)
         $this->loginAs('kepala');
-        $this->get('dashboardkpi/export-capaian')->assertRedirect(route('home'));
+        $this->get('dashboard-pengurangan-sampah/export-capaian')->assertRedirect(route('home'));
         $this->loginAs('pt', ['email' => $this->d['pt_hijau']->npsn]);
-        $this->get('dashboardkpi/export-capaian')->assertRedirect(route('home'));
+        $this->get('dashboard-pengurangan-sampah/export-capaian')->assertRedirect(route('home'));
     }
 
     public function test_export_capaian_program_matches_dashboard_and_handles_empty_data(): void
@@ -316,18 +316,18 @@ class CapaianPublikTest extends TestCase
         $this->ketua('pas', 'Univ Pas', $this->d['lokasiA'], Desa::factory()->create(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'desa' => 'Desa Pas']), 20);
 
         $this->loginAs('admin');
-        $rows = (new CapaianProgramSheet(app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array();
+        $rows = (new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array();
         $baris = collect(array_slice($rows, 2))->filter(fn ($r) => $r[0] && $r[0] !== 'Kelurahan')->keyBy(0);
 
         // Angka layar dashboard (bulan sama): lokasi, kecamatan, kelurahan per kecamatan
         $persenKe = fn ($p) => $p === null ? '-' : round($p / 100, 4);
-        $klasterKe = fn ($k) => $k ? Kpisampah::KLASTER[$k]['label'] : '-';
-        $layar = $this->get('dashboardkpi?bulan='.$this->bulan)->assertOk()->viewData('laporan');
+        $klasterKe = fn ($k) => $k ? PenguranganSampah::KLASTER[$k]['label'] : '-';
+        $layar = $this->get('dashboard-pengurangan-sampah?bulan='.$this->bulan)->assertOk()->viewData('laporan');
         foreach ($layar['kecamatan'] as $lokasi) {
             $this->assertEquals([$persenKe($lokasi->persen), $klasterKe($lokasi->klaster)], array_slice($baris[$lokasi->nama_lokasi], 1));
             foreach ($lokasi->kecamatan as $kec) {
                 $this->assertEquals([$persenKe($kec->persen), $klasterKe($kec->klaster)], array_slice($baris[$kec->kecamatan], 1));
-                $kel = $this->get('dashboardkpi?bulan='.$this->bulan.'&kecamatan='.$kec->id_kecamatan)->assertOk()->viewData('laporan')['kelurahan'];
+                $kel = $this->get('dashboard-pengurangan-sampah?bulan='.$this->bulan.'&kecamatan='.$kec->id_kecamatan)->assertOk()->viewData('laporan')['kelurahan'];
                 $this->assertNotEmpty($kel);
                 foreach ($kel as $k) {
                     $this->assertEquals([$persenKe($k->persen), $klasterKe($k->klaster)], array_slice($baris[$k->desa], 1), $k->desa);
@@ -347,16 +347,16 @@ class CapaianPublikTest extends TestCase
 
     public function test_export_capaian_button_and_download_only_for_admin(): void
     {
-        $this->get('dashboardkpi/export-capaian')->assertRedirect(route('login'));
+        $this->get('dashboard-pengurangan-sampah/export-capaian')->assertRedirect(route('login'));
 
         foreach ([['kepala', []], ['pt', ['email' => $this->d['pt_hijau']->npsn]]] as [$role, $attr]) {
             $this->loginAs($role, $attr);
-            $this->get('dashboardkpi')->assertOk()->assertDontSee('export-capaian', false);
-            $this->get('dashboardkpi', ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->assertDontSee('export-capaian', false);
+            $this->get('dashboard-pengurangan-sampah')->assertOk()->assertDontSee('export-capaian', false);
+            $this->get('dashboard-pengurangan-sampah', ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->assertDontSee('export-capaian', false);
         }
 
         $this->loginAs('admin');
-        $this->get('dashboardkpi')->assertOk()->assertSee('dashboardkpi/export-capaian', false);
+        $this->get('dashboard-pengurangan-sampah')->assertOk()->assertSee('dashboard-pengurangan-sampah/export-capaian', false);
     }
 
     public function test_guest_can_download_capaian_program_with_validation_cache_and_throttle(): void
@@ -367,7 +367,7 @@ class CapaianPublikTest extends TestCase
         $this->getJson('login/laporan/export?klaster=ungu')->assertUnprocessable()->assertJsonValidationErrors('klaster');
 
         // Hanya agregat: tanpa email/no. HP/nama ketua
-        $data = app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan]);
+        $data = app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan]);
         foreach (['hijau', 'kuning', 'merah', 'kosong'] as $k) {
             $this->assertStringNotContainsString($this->d['ketua_'.$k]->email, serialize($data));
             $this->assertStringNotContainsString($this->d['ketua_'.$k]->nama, serialize($data));
@@ -386,7 +386,7 @@ class CapaianPublikTest extends TestCase
         }
         $this->get($url)->assertStatus(429);
         // Route admin tetap ada
-        $this->assertTrue(\Illuminate\Support\Facades\Route::has('dashboardkpi.export-capaian'));
+        $this->assertTrue(\Illuminate\Support\Facades\Route::has('dashboard-pengurangan-sampah.export-capaian'));
     }
 
     public function test_klaster_filters_rows_without_recalculating(): void
@@ -419,7 +419,7 @@ class CapaianPublikTest extends TestCase
 
         $filter = ['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $this->d['desaA']->id_desa];
         $publik = $this->publik($filter)['kelompok']->keyBy('nama_pt');
-        $dashboard = app(KpiSampahService::class)->drilldown($filter + ['bulan' => null])['kelompok']->keyBy('nama_pt');
+        $dashboard = app(PenguranganSampahService::class)->drilldown($filter + ['bulan' => null])['kelompok']->keyBy('nama_pt');
 
         $this->assertSame(2, $publik['Univ Hijau']->jumlah_ketua);
         $this->assertSame(['Ketua Dua', 'Ketua Univ Hijau'], $publik['Univ Hijau']->ketua->all());
@@ -438,7 +438,7 @@ class CapaianPublikTest extends TestCase
     public function test_cached_data_and_html_contain_no_email(): void
     {
         $email = $this->d['ketua_hijau']->email;
-        Kpicapaian::factory()->create(['email' => $email, 'permasalahan' => 'Masalah Uji', 'bulan' => $this->bulan.'-01']);
+        CapaianKegiatan::factory()->create(['email' => $email, 'permasalahan' => 'Masalah Uji', 'bulan' => $this->bulan.'-01']);
         // Pengisi pendataan non-ketua: email & nama tidak boleh tampil
         $pengisi = $this->pengisi($this->d['pt_hijau'], $this->d['lokasiA'], $this->d['desaA'], $this->bulan, 25);
         Cache::flush();
@@ -452,7 +452,7 @@ class CapaianPublikTest extends TestCase
         $data = $this->publik(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $this->d['desaA']->id_desa]);
         $this->assertStringNotContainsString($email, serialize($data));
         $this->assertStringNotContainsString($pengisi->email, serialize($data));
-        $this->assertStringNotContainsString($pengisi->email, serialize(app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan])));
+        $this->assertStringNotContainsString($pengisi->email, serialize(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan])));
 
         // Revisi-5: no. kontak pengisi capaian boleh tampil, email tidak
         $isian = $data['kelompok']->firstWhere('nama_pt', 'Univ Hijau')->capaian->first();
@@ -501,7 +501,7 @@ class CapaianPublikTest extends TestCase
             ->assertSee('<span class="badge bg-warning">Kuning</span></t', false)
             ->assertDontSee('<span class="badge bg-success">Hijau</span></t', false);
         $this->loginAs('kepala');
-        $this->get('dashboardkpi', ['X-Requested-With' => 'XMLHttpRequest'])
+        $this->get('dashboard-pengurangan-sampah', ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertViewIs('laporan._capaian_publik')
             ->assertSee('<span class="badge bg-warning">Kuning</span></t', false)
             ->assertDontSee('<span class="badge bg-success">Hijau</span></t', false)
@@ -510,13 +510,13 @@ class CapaianPublikTest extends TestCase
 
     public function test_admin_sees_export_instead_of_png_in_laporan_kegiatan(): void
     {
-        if (! Route::has('dashboardkpi.export-capaian')) {
-            $this->markTestSkipped('Route dashboardkpi.export-capaian belum ada');
+        if (! Route::has('dashboard-pengurangan-sampah.export-capaian')) {
+            $this->markTestSkipped('Route dashboard-pengurangan-sampah.export-capaian belum ada');
         }
 
         $this->loginAs('admin');
-        $this->get('dashboardkpi', ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()
-            ->assertSee('dashboardkpi/export-capaian', false)->assertDontSee('data-png-download', false);
+        $this->get('dashboard-pengurangan-sampah', ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()
+            ->assertSee('dashboard-pengurangan-sampah/export-capaian', false)->assertDontSee('data-png-download', false);
         // Guest (login) tidak memakai export dashboard
         auth()->logout();
         $this->get('login/laporan')->assertOk()->assertDontSee('export-capaian', false);
@@ -539,7 +539,7 @@ class CapaianPublikTest extends TestCase
         $this->assertEquals(30.0, $kelompok->persen_pt);
         $this->assertSame(1, $kelompok->jumlah_mahasiswa);
 
-        $internal = app(KpiSampahService::class)->drilldown(['bulan' => null, 'id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $desa->id_desa])['kelompok']->first();
+        $internal = app(PenguranganSampahService::class)->drilldown(['bulan' => null, 'id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $desa->id_desa])['kelompok']->first();
         $this->assertSame('-', $internal->nama_ketua);
         $this->assertTrue($internal->ketua_email->isEmpty() && $internal->capaian->isEmpty());
 
@@ -575,7 +575,7 @@ class CapaianPublikTest extends TestCase
         $this->assertSame(['Kec Gamma'], $lokasi->kecamatan->pluck('kecamatan')->all());
         $this->assertEquals(40.0, $lokasi->kecamatan->first()->persen);
 
-        $rows = (new CapaianProgramSheet(app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array();
+        $rows = (new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array();
         $this->assertContains(['Desa Gamma', 0.4, 'Hijau'], $rows);
     }
 
@@ -589,7 +589,7 @@ class CapaianPublikTest extends TestCase
         $this->assertTrue($data['kelompok']->isEmpty());
         $this->assertNull($data['namaDesa']);
 
-        $rows = (new CapaianProgramSheet(app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array();
+        $rows = (new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array();
         $this->assertNotContains('Desa Hampa', array_column($rows, 0));
     }
 
@@ -602,7 +602,7 @@ class CapaianPublikTest extends TestCase
         $this->pengisi($ptBaru, $this->d['lokasiA'], $this->d['desaA'], $this->bulan, 10);
         $this->d['desaA']->update(['latitude' => -6.9, 'longitude' => 107.6]);
         $idDesa = $this->d['desaA']->id_desa;
-        $sampah = app(KpiSampahService::class);
+        $sampah = app(PenguranganSampahService::class);
         $expectDesa = round(70 / 300 * 100, 2);
 
         $login = $this->publik(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $idDesa]);
@@ -632,7 +632,7 @@ class CapaianPublikTest extends TestCase
     // QA: memo penempatanData per instance tidak bocor antar filter kodept
     public function test_qa_memo_penempatan_tidak_bocor_antar_filter(): void
     {
-        $sampah = app(KpiSampahService::class);
+        $sampah = app(PenguranganSampahService::class);
         $f = ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null];
 
         $merah = $sampah->drilldownPublik(['kodept' => $this->d['pt_merah']->npsn] + $f);
@@ -674,7 +674,7 @@ class CapaianPublikTest extends TestCase
     {
         $this->pengisi($this->d['pt_merah'], $this->d['lokasiB'], $this->d['desaA'], $this->bulan, 55);
 
-        $export = app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan]);
+        $export = app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan]);
         $a = $export['kelurahan'][$this->d['lokasiA']->id.'|'.$this->d['kecA']->id_kecamatan]->firstWhere('desa', 'Desa Satu');
         $b = $export['kelurahan'][$this->d['lokasiB']->id.'|'.$this->d['kecA']->id_kecamatan]->firstWhere('desa', 'Desa Satu');
         $this->assertNotNull($a);

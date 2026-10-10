@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Kpisampah;
+use App\Models\PenguranganSampah;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,7 +19,7 @@ class RekapSampahRequest extends FormRequest
             'bulan' => ['nullable', 'regex:/^(semua|\d{4}-(0[1-9]|1[0-2]))$/'],
             'kecamatan' => ['nullable', 'uuid', 'exists:kecamatan,id_kecamatan'],
             'kodept' => ['nullable', 'string', 'max:10', 'exists:ref_satuanpendidikan,npsn'],
-            'klaster' => ['nullable', Rule::in(array_keys(Kpisampah::KLASTER))],
+            'klaster' => ['nullable', Rule::in(array_keys(PenguranganSampah::KLASTER))],
         ];
     }
 }

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Master\PjdesaRequest;
 use App\Models\Kecamatan;
-use App\Models\Kpicapaian;
+use App\Models\CapaianKegiatan;
 use App\Models\Pjdesa;
 use App\Models\User;
 use App\Support\ActionButtons;
@@ -80,7 +80,7 @@ class PjdesaController extends Controller
             return $this->notFound();
         }
 
-        if (Kpicapaian::where('email', $pjdesa->email)->exists()) {
+        if (CapaianKegiatan::where('email', $pjdesa->email)->exists()) {
             return $this->deleteRejected('Data tidak dapat di hapus karena terkait dengan data capaian');
         }
 

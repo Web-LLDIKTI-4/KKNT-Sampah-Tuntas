@@ -5,7 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Session;
 use DataTables;
-use App\Models\Kpi;
+use App\Models\KategoriKegiatan;
 use App\Models\Tugasakhir;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
@@ -53,7 +53,7 @@ class LaptugasakhirController extends Controller
         
     }
     public function export(){
-        return Excel::download(new LaptugasakhirExport, 'capaian_kpi.xlsx');
+        return Excel::download(new LaptugasakhirExport, 'tugas_akhir_'.date('d-m-Y_H-i-s').'.xlsx');
     }
 
 }

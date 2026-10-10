@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Kpisampah;
+use App\Models\PenguranganSampah;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
         // Urutan wajib: tiap seeder mengambil prasyarat dari hasil seeder sebelumnya
         $this->call([
             WilayahSeeder::class,
-            KpiMasterSeeder::class,
+            KategoriKegiatanSeeder::class,
             AkunPimpinanSeeder::class,
             PerguruanTinggiSeeder::class,
             DplSeeder::class,
@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             // KehadiranSeeder::class,
             // LogHarianSeeder::class,
             // LogBulananSeeder::class,
-            // KpiCapaianSeeder::class,
+            // CapaianKegiatanSeeder::class,
             // PendataanPemilahanSeeder::class,
             // RencanaKerjaSeeder::class,
             // PenilaianSeeder::class,
@@ -28,6 +28,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Wilayah/PT ikut berganti UUID; cache publik lama tidak boleh dipakai
-        Kpisampah::forgetPublicCache();
+        PenguranganSampah::forgetPublicCache();
     }
 }

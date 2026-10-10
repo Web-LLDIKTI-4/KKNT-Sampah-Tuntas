@@ -8,10 +8,10 @@ use Database\Seeders\Concerns\SeedsDummyData;
 use Illuminate\Database\Seeder;
 
 /**
- * Log harian (logkegiatan, deskripsi terisi, KPI master) ±75% dari hari berstatus hadir; tidak pernah di hari blocking.
+ * Log harian (logkegiatan, deskripsi terisi, kategori kegiatan) ±75% dari hari berstatus hadir; tidak pernah di hari blocking.
  * Kunci: email + tanggal (1 log per hari).
  * Jalankan: php artisan db:seed --class=LogHarianSeeder
- * Prasyarat: KpiMasterSeeder, MahasiswaSeeder, KehadiranSeeder
+ * Prasyarat: KategoriKegiatanSeeder, MahasiswaSeeder, KehadiranSeeder
  */
 class LogHarianSeeder extends Seeder
 {
@@ -19,7 +19,7 @@ class LogHarianSeeder extends Seeder
 
     public function run(): void
     {
-        $kpi = $this->kpiMaster();
+        $kategori = $this->kategoriMaster();
         $mahasiswa = $this->mahasiswaKelompok();
         $hadir = Kehadiran::whereIn('email', $mahasiswa->pluck('email'))
             ->where('status_kehadiran', 'hadir')
@@ -34,7 +34,7 @@ class LogHarianSeeder extends Seeder
             $data = Logkegiatan::factory()->raw([
                 'email' => $row->email,
                 'tanggal' => $tanggal,
-                'id_kpi' => $kpi->id_kpi,
+                'id_kategori' => $kategori->id_kategori,
             ]);
 
             if (mt_rand(1, 100) <= 75) {

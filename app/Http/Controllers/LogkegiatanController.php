@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\LogkegiatanRequest;
 use App\Models\Kehadiran;
-use App\Models\Kpi;
+use App\Models\KategoriKegiatan;
 use App\Models\Logkegiatan;
 use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
@@ -35,13 +35,13 @@ class LogkegiatanController extends Controller
         $data = Logkegiatan::ownedBy($request->user())
             ->whereNotNull('deskripsi')
             ->without(['mahasiswa', 'dplmentoring'])
-            ->with('kpi')
+            ->with('kategoriKegiatan')
             ->orderByDesc('tanggal')
             ->get();
 
         return DataTables::of($data)
             ->addIndexColumn()
-            ->addColumn('nama_kpi', fn (Logkegiatan $row) => $row->kpi->nama_kpi ?? '')
+            ->addColumn('nama_kategori', fn (Logkegiatan $row) => $row->kategoriKegiatan->nama_kategori ?? '')
             ->editColumn('deskripsi', fn (Logkegiatan $row) => HtmlSanitizer::clean($row->deskripsi))
             ->addColumn('tautan', fn (Logkegiatan $row) => HtmlSanitizer::link($row->tautan, 'Lihat bukti'))
             ->addColumn('action', fn (Logkegiatan $row) => ActionButtons::make(
@@ -56,7 +56,7 @@ class LogkegiatanController extends Controller
 
     public function tambah()
     {
-        return view('logkegiatan.mahasiswa.tambah', ['kpi' => Kpi::orderBy('nama_kpi')->get()]);
+        return view('logkegiatan.mahasiswa.tambah', ['kategoriKegiatan' => KategoriKegiatan::orderBy('nama_kategori')->get()]);
     }
 
     public function insert(LogkegiatanRequest $request)
@@ -70,7 +70,7 @@ class LogkegiatanController extends Controller
     {
         return view('logkegiatan.mahasiswa.edit', [
             'data' => Logkegiatan::ownedBy($request->user())->whereNotNull('deskripsi')->findOrFail($id_log),
-            'kpi' => Kpi::orderBy('nama_kpi')->get(),
+            'kategoriKegiatan' => KategoriKegiatan::orderBy('nama_kategori')->get(),
         ]);
     }
 

@@ -46,7 +46,7 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
         return DB::table('logkegiatan as l')
             ->whereNotNull('l.deskripsi')
             ->leftJoin('mahasiswa as m', 'm.email', '=', 'l.email')
-            ->leftJoin('kpi as k', 'k.id_kpi', '=', 'l.id_kpi')
+            ->leftJoin('kategori_kegiatan as k', 'k.id_kategori', '=', 'l.id_kategori')
             ->leftJoinSub($lokasiTerakhir, 'lt', 'lt.id_mahasiswa', '=', 'm.id_mahasiswa')
             ->leftJoin('mahasiswa_lokasi as ml', fn ($j) => $j->on('ml.id_mahasiswa', '=', 'lt.id_mahasiswa')->on('ml.tahun', '=', 'lt.tahun'))
             ->leftJoin('desa as d', 'd.id_desa', '=', 'ml.id_desa')
@@ -58,13 +58,13 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
                 $q->whereBetween('l.tanggal', [$awal->toDateString(), $awal->copy()->endOfMonth()->toDateString()]);
             })
             ->orderBy('l.tanggal')->orderBy('l.created_at')->orderBy('l.id_log')
-            ->select('l.*', 'm.nama', 'm.phone', 'lp.nama_lokasi', 'kc.kecamatan', 'd.desa', 'k.nama_kpi');
+            ->select('l.*', 'm.nama', 'm.phone', 'lp.nama_lokasi', 'kc.kecamatan', 'd.desa', 'k.nama_kategori');
     }
 
     public function map($row): array
     {
         $tanggal = Carbon::parse($row->tanggal)->format('d/m/Y');
-        $kegiatan = [$row->nama_kpi, strip_tags((string) $row->deskripsi), $row->volume, $row->satuan, $row->tautan];
+        $kegiatan = [$row->nama_kategori, strip_tags((string) $row->deskripsi), $row->volume, $row->satuan, $row->tautan];
 
         if ($this->modeMahasiswa) {
             return [++$this->no, $tanggal, ...$kegiatan];
@@ -85,7 +85,7 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
 
     public function headings(): array
     {
-        $kegiatan = ['KPI', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
+        $kegiatan = ['Kategori Kegiatan', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
 
         if ($this->modeMahasiswa) {
             return ['No', 'Tanggal', ...$kegiatan];

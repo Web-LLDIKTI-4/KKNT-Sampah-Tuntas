@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Kpi;
-use App\Models\Kpicapaian;
-use App\Models\Kpisampah;
+use App\Models\CapaianKegiatan;
+use App\Models\KategoriKegiatan;
 use App\Models\LokasiProgram;
-use App\Services\KpiSampahService;
+use App\Models\PenguranganSampah;
+use App\Services\PenguranganSampahService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 /**
  * Data uji beban: 20.000 mahasiswa (200 PT x 100), tetap 1 PT = 1 kelurahan (200 kelurahan baru),
  * kelompok 5 orang (1 ketua), 5 DPL per PT, log harian & kehadiran hari kerja 30 hari terakhir,
- * data sampah 3 bulan per kelurahan, dan isian capaian KPI ketua.
+ * data sampah 3 bulan per kelurahan, dan isian capaian kegiatan ketua.
  * Insert massal per potongan agar cepat; password di-hash sekali untuk semua akun.
  * Jalankan setelah SimulasiSeeder: php artisan db:seed --class=BebanSeeder
  */
@@ -53,16 +53,16 @@ class BebanSeeder extends Seeder
         $this->sekarang = now()->toDateTimeString();
 
         $lokasi = LokasiProgram::orderBy('nama_lokasi')->pluck('id')->all() ?: [LokasiProgram::create(['nama_lokasi' => 'Kota Bandung'])->id];
-        $kpi = Kpi::pluck('id_kpi')->all() ?: [Kpi::create(['nama_kpi' => 'Pengurangan Sampah Rumah Tangga'])->id_kpi];
+        $kategori = KategoriKegiatan::pluck('id_kategori')->all() ?: [KategoriKegiatan::create(['nama_kategori' => 'Pengurangan Sampah Rumah Tangga'])->id_kategori];
         $kelurahan = $this->wilayah();
         $hariKerja = $this->hariKerja();
 
         foreach (range(1, self::JUMLAH_PT) as $noPt) {
-            $this->perguruanTinggi($noPt, $lokasi[$noPt % count($lokasi)], $kelurahan[$noPt - 1], $kpi, $hariKerja);
+            $this->perguruanTinggi($noPt, $lokasi[$noPt % count($lokasi)], $kelurahan[$noPt - 1], $kategori, $hariKerja);
         }
         $this->flushSemua();
         // Insert massal tanpa event model; reset cache publik manual
-        Kpisampah::forgetPublicCache();
+        PenguranganSampah::forgetPublicCache();
 
         $this->command?->info(sprintf(
             'Data beban: %s mahasiswa, %s kelompok, %s log harian, %s pendataan sampah, %s kehadiran (%.0f detik).',
@@ -93,7 +93,7 @@ class BebanSeeder extends Seeder
         return $kelurahan;
     }
 
-    private function perguruanTinggi(int $noPt, string $lokasi, string $idDesa, array $kpi, array $hariKerja): void
+    private function perguruanTinggi(int $noPt, string $lokasi, string $idDesa, array $kategori, array $hariKerja): void
     {
         $npsn = sprintf('05%04d', $noPt);
         $this->tambah('ref_satuanpendidikan', [
@@ -139,13 +139,13 @@ class BebanSeeder extends Seeder
                 $idPj = (string) Str::uuid7();
                 $this->tambah('pj_desa', ['id_pjdesa' => $idPj, 'email' => $email, 'id_desa' => $idDesa] + $this->waktu());
                 $ketuaPertama ??= [$idPj, $email];
-                // UNIQUE(email, bulan): tiap KPI di bulan berbeda, mundur dari bulan ini
-                foreach ($kpi as $mundur => $idKpi) {
+                // UNIQUE(email, bulan): tiap kategori di bulan berbeda, mundur dari bulan ini
+                foreach ($kategori as $mundur => $idKategori) {
                     if (mt_rand(1, 100) <= 85) {
-                        $this->tambah('kpi_capaian', [
-                            'id_capaian' => (string) Str::uuid7(), 'id_kpi' => $idKpi, 'id_pjdesa' => $idPj, 'email' => $email,
+                        $this->tambah('capaian_kegiatan', [
+                            'id_capaian' => (string) Str::uuid7(), 'id_kategori' => $idKategori, 'id_pjdesa' => $idPj, 'email' => $email,
                             'bulan' => now()->startOfMonth()->subMonths($mundur)->toDateString(),
-                            'status_capaian' => array_keys(Kpicapaian::STATUS)[mt_rand(0, 2)], 'tautan' => 'https://drive.google.com/beban',
+                            'status_capaian' => array_keys(CapaianKegiatan::STATUS)[mt_rand(0, 2)], 'tautan' => 'https://drive.google.com/beban',
                             'permasalahan' => 'Warga belum rutin memilah sampah', 'solusi' => 'Sosialisasi door to door',
                             'kendala' => 'Tempat sampah terpilah',
                         ] + $this->waktu());
@@ -157,7 +157,7 @@ class BebanSeeder extends Seeder
                 $this->tambah('logkegiatan', [
                     'id_log' => (string) Str::uuid7(), 'email' => $email, 'tanggal' => $tanggal,
                     'deskripsi' => 'Kegiatan pendampingan dan edukasi warga.',
-                    'volume' => '1', 'satuan' => 'kegiatan', 'id_kpi' => $kpi[0] ?? null, 'tautan' => null,
+                    'volume' => '1', 'satuan' => 'kegiatan', 'id_kategori' => $kategori[0] ?? null, 'tautan' => null,
                 ] + $this->waktu());
                 $this->tambah('pendataan_pemilahan_sampah', [
                     'id_pendataan' => (string) Str::uuid7(), 'email' => $email, 'tanggal' => $tanggal,
@@ -188,7 +188,7 @@ class BebanSeeder extends Seeder
             $dlh = round($timbulan * mt_rand(0, 5) / 100, 2);
             $anorganik = round($timbulan * mt_rand(2, 10) / 100, 2);
 
-            $this->tambah('kpi_sampah', KpiSampahService::hitung([
+            $this->tambah('pengurangan_sampah', PenguranganSampahService::hitung([
                 'id_sampah' => (string) Str::uuid7(), 'id_pjdesa' => $idPj, 'email' => $email, 'id_desa' => $idDesa,
                 'bulan' => now()->startOfMonth()->subMonths($mundur)->toDateString(),
                 'jml_rw' => mt_rand(3, 13), 'jml_penduduk' => $rumah * 4, 'jml_rumah' => $rumah,

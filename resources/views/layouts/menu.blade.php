@@ -92,9 +92,9 @@
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kpi') }}">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kategori-kegiatan') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                            <span data-i18n="Pricing">Kelola KPI</span>
+                                            <span data-i18n="Pricing">Kelola Kategori Kegiatan</span>
                                         </a>
                                     </li>
 
@@ -175,8 +175,8 @@
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankpi') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankegiatan') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian Kegiatan
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -185,8 +185,8 @@
                                         </a>
                                     </li>
                                     {{-- <li class="nav-item">
-                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboardkpi') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard KPI
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboard-pengurangan-sampah') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard Pengurangan Sampah
                                         </a>
                                     </li> --}}
                                     <li class="nav-item">
@@ -312,8 +312,8 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankpi') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankegiatan') }}">
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian Kegiatan
                                 </a>
                             </li>
                         </ul>
@@ -379,13 +379,43 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja
                                     </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
-                                    </a>
-                                </li>
+                                @unless (Auth::user()->role === 'pemda')
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
+                                        </a>
+                                    </li>
+                                @endunless
                             </ul>
                         </div>
+                        {{-- Pemda: kelola master wilayah --}}
+                        @if (Auth::user()->role === 'pemda')
+                            <div class="col-12 col-lg">
+                                <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
+                                    <div class="avatar avatar-sm flex-shrink-0 me-2">
+                                    <span class="avatar-initial rounded bg-label-primary"><i class="ri-lock-unlock-line"></i></span>
+                                    </div>
+                                    <span class="ps-1">Kelola Kegiatan</span>
+                                </div>
+                                <ul class="nav flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kecamatan') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Kecamatan
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desa') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Desa / Kelurahan
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        @endif
                         <div class="col-12 col-lg">
                         <div class="h6 d-flex align-items-center mb-2 mb-lg-4">
                             <div class="avatar avatar-sm flex-shrink-0 me-2">
@@ -415,8 +445,8 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankpi') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankegiatan') }}">
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian Kegiatan
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -425,8 +455,8 @@
                                 </a>
                             </li>
                             {{-- <li class="nav-item">
-                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboardkpi') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard KPI
+                                <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboard-pengurangan-sampah') }}">
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard Pengurangan Sampah
                                 </a>
                             </li> --}}
                         </ul>
@@ -485,8 +515,8 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kpicapaian') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('capaiankegiatan') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian Kegiatan
                                     </a>
                                 </li>
                                 <li class="nav-item">

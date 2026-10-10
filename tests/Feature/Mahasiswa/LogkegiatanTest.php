@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Mahasiswa;
 
-use App\Models\Kpi;
+use App\Models\KategoriKegiatan;
 use App\Models\Logkegiatan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -22,7 +22,7 @@ class LogkegiatanTest extends TestCase
             'deskripsi' => '<p>Membersihkan lingkungan</p>',
             'volume' => '2',
             'satuan' => 'kegiatan',
-            'id_kpi' => Kpi::factory()->create()->id_kpi,
+            'id_kategori' => KategoriKegiatan::factory()->create()->id_kategori,
             'tautan' => 'https://example.test/bukti',
         ];
     }
@@ -47,7 +47,7 @@ class LogkegiatanTest extends TestCase
         $this->loginAs('mahasiswa');
 
         $this->put('logkegiatan/insert', [])
-            ->assertJsonValidationErrors(['tanggal', 'deskripsi', 'volume', 'satuan', 'id_kpi'], 'errors');
+            ->assertJsonValidationErrors(['tanggal', 'deskripsi', 'volume', 'satuan', 'id_kategori'], 'errors');
         $this->put('logkegiatan/insert', $this->payload([
             'tanggal' => now()->addDay()->toDateString(),
             'volume' => -1,
@@ -84,10 +84,10 @@ class LogkegiatanTest extends TestCase
     public function test_daily_log_list_only_shows_daily_activities(): void
     {
         $user = $this->loginAs('mahasiswa');
-        $kpi = Kpi::factory()->create(['nama_kpi' => 'Kebersihan Lingkungan']);
+        $kategori = KategoriKegiatan::factory()->create(['nama_kategori' => 'Kebersihan Lingkungan']);
         Logkegiatan::factory()->create([
             'email' => $user->email,
-            'id_kpi' => $kpi->id_kpi,
+            'id_kategori' => $kategori->id_kategori,
             'deskripsi' => '<p>Membersihkan lingkungan</p>',
             'volume' => '2',
             'satuan' => 'kegiatan',
@@ -102,9 +102,9 @@ class LogkegiatanTest extends TestCase
             ->assertSee('name="deskripsi"', false)
             ->assertSee('name="volume"', false)
             ->assertSee('name="satuan"', false)
-            ->assertSee('name="id_kpi"', false)
-            ->assertSee('name="id_kpi" class="form-select" required', false)
-            ->assertDontSee('Pilih KPI (opsional)')
+            ->assertSee('name="id_kategori"', false)
+            ->assertSee('name="id_kategori" class="form-select" required', false)
+            ->assertDontSee('Pilih Kategori Kegiatan (opsional)')
             ->assertSee('name="tautan"', false);
         $this->get('logkegiatan/listdata')
             ->assertOk()
@@ -118,7 +118,7 @@ class LogkegiatanTest extends TestCase
         $this->getJson('logkegiatan/listdataserver?draw=1&start=0&length=10', $this->ajax)
             ->assertOk()
             ->assertJsonPath('recordsTotal', 1)
-            ->assertJsonPath('data.0.nama_kpi', 'Kebersihan Lingkungan')
+            ->assertJsonPath('data.0.nama_kategori', 'Kebersihan Lingkungan')
             ->assertJsonPath('data.0.volume', '2')
             ->assertJsonPath('data.0.satuan', 'kegiatan')
             ->assertJsonPath('data.0.tautan', '<a href="https://example.test/bukti" target="_blank" rel="noopener noreferrer">Lihat bukti</a>');

@@ -7,7 +7,7 @@
                     <th width="1">No</th>
                     {{-- <th>Id LOG </th> --}}
                     <th>Tanggal</th>
-                    <th>KPI</th>
+                    <th>Kategori Kegiatan</th>
                     <th>Deskripsi Kegiatan</th>
                     <th>Volume/Kuantitas Output</th>
                     <th>Satuan</th>
@@ -42,7 +42,7 @@
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             // {data: 'id_log', name: 'id_log', visible: false}, 
             {data: 'tanggal', name: 'tanggal', className: 'text-center'},
-            {data: 'nama_kpi', name: 'nama_kpi', orderable: false},
+            {data: 'nama_kategori', name: 'nama_kategori', orderable: false},
             {data: 'deskripsi', name: 'deskripsi'},
             {data: 'volume', name: 'volume', className: 'text-end'},
             {data: 'satuan', name: 'satuan'},

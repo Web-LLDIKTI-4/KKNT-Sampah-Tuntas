@@ -38,7 +38,7 @@
     <div class="alert alert-solid-info d-flex align-items-center">
     Panduan Pengisian : <br />
         1. Bagaimana aktifitas mentoring dan koordinasi dengan DPL maupun perangkat desa dan atau kecamatan ? <br />
-        2. Apa yang telah dikerjakan dan bagaimana perkembangannya, apakah itu pekerjaan rutin atau yang berkaitan dengan KPI ? <br />
+        2. Apa yang telah dikerjakan dan bagaimana perkembangannya, apakah itu pekerjaan rutin atau yang berkaitan dengan kategori kegiatan / target pengurangan sampah ? <br />
         3. Tantangan apa yang dihadapi selama di lokasi dan berikan alternatif solusi, dan bahkan tindaklanjutnya? <br />
         4. Apa saja dan jelaskan pengembangan kompetensi (hardskill maupun softskill) yang telah dicapai ? <br />
     </div>

@@ -3,8 +3,8 @@
 namespace Database\Seeders\Concerns;
 
 use App\Models\Desa;
+use App\Models\KategoriKegiatan;
 use App\Models\Kecamatan;
-use App\Models\Kpi;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Satuanpendidikan;
@@ -23,7 +23,7 @@ trait SeedsDummyData
 {
     protected const DOMAIN = '@kknt.test';
 
-    protected const KPI = 'Pengurangan Sampah Rumah Tangga';
+    protected const KATEGORI = 'Pengurangan Sampah Rumah Tangga';
 
     protected const KELOMPOK_PER_PT = 3;
 
@@ -125,12 +125,12 @@ trait SeedsDummyData
         return $pts;
     }
 
-    protected function kpiMaster(): Kpi
+    protected function kategoriMaster(): KategoriKegiatan
     {
-        $kpi = Kpi::where('nama_kpi', self::KPI)->first();
-        $this->requireData($kpi !== null, 'KpiMasterSeeder');
+        $kategori = KategoriKegiatan::where('nama_kategori', self::KATEGORI)->first();
+        $this->requireData($kategori !== null, 'KategoriKegiatanSeeder');
 
-        return $kpi;
+        return $kategori;
     }
 
     // Mahasiswa kelompok (punya DPL pembimbing), urut email agar deterministik

@@ -18,7 +18,7 @@ class LogkegiatanFactory extends Factory
             'deskripsi' => fake()->paragraph(),
             'volume' => fake()->randomFloat(2, 0, 100),
             'satuan' => 'kegiatan',
-            'id_kpi' => null,
+            'id_kategori' => null,
             'tautan' => null,
         ];
     }

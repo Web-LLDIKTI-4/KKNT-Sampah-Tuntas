@@ -5,7 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Session;
 use DataTables;
-use App\Models\Kpi;
+use App\Models\KategoriKegiatan;
 use App\Models\Dplmentoring;
 use App\Models\Freeform;
 

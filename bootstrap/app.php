@@ -23,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\KepalaReadOnly::class,
         ]);
 
+        // Hanya host APP_URL (& subdomain) yang diterima; nonaktif di local/testing
+        $middleware->trustHosts();
+
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('home'));
     })

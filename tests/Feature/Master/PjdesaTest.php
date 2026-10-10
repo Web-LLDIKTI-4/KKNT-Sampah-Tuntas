@@ -3,7 +3,7 @@
 namespace Tests\Feature\Master;
 
 use App\Models\Desa;
-use App\Models\Kpicapaian;
+use App\Models\CapaianKegiatan;
 use App\Models\Pjdesa;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,7 +38,7 @@ class PjdesaTest extends TestCase
     {
         $this->loginAs('admin');
         $pj = Pjdesa::create(['id_desa' => Desa::factory()->create()->id_desa, 'email' => 'ketua@pps.test']);
-        Kpicapaian::factory()->create(['email' => 'ketua@pps.test', 'id_pjdesa' => $pj->id_pjdesa]);
+        CapaianKegiatan::factory()->create(['email' => 'ketua@pps.test', 'id_pjdesa' => $pj->id_pjdesa]);
 
         $this->put('pjdesa/destroy', ['id_pjdesa' => $pj->id_pjdesa])->assertJson(['success' => false]);
         $this->assertDatabaseHas('pj_desa', ['id_pjdesa' => $pj->id_pjdesa]);

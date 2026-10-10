@@ -14,7 +14,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
- * Rekap sampah format LLDIKTI (A–L) dari KpiSampahService::rekapLldikti(); Bulan & Kecamatan di-merge per grup.
+ * Rekap sampah format LLDIKTI (A–L) dari PenguranganSampahService::rekapLldikti(); Bulan & Kecamatan di-merge per grup.
  */
 class RekapLldiktiSheet implements FromArray, WithTitle, WithEvents, WithStrictNullComparison
 {
@@ -128,7 +128,7 @@ class RekapLldiktiSheet implements FromArray, WithTitle, WithEvents, WithStrictN
         }
     }
 
-    // Isi kolom A–L satu desa; dipakai ulang CapaianKpiPeriodeSheet
+    // Isi kolom A–L satu desa; dipakai ulang CapaianKegiatanPeriodeSheet
     public static function baris(object $grupBulan, object $kec, object $r): array
     {
         return [

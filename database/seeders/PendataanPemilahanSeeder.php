@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * Pendataan pemilahan sampah 3 bulan terakhir (termasuk bulan berjalan) oleh mahasiswa kelompok: 2 rumah tetap per mahasiswa per bulan.
- * Sumber rekap KpiSampahService; profil per PT bergiliran hijau (±35%), kuning (±15%), merah (±5%) pengurangan.
+ * Sumber rekap PenguranganSampahService; profil per PT bergiliran hijau (±35%), kuning (±15%), merah (±5%) pengurangan.
  * Kunci: email + alamat_rumah + tanggal (tanggal deterministik).
  * Jalankan: php artisan db:seed --class=PendataanPemilahanSeeder
  * Prasyarat: PerguruanTinggiSeeder, MahasiswaSeeder

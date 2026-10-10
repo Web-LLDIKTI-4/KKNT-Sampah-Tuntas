@@ -34,10 +34,10 @@ class Dplmentoring extends Model
             && static::ofDpl($dpl)->where('email_mahasiswa', $emailMahasiswa)->exists();
     }
 
-    public function kpiCapaian()
+    public function capaianKegiatan()
     {
         return $this->hasMany(
-            Kpicapaian::class,
+            CapaianKegiatan::class,
             'email', 
             'email_mahasiswa'
         );

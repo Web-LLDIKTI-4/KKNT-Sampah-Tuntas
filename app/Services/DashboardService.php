@@ -6,7 +6,7 @@ use App\Models\Dpl;
 use App\Models\Dpllaporan;
 use App\Models\Dplmentoring;
 use App\Models\Kehadiran;
-use App\Models\Kpicapaian;
+use App\Models\CapaianKegiatan;
 use App\Models\Logbulanan;
 use App\Models\Logkegiatan;
 use App\Models\Mahasiswa;
@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\DB;
  */
 class DashboardService
 {
-    public function __construct(private KpiRekapService $rekap) {}
+    public function __construct(private RekapPenguranganSampahService $rekap) {}
 
     public function forMahasiswa(User $user): array
     {
@@ -28,8 +28,8 @@ class DashboardService
 
         return [
             'jumlahmahasiswa' => Mahasiswa::count(),
-            'jumlahcapaiankpi' => $user->akses === 'pjdesa'
-                ? Kpicapaian::where('email', $email)->distinct()->count('id_kpi')
+            'jumlahcapaiankegiatan' => $user->akses === 'pjdesa'
+                ? CapaianKegiatan::where('email', $email)->distinct()->count('id_kategori')
                 : 0,
             'jumlahlogbulanan' => Logbulanan::where('email', $email)->distinct()->count('bulan'),
             'jumlahlogkegiatan' => Logkegiatan::where('email', $email)->whereNotNull('deskripsi')->distinct()->count('tanggal'),
@@ -64,7 +64,7 @@ class DashboardService
             'jumlahlogbulanan' => $this->distinctPairs('logkegiatan_bulanan', 'bulan', $emails),
             'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', $emails, 'deskripsi'),
             'jumlahdpl' => Dpl::where('kodept', $user->email)->count(),
-            'kpiHome' => $this->kpiHome(['kodept' => $user->email], false),
+            'penguranganSampahHome' => $this->penguranganSampahHome(['kodept' => $user->email], false),
         ] + $this->common();
     }
 
@@ -76,13 +76,13 @@ class DashboardService
             'jumlahmahasiswa' => Mahasiswa::count(),
             'jumlahlogbulanan' => $this->distinctPairs('logkegiatan_bulanan', 'bulan'),
             'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', null, 'deskripsi'),
-            'kpiHome' => $this->kpiHome([], true),
+            'penguranganSampahHome' => $this->penguranganSampahHome([], true),
         ] + $this->common();
     }
 
-    private function kpiHome(array $filter, bool $perPt): array
+    private function penguranganSampahHome(array $filter, bool $perPt): array
     {
-        // Laporan capaian KPI (pengurangan sampah) dimuat terpisah lewat AJAX dari Dashboard KPI
+        // Laporan capaian pengurangan sampah dimuat terpisah lewat AJAX dari Dashboard Pengurangan Sampah
         return [
             'perPt' => $perPt,
             'lokasi' => $this->rekap->lokasiTable($filter),
@@ -101,7 +101,7 @@ class DashboardService
                 'id_mahasiswa',
                 Mahasiswa::whereIn('email', Dplmentoring::select('email_mahasiswa'))->select('id_mahasiswa')
             )->distinct()->count('id_mahasiswa'),
-            'kpiHome' => $this->kpiHome([], true),
+            'penguranganSampahHome' => $this->penguranganSampahHome([], true),
         ] + $this->common();
     }
 

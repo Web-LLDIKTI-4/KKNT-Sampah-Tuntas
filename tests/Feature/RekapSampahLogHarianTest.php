@@ -5,14 +5,14 @@ namespace Tests\Feature;
 use App\Exports\Sheets\RekapLldiktiSheet;
 use App\Models\Desa;
 use App\Models\Kecamatan;
-use App\Models\Kpisampah;
+use App\Models\PenguranganSampah;
 use App\Models\Logkegiatan;
 use App\Models\PendataanPemilahanSampah;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
-use App\Services\KpiSampahService;
+use App\Services\PenguranganSampahService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -46,7 +46,7 @@ class RekapSampahLogHarianTest extends TestCase
 
     private function rekap(array $filter = []): Collection
     {
-        return app(KpiSampahService::class)->rekapLldikti($filter);
+        return app(PenguranganSampahService::class)->rekapLldikti($filter);
     }
 
     private function barisDesa($rekap, string $bulan, string $idDesa): object
@@ -156,7 +156,7 @@ class RekapSampahLogHarianTest extends TestCase
         // Desa 3 bulan September hanya berisi log mahasiswa pindahan
         $this->assertSame(1, $sep->kecamatan[1]->desa[0]->jml_rumah);
 
-        $total = app(KpiSampahService::class)->total(['bulan' => self::BULAN]);
+        $total = app(PenguranganSampahService::class)->total(['bulan' => self::BULAN]);
         $this->assertSame(3, (int) $total->jml_desa);
         $this->assertEquals(3.0, $total->organik);
 
@@ -209,7 +209,7 @@ class RekapSampahLogHarianTest extends TestCase
         $this->assertSame('0.00%', $ws->getStyle('L2')->getNumberFormat()->getFormatCode());
     }
 
-    public function test_view_rekapsampah_dashboard_dan_kpicapaian_render_tanpa_error(): void
+    public function test_view_rekapsampah_dashboard_dan_capaiankegiatan_render_tanpa_error(): void
     {
         $pt = Satuanpendidikan::factory()->create();
         $desa = Desa::factory()->create(['desa' => 'Desa Render']);
@@ -220,26 +220,26 @@ class RekapSampahLogHarianTest extends TestCase
             $this->get('rekapsampah?bulan=semua')->assertOk()->assertViewHas('rekap')->assertSee('Desa Render')
                 ->assertSee('Jumlah Rumah yang memilah');
             $this->get('rekapsampah?bulan='.self::BULAN, ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->assertSee('Desa Render');
-            $this->get('dashboardkpi')->assertOk()->assertViewHas('rekap')->assertViewHas('total')->assertSee('Desa Render');
+            $this->get('dashboard-pengurangan-sampah')->assertOk()->assertViewHas('rekap')->assertViewHas('total')->assertSee('Desa Render');
         }
 
         // PT dikunci ke PT-nya
         $this->loginAs('pt', ['email' => $pt->npsn]);
         $this->get('rekapsampah?bulan=semua')->assertOk()->assertSee('Desa Render');
-        $this->get('dashboardkpi')->assertOk()->assertSee('Desa Render');
+        $this->get('dashboard-pengurangan-sampah')->assertOk()->assertSee('Desa Render');
         $ptLain = Satuanpendidikan::factory()->create();
         $this->loginAs('pt', ['email' => $ptLain->npsn]);
         $this->get('rekapsampah?bulan=semua&kodept='.$pt->npsn)->assertOk()->assertDontSee('Desa Render');
-        $this->get('dashboardkpi?kodept='.$pt->npsn)->assertOk()->assertDontSee('Desa Render');
+        $this->get('dashboard-pengurangan-sampah?kodept='.$pt->npsn)->assertOk()->assertDontSee('Desa Render');
 
         // Data kosong tetap render
         PendataanPemilahanSampah::query()->delete();
         $this->loginAs('admin');
         $this->get('rekapsampah')->assertOk()->assertSee('Belum ada data Pendataan Sampah Penduduk');
-        $this->get('dashboardkpi')->assertOk();
+        $this->get('dashboard-pengurangan-sampah')->assertOk();
     }
 
-    public function test_kpicapaian_read_only_scope_desa_mahasiswa(): void
+    public function test_capaiankegiatan_read_only_scope_desa_mahasiswa(): void
     {
         $user = $this->loginAs('mahasiswa');
         $idDesa = Mahasiswa_lokasi::where('id_mahasiswa', $user->mahasiswa->id_mahasiswa)->value('id_desa');
@@ -250,16 +250,16 @@ class RekapSampahLogHarianTest extends TestCase
         $desaLain = Desa::factory()->create(['desa' => 'Desa Tetangga']);
         $this->log($this->mahasiswaDi($desaLain));
 
-        $res = $this->get('kpicapaian')->assertOk()
+        $res = $this->get('capaiankegiatan')->assertOk()
             ->assertSee($desa->desa)->assertDontSee('Desa Tetangga')
             ->assertSee('Persentase Ketaatan Pemilahan [(E/D)*100%]', false)
-            ->assertDontSee('kpicapaian/tambah', false);
+            ->assertDontSee('capaiankegiatan/tambah', false);
         $this->assertSame(2, $res->viewData('total')->jml_rumah);
         $this->assertEquals(4.0, $res->viewData('total')->organik);
 
         // Lokasi tanpa kelurahan → pesan, bukan error
         Mahasiswa_lokasi::where('id_mahasiswa', $user->mahasiswa->id_mahasiswa)->update(['id_desa' => null]);
-        $this->get('kpicapaian')->assertOk()->assertSee('belum terdaftar di lokasi KKN');
+        $this->get('capaiankegiatan')->assertOk()->assertSee('belum terdaftar di lokasi KKN');
     }
 
     public function test_route_data_sampah_sudah_404_dan_form_capaian_tanpa_sampah(): void
@@ -274,7 +274,7 @@ class RekapSampahLogHarianTest extends TestCase
             $this->put($uri, [])->assertNotFound();
         }
         // Form capaian ketua ada lagi, tapi tanpa input sampah
-        $this->get('kpicapaian/tambah')->assertOk()->assertDontSee('organik_kg', false)->assertDontSee('data-sampah-form', false);
+        $this->get('capaiankegiatan/tambah')->assertOk()->assertDontSee('organik_kg', false)->assertDontSee('data-sampah-form', false);
         $this->get('home')->assertOk()->assertDontSee(url('kpisampah'), false);
     }
 
@@ -294,12 +294,12 @@ class RekapSampahLogHarianTest extends TestCase
 
     public function test_helper_persen_klaster_capaian(): void
     {
-        $this->assertNull(Kpisampah::persen(5, 0));
-        $this->assertNull(Kpisampah::klaster(Kpisampah::persen(0, 0)));
-        $this->assertSame('-', Kpisampah::formatPersen(null));
-        $this->assertFalse(Kpisampah::terpenuhi(19.99));
-        $this->assertTrue(Kpisampah::terpenuhi(20.0));
-        $this->assertEquals(50, Kpisampah::capaian(10));
-        $this->assertEquals(100, Kpisampah::capaian(150.0));
+        $this->assertNull(PenguranganSampah::persen(5, 0));
+        $this->assertNull(PenguranganSampah::klaster(PenguranganSampah::persen(0, 0)));
+        $this->assertSame('-', PenguranganSampah::formatPersen(null));
+        $this->assertFalse(PenguranganSampah::terpenuhi(19.99));
+        $this->assertTrue(PenguranganSampah::terpenuhi(20.0));
+        $this->assertEquals(50, PenguranganSampah::capaian(10));
+        $this->assertEquals(100, PenguranganSampah::capaian(150.0));
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,10 +19,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PerguruantinggiController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\LogkehadiranController;
-use App\Http\Controllers\KpiController;
-use App\Http\Controllers\KpicapaianController;
-use App\Http\Controllers\LapcapaiankpiController;
-use App\Http\Controllers\KpiDashboardController;
+use App\Http\Controllers\KategoriKegiatanController;
+use App\Http\Controllers\CapaianKegiatanController;
+use App\Http\Controllers\LapcapaiankegiatanController;
+use App\Http\Controllers\PenguranganSampahDashboardController;
 use App\Http\Controllers\CapaianProgramExportController;
 use App\Http\Controllers\LogExportController;
 use App\Http\Controllers\LogharianExportController;
@@ -73,6 +74,26 @@ use App\Http\Controllers\SaranController;
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+// Redirect 301 URL lama (sebelum rename) ke URL baru; sub-path & query string ikut
+foreach ([
+    'kpi' => 'kategori-kegiatan',
+    'kpicapaian' => 'capaiankegiatan',
+    'lapcapaiankpi' => 'lapcapaiankegiatan',
+    'dashboardkpi' => 'dashboard-pengurangan-sampah',
+] as $old => $new) {
+    Route::get($old.'/{path?}', function (Request $request, ?string $path = null) use ($new) {
+        // Tolak CR/LF/NUL & segmen '..' (termasuk hasil decode ganda)
+        if ($path !== null && preg_match('#[\r\n\0]|(^|/)\.\.(/|$)#', $path.'/'.rawurldecode($path))) {
+            abort(404);
+        }
+
+        return redirect()->to(
+            $new.($path !== null ? '/'.$path : '').($request->getQueryString() ? '?'.$request->getQueryString() : ''),
+            301
+        );
+    })->where('path', '.*');
+}
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [LoginController::class, 'index'])->name('login');
@@ -155,15 +176,15 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('mahasiswa/prosesimport', [MahasiswaController::class, 'prosesimport'])->middleware('throttle:sensitive');
     Route::put('mahasiswa/destroy', [MahasiswaController::class, 'destroy']);
 
-    Route::get('kpi', [KpiController::class, 'index']);
-    Route::get('kpi/listdata', [KpiController::class, 'listdata'])->name('kpi.listdata');
-    Route::get('kpi/listdataserver', [KpiController::class, 'listdataserver'])->name('kpi.listdataserver');
-    Route::get('kpi/tambah', [KpiController::class, 'tambah']);
-    Route::put('kpi/insert', [KpiController::class, 'insert']);
-    Route::get('kpi/edit/{id_kpi}', [KpiController::class, 'edit']);
-    Route::put('kpi/update', [KpiController::class, 'update']);
-    Route::put('kpi/destroy', [KpiController::class, 'destroy']);
-    Route::get('kpi/export', [KpiController::class, 'export'])->name('kpi.export');
+    Route::get('kategori-kegiatan', [KategoriKegiatanController::class, 'index']);
+    Route::get('kategori-kegiatan/listdata', [KategoriKegiatanController::class, 'listdata'])->name('kategori-kegiatan.listdata');
+    Route::get('kategori-kegiatan/listdataserver', [KategoriKegiatanController::class, 'listdataserver'])->name('kategori-kegiatan.listdataserver');
+    Route::get('kategori-kegiatan/tambah', [KategoriKegiatanController::class, 'tambah']);
+    Route::put('kategori-kegiatan/insert', [KategoriKegiatanController::class, 'insert']);
+    Route::get('kategori-kegiatan/edit/{id_kategori}', [KategoriKegiatanController::class, 'edit']);
+    Route::put('kategori-kegiatan/update', [KategoriKegiatanController::class, 'update']);
+    Route::put('kategori-kegiatan/destroy', [KategoriKegiatanController::class, 'destroy']);
+    Route::get('kategori-kegiatan/export', [KategoriKegiatanController::class, 'export'])->name('kategori-kegiatan.export');
 
 
     //semua route dalam grup ini hanya bisa diakses oleh operator
@@ -178,24 +199,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Modul legacy: diganti admlogkegiatan; link export lama tetap redirect
     Route::redirect('admlogharian', 'admlogkegiatan');
     Route::get('admlogharian/export', [AdmlogharianController::class, 'export']);
-
-    Route::get('kecamatan', [KecamatanController::class, 'index']);
-    Route::get('kecamatan/listdata', [KecamatanController::class, 'listdata'])->name('kecamatan.listdata');
-    Route::get('kecamatan/listdataserver', [KecamatanController::class, 'listdataserver'])->name('kecamatan.listdataserver');
-    Route::get('kecamatan/tambah', [KecamatanController::class, 'tambah']);
-    Route::put('kecamatan/insert', [KecamatanController::class, 'insert']);
-    Route::get('kecamatan/edit/{id_kecamatan}', [KecamatanController::class, 'edit']);
-    Route::put('kecamatan/update', [KecamatanController::class, 'update']);
-    Route::put('kecamatan/destroy', [KecamatanController::class, 'destroy']);
-
-    Route::get('desa', [DesaController::class, 'index']);
-    Route::get('desa/listdata', [DesaController::class, 'listdata'])->name('desa.listdata');
-    Route::get('desa/listdataserver', [DesaController::class, 'listdataserver'])->name('desa.listdataserver');
-    Route::get('desa/tambah', [DesaController::class, 'tambah']);
-    Route::put('desa/insert', [DesaController::class, 'insert']);
-    Route::get('desa/edit/{id_desa}', [DesaController::class, 'edit']);
-    Route::put('desa/update', [DesaController::class, 'update']);
-    Route::put('desa/destroy', [DesaController::class, 'destroy']);
 
     Route::get('pjdesa', [PjdesaController::class, 'index']);
     Route::get('pjdesa/listdata', [PjdesaController::class, 'listdata'])->name('pjdesa.listdata');
@@ -249,6 +252,27 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admevaluasikegiatan/pertanyaanevaluasiserver', [AdmevaluasikegiatanController::class, 'pertanyaanevaluasiserver'])->name('admevaluasikegiatan.pertanyaanevaluasiserver');
     Route::put('admevaluasikegiatan/pertanyaanevaluasi/destroy', [AdmevaluasikegiatanController::class, 'destroy'])->name('admevaluasikegiatan.pertanyaanevaluasi.destroy');
 
+});
+
+// Master wilayah: admin & pemda dapat mengelola kecamatan dan desa
+Route::middleware(['auth', 'role:admin,pemda'])->group(function () {
+    Route::get('kecamatan', [KecamatanController::class, 'index']);
+    Route::get('kecamatan/listdata', [KecamatanController::class, 'listdata'])->name('kecamatan.listdata');
+    Route::get('kecamatan/listdataserver', [KecamatanController::class, 'listdataserver'])->name('kecamatan.listdataserver');
+    Route::get('kecamatan/tambah', [KecamatanController::class, 'tambah']);
+    Route::put('kecamatan/insert', [KecamatanController::class, 'insert']);
+    Route::get('kecamatan/edit/{id_kecamatan}', [KecamatanController::class, 'edit']);
+    Route::put('kecamatan/update', [KecamatanController::class, 'update']);
+    Route::put('kecamatan/destroy', [KecamatanController::class, 'destroy']);
+
+    Route::get('desa', [DesaController::class, 'index']);
+    Route::get('desa/listdata', [DesaController::class, 'listdata'])->name('desa.listdata');
+    Route::get('desa/listdataserver', [DesaController::class, 'listdataserver'])->name('desa.listdataserver');
+    Route::get('desa/tambah', [DesaController::class, 'tambah']);
+    Route::put('desa/insert', [DesaController::class, 'insert']);
+    Route::get('desa/edit/{id_desa}', [DesaController::class, 'edit']);
+    Route::put('desa/update', [DesaController::class, 'update']);
+    Route::put('desa/destroy', [DesaController::class, 'destroy']);
 });
 
 // Profil desa: semua role dapat melihat; admin & pemda dapat mengelola
@@ -307,14 +331,14 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function ()
 });
 
 Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function () {
-    Route::get('lapcapaiankpi', [LapcapaiankpiController::class, 'index']);
-    Route::get('lapcapaiankpi/listdata', [LapcapaiankpiController::class, 'listdata'])->name('lapcapaiankpi.listdata');
-    Route::get('lapcapaiankpi/listdataserver', [LapcapaiankpiController::class, 'listdataserver'])->name('lapcapaiankpi.listdataserver');
-    Route::get('lapcapaiankpi/export', [LapcapaiankpiController::class, 'export']);
+    Route::get('lapcapaiankegiatan', [LapcapaiankegiatanController::class, 'index']);
+    Route::get('lapcapaiankegiatan/listdata', [LapcapaiankegiatanController::class, 'listdata'])->name('lapcapaiankegiatan.listdata');
+    Route::get('lapcapaiankegiatan/listdataserver', [LapcapaiankegiatanController::class, 'listdataserver'])->name('lapcapaiankegiatan.listdataserver');
+    Route::get('lapcapaiankegiatan/export', [LapcapaiankegiatanController::class, 'export']);
 });
 
 Route::middleware(['auth', 'role:admin,pt,kepala,pemda'])->group(function () {
-    Route::get('dashboardkpi', [KpiDashboardController::class, 'index'])->name('dashboardkpi');
+    Route::get('dashboard-pengurangan-sampah', [PenguranganSampahDashboardController::class, 'index'])->name('dashboard-pengurangan-sampah');
     Route::get('rekapsampah', [RekapsampahController::class, 'index'])->name('rekapsampah');
 });
 
@@ -337,7 +361,7 @@ Route::middleware(['auth', 'role:admin,kepala,pemda'])->group(function () {
 
 // Export Capaian Program (Laporan Kegiatan dashboard): khusus admin
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('dashboardkpi/export-capaian', CapaianProgramExportController::class)->name('dashboardkpi.export-capaian');
+    Route::get('dashboard-pengurangan-sampah/export-capaian', CapaianProgramExportController::class)->name('dashboard-pengurangan-sampah.export-capaian');
 });
 
 Route::middleware(['auth', 'role:dpl,pt,kepala,pemda'])->group(function () {
@@ -409,15 +433,15 @@ Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function () {
-    Route::get('kpicapaian', [KpicapaianController::class, 'index']);
-    Route::get('kpicapaian/listdata', [KpicapaianController::class, 'listdata'])->name('kpicapaian.listdata');
-    Route::get('kpicapaian/listdataserver', [KpicapaianController::class, 'listdataserver'])->name('kpicapaian.listdataserver');
-    Route::get('kpicapaian/tambah', [KpicapaianController::class, 'tambah']);
-    Route::put('kpicapaian/insert', [KpicapaianController::class, 'insert'])->middleware('throttle:sensitive');
-    Route::get('kpicapaian/edit/{id_capaian}', [KpicapaianController::class, 'edit']);
-    Route::put('kpicapaian/update', [KpicapaianController::class, 'update'])->middleware('throttle:sensitive');
-    Route::put('kpicapaian/destroy', [KpicapaianController::class, 'destroy'])->middleware('throttle:sensitive');
-    Route::get('kpicapaian/export', [KpicapaianController::class, 'export']);
+    Route::get('capaiankegiatan', [CapaianKegiatanController::class, 'index']);
+    Route::get('capaiankegiatan/listdata', [CapaianKegiatanController::class, 'listdata'])->name('capaiankegiatan.listdata');
+    Route::get('capaiankegiatan/listdataserver', [CapaianKegiatanController::class, 'listdataserver'])->name('capaiankegiatan.listdataserver');
+    Route::get('capaiankegiatan/tambah', [CapaianKegiatanController::class, 'tambah']);
+    Route::put('capaiankegiatan/insert', [CapaianKegiatanController::class, 'insert'])->middleware('throttle:sensitive');
+    Route::get('capaiankegiatan/edit/{id_capaian}', [CapaianKegiatanController::class, 'edit']);
+    Route::put('capaiankegiatan/update', [CapaianKegiatanController::class, 'update'])->middleware('throttle:sensitive');
+    Route::put('capaiankegiatan/destroy', [CapaianKegiatanController::class, 'destroy'])->middleware('throttle:sensitive');
+    Route::get('capaiankegiatan/export', [CapaianKegiatanController::class, 'export']);
 
     Route::get('logbulanan', [LogbulananController::class, 'index']);
     Route::post('logbulanan/tambah', [LogbulananController::class, 'tambah'])->name('logbulanan.tambah');

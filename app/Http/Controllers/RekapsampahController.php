@@ -7,13 +7,13 @@ use App\Http\Requests\RekapSampahRequest;
 use App\Models\Kecamatan;
 use App\Models\Mahasiswa;
 use App\Models\Satuanpendidikan;
-use App\Services\KpiSampahService;
+use App\Services\PenguranganSampahService;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel;
 
 class RekapsampahController extends Controller
 {
-    public function index(RekapSampahRequest $request, KpiSampahService $sampah)
+    public function index(RekapSampahRequest $request, PenguranganSampahService $sampah)
     {
         $isPt = $request->user()->role === 'pt';
         [$filter, $klasterPt] = $this->filter($request, $sampah);
@@ -33,7 +33,7 @@ class RekapsampahController extends Controller
     }
 
     // Format LLDIKTI (per kelurahan), mengikuti filter & klaster aktif
-    public function export(RekapSampahRequest $request, KpiSampahService $sampah)
+    public function export(RekapSampahRequest $request, PenguranganSampahService $sampah)
     {
         [$filter] = $this->filter($request, $sampah);
 
@@ -46,7 +46,7 @@ class RekapsampahController extends Controller
     /**
      * @return array{0: array, 1: Collection} filter query & klaster tiap PT (kosong untuk role PT)
      */
-    private function filter(RekapSampahRequest $request, KpiSampahService $sampah): array
+    private function filter(RekapSampahRequest $request, PenguranganSampahService $sampah): array
     {
         $user = $request->user();
         $isPt = $user->role === 'pt';

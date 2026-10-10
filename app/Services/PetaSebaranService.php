@@ -17,7 +17,7 @@ class PetaSebaranService
 
     public const MASK_BELOW = 3;
 
-    public function __construct(private KpiSampahService $kpi)
+    public function __construct(private PenguranganSampahService $sampah)
     {
     }
 
@@ -86,12 +86,12 @@ class PetaSebaranService
             ]);
 
         // Periode per basis PT (sama dengan dashboard PT); mode all = global
-        $periode = $this->kpi->bulanTerakhir($kodept, $filter['tahun']);
+        $periode = $this->sampah->bulanTerakhir($kodept, $filter['tahun']);
         $persenDesa = $persenKecamatan = collect();
         if ($periode !== null) {
-            $kpiFilter = ['bulan' => $periode, 'kodept' => $kodept];
-            $persenDesa = $this->kpi->totalPer('desa', $kpiFilter);
-            $persenKecamatan = $this->kpi->totalPer('kecamatan', $kpiFilter);
+            $sampahFilter = ['bulan' => $periode, 'kodept' => $kodept];
+            $persenDesa = $this->sampah->totalPer('desa', $sampahFilter);
+            $persenKecamatan = $this->sampah->totalPer('kecamatan', $sampahFilter);
         }
 
         $total = 0;

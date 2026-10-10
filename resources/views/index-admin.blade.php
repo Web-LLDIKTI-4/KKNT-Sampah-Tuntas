@@ -174,8 +174,8 @@
     <!--/ Project Timeline Chart-->
     </div>
 
-    @isset($kpiHome)
-        @include('kpidashboard._home')
+    @isset($penguranganSampahHome)
+        @include('pengurangansampah._home')
     @endisset
 </div>
 

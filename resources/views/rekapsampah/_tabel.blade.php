@@ -1,9 +1,9 @@
 {{-- Rekap pendataan pemilahan sampah format LLDIKTI; filter dimuat ulang lewat public/js/drilldown.js --}}
 @php
-    use App\Models\Kpisampah;
+    use App\Models\PenguranganSampah;
     use Illuminate\Support\Carbon;
-    $berat = fn ($v) => Kpisampah::formatAngka($v, 2);
-    $persen = fn ($v) => Kpisampah::formatPersen($v === null ? null : (float) $v);
+    $berat = fn ($v) => PenguranganSampah::formatAngka($v, 2);
+    $persen = fn ($v) => PenguranganSampah::formatPersen($v === null ? null : (float) $v);
     $namaBulan = fn ($b) => Carbon::parse($b)->translatedFormat('F Y');
     $pilihanBulan = $filter['bulan'] ?? 'semua';
 @endphp
@@ -40,7 +40,7 @@
             <label class="form-label small mb-1">Klaster</label>
             <select name="klaster" class="form-select form-select-sm">
                 <option value="">Semua Klaster</option>
-                @foreach (Kpisampah::KLASTER as $kode => $k)
+                @foreach (PenguranganSampah::KLASTER as $kode => $k)
                     <option value="{{ $kode }}" @selected($filter['klaster'] === $kode)>{{ $k['label'] }} ({{ $k['ket'] }})</option>
                 @endforeach
             </select>
@@ -55,7 +55,7 @@
 @unless ($isPt)
     {{-- Rekap klaster PT: klik kartu untuk menampilkan PT di klaster tersebut saja --}}
     <div class="row g-3 mb-4">
-        @foreach (Kpisampah::KLASTER as $kode => $k)
+        @foreach (PenguranganSampah::KLASTER as $kode => $k)
             @php($anggota = $klasterPt->where('klaster', $kode))
             <div class="col-md-4">
                 <a href="#" data-klaster="{{ $kode }}" @class(['card h-100 text-body border', 'border-3 border-primary' => $filter['klaster'] === $kode])>

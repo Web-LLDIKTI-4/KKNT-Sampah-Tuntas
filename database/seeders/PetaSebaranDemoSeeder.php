@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Kpisampah;
+use App\Models\PenguranganSampah;
 use App\Services\PetaSebaranService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +29,7 @@ class PetaSebaranDemoSeeder extends Seeder
     protected const UUID_NAMESPACE = '6f1c2b8e-4a3d-5e7f-9b10-2c4d6e8fa0b1';
 
     // Tabel yang merujuk desa; desa demo yang masih dirujuk data asli tidak dihapus
-    protected const DESA_REFERENCES = ['mahasiswa_lokasi', 'desa_profile', 'pj_desa', 'kpi_sampah'];
+    protected const DESA_REFERENCES = ['mahasiswa_lokasi', 'desa_profile', 'pj_desa', 'pengurangan_sampah'];
 
     protected const PRODI = [
         'Teknik Lingkungan',
@@ -89,7 +89,7 @@ class PetaSebaranDemoSeeder extends Seeder
     public static function flushCaches(): void
     {
         PetaSebaranService::flushCache();
-        Kpisampah::forgetPublicCache();
+        PenguranganSampah::forgetPublicCache();
     }
 
     public static function guard(): void
@@ -128,11 +128,62 @@ class PetaSebaranDemoSeeder extends Seeder
     }
 
     /**
+     * UUID5 demo ids plus existing rows matching demo natural keys (legacy rows may use other ids).
+     *
+     * @return array{kecamatan: list<string>, desa: list<string>}
+     */
+    public static function existingDemoIds(): array
+    {
+        $ids = self::demoIds();
+        $kecamatan = self::existingKecamatanByNama();
+        $desa = array_values(self::existingDesaByKey(array_values($kecamatan)));
+
+        return [
+            'kecamatan' => array_values(array_unique([...$ids['kecamatan'], ...array_values($kecamatan)])),
+            'desa' => array_values(array_unique([...$ids['desa'], ...$desa])),
+        ];
+    }
+
+    /**
+     * @return array<string, string> nama kecamatan (tanpa suffix) => id_kecamatan
+     */
+    protected static function existingKecamatanByNama(): array
+    {
+        $nama = array_map(fn (string $n) => $n.self::SUFFIX, array_keys(self::WILAYAH));
+
+        return DB::table('kecamatan')->whereIn('kecamatan', $nama)->orderByDesc('created_at')->get(['id_kecamatan', 'kecamatan'])
+            ->mapWithKeys(fn ($row) => [Str::beforeLast($row->kecamatan, self::SUFFIX) => $row->id_kecamatan])
+            ->all();
+    }
+
+    /**
+     * @param  list<string>  $idKecamatan
+     * @return array<string, string> "id_kecamatan|nama desa (tanpa suffix)" => id_desa
+     */
+    protected static function existingDesaByKey(array $idKecamatan): array
+    {
+        if (! $idKecamatan) {
+            return [];
+        }
+        $namaKecamatan = DB::table('kecamatan')->whereIn('id_kecamatan', $idKecamatan)->pluck('kecamatan', 'id_kecamatan');
+        $result = [];
+        foreach (DB::table('desa')->whereIn('id_kecamatan', $idKecamatan)->where('desa', 'like', '%'.self::SUFFIX)->orderByDesc('created_at')->get(['id_desa', 'id_kecamatan', 'desa']) as $row) {
+            $kecamatan = Str::beforeLast((string) $namaKecamatan[$row->id_kecamatan], self::SUFFIX);
+            $desa = Str::beforeLast($row->desa, self::SUFFIX);
+            if (isset(self::WILAYAH[$kecamatan][$desa])) {
+                $result[$row->id_kecamatan.'|'.$desa] = $row->id_desa;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * @param  callable(string): void|null  $warn
      */
     public static function cleanup(?callable $warn = null): void
     {
-        $ids = self::demoIds();
+        $ids = self::existingDemoIds();
 
         $demoMahasiswaIds = DB::table('mahasiswa_lokasi')
             ->where('user_in_up', self::MARKER)
@@ -210,17 +261,17 @@ class PetaSebaranDemoSeeder extends Seeder
         }
         $jumlahDesa = $kodeptList ? min(18, count($kodeptList)) : 18;
 
-        $ids = self::demoIds();
-        $existingKecamatan = DB::table('kecamatan')->whereIn('id_kecamatan', $ids['kecamatan'])->pluck('id_kecamatan')->all();
-        $existingDesa = DB::table('desa')->whereIn('id_desa', $ids['desa'])->pluck('id_desa')->all();
+        // Reuse existing demo rows by natural key (nama) so reruns never duplicate wilayah
+        $existingKecamatan = self::existingKecamatanByNama();
+        $existingDesa = self::existingDesaByKey(array_values($existingKecamatan));
 
         $desaIndex = 0;
         foreach (self::WILAYAH as $namaKecamatan => $desaList) {
             if ($desaIndex >= $jumlahDesa) {
                 break;
             }
-            $idKecamatan = self::kecamatanId($namaKecamatan);
-            in_array($idKecamatan, $existingKecamatan, true) || $kecamatanRows[] = [
+            $idKecamatan = $existingKecamatan[$namaKecamatan] ?? self::kecamatanId($namaKecamatan);
+            isset($existingKecamatan[$namaKecamatan]) || $kecamatanRows[] = [
                 'id_kecamatan' => $idKecamatan,
                 'kecamatan' => $namaKecamatan.self::SUFFIX,
                 'created_at' => $now,
@@ -234,8 +285,9 @@ class PetaSebaranDemoSeeder extends Seeder
                 $kodept = $kodeptList[$desaIndex] ?? null;
                 $desaIndex++;
 
-                $idDesa = self::desaId($namaKecamatan, $namaDesa);
-                in_array($idDesa, $existingDesa, true) || $desaRows[] = [
+                $desaKey = $idKecamatan.'|'.$namaDesa;
+                $idDesa = $existingDesa[$desaKey] ?? self::desaId($namaKecamatan, $namaDesa);
+                isset($existingDesa[$desaKey]) || $desaRows[] = [
                     'id_desa' => $idDesa,
                     'id_kecamatan' => $idKecamatan,
                     'desa' => $namaDesa.self::SUFFIX,

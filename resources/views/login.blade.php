@@ -52,6 +52,7 @@
     <!-- Page -->
     <link rel="stylesheet" href="../../assets/vendor/css/pages/page-auth.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/toastr/toastr.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/leaflet/leaflet.css') }}" />
 
     <!-- Helpers -->
@@ -702,6 +703,30 @@
           text-overflow: ellipsis;
         }
 
+        /* Select2 (search-select.js) di filter peta: ringkas setinggi btn-sm */
+        .peta-filters > .select2-container {
+          width: 8rem !important;
+        }
+
+        .peta-filters > #petaPt + .select2-container {
+          width: 16rem !important;
+        }
+
+        #panePeta .select2-container--default .select2-selection--single,
+        #panePeta .select2-container--default .select2-selection--single .select2-selection__arrow {
+          height: 2.125rem;
+        }
+
+        #panePeta .select2-container--default .select2-selection--single .select2-selection__rendered {
+          line-height: 2rem;
+          font-size: 0.8125rem;
+          padding-left: 0.75rem;
+        }
+
+        #panePeta .select2-results__option {
+          font-size: 0.8125rem;
+        }
+
         .peta-map-wrap {
           position: relative;
         }
@@ -926,13 +951,62 @@
         .peta-legend-dot {
           display: inline-block;
           border-radius: 50%;
-          box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+          box-sizing: border-box;
+        }
+
+        /* Heartbeat lembut bubble peta: detak ganda lalu diam */
+        @keyframes petaHeartbeat {
+          0%, 45%, 100% { transform: scale(1); }
+          12% { transform: scale(1.05); }
+          24% { transform: scale(1); }
+          34% { transform: scale(1.03); }
+        }
+
+        /* Bubble peta: chip lembut, gradien dari defs SVG bersama */
+        .peta-dot {
+          cursor: pointer;
+          transform-box: fill-box;
+          transform-origin: center;
+          transition: transform 0.2s ease, fill-opacity 0.2s ease, stroke 0.2s ease, stroke-width 0.2s ease;
+        }
+
+        .peta-bubble {
+          animation: petaHeartbeat 3s ease-in-out infinite;
+        }
+
+        .peta-dot:hover,
+        .peta-dot.is-active {
+          animation: none;
+          transform: scale(1.1);
+          fill-opacity: 0.95;
+          stroke-width: 2.5px;
+        }
+
+        /* Ring aksen + halo putih agar beda dari border gelap */
+        .peta-dot.is-active {
+          stroke: #667eea;
+          stroke-width: 3.5px;
+          stroke-opacity: 1;
+          filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff);
         }
 
         @media (prefers-reduced-motion: reduce) {
           .peta-sebaran,
           .peta-top-item {
             transition: none;
+          }
+
+          .peta-bubble {
+            animation: none;
+          }
+
+          .peta-dot {
+            transition: none;
+          }
+
+          .peta-dot:hover,
+          .peta-dot.is-active {
+            transform: none;
           }
         }
 
@@ -1131,6 +1205,10 @@
             width: 100%;
             max-width: none;
           }
+
+          .peta-filters > .select2-container {
+            width: 100% !important;
+          }
         }
 
         /* Badge reCAPTCHA di atas panel auth (z-index 1) dan toggle mobile (1050) */
@@ -1164,11 +1242,11 @@
                 <button type="button" class="nav-link" id="tabLaporan" data-bs-toggle="pill" data-bs-target="#paneLaporan" role="tab" aria-controls="paneLaporan" aria-selected="false">
                   <i class="ri-file-chart-line"></i> Capaian Program
                 </button>
-                <button type="button" class="nav-link" id="tabPanduan" data-bs-toggle="pill" data-bs-target="#panePanduan" role="tab" aria-controls="panePanduan" aria-selected="false">
-                  <i class="ri-book-open-line"></i> Dokumen
-                </button>
                 <button type="button" class="nav-link" id="tabPeta" data-bs-toggle="pill" data-bs-target="#panePeta" role="tab" aria-controls="panePeta" aria-selected="false" title="Peta Sebaran Mahasiswa">
                   <i class="ri-map-pin-line"></i> <span>Peta<span class="d-none d-lg-inline"> Sebaran</span><span class="d-none d-xl-inline"> Mahasiswa</span></span>
+                </button>
+                <button type="button" class="nav-link" id="tabPanduan" data-bs-toggle="pill" data-bs-target="#panePanduan" role="tab" aria-controls="panePanduan" aria-selected="false">
+                  <i class="ri-book-open-line"></i> Dokumen
                 </button>
               </div>
             </div>
@@ -1180,7 +1258,9 @@
               <h2 class="lokasi-panel-title">Program GRADASI : KKN Tematik <br /> Sampah Tuntas LLDIKTI Wilayah IV</h2>
 
               <p class="lokasi-panel-subtitle">
-                Silahkan <b>pilih Lokasi</b> terlebih dahulu sebelum Anda Login
+                Silahkan <b>pilih Lokasi</b> terlebih dahulu sebelum Anda Login <br />
+                Kegiatan ini melibatkan <b>{{ $jumlahMahasiswa }} Mahasiswa</b>  dan <b>{{ $jumlahDpl }} DPL</b> dari <b>{{ $jumlahPt }} Perguruan Tinggi.</b> <br />
+                Lokus kegiatan disebar ke {{ $jumlahKecamatan }} Kecamatan dan {{ $jumlahKelurahan }} Kelurahan/Desa.
               </p>
               {{-- <div class="input-group lokasi-search">
                 <span class="input-group-text"><i class="ri-search-line"></i></span>
@@ -1315,7 +1395,7 @@
 
                           <div class="peta-top">
                             <div class="peta-top-head">
-                              <span><i class="ri-trophy-line text-warning me-1" aria-hidden="true"></i>Top 5 Desa Terbanyak</span>
+                              <span><i class="ri-trophy-line text-warning me-1" aria-hidden="true"></i>Top 5 Desa · Pengurangan Sampah Tertinggi</span>
                               <small class="peta-muted fw-normal">Klik untuk sorot</small>
                             </div>
                             <ol id="petaTop" class="peta-top-list list-unstyled mb-0"></ol>
@@ -1469,6 +1549,8 @@
     <script src="../../assets/js/main.js"></script>
 
     <script src="../../assets/vendor/libs/toastr/toastr.js"></script>
+    <script src="../../assets/vendor/libs/select2/select2.js"></script>
+    <script src="{{ asset('js/search-select.js') }}?v={{ filemtime(public_path('js/search-select.js')) }}"></script>
     <script src="{{ asset('js/drilldown.js') }}?v={{ filemtime(public_path('js/drilldown.js')) }}"></script>
     @if($recaptchaSiteKey)
       <script src="https://www.google.com/recaptcha/api.js?render={{ urlencode($recaptchaSiteKey) }}" async defer></script>
@@ -1636,18 +1718,21 @@ $(function(){
       var petaTimer = null;
       var petaBooting = false;
       var petaFitted = false;
-      var petaLegendZero = null;
+      var petaBounds = null;
+      // Listener moveend milik petaFocus yang belum jalan
+      var petaFocusPending = null;
       var petaReduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
       // Index = tier dari server (0 = tanpa mahasiswa)
+      // color = tepi gradien, light = pusat, stroke = border (versi gelap)
       var petaTiers = [
-        { color: "#9e9e9e", radius: 5 },
-        { color: "#43a047", radius: 7 },
-        { color: "#4fc3f7", radius: 10 },
-        { color: "#1e63d6", radius: 13 },
-        { color: "#8e24aa", radius: 16 },
-        { color: "#e53935", radius: 20 }
+        { color: "#b8bfc8", light: "#d9dee3", stroke: "#8a939d", radius: 5 },
+        { color: "#4fb286", light: "#93d6b6", stroke: "#2f8a61", radius: 7 },
+        { color: "#4aaed6", light: "#90d0ec", stroke: "#2a86ad", radius: 10 },
+        { color: "#5b7fe0", light: "#9ab3f2", stroke: "#3a5cc4", radius: 13 },
+        { color: "#9b74d4", light: "#c6a9ec", stroke: "#7650b5", radius: 16 },
+        { color: "#e8706b", light: "#f4a6a1", stroke: "#c94a45", radius: 20 }
       ];
-      var petaLegendItems = [[0, "0"], [1, "< 6"], [2, "6–10"], [3, "11–20"], [4, "21–30"], [5, "> 30"]];
+      var petaLegendItems = [[1, "< 6"], [2, "6–10"], [3, "11–20"], [4, "21–30"], [5, "> 30"]];
 
       function petaEl(tag, className, text) {
         var el = document.createElement(tag);
@@ -1727,21 +1812,47 @@ $(function(){
             var swatch = petaEl("span", "peta-legend-swatch");
             var dot = petaEl("span", "peta-legend-dot");
             dot.style.width = dot.style.height = tier.radius + "px";
-            dot.style.background = tier.color;
+            dot.style.background = "radial-gradient(circle at 35% 30%, " + tier.light + ", " + tier.color + " 70%)";
+            dot.style.border = "1.5px " + (item[0] > 0 ? "solid " : "dashed ") + tier.stroke;
             swatch.appendChild(dot);
             row.appendChild(swatch);
             row.appendChild(petaEl("span", null, item[1]));
-            // Entri "0" hanya tampil bila ada desa tier 0
-            if (item[0] === 0) {
-              row.style.display = "none";
-              petaLegendZero = row;
-            }
             box.appendChild(row);
           });
           L.DomEvent.disableClickPropagation(box);
           return box;
         };
         legend.addTo(petaMap);
+        petaGradients();
+      }
+
+      // Satu set radialGradient dipakai semua bubble (tanpa filter per path)
+      function petaGradients() {
+        if (document.getElementById("petaGrad0")) return;
+        var ns = "http://www.w3.org/2000/svg";
+        var svg = document.createElementNS(ns, "svg");
+        var defs = document.createElementNS(ns, "defs");
+        svg.setAttribute("width", "0");
+        svg.setAttribute("height", "0");
+        svg.setAttribute("aria-hidden", "true");
+        svg.style.position = "absolute";
+        petaTiers.forEach(function (tier, i) {
+          var grad = document.createElementNS(ns, "radialGradient");
+          grad.setAttribute("id", "petaGrad" + i);
+          grad.setAttribute("cx", "35%");
+          grad.setAttribute("cy", "30%");
+          grad.setAttribute("r", "75%");
+          // Stop tengah 70%: area pucat dipersempit agar isi lebih pekat
+          [["0%", tier.light], ["70%", tier.color], ["100%", tier.color]].forEach(function (s) {
+            var stop = document.createElementNS(ns, "stop");
+            stop.setAttribute("offset", s[0]);
+            stop.setAttribute("stop-color", s[1]);
+            grad.appendChild(stop);
+          });
+          defs.appendChild(grad);
+        });
+        svg.appendChild(defs);
+        document.getElementById("petaSebaran").appendChild(svg);
       }
 
       function petaBuildFilters() {
@@ -1763,6 +1874,8 @@ $(function(){
       function petaSyncControls() {
         $("#petaTahun").val(petaFilter.tahun === null ? "" : String(petaFilter.tahun));
         $("#petaPt").val(petaFilter.kodept || "");
+        // Segarkan tampilan Select2 tanpa memicu handler change
+        $("#petaTahun, #petaPt").trigger("change.select2");
       }
 
       function petaParams() {
@@ -1780,10 +1893,12 @@ $(function(){
 
       // Kosongkan marker & ringkasan agar data filter lama tidak tampil saat gagal
       function petaClear(message) {
+        petaFocusCancel();
         petaMap.closePopup();
         petaLayer.clearLayers();
         petaMarkers = [];
         document.getElementById("petaSorot").length = 1;
+        $("#petaSorot").trigger("change.select2");
         document.getElementById("petaTop").textContent = "";
         $("#petaTopEmpty").addClass("d-none");
         document.getElementById("petaKec").textContent = "";
@@ -1867,22 +1982,42 @@ $(function(){
         var rows = res.desa;
         var order = [];
 
+        petaFocusCancel();
         petaMap.closePopup();
         petaLayer.clearLayers();
+        // Bounds tetap mencakup semua desa berkoordinat (termasuk tier 0)
+        petaBounds = L.latLngBounds([]);
         petaMarkers = rows.map(function (row, index) {
           var lat = parseFloat(row.latitude);
           var lng = parseFloat(row.longitude);
           if (!isFinite(lat) || !isFinite(lng)) return null;
+          petaBounds.extend([lat, lng]);
 
           var tier = parseInt(row.tier, 10);
           if (!(tier >= 0 && tier < petaTiers.length)) tier = 0;
+          // Tier 0 (tanpa mahasiswa) tidak digambar
+          if (tier === 0) return null;
           var marker = L.circleMarker([lat, lng], {
             radius: petaTiers[tier].radius,
-            color: "#ffffff",
-            weight: 1.5,
-            fillColor: petaTiers[tier].color,
-            fillOpacity: 0.8
-          }).bindPopup(petaPopup(row, res.periode));
+            color: petaTiers[tier].stroke,
+            weight: tier > 0 ? 1.75 : 1.25,
+            opacity: tier > 0 ? 1 : 0.85,
+            dashArray: tier > 0 ? null : "2 2",
+            fillColor: "url(#petaGrad" + tier + ")",
+            fillOpacity: tier > 0 ? 0.82 : 0.6,
+            // Tier 0 (kosong) tanpa pulse
+            className: tier > 0 ? "peta-dot peta-bubble" : "peta-dot"
+          }).bindPopup(petaPopup(row, res.periode))
+            // Lepas buka-popup bawaan klik; popup dibuka petaFocus setelah animasi
+            .off("click")
+            .on("click", function (e) {
+              L.DomEvent.stopPropagation(e);
+              petaFocus(this);
+            })
+            .on("popupopen popupclose", function (e) {
+              var el = this.getElement();
+              if (el) el.classList.toggle("is-active", e.type === "popupopen");
+            });
           order.push({ marker: marker, tier: tier });
           return marker;
         });
@@ -1892,11 +2027,10 @@ $(function(){
           return b.tier - a.tier;
         }).forEach(function (item) {
           petaLayer.addLayer(item.marker);
+          // Delay acak agar detak tidak serempak
+          var el = item.tier > 0 && item.marker.getElement();
+          if (el) el.style.animationDelay = (Math.random() * 2).toFixed(2) + "s";
         });
-
-        if (petaLegendZero) {
-          petaLegendZero.style.display = order.some(function (item) { return item.tier === 0; }) ? "" : "none";
-        }
 
         petaSummary(res);
         petaSide(rows, res.periode);
@@ -1906,7 +2040,7 @@ $(function(){
           var tahunRes = res.filter && res.filter.tahun ? res.filter.tahun : petaFilter.tahun;
           petaStatus(rows.length === 0 && res.mode === "pt"
             ? "PT ini belum memiliki mahasiswa di tahun " + tahunRes
-            : "Belum ada desa dengan koordinat untuk filter ini.", false);
+            : "Belum ada desa dengan mahasiswa untuk filter ini.", false);
           return;
         }
         petaStatus("", false);
@@ -1914,7 +2048,7 @@ $(function(){
       }
 
       function petaFit() {
-        petaMap.fitBounds(petaLayer.getBounds(), { padding: [30, 30], maxZoom: 14, animate: !petaReduceMotion });
+        petaMap.fitBounds(petaBounds && petaBounds.isValid() ? petaBounds : petaLayer.getBounds(), { padding: [30, 30], maxZoom: 14, animate: !petaReduceMotion });
         // Container tersembunyi (tab ditinggalkan) memberi ukuran 0; fit diulang saat tab dibuka
         petaFitted = document.getElementById("petaSebaran").offsetWidth > 0;
       }
@@ -1948,10 +2082,11 @@ $(function(){
         var top = rows.map(function (row, index) {
           return { row: row, index: index };
         }).filter(function (item) {
-          if (!petaMarkers[item.index]) return false;
-          return item.row.jumlah_mahasiswa !== null && item.row.jumlah_mahasiswa > 0;
+          item.persen = petaPersen(item.row.persen_pengurangan);
+          return petaMarkers[item.index] && item.persen !== null;
         }).sort(function (a, b) {
-          return b.row.jumlah_mahasiswa - a.row.jumlah_mahasiswa;
+          // Persen DESC, lalu nama desa
+          return b.persen - a.persen || a.row.desa.localeCompare(b.row.desa, "id");
         }).slice(0, 5);
 
         list.textContent = "";
@@ -1963,26 +2098,22 @@ $(function(){
 
           btn.type = "button";
           btn.setAttribute("data-index", String(item.index));
-          btn.setAttribute("aria-label", "Sorot " + item.row.desa + ", " + item.row.jumlah_label + " mahasiswa");
+          btn.setAttribute("aria-label", "Sorot " + item.row.desa + ", pengurangan sampah " + petaPersenText(item.persen));
           btn.appendChild(petaEl("span", "peta-rank" + (rank < 3 ? " peta-rank-" + (rank + 1) : ""), "#" + (rank + 1)));
           body.appendChild(petaEl("span", "peta-top-name", item.row.desa));
           if (item.row.kecamatan) {
             body.appendChild(petaEl("span", "badge rounded-pill bg-label-primary mt-1", item.row.kecamatan));
           }
-          body.appendChild(petaEl("span", "peta-top-reduksi", petaReduksiText(item.row, periode)));
+          body.appendChild(petaEl("span", "peta-top-reduksi", item.row.jumlah_label + " mahasiswa"));
           btn.appendChild(body);
-          count.appendChild(petaEl("span", "peta-top-count d-block", item.row.jumlah_label));
-          count.appendChild(petaEl("small", "peta-muted", "mhs"));
+          count.appendChild(petaEl("span", "peta-top-count d-block", petaPersenText(item.persen)));
+          count.appendChild(petaEl("small", "peta-muted", periode && periode.label ? periode.label : "pengurangan"));
           btn.appendChild(count);
           li.appendChild(btn);
           list.appendChild(li);
         });
-        var masked = rows.some(function (row, index) {
-          return row.jumlah_mahasiswa === null && petaMarkers[index];
-        });
-        var emptyText = masked ? "Jumlah per desa disamarkan (<3)." : "Belum ada data untuk filter ini.";
         $("#petaTopEmpty")
-          .text(emptyText)
+          .text("Belum ada data pengurangan sampah untuk filter ini.")
           .toggleClass("d-none", top.length > 0);
       }
 
@@ -2014,16 +2145,24 @@ $(function(){
         $("#petaKecEmpty").toggleClass("d-none", items.length > 0);
       }
 
-      function petaFocus(index) {
-        var marker = petaMarkers[index];
+      function petaFocusCancel() {
+        if (petaFocusPending) petaMap.off("moveend", petaFocusPending);
+        petaFocusPending = null;
+      }
+
+      // Dipakai Sorot Desa, Top 5, dan klik bubble (index atau marker)
+      function petaFocus(target) {
+        var marker = typeof target === "number" ? petaMarkers[target] : target;
         if (!marker) return;
 
         var latlng = marker.getLatLng();
+        // Tidak pernah zoom out bila sudah lebih dekat
         var zoom = Math.max(petaMap.getZoom(), 14);
+        petaFocusCancel();
         petaMap.closePopup();
 
-        // Di mobile panel berada di bawah peta
-        if (window.innerWidth < 992) {
+        // Di mobile panel berada di bawah peta (klik bubble sudah di peta)
+        if (typeof target === "number" && window.innerWidth < 992) {
           document.getElementById("petaSebaran").scrollIntoView({ behavior: petaReduceMotion ? "auto" : "smooth", block: "center" });
         }
 
@@ -2032,9 +2171,12 @@ $(function(){
           marker.openPopup();
           return;
         }
-        petaMap.once("moveend", function () {
-          marker.openPopup();
-        });
+        // on/off manual (bukan once) agar bisa dibatalkan bersih saat klik beruntun
+        petaFocusPending = function () {
+          petaFocusCancel();
+          if (petaLayer.hasLayer(marker)) marker.openPopup();
+        };
+        petaMap.on("moveend", petaFocusPending);
         petaMap.flyTo(latlng, zoom, { duration: 0.8 });
       }
 
@@ -2116,6 +2258,7 @@ $(function(){
         petaFocus(parseInt(this.value, 10));
         // Kembali ke placeholder agar desa yang sama bisa dipilih ulang
         this.value = "";
+        $(this).trigger("change.select2");
       });
 
       $("#petaTop").on("click", ".peta-top-item", function () {

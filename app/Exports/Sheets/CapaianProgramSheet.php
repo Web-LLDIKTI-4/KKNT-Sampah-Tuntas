@@ -2,7 +2,7 @@
 
 namespace App\Exports\Sheets;
 
-use App\Models\Kpisampah;
+use App\Models\PenguranganSampah;
 use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithEvents;
@@ -14,7 +14,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 /**
  * Capaian Program (dashboard admin): lokasi (biru) -> kecamatan (kuning) -> kelurahan; 1 baris kosong antar lokasi.
- * Kolom: Nama | Persentase Pengurangan Sampah (%) | Klaster. Data dari KpiSampahService::capaianProgram().
+ * Kolom: Nama | Persentase Pengurangan Sampah (%) | Klaster. Data dari PenguranganSampahService::capaianProgram().
  */
 class CapaianProgramSheet implements FromArray, WithTitle, WithEvents, WithStrictNullComparison
 {
@@ -45,7 +45,7 @@ class CapaianProgramSheet implements FromArray, WithTitle, WithEvents, WithStric
     {
         $judul = 'Capaian Program — '.($this->data['bulan'] ? Carbon::parse($this->data['bulan'].'-01')->translatedFormat('F Y') : 'Semua Bulan');
         if ($this->data['klaster']) {
-            $judul .= ' — Klaster '.Kpisampah::KLASTER[$this->data['klaster']]['label'];
+            $judul .= ' — Klaster '.PenguranganSampah::KLASTER[$this->data['klaster']]['label'];
         }
         $rows = [[$judul, null, null], ['Nama', 'Persentase Pengurangan Sampah (%)', 'Klaster']];
 
@@ -110,7 +110,7 @@ class CapaianProgramSheet implements FromArray, WithTitle, WithEvents, WithStric
     {
         // Sel klaster kelurahan diwarnai klaster; "-" tanpa fill; lokasi/kecamatan memakai fill barisnya
         if ($klaster && ! $jenis) {
-            $this->warna["C$nomor"] = Kpisampah::KLASTER[$klaster]['rgb'];
+            $this->warna["C$nomor"] = PenguranganSampah::KLASTER[$klaster]['rgb'];
         }
         if ($jenis) {
             $this->jenis[$nomor] = $jenis;
@@ -118,7 +118,7 @@ class CapaianProgramSheet implements FromArray, WithTitle, WithEvents, WithStric
         return [
             $nama,
             $persen === null ? '-' : round($persen / 100, 4),
-            $klaster ? Kpisampah::KLASTER[$klaster]['label'] : '-',
+            $klaster ? PenguranganSampah::KLASTER[$klaster]['label'] : '-',
         ];
     }
 }

@@ -4,7 +4,7 @@ namespace Tests\Feature\Dpl;
 
 use App\Exports\LogHarianByMhsExport;
 use App\Models\Dplmentoring;
-use App\Models\Kpi;
+use App\Models\KategoriKegiatan;
 use App\Models\Logbulanan;
 use App\Models\Logkegiatan;
 use App\Models\Mahasiswa;
@@ -65,14 +65,14 @@ class ReportGradingTest extends TestCase
         Excel::fake();
         $this->loginAs('admin');
         $mhs = Mahasiswa::factory()->create();
-        $kpi = Kpi::factory()->create(['nama_kpi' => 'Pengelolaan Sampah']);
+        $kategori = KategoriKegiatan::factory()->create(['nama_kategori' => 'Pengelolaan Sampah']);
         $log = Logkegiatan::factory()->create([
             'email' => $mhs->email,
             'tanggal' => '2026-10-01',
             'deskripsi' => '<p>Membersihkan lingkungan</p>',
             'volume' => '2',
             'satuan' => 'kegiatan',
-            'id_kpi' => $kpi->id_kpi,
+            'id_kategori' => $kategori->id_kategori,
             'tautan' => 'https://example.test/bukti',
         ]);
 
@@ -83,14 +83,14 @@ class ReportGradingTest extends TestCase
         $this->assertSame('Membersihkan lingkungan', strip_tags($row['deskripsi']));
         $this->assertSame('2', (string) $row['volume']);
         $this->assertSame('kegiatan', $row['satuan']);
-        $this->assertSame('Pengelolaan Sampah', $row['nama_kpi']);
+        $this->assertSame('Pengelolaan Sampah', $row['nama_kategori']);
         $this->assertSame('<a href="https://example.test/bukti" target="_blank" rel="noopener noreferrer">Lihat bukti</a>', $row['tautan']);
 
         $this->get("admlogkegiatan/export/{$mhs->email}")->assertOk();
         Excel::matchByRegex();
         Excel::assertDownloaded('/^log_aktivitas_mahasiswa_.+\.xlsx$/', function (LogHarianByMhsExport $export) {
             $this->assertSame([
-                'No', 'Tanggal', 'KPI', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti',
+                'No', 'Tanggal', 'Kategori Kegiatan', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti',
             ], $export->headings());
             $this->assertSame([
                 1, '01-10-2026', 'Pengelolaan Sampah', 'Membersihkan lingkungan', '2',

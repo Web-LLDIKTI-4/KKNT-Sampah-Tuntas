@@ -26,8 +26,8 @@ class PendataanPemilahanSampah extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => Kpisampah::forgetPublicCache());
-        static::deleted(fn () => Kpisampah::forgetPublicCache());
+        static::saved(fn () => PenguranganSampah::forgetPublicCache());
+        static::deleted(fn () => PenguranganSampah::forgetPublicCache());
     }
 
     public function mahasiswa()

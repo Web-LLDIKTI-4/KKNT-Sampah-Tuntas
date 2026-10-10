@@ -29,3 +29,12 @@ docs
 /.dev-team/
 
 /.claude/dev-team.json
+
+/.claude/settings.local.json
+/.claude/agents/database.md
+/.claude/agents/qa.md
+/.claude/agents/chairman.md
+/.claude/agents/pentester.md
+/.claude/agents/analyst.md
+/.claude/agents/frontend.md
+/.claude/agents/backend.md

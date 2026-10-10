@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use App\Models\Dpl;
 use App\Models\Dplmentoring;
 use App\Models\Kehadiran;
-use App\Models\Kpi;
-use App\Models\Kpicapaian;
+use App\Models\KategoriKegiatan;
+use App\Models\CapaianKegiatan;
 use App\Models\Logkegiatan;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
@@ -41,7 +41,7 @@ class SeederSplitTest extends TestCase
 
     private const SEEDERS = [
         Seeders\WilayahSeeder::class,
-        Seeders\KpiMasterSeeder::class,
+        Seeders\KategoriKegiatanSeeder::class,
         Seeders\AkunPimpinanSeeder::class,
         Seeders\PerguruanTinggiSeeder::class,
         Seeders\DplSeeder::class,
@@ -49,7 +49,7 @@ class SeederSplitTest extends TestCase
         Seeders\KehadiranSeeder::class,
         Seeders\LogHarianSeeder::class,
         Seeders\LogBulananSeeder::class,
-        Seeders\KpiCapaianSeeder::class,
+        Seeders\CapaianKegiatanSeeder::class,
         Seeders\PendataanPemilahanSeeder::class,
         Seeders\RencanaKerjaSeeder::class,
         Seeders\PenilaianSeeder::class,
@@ -58,9 +58,9 @@ class SeederSplitTest extends TestCase
 
     // Tabel yang diisi seeder; dipakai untuk cek idempotent
     private const TABLES = [
-        'users', 'lokasi_program', 'kecamatan', 'desa', 'kpi', 'ref_satuanpendidikan', 'dpl', 'mahasiswa',
+        'users', 'lokasi_program', 'kecamatan', 'desa', 'kategori_kegiatan', 'ref_satuanpendidikan', 'dpl', 'mahasiswa',
         'pj_desa', 'mahasiswa_lokasi', 'dpl_mentoring', 'kehadiran', 'logkegiatan', 'logkegiatan_bulanan',
-        'kpi_capaian', 'kpi_sampah', 'pendataan_pemilahan_sampah', 'rencana_kerja', 'tugasakhir',
+        'capaian_kegiatan', 'pengurangan_sampah', 'pendataan_pemilahan_sampah', 'rencana_kerja', 'tugasakhir',
         'nilai_konversi', 'nilai_freeform', 'dpl_laporan_bulanan', 'evaluasi_kegiatan', 'evaluasi_kegiatan_jawaban', 'saran',
     ];
 
@@ -102,7 +102,7 @@ class SeederSplitTest extends TestCase
         // Master & akun pimpinan
         $this->assertSame(3, LokasiProgram::count());
         $this->assertSame(12, DB::table('desa')->count());
-        $this->assertSame(1, Kpi::count());
+        $this->assertSame(1, KategoriKegiatan::count());
         foreach (['admin', 'kepala', 'pemda'] as $role) {
             $this->assertSame(1, User::where('role', $role)->count(), $role);
         }
@@ -133,9 +133,9 @@ class SeederSplitTest extends TestCase
         // Ketua: pj_desa + tepat 1 capaian bulan ini
         $this->assertSame(self::KELOMPOK, Pjdesa::count());
         $this->assertSame(0, Pjdesa::where('email', 'not like', 'ketua.%')->count());
-        $this->assertSame(self::KELOMPOK, Kpicapaian::count());
-        $this->assertSame(0, Pjdesa::whereNotIn('email', Kpicapaian::select('email'))->count(), 'ketua tanpa capaian');
-        $this->assertSame(1, (int) DB::table('kpi_capaian')->selectRaw('COUNT(*) n')->groupBy('email', 'bulan')->get()->max('n'));
+        $this->assertSame(self::KELOMPOK, CapaianKegiatan::count());
+        $this->assertSame(0, Pjdesa::whereNotIn('email', CapaianKegiatan::select('email'))->count(), 'ketua tanpa capaian');
+        $this->assertSame(1, (int) DB::table('capaian_kegiatan')->selectRaw('COUNT(*) n')->groupBy('email', 'bulan')->get()->max('n'));
 
         // Kehadiran: status valid, termasuk kuliah; log harian tidak di hari blocking
         $status = Kehadiran::distinct()->pluck('status_kehadiran')->all();
@@ -153,11 +153,11 @@ class SeederSplitTest extends TestCase
         // Pemilahan & rencana kerja
         $this->assertGreaterThan(0, PendataanPemilahanSampah::count());
         $this->assertSame(0, PendataanPemilahanSampah::where('email', 'not like', '%'.self::DOMAIN)->count());
-        // Data sampah 3 bulan terakhir (sumber rekap KpiSampahService); kpi_sampah tidak di-seed
+        // Data sampah 3 bulan terakhir (sumber rekap PenguranganSampahService); pengurangan_sampah tidak di-seed
         $this->assertSame(0, PendataanPemilahanSampah::where('tanggal', '<', now()->subMonthsNoOverflow(3)->startOfMonth()->toDateString())
             ->orWhere('tanggal', '>', today()->toDateString())->count());
         $this->assertGreaterThanOrEqual(2, PendataanPemilahanSampah::selectRaw("DATE_FORMAT(tanggal, '%Y-%m') ym")->distinct()->pluck('ym')->count());
-        $this->assertSame(0, DB::table('kpi_sampah')->count());
+        $this->assertSame(0, DB::table('pengurangan_sampah')->count());
         $this->assertSame(0, PendataanPemilahanSampah::whereNotIn('email', Mahasiswa::select('email'))->count());
         $this->assertGreaterThan(0, RencanaKerja::count());
         $this->assertSame(0, RencanaKerja::whereNotIn('kodept', Satuanpendidikan::select('npsn'))->count());
@@ -235,7 +235,7 @@ class SeederSplitTest extends TestCase
     public function test_dpl_seeder_tanpa_pt_melempar_exception_dan_tidak_menulis_data(): void
     {
         $this->runSeeder(Seeders\WilayahSeeder::class);
-        $this->runSeeder(Seeders\KpiMasterSeeder::class);
+        $this->runSeeder(Seeders\KategoriKegiatanSeeder::class);
         $this->runSeeder(Seeders\AkunPimpinanSeeder::class);
 
         try {
@@ -254,7 +254,7 @@ class SeederSplitTest extends TestCase
 
         $this->assertSame(self::PT, Satuanpendidikan::count());
         $this->assertCount(self::ANGGOTA_KELOMPOK, $this->kelompokEmails());
-        $this->assertSame(self::KELOMPOK, Kpicapaian::count());
+        $this->assertSame(self::KELOMPOK, CapaianKegiatan::count());
         $this->assertGreaterThan(0, PendataanPemilahanSampah::count());
         $this->assertGreaterThan(0, RencanaKerja::count());
         foreach (['SimulasiSeeder', 'ActivitySeeder', 'MasterDataSeeder', 'UserSeeder', 'AdminSeeder'] as $lama) {

@@ -1,19 +1,19 @@
 {{-- Capaian Program publik (halaman login): kota/kab -> kecamatan -> kelurahan -> PTS. Navigasi lewat public/js/drilldown.js --}}
 @php
-    use App\Models\Kpisampah;
+    use App\Models\PenguranganSampah;
     use Illuminate\Support\Carbon;
     use Illuminate\Support\Facades\Route;
     $num = fn ($v) => number_format($v, 0, ',', '.');
-    $klasterOf = fn ($k) => Kpisampah::KLASTER[$k] ?? null;
-    $persen = fn ($p) => Kpisampah::formatPersen($p === null ? null : (float) $p);
+    $klasterOf = fn ($k) => PenguranganSampah::KLASTER[$k] ?? null;
+    $persen = fn ($p) => PenguranganSampah::formatPersen($p === null ? null : (float) $p);
     $namaBulan = $params['bulan'] ? Carbon::parse($params['bulan'].'-01')->translatedFormat('F Y') : null;
     $isDefault = ! $params['kecamatan'] && ! $params['desa'] && ! $params['klaster'];
     $persenTotal = $total_keseluruhan->persen_pengurangan ?? null;
-    $klasterTotal = Kpisampah::klaster($persenTotal, true);
+    $klasterTotal = PenguranganSampah::klaster($persenTotal, true);
     // Export Excel menggantikan PNG: guest (login) & admin (dashboard); kepala, pemda & pt tetap PNG
     $exportRoute = match (true) {
         auth()->guest() => 'login.laporan.export',
-        auth()->user()->role === 'admin' => 'dashboardkpi.export-capaian',
+        auth()->user()->role === 'admin' => 'dashboard-pengurangan-sampah.export-capaian',
         default => null,
     };
     $exportCapaian = $exportRoute && Route::has($exportRoute);
@@ -34,7 +34,7 @@
             <label class="form-label small mb-1" for="capaianKlaster">Klaster</label>
             <select name="klaster" id="capaianKlaster" class="form-select form-select-sm">
                 <option value="">Semua Klaster</option>
-                @foreach (Kpisampah::KLASTER as $kode => $k)
+                @foreach (PenguranganSampah::KLASTER as $kode => $k)
                     <option value="{{ $kode }}" @selected($kode === $params['klaster'])>{{ $k['label'] }}</option>
                 @endforeach
             </select>
@@ -62,7 +62,7 @@
             @if ($persenTotal === null)
                 <span class="text-muted small">Belum ada data</span>
             @else
-                <span class="badge rounded-pill fs-6 {{ Kpisampah::KLASTER[$klasterTotal]['badge'] }}">{{ $persen($persenTotal) }}</span>
+                <span class="badge rounded-pill fs-6 {{ PenguranganSampah::KLASTER[$klasterTotal]['badge'] }}">{{ $persen($persenTotal) }}</span>
             @endif
         </div>
 
@@ -70,7 +70,7 @@
             <span class="badge bg-success">Hijau</span> &gt; 20%;
             <span class="badge bg-warning">Kuning</span> 10% s.d. &le; 20%;
             <span class="badge bg-danger">Merah</span> &lt; 10%.
-            <em class="d-block mt-1">Target KPI terpenuhi atau 100% jika setiap kelurahan/desa &gt; 20%</em>
+            <em class="d-block mt-1">Target Pengurangan Sampah terpenuhi atau 100% jika setiap kelurahan/desa &gt; 20%</em>
         </p>
 
         <div class="table-responsive scroll-box mb-5">
@@ -202,7 +202,7 @@
                                                 <td>{!! $isian->permasalahan ? nl2br(e($isian->permasalahan)) : '-' !!}</td>
                                                 <td>{!! $isian->solusi ? nl2br(e($isian->solusi)) : '-' !!}</td>
                                                 <td>{!! $isian->kendala ? nl2br(e($isian->kendala)) : '-' !!}</td>
-                                                <td>{!! $isian->status_capaian ? \App\Models\Kpicapaian::statusBadge($isian->status_capaian) : '-' !!}</td>
+                                                <td>{!! $isian->status_capaian ? \App\Models\CapaianKegiatan::statusBadge($isian->status_capaian) : '-' !!}</td>
                                                 <td>{{ $isian->nama_ketua ?: '-' }}</td>
                                                 <td class="text-nowrap">{{ $isian->phone ?: '-' }}</td>
                                             </tr>

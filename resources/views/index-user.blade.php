@@ -168,17 +168,17 @@
                         <div class="col border-bottom">
                             <div class="d-flex justify-content-between align-items-start pb-3 card-widget-2">
                                 <div>
-                                    <p class="mb-1">Capaian KPI</p>
-                                    <h4 class="mb-1">{{ $jumlahcapaiankpi }} <span class="fs-5">KPI</span></h4>
+                                    <p class="mb-1">Capaian Kegiatan</p>
+                                    <h4 class="mb-1">{{ $jumlahcapaiankegiatan }} <span class="fs-5">Capaian</span></h4>
                                     {{-- @php
-                                        if($jumlahcapaiankpi == 0){
-                                            $persenjumlahcapaiankpi = 0;
+                                        if($jumlahcapaiankegiatan == 0){
+                                            $persenjumlahcapaiankegiatan = 0;
                                         }else{
-                                            $persenjumlahcapaiankpi = round(($jumlahcapaiankpi/5)*100,1);
+                                            $persenjumlahcapaiankegiatan = round(($jumlahcapaiankegiatan/5)*100,1);
                                         }
                                     @endphp --}}
                                     {{-- <p class="mb-0">
-                                        <span class="me-2">({{$jumlahcapaiankpi}})</span>
+                                        <span class="me-2">({{$jumlahcapaiankegiatan}})</span>
                                     </p> --}}
                                 </div>
                                 <div class="avatar me-lg-6">

@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Desa;
 use App\Models\Kecamatan;
-use App\Models\Kpicapaian;
-use App\Models\Kpisampah;
+use App\Models\CapaianKegiatan;
+use App\Models\PenguranganSampah;
 use App\Models\PendataanPemilahanSampah;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
@@ -64,37 +64,37 @@ class LaporanPublikCacheTest extends TestCase
         $this->get('/login/laporan?bulan='.$bulanBaru.'&kecamatan='.$baru->id_kecamatan)->assertOk();
     }
 
-    public function test_kpicapaian_change_resets_public_cache_version(): void
+    public function test_capaiankegiatan_change_resets_public_cache_version(): void
     {
-        $versi = Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY);
-        $capaian = Kpicapaian::factory()->create(['email' => 'ketua@uji.test']);
-        $setelahSimpan = Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY);
+        $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY);
+        $capaian = CapaianKegiatan::factory()->create(['email' => 'ketua@uji.test']);
+        $setelahSimpan = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY);
         $this->assertNotSame($versi, $setelahSimpan);
 
         $capaian->delete();
-        $this->assertNotSame($setelahSimpan, Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY));
+        $this->assertNotSame($setelahSimpan, Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY));
     }
 
     public function test_pendataan_pemilahan_change_resets_public_cache_version(): void
     {
-        $versi = Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY);
+        $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY);
         $log = PendataanPemilahanSampah::factory()->create();
-        $setelahSimpan = Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY);
+        $setelahSimpan = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY);
         $this->assertNotSame($versi, $setelahSimpan);
 
         $log->delete();
-        $this->assertNotSame($setelahSimpan, Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY));
+        $this->assertNotSame($setelahSimpan, Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY));
     }
 
     public function test_forget_public_cache_resets_bulan_list_and_version(): void
     {
-        Cache::put(Kpisampah::PUBLIC_BULAN_CACHE_KEY, ['2020-01'], 600);
-        $versi = Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY);
+        Cache::put(PenguranganSampah::PUBLIC_BULAN_CACHE_KEY, ['2020-01'], 600);
+        $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY);
 
         // Dipanggil DatabaseSeeder & BebanSeeder (insert massal tanpa event model)
-        Kpisampah::forgetPublicCache();
+        PenguranganSampah::forgetPublicCache();
 
-        $this->assertFalse(Cache::has(Kpisampah::PUBLIC_BULAN_CACHE_KEY));
-        $this->assertNotSame($versi, Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY));
+        $this->assertFalse(Cache::has(PenguranganSampah::PUBLIC_BULAN_CACHE_KEY));
+        $this->assertNotSame($versi, Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY));
     }
 }

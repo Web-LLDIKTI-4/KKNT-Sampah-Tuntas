@@ -8,6 +8,7 @@ use App\Models\Desa;
 use App\Models\Kecamatan;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 class KecamatanController extends Controller
@@ -67,7 +68,9 @@ class KecamatanController extends Controller
 
     public function destroy(Request $request)
     {
-        $kecamatan = Kecamatan::find($request->input('id_kecamatan'));
+        $id = $request->input('id_kecamatan');
+        // Non-string/non-uuid id would make find() return a Collection
+        $kecamatan = Str::isUuid($id) ? Kecamatan::find($id) : null;
         if (! $kecamatan) {
             return $this->notFound();
         }

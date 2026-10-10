@@ -1,13 +1,13 @@
 {{-- Laporan berjenjang kecamatan -> kelurahan -> kelompok. Navigasi lewat public/js/drilldown.js --}}
 @php
-    use App\Models\Kpisampah;
+    use App\Models\PenguranganSampah;
     use Illuminate\Support\Carbon;
     $num = fn ($v) => number_format($v, 0, ',', '.');
-    $sel = fn ($p) => Kpisampah::warnaSel($p);
-    $persen = fn ($p) => Kpisampah::formatPersen($p === null ? null : (float) $p);
+    $sel = fn ($p) => PenguranganSampah::warnaSel($p);
+    $persen = fn ($p) => PenguranganSampah::formatPersen($p === null ? null : (float) $p);
     $namaBulan = $params['bulan'] ? Carbon::parse($params['bulan'].'-01')->translatedFormat('F Y') : null;
     $barisKecamatan = $kecamatan->max(fn ($l) => $l->kecamatan->count()) ?? 0;
-    $target = (int) Kpisampah::TARGET_PENGURANGAN;
+    $target = (int) PenguranganSampah::TARGET_PENGURANGAN;
 @endphp
 <div data-drilldown-root data-params='@json($params)'>
     <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
@@ -27,10 +27,10 @@
         </div>
     </div>
     <p class="small text-muted mb-3">
-        @foreach (Kpisampah::KLASTER as $k)
+        @foreach (PenguranganSampah::KLASTER as $k)
             <span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span> {{ $k['ket'] }}{{ $loop->last ? '.' : ';' }}
         @endforeach
-        Target KPI: pengurangan sampah &ge; {{ $target }}%.
+        Target Pengurangan Sampah: &ge; {{ $target }}%.
     </p>
 
     <h6 class="mb-2">Sebaran Lokasi (Kecamatan)</h6>
@@ -146,7 +146,7 @@
                                                 <td>{!! nl2br(e($isian->permasalahan)) !!}</td>
                                                 <td>{!! nl2br(e($isian->solusi)) !!}</td>
                                                 <td>{!! nl2br(e($isian->kendala)) !!}</td>
-                                                <td class="text-center">{!! \App\Models\Kpicapaian::statusBadge($isian->status_capaian) !!}</td>
+                                                <td class="text-center">{!! \App\Models\CapaianKegiatan::statusBadge($isian->status_capaian) !!}</td>
                                             </tr>
                                         @empty
                                             <tr><td colspan="4" class="text-center text-muted">Belum mengisi capaian</td></tr>

@@ -1,0 +1,256 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Exports\Sheets\RekapLldiktiSheet;
+use App\Models\Desa;
+use App\Models\Dpl;
+use App\Models\LokasiProgram;
+use App\Models\Mahasiswa;
+use App\Models\Mahasiswa_lokasi;
+use App\Models\PendataanPemilahanSampah;
+use App\Models\Pjdesa;
+use App\Models\Satuanpendidikan;
+use App\Models\User;
+use App\Services\RekapPenguranganSampahService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Maatwebsite\Excel\Facades\Excel;
+use Tests\TestCase;
+
+class PenguranganSampahDashboardTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private LokasiProgram $lokasi;
+
+    private Satuanpendidikan $pt1;
+
+    private Satuanpendidikan $pt2;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->lokasi = LokasiProgram::factory()->create();
+        $this->pt1 = Satuanpendidikan::factory()->create(['nm_lemb' => 'Universitas Satu']);
+        $this->pt2 = Satuanpendidikan::factory()->create(['nm_lemb' => 'Politeknik Dua']);
+
+        // PT1: 2 kelompok, PT2: 1 kelompok; tiap ketua di kelurahan (dan kecamatan) berbeda
+        $this->ketua($this->pt1);
+        $this->ketua($this->pt1);
+        $this->ketua($this->pt2);
+    }
+
+    private function ketua(Satuanpendidikan $pt): Mahasiswa
+    {
+        $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'location_program' => $this->lokasi->id]);
+        Pjdesa::create(['email' => $mhs->email, 'id_desa' => Desa::factory()->create()->id_desa]);
+
+        return $mhs;
+    }
+
+    // Basis laporan = pendataan: tiap ketua menempati kelurahan pj_desa-nya & mengisi 1 log
+    private function isiPendataan(): void
+    {
+        foreach (Pjdesa::all() as $pj) {
+            $mhs = Mahasiswa::where('email', $pj->email)->firstOrFail();
+            Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $pj->id_desa, 'user_in_up' => $mhs->email]);
+            PendataanPemilahanSampah::factory()->create(['email' => $mhs->email, 'tanggal' => now()->format('Y-m').'-05']);
+        }
+    }
+
+    private static function jumlahKecamatan(array $laporan): int
+    {
+        return $laporan['kecamatan']->sum(fn ($l) => $l->kecamatan->count());
+    }
+
+    public function test_lokasi_table_uses_student_placement_and_counts_unplaced(): void
+    {
+        $ketua = Mahasiswa::where('kodept', $this->pt1->npsn)->firstOrFail();
+        Mahasiswa_lokasi::create(['tahun' => 2026, 'id_mahasiswa' => $ketua->id_mahasiswa, 'id_desa' => Desa::factory()->create()->id_desa]);
+
+        $lokasiLain = LokasiProgram::factory()->create();
+        $anggota = Mahasiswa::factory()->create(['kodept' => $this->pt1->npsn, 'location_program' => $lokasiLain->id]);
+        Mahasiswa_lokasi::create(['tahun' => 2026, 'id_mahasiswa' => $anggota->id_mahasiswa, 'id_desa' => Desa::factory()->create()->id_desa]);
+        Dpl::factory()->create(['kodept' => $this->pt1->npsn, 'location_program' => $this->lokasi->id]);
+
+        $table = app(RekapPenguranganSampahService::class)->lokasiTable(['kodept' => $this->pt1->npsn]);
+        $rows = $table['rows']->keyBy('lokasi');
+
+        $this->assertEquals(['mahasiswa' => 1, 'dpl' => 1, 'kelompok' => 2, 'kecamatan' => 1, 'kelurahan' => 1],
+            collect($rows[$this->lokasi->nama_lokasi])->only(['mahasiswa', 'dpl', 'kelompok', 'kecamatan', 'kelurahan'])->all());
+        $this->assertSame(1, $rows[$lokasiLain->nama_lokasi]['mahasiswa']);
+        $this->assertSame(1, $table['belum_lokasi']);
+        $this->assertEquals(['pt' => 1, 'kecamatan' => 2, 'kelurahan' => 2, 'mahasiswa' => 3, 'dpl' => 1, 'kelompok' => 2], $table['total']);
+        $this->assertSame(1, $rows[$this->lokasi->nama_lokasi]['pt']);
+    }
+
+    public function test_admin_home_matches_kepala_and_keeps_admin_cards(): void
+    {
+        $this->loginAs('admin');
+
+        $this->get('home')->assertOk()
+            ->assertViewHas('penguranganSampahHome', fn ($k) => $k['perPt'] === true)
+            ->assertSee('Konversi Nilai')->assertSee('data-drilldown=', false);
+    }
+
+    public function test_dashboard_filter_returns_partial_for_ajax(): void
+    {
+        $this->loginAs('kepala');
+
+        $this->get('dashboard-pengurangan-sampah?kodept='.$this->pt1->npsn, ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()->assertViewIs('laporan._capaian_publik')
+            ->assertSee('Capaian Keseluruhan')->assertDontSee('Ringkasan');
+        $this->get('dashboard-pengurangan-sampah')->assertOk()->assertViewIs('pengurangansampah.index')->assertSee('Ringkasan');
+    }
+
+    public function test_pt_dpl_count_uses_dpl_kodept(): void
+    {
+        Dpl::factory()->count(2)->create(['kodept' => $this->pt1->npsn]);
+        Dpl::factory()->create(['kodept' => $this->pt2->npsn]);
+        $this->loginAs('pt', ['email' => $this->pt1->npsn]);
+
+        $this->get('home')->assertOk()->assertViewHas('jumlahdpl', 2);
+    }
+
+    public function test_kepala_home_shows_totals_for_all_pt(): void
+    {
+        $this->isiPendataan();
+        $this->loginAs('kepala');
+
+        $this->get('home')->assertOk()
+            ->assertViewHas('penguranganSampahHome', fn ($k) => $k['perPt'] === true && $k['lokasi']['total']['pt'] === 2)
+            ->assertSee('Belum memilih lokasi');
+        $this->get('dashboard-pengurangan-sampah')->assertOk()->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 3);
+        $this->get('dashboard-pengurangan-sampah?kodept='.$this->pt2->npsn)->assertOk()
+            ->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 1);
+    }
+
+    public function test_pt_is_locked_to_its_own_pt_but_not_to_account_lokasi(): void
+    {
+        $this->isiPendataan();
+        $lokasiAkun = LokasiProgram::factory()->create();
+        $this->loginAs('pt', ['email' => $this->pt1->npsn, 'location_program' => $lokasiAkun->id]);
+
+        $this->get('dashboard-pengurangan-sampah?kodept='.$this->pt2->npsn)->assertOk()
+            ->assertViewHas('isPt', true)
+            ->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 2);
+    }
+
+    public function test_dashboard_rejects_invalid_filter(): void
+    {
+        $this->loginAs('kepala');
+
+        $this->get('dashboard-pengurangan-sampah?kecamatan=bukan-uuid')->assertSessionHasErrors('kecamatan');
+    }
+
+    public function test_kepala_cannot_access_admin_or_mahasiswa_routes(): void
+    {
+        $this->loginAs('kepala');
+
+        $this->get('kpitarget')->assertNotFound();
+        $this->get('user')->assertRedirect(route('home'));
+        $this->get('admlaporandpl')->assertRedirect(route('home'));
+        // Tulis capaiankegiatan khusus ketua kelompok
+        $this->put('capaiankegiatan/insert', [])->assertForbidden();
+    }
+
+    public function test_kepala_opens_pt_menu_read_only(): void
+    {
+        $this->loginAs('kepala');
+
+        foreach (['lapcapaiankegiatan', 'ptdpl', 'ptmahasiswa', 'admlogkegiatan', 'admlogbulanan', 'admlogkehadiran', 'admevaluasikegiatan'] as $url) {
+            $this->get($url)->assertOk();
+        }
+        $this->getJson('ptmahasiswa/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()->assertJsonPath('recordsTotal', 3);
+
+        // Konversi nilai & laporan akhir dicabut untuk kepala
+        $this->get('dplkonversinilai')->assertRedirect(route('home'));
+        $this->get('pttugasakhir')->assertRedirect(route('home'));
+
+        $this->put('admlogbulanan/updatenilai', [])->assertForbidden();
+        $this->put('ptevaluasikegiatan/insert', [])->assertForbidden();
+        $this->put('dplkonversinilai/destroy', [])->assertForbidden();
+        $this->put('profile/update', [])->assertStatus(200);
+        $this->put('setting/update', [])->assertJsonValidationErrors('plama', 'errors');
+    }
+
+    public function test_admin_and_kepala_can_export_rekap_sampah_but_pt_cannot(): void
+    {
+        foreach (['admin', 'kepala'] as $role) {
+            // Fake baru per role: nama file berbasis detik, 2 download beda detik = regex cocok 2 file
+            Excel::fake();
+            Excel::matchByRegex();
+            $this->loginAs($role);
+            $this->get('dashboard-pengurangan-sampah')->assertOk()->assertSee('id="pengurangan-sampah-export"', false);
+            $this->get('rekapsampah/export?klaster=merah')->assertOk();
+            Excel::assertDownloaded('/^rekap_sampah_merah_.+\.xlsx$/', fn (RekapLldiktiSheet $sheet) => $sheet->title() === 'Rekap Sampah');
+        }
+
+        $this->loginAs('pt', ['email' => $this->pt1->npsn]);
+        $this->get('dashboard-pengurangan-sampah')->assertOk()->assertDontSee('id="pengurangan-sampah-export"', false);
+        $this->get('rekapsampah/export')->assertRedirect(route('home'));
+    }
+
+    public function test_dpl_and_mahasiswa_cannot_open_dashboard(): void
+    {
+        $this->loginAs('mahasiswa');
+
+        $this->get('dashboard-pengurangan-sampah')->assertRedirect(route('home'));
+    }
+
+    public function test_admin_can_create_and_update_kepala_user(): void
+    {
+        $this->loginAs('admin');
+
+        $this->put('user/insertuserkepala', [
+            'name' => 'Kepala LLDIKTI',
+            'email' => 'kepala@pps.test',
+            'password' => 'rahasia123',
+            'role' => 'admin',
+        ])->assertJsonValidationErrors('role', 'errors');
+
+        $this->put('user/insertuserkepala', [
+            'name' => 'Kepala LLDIKTI',
+            'email' => 'kepala@pps.test',
+            'password' => 'rahasia123',
+            'role' => 'kepala',
+        ])->assertJson(['success' => true]);
+
+        $kepala = User::where('email', 'kepala@pps.test')->firstOrFail();
+        $this->assertSame('kepala', $kepala->role);
+
+        $this->put('user/insertuserkepala', ['name' => 'X', 'email' => 'kepala@pps.test', 'password' => 'rahasia123'])
+            ->assertJsonValidationErrors('email', 'errors');
+
+        $pt = User::factory()->role('pt')->create();
+        $this->put('user/updateuserkepala', ['id' => $pt->id, 'name' => 'X', 'email' => 'x@pps.test'])
+            ->assertJsonValidationErrors('id', 'errors');
+
+        $this->put('user/updateuserkepala', ['id' => $kepala->id, 'name' => 'Kepala Baru', 'email' => 'kepala@pps.test', 'role' => 'pemda'])
+            ->assertJson(['success' => true]);
+        $this->assertSame('Kepala Baru', $kepala->fresh()->name);
+        $this->assertSame('pemda', $kepala->fresh()->role);
+
+        // Pemda read-only seperti kepala
+        $this->actingAs($kepala->fresh())->put('user/insertuserkepala', [])->assertForbidden();
+    }
+
+    public function test_login_page_shows_laporan_kegiatan(): void
+    {
+        $this->isiPendataan();
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('Capaian Program')
+            ->assertSee('Persentase Pengurangan Sampah (%)')
+            ->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 3
+                && $l['kecamatan']->first()->nama_lokasi === $this->lokasi->nama_lokasi);
+    }
+
+    public function test_ketua_without_pendataan_is_not_listed(): void
+    {
+        // Setup hanya pj_desa tanpa pendataan: daftar kosong
+        $this->loginAs('kepala');
+        $this->get('dashboard-pengurangan-sampah')->assertOk()->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 0);
+    }
+}

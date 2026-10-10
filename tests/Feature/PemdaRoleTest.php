@@ -41,9 +41,14 @@ class PemdaRoleTest extends TestCase
     {
         Excel::fake();
 
-        // Pemda boleh mengelola profil desa, kepala tidak
-        $kepala = array_diff_key($this->statuses('kepala'), ['desaprofile/tambah' => true]);
-        $pemda = array_diff_key($this->statuses('pemda'), ['desaprofile/tambah' => true]);
+        // Pemda boleh mengelola profil desa & wilayah (kecamatan/desa), kepala tidak
+        $pemdaOnly = array_fill_keys([
+            'desaprofile/tambah',
+            'kecamatan', 'kecamatan/listdata', 'kecamatan/listdataserver', 'kecamatan/tambah',
+            'desa', 'desa/listdata', 'desa/listdataserver', 'desa/tambah',
+        ], true);
+        $kepala = array_diff_key($this->statuses('kepala'), $pemdaOnly);
+        $pemda = array_diff_key($this->statuses('pemda'), $pemdaOnly);
 
         $this->assertSame($kepala, $pemda);
     }
@@ -55,7 +60,7 @@ class PemdaRoleTest extends TestCase
             $this->put('admlogbulanan/updatenilai', [])->assertForbidden();
             $this->put('ptevaluasikegiatan/insert', [])->assertForbidden();
             $this->post('dpllaporan/tambah', [])->assertForbidden();
-            $this->put('kpicapaian/insert', [])->assertForbidden();
+            $this->put('capaiankegiatan/insert', [])->assertForbidden();
             $this->put('profile/update', [])->assertStatus(200);
         }
     }
@@ -67,15 +72,15 @@ class PemdaRoleTest extends TestCase
         $this->get('user')->assertRedirect(route('home'));
         $this->get('dplkonversinilai')->assertRedirect(route('home'));
         $this->get('pttugasakhir')->assertRedirect(route('home'));
-        $this->get('dashboardkpi/export-capaian')->assertRedirect(route('home'));
+        $this->get('dashboard-pengurangan-sampah/export-capaian')->assertRedirect(route('home'));
     }
 
     public function test_pemda_home_uses_kepala_dashboard_and_menu(): void
     {
         $this->loginAs('pemda');
 
-        $this->get('home')->assertOk()->assertViewHas('kpiHome', fn ($k) => $k['perPt'] === true);
-        $this->get('dashboardkpi')->assertOk()->assertSee('id="kpi-export"', false);
+        $this->get('home')->assertOk()->assertViewHas('penguranganSampahHome', fn ($k) => $k['perPt'] === true);
+        $this->get('dashboard-pengurangan-sampah')->assertOk()->assertSee('id="pengurangan-sampah-export"', false);
     }
 
     public function test_admin_creates_and_edits_pemda_user(): void
@@ -102,12 +107,12 @@ class PemdaRoleTest extends TestCase
         $this->assertSame('kepala', $pemda->fresh()->role);
     }
 
-    public function test_kpicapaian_read_only_without_data_sampah_form(): void
+    public function test_capaiankegiatan_read_only_without_data_sampah_form(): void
     {
         $ketua = $this->loginAs('mahasiswa', ['akses' => 'pjdesa']);
         Pjdesa::create(['email' => $ketua->email, 'id_desa' => Desa::factory()->create()->id_desa]);
 
-        $this->get('kpicapaian')->assertOk()
+        $this->get('capaiankegiatan')->assertOk()
             ->assertSee('id="resultcontent"', false)
             ->assertSee('Persentase Penurunan Sampah [(J/K)*100%]', false)
             ->assertDontSee('resultcontent-sampah', false)

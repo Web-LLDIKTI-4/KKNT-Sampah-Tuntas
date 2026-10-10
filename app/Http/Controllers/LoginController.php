@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\LaporanPublikRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\PetaSebaranRequest;
-use App\Models\Kpisampah;
+use App\Models\Desa;
+use App\Models\Dpl;
+use App\Models\Kecamatan;
+use App\Models\Mahasiswa;
+use App\Models\PenguranganSampah;
 use App\Models\LokasiProgram;
 use App\Models\Panduan;
-use App\Services\KpiSampahService;
+use App\Services\PenguranganSampahService;
 use App\Services\LokasiProgramSummary;
 use App\Services\PetaSebaranService;
 use Illuminate\Http\Request;
@@ -17,17 +21,17 @@ use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
 {
-    public function index(LokasiProgramSummary $summary, KpiSampahService $sampah)
+    public function index(LokasiProgramSummary $summary, PenguranganSampahService $sampah)
     {
         return view('login', [
             'lokasiProgramList' => $summary->all(),
             'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]),
             'panduanList' => $this->getPanduanPublik(),
-        ]);
+        ] + $this->statistikPublik());
     }
 
     // Laporan berjenjang kecamatan -> kelurahan -> kelompok sesuai pilihan bulan/kecamatan/kelurahan
-    public function laporan(LaporanPublikRequest $request, KpiSampahService $sampah)
+    public function laporan(LaporanPublikRequest $request, PenguranganSampahService $sampah)
     {
         return view('laporan._capaian_publik', $this->laporanData($sampah, $request->filter()));
     }
@@ -37,7 +41,7 @@ class LoginController extends Controller
     {
         $filter = $request->filter();
 
-        return response()->json(Cache::remember('login.peta.v4.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1).'.'.Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY, '0').'.'.$filter['tahun'].'.'.($filter['kodept'] ?? 'all'), now()->addMinutes(10), fn () => $peta->sebaran($filter)));
+        return response()->json(Cache::remember('login.peta.v4.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1).'.'.Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0').'.'.$filter['tahun'].'.'.($filter['kodept'] ?? 'all'), now()->addMinutes(10), fn () => $peta->sebaran($filter)));
     }
 
     public function petaFilter(PetaSebaranService $peta)
@@ -91,6 +95,20 @@ class LoginController extends Controller
     }
 
     // Hanya kolom aman untuk publik; file_path & uploader tidak boleh sampai ke HTML.
+    // Same definitions as admin dashboard; version key bumped by PetaSebaranCacheObserver
+    private function statistikPublik(): array
+    {
+        $key = 'login.statistik.v1.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1);
+
+        return array_map(fn ($v) => number_format($v, 0, ',', '.'), Cache::remember($key, now()->addMinutes(10), fn () => [
+            'jumlahMahasiswa' => Mahasiswa::count(),
+            'jumlahDpl' => Dpl::count(),
+            'jumlahPt' => Mahasiswa::whereNotNull('kodept')->distinct()->count('kodept'),
+            'jumlahKecamatan' => Kecamatan::count(),
+            'jumlahKelurahan' => Desa::count(),
+        ]));
+    }
+
     // Cache di-forget oleh hook model Panduan setiap ada perubahan
     private function getPanduanPublik()
     {
@@ -101,9 +119,9 @@ class LoginController extends Controller
     }
 
     // Halaman publik: di-cache per kombinasi filter agar query berat tidak jalan di setiap kunjungan
-    private function laporanData(KpiSampahService $sampah, array $filter): array
+    private function laporanData(PenguranganSampahService $sampah, array $filter): array
     {
-        $versi = Cache::get(Kpisampah::PUBLIC_VERSION_CACHE_KEY, '0');
+        $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0');
 
         return Cache::remember('login.capaian.v3.'.$versi.'.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter));
     }

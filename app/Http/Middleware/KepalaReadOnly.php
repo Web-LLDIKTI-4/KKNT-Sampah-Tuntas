@@ -14,7 +14,11 @@ class KepalaReadOnly
 {
     private const ALLOWED = ['logout', 'profile/update', 'profile/prosesuploadpoto', 'setting/update'];
 
-    private const PEMDA_ALLOWED = ['desaprofile/insert', 'desaprofile/update', 'desaprofile/destroy'];
+    private const PEMDA_ALLOWED = [
+        'desaprofile/insert', 'desaprofile/update', 'desaprofile/destroy',
+        'kecamatan/insert', 'kecamatan/update', 'kecamatan/destroy',
+        'desa/insert', 'desa/update', 'desa/destroy',
+    ];
 
     public function handle(Request $request, Closure $next): Response
     {

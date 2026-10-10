@@ -26,14 +26,14 @@ class LogHarianByMhsExport extends SafeValueBinder implements FromCollection, Wi
     {
         return Logkegiatan::where('email', $this->emailMahasiswa)
             ->whereNotNull('deskripsi')
-            ->with(['mahasiswa.sp', 'kpi'])
+            ->with(['mahasiswa.sp', 'kategoriKegiatan'])
             ->without('dplmentoring')
             ->orderBy('tanggal')
             ->get()
             ->map(fn ($item, $key) => [
                 $key + 1,
                 Carbon::parse($item->tanggal)->format('d-m-Y'),
-                $item->kpi?->nama_kpi,
+                $item->kategoriKegiatan?->nama_kategori,
                 strip_tags((string) $item->deskripsi),
                 $item->volume,
                 $item->satuan,
@@ -46,7 +46,7 @@ class LogHarianByMhsExport extends SafeValueBinder implements FromCollection, Wi
         return [
             'No',
             'Tanggal',
-            'KPI',
+            'Kategori Kegiatan',
             'Deskripsi Kegiatan',
             'Volume/Kuantitas Output',
             'Satuan',

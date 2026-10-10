@@ -7,10 +7,12 @@ use App\Http\Requests\Master\DesaRequest;
 use App\Models\Desa;
 use App\Models\Desaprofile;
 use App\Models\Kecamatan;
+use App\Models\PenguranganSampah;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 class DesaController extends Controller
@@ -31,9 +33,17 @@ class DesaController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        return DataTables::of(Desa::with('kecamatan')->get())
+        $query = Desa::query()
+            ->leftJoin('kecamatan', 'kecamatan.id_kecamatan', '=', 'desa.id_kecamatan')
+            ->select('desa.*', 'kecamatan.kecamatan as kecamatan');
+
+        return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->addColumn('kecamatan', fn (Desa $row) => $row->kecamatan->kecamatan ?? '')
+            // Restrict search/order to view columns; others are ambiguous after the join.
+            ->whitelist(['id_desa', 'kecamatan', 'desa'])
+            ->editColumn('kecamatan', fn (Desa $row) => $row->kecamatan ?? '')
+            ->filterColumn('kecamatan', fn ($query, $keyword) => $query->where('kecamatan.kecamatan', 'like', "%{$keyword}%"))
+            ->orderColumn('kecamatan', 'kecamatan.kecamatan $1')
             ->editColumn('latitude', fn (Desa $row) => $row->latitude !== null ? (float) $row->latitude : null)
             ->editColumn('longitude', fn (Desa $row) => $row->longitude !== null ? (float) $row->longitude : null)
             ->addColumn('action', fn (Desa $row) => ActionButtons::make(
@@ -76,14 +86,17 @@ class DesaController extends Controller
 
     public function destroy(Request $request)
     {
-        $desa = Desa::find($request->input('id_desa'));
+        $id = $request->input('id_desa');
+        // Non-string/non-uuid id would make find() return a Collection
+        $desa = Str::isUuid($id) ? Desa::find($id) : null;
         if (! $desa) {
             return $this->notFound();
         }
 
         $used = Desaprofile::where('id_desa', $desa->id_desa)->exists()
             || Pjdesa::where('id_desa', $desa->id_desa)->exists()
-            || Mahasiswa_lokasi::where('id_desa', $desa->id_desa)->exists();
+            || Mahasiswa_lokasi::where('id_desa', $desa->id_desa)->exists()
+            || PenguranganSampah::where('id_desa', $desa->id_desa)->exists();
         if ($used) {
             return $this->deleteRejected('Data gagal dihapus karena terkait dengan data lain');
         }
