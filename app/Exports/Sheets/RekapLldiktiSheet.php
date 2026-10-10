@@ -21,7 +21,7 @@ class RekapLldiktiSheet implements FromArray, WithTitle, WithEvents, WithStrictN
     public const HEADER = [
         'Bulan',
         'Nama Kecamatan',
-        'Nama Desa/Kelurahan',
+        'Nama Kelurahan/Desa',
         'Jumlah Rumah Keseluruhan',
         'Jumlah Rumah yang memilah',
         'Persentase Ketaatan Pemilahan [(E/D)*100%]',

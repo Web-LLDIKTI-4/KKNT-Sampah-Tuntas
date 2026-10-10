@@ -1304,7 +1304,7 @@
                           <div class="lokasi-stat">
                             <i class="ri-building-4-line"></i>
                             <span class="lokasi-stat-value">{{ $lokasi->jumlah_pt }}</span>
-                            <span class="lokasi-stat-label">Perguruan Tinggi</span>
+                            <span class="lokasi-stat-label">PTS</span>
                           </div>
                         </div>
                       </div>
@@ -1399,19 +1399,19 @@
                           </div>
                         </div>
                       </div>
-                      <div class="peta-top w-100">
-                        <div class="peta-top-head">
-                            <span><i class="ri-recycle-line text-success me-1" aria-hidden="true"></i>Pengurangan Sampah per Kecamatan</span>
-                            <small id="petaKecPeriode" class="peta-muted fw-normal"></small>
-                        </div>
-                        <ul id="petaKec" class="peta-kec-list list-unstyled mb-0"></ul>
-                        <p id="petaKecEmpty" class="peta-muted mb-0 d-none">Belum ada data pengurangan sampah.</p>
+                        <div class="peta-top w-100">
+                            <div class="peta-top-head">
+                                <span><i class="ri-recycle-line text-success me-1" aria-hidden="true"></i>Pengurangan Sampah per Kecamatan</span>
+                                <small id="petaKecPeriode" class="peta-muted fw-normal"></small>
+                            </div>
+                            <ul id="petaKec" class="peta-kec-list list-unstyled mb-0"></ul>
+                            <p id="petaKecEmpty" class="peta-muted mb-0 d-none">Belum ada data pengurangan sampah.</p>
                         </div>
 
                         <div class="peta-tip">
-                        <i class="ri-lightbulb-line" aria-hidden="true"></i>
-                        <span><strong>Tips Interaktif:</strong> Klik lingkaran desa pada peta untuk melihat detail.</span>
-                    </div>
+                            <i class="ri-lightbulb-line" aria-hidden="true"></i>
+                            <span><strong>Tips Interaktif:</strong> Klik lingkaran desa pada peta untuk melihat detail.</span>
+                        </div>
                     </div>
                   </div>
                 </div>

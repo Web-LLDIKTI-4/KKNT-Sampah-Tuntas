@@ -14,7 +14,7 @@
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
         <input type="text" name="desa" class="form-control form-control-sm" required maxlength="200">
-        <label>Nama Desa / Kelurahan</label>
+        <label>Nama Kelurahan/Desa</label>
     </div>
     <div class="row g-4 mb-2">
         <div class="col-6">
@@ -30,7 +30,7 @@
             </div>
         </div>
     </div>
-    <small class="text-muted d-block mb-6">Opsional, untuk peta sebaran. Klik kanan lokasi di Google Maps, lalu salin angka koordinat (latitude, longitude).</small>
+    @include('desa._map_picker')
     <hr>
     <x-button.save formId="form-tambah">
         Simpan

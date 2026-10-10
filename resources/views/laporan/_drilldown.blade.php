@@ -76,7 +76,7 @@
                 <thead>
                     <tr>
                         <th class="text-center" width="1">No</th>
-                        <th>Kelurahan / Desa</th>
+                        <th>Kelurahan/Desa</th>
                         <th class="text-center">% Pengurangan Sampah</th>
                     </tr>
                 </thead>

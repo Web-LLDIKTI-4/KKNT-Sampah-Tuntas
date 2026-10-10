@@ -6,7 +6,7 @@
                     <th width="1">No</th>
                     <th>Id pjdesa</th>
                     <th>Nama Kecamatan</th>
-                    <th>Nama Desa / Kelurahan</th>
+                    <th>Nama Kelurahan/Desa</th>
                     <th>Ketua Kelompok</th>
                     <th>Instansi</th>
                     <th width="1">Aksi</th>

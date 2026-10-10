@@ -14,7 +14,7 @@
             @endforeach
         @endif
         </select>
-        <label>Nama Desa / Kelurahan</label>
+        <label>Nama Kelurahan/Desa</label>
        <!-- <input type="hidden" name="id_desa" value="{{$data->id_desa}}"/> -->
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">

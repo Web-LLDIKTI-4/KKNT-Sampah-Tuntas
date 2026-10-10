@@ -11,7 +11,7 @@
     <input type="hidden" name="tahun" value="{{$tahun}}">
     <div class="alert alert-info">
         Panduan Pengisian : <br />
-            1. Bagaimana pelaksanaan pembimbingan dan koordinasi yang telah dilakukan dengan mahasiswa KKN, pemerintah desa/kelurahan, kecamatan, serta mitra selama periode pelaporan? <br />
+            1. Bagaimana pelaksanaan pembimbingan dan koordinasi yang telah dilakukan dengan mahasiswa KKN, pemerintah kelurahan/desa, kecamatan, serta mitra selama periode pelaporan? <br />
             2. Bagaimana perkembangan pelaksanaan program kerja mahasiswa berdasarkan hasil monitoring dan evaluasi yang telah dilakukan? Jelaskan capaian, progres, serta kesesuaiannya dengan rencana kegiatan. <br />
             3. Apa saja kendala atau permasalahan yang ditemukan selama proses pendampingan, dan langkah pembinaan, solusi, serta tindak lanjut apa yang telah dilakukan? <br />
             4. Bagaimana hasil evaluasi terhadap kinerja dan perkembangan mahasiswa KKN, baik dari aspek disiplin, kerja sama, komunikasi, kepemimpinan, profesionalisme, maupun pencapaian program kerja? <br />
@@ -34,7 +34,7 @@
     <hr>
     <x-button.save formId="form-tambah">Simpan</x-button.save>
 </form>
-        
+
 <script>
 $(function(){
     $('.summernote').summernote({
@@ -68,7 +68,7 @@ $(function(){
             }
         }
     });
-    $("#form-tambah").on("submit",function(){       
+    $("#form-tambah").on("submit",function(){
         var action = $(this).attr("action");
         var id = $(this).attr("id");
         var dString = $(this).serialize();
@@ -80,26 +80,26 @@ $(function(){
             url:action,
             data:dString,
             beforeSend:function(){
-                btnLoading($("#btnSubmit_" + id), true);			
+                btnLoading($("#btnSubmit_" + id), true);
             },
             complete:function(){
-                btnLoading($("#btnSubmit_" + id), false);	
+                btnLoading($("#btnSubmit_" + id), false);
             },
             success:function(ret){
                 if(ret.success == true){
-                    toastr.success(ret.message)	                    
-                    $("#listdata").load("{{ url('dpllaporan/listdata') }}");		
+                    toastr.success(ret.message)
+                    $("#listdata").load("{{ url('dpllaporan/listdata') }}");
                 }else{
                     $.each(ret.errors, function(key, value) {
                         $("#" + key + "_error").html(value[0]); // Menampilkan pesan error di dalam field yang sesuai
                     });
-                    toastr.warning(ret.message)	
+                    toastr.warning(ret.message)
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
-            }			
-            
+                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);
+            }
+
         });
         return false;
     });

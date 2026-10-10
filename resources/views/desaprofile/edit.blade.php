@@ -23,7 +23,7 @@
                 @endforeach
             @endif
             </select>
-            <label>Nama Desa / Kelurahan</label>
+            <label>Nama Kelurahan/Desa</label>
         </div>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
@@ -73,4 +73,3 @@
 })
 </script>
 
-    

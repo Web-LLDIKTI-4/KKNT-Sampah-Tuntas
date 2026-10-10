@@ -20,13 +20,13 @@
                 @foreach($desa as $item)
                     <optgroup label="Kecamatan : {{$item->kecamatan}}">
                         @foreach($item->desa as $row)
-                            <option value="{{$row->id_desa}}" @selected($desaTerpilih === $row->id_desa)>Desa / Kelurahan : {{$row->desa}}</option>
+                            <option value="{{$row->id_desa}}" @selected($desaTerpilih === $row->id_desa)>Kelurahan/Desa : {{$row->desa}}</option>
                         @endforeach
                     </optgroup>
                 @endforeach
             @endif
             </select>
-            <label>Pilih Desa / Kelurahan</label>
+            <label>Pilih Kelurahan/Desa</label>
         </div>
         <div class="form-group col-md-2 form-floating form-floating-outline">
             <select name="tahun" class="form-control" required data-no-search>
@@ -48,34 +48,34 @@ $(function(){
        dropdownParent: $('#modalku')
     });
 
-    $("#form-lokasi").on("submit",function(){       
+    $("#form-lokasi").on("submit",function(){
         var action = $(this).attr("action");
         var id = $(this).attr("id");
-        var dString = $(this).serialize();        
+        var dString = $(this).serialize();
         $.ajax({
             dataType:'json',
             type:'post',
             url:action,
             data:dString,
             beforeSend:function(){
-                btnLoading($("#btnSubmit_" + id), true);			
+                btnLoading($("#btnSubmit_" + id), true);
             },
             complete:function(){
-                btnLoading($("#btnSubmit_" + id), false);	
+                btnLoading($("#btnSubmit_" + id), false);
             },
             success:function(ret){
                 if(ret.success == true){
                     toastr.success(ret.message)
                     $("#resultcontent").load("{{ url('mhsprofile/data') }}");
-		
+
                 }else{
                     toastr.warning(ret.errors ? Object.values(ret.errors).flat().join('<br>') : ret.message)
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
-            }			
-            
+                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);
+            }
+
         });
         return false;
     });

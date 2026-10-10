@@ -10,7 +10,7 @@
             <tr>
                 <th>Bulan</th>
                 <th>Nama Kecamatan</th>
-                <th>Nama Desa/Kelurahan</th>
+                <th>Nama Kelurahan/Desa</th>
                 <th>Jumlah Rumah Keseluruhan</th>
                 <th>Jumlah Rumah yang memilah</th>
                 <th>Persentase Ketaatan Pemilahan [(E/D)*100%]</th>

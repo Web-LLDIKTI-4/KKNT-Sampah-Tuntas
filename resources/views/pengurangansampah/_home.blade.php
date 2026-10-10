@@ -18,7 +18,7 @@
                             <tr>
                                 <th>Lokasi Kegiatan</th>
                                 <th class="text-center">Kecamatan</th>
-                                <th class="text-center">Kelurahan</th>
+                                <th class="text-center">Kelurahan/Desa</th>
                                 @if ($perPt)
                                     <th class="text-center">Perguruan Tinggi</th>
                                 @endif

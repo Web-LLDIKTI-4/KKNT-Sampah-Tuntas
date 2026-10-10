@@ -115,12 +115,12 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desa') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Desa / Kelurahan
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Kelurahan/Desa
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Kelurahan/Desa
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -278,7 +278,7 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Kelurahan/Desa
                                     </a>
                                 </li>
                             </ul>
@@ -382,7 +382,7 @@
                                 @unless (Auth::user()->role === 'pemda')
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Kelurahan/Desa
                                         </a>
                                     </li>
                                 @endunless
@@ -405,12 +405,12 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desa') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Desa / Kelurahan
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Kelurahan/Desa
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Kelurahan/Desa
                                         </a>
                                     </li>
                                 </ul>
@@ -541,7 +541,7 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Desa / Kelurahan
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Kelurahan/Desa
                                     </a>
                                 </li>
                             </ul>

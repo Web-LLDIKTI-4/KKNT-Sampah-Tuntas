@@ -11,7 +11,7 @@ class KategoriKegiatanExport implements FromCollection, WithHeadings
 {
     public function collection()
     {
-        $data = KategoriKegiatan::all();
+        $data = KategoriKegiatan::orderBy('nama_kategori')->get();
         return $data->map(function ($item, $key) {
             return [
                 'no' => $key + 1,

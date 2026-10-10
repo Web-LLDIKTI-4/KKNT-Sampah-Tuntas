@@ -23,6 +23,7 @@
         processing: true,
         serverSide: true,
         ajax: "{{ route('kategori-kegiatan.listdataserver') }}",
+        order: [[2, 'asc']],
         language: {
             search: "",
             searchPlaceholder: "Cari...",

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Desa / Kelurahan')
+@section('title','Kelurahan/Desa')
 @section('container')
 <link rel="stylesheet" href="{{ asset('assets/vendor/libs/leaflet/leaflet.css') }}" />
 <script src="{{ asset('assets/vendor/libs/leaflet/leaflet.js') }}"></script>

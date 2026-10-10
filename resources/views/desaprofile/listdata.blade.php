@@ -6,7 +6,7 @@
                     <th width="1">No</th>
                     <th>Id profile</th>
                     <th>Tahun</th>
-                    <th>Nama Desa / Kelurahan</th>
+                    <th>Nama Kelurahan/Desa</th>
                     <th>Potensi</th>
                     <th>Masalah</th>
                     @if ($canManage)
