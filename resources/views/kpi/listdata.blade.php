@@ -5,10 +5,8 @@
             <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
-                    <th>Id Aktivitas </th>
-                    <th>Nama Aktivitas</th>
-                    <th>Target</th>
-                    <th>Satuan</th>
+                    <th>Id KPI </th>
+                    <th>Nama KPI</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
@@ -33,10 +31,8 @@
         },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
-            {data: 'id_kpi', name: 'id_kpi', visible: false}, 
+            {data: 'id_kpi', name: 'id_kpi', visible: false},
             {data: 'nama_kpi', name: 'nama_kpi'},
-            {data: 'target', name: 'target', className: 'text-center'},
-            {data: 'satuan', name: 'satuan', className: 'text-center'},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],
     });

@@ -84,7 +84,7 @@
                                             <span data-i18n="Pricing">Kelola Pengguna</span>
                                         </a>
                                     </li>
-                                    
+
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admevaluasikegiatan') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i>
@@ -94,10 +94,10 @@
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kpi') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                            <span data-i18n="Pricing">Kelola Aktivitas</span>
+                                            <span data-i18n="Pricing">Kelola KPI</span>
                                         </a>
                                     </li>
-                    
+
                                 </ul>
                             </div>
                             <div class="col-12 col-lg">
@@ -136,7 +136,7 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('panduan') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Panduan
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dokumen
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -218,8 +218,8 @@
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admfreeform') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Free Form
                                         </a>
-                                    </li>               
-                            
+                                    </li>
+
                                 </ul>
                             </div> --}}
                         </div>

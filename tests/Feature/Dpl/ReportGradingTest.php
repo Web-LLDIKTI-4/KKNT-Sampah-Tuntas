@@ -88,9 +88,9 @@ class ReportGradingTest extends TestCase
 
         $this->get("admlogkegiatan/export/{$mhs->email}")->assertOk();
         Excel::matchByRegex();
-        Excel::assertDownloaded('/^logharian_mahasiswa_.+\.xlsx$/', function (LogHarianByMhsExport $export) {
+        Excel::assertDownloaded('/^log_aktivitas_mahasiswa_.+\.xlsx$/', function (LogHarianByMhsExport $export) {
             $this->assertSame([
-                'No', 'Tanggal', 'Aktivitas', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti',
+                'No', 'Tanggal', 'KPI', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti',
             ], $export->headings());
             $this->assertSame([
                 1, '01-10-2026', 'Pengelolaan Sampah', 'Membersihkan lingkungan', '2',

@@ -16,7 +16,7 @@ class KpiController extends Controller
 {
     use RespondsWithJson;
 
-    private const FIELDS = ['nama_kpi', 'target', 'satuan'];
+    private const FIELDS = ['nama_kpi'];
 
     public function index()
     {

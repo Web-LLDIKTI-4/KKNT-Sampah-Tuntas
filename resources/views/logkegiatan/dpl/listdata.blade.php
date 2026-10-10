@@ -13,10 +13,10 @@
                         <tr>
                             <th width="1">No</th>
                             <th>Tanggal</th>
+                            <th>KPI</th>
                             <th>Deskripsi Kegiatan</th>
                             <th>Volume/Kuantitas Output</th>
                             <th>Satuan</th>
-                            <th>Aktivitas</th>
                             <th>Tautan Bukti</th>
                         </tr>
                     </thead>
@@ -46,10 +46,10 @@
             columns: [
                 {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
                 {data: 'tanggal', name: 'tanggal', className: 'text-center'},
+                {data: 'nama_kpi', name: 'nama_kpi', orderable: false},
                 {data: 'deskripsi', name: 'deskripsi'},
                 {data: 'volume', name: 'volume', className: 'text-end'},
                 {data: 'satuan', name: 'satuan'},
-                {data: 'nama_kpi', name: 'nama_kpi', orderable: false},
                 {data: 'tautan', name: 'tautan', orderable: false, searchable: false},
             ]
         });

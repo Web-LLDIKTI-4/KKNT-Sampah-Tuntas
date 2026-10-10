@@ -43,6 +43,6 @@ class AdmlogkegiatanController extends StudentLogReportController
 
     protected function exportFor(string $email)
     {
-        return Excel::download(new LogHarianByMhsExport($email), 'logharian_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
+        return Excel::download(new LogHarianByMhsExport($email), 'log_aktivitas_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

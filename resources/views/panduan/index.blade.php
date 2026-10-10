@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Panduan')
+@section('title','Dokumen')
 @section('container')
-<x-crud-index :list-url="url('panduan/listdata')" :add-url="url('panduan/tambah')" add-title="Tambah Panduan" />
+<x-crud-index :list-url="url('panduan/listdata')" :add-url="url('panduan/tambah')" add-title="Tambah Dokumen" />
 @stop

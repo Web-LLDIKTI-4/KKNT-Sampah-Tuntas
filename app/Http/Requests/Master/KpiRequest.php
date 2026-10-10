@@ -15,8 +15,6 @@ class KpiRequest extends AjaxFormRequest
                 'required', 'string', 'max:255',
                 Rule::unique('kpi', 'nama_kpi')->ignore($this->input('id_kpi'), 'id_kpi'),
             ],
-            'target' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:99999999.99'],
-            'satuan' => ['nullable', 'string', 'max:50'],
         ];
     }
 
@@ -32,11 +30,6 @@ class KpiRequest extends AjaxFormRequest
         return [
             'nama_kpi.required' => 'Nama aktivitas harus di isi',
             'nama_kpi.unique' => 'Nama aktivitas sudah ada!',
-            'target.numeric' => 'Target harus berupa angka.',
-            'target.min' => 'Target tidak boleh negatif.',
-            'target.decimal' => 'Target maksimal 2 angka di belakang koma.',
-            'target.max' => 'Target maksimal 99.999.999,99.',
-            'satuan.max' => 'Satuan maksimal 50 karakter.',
         ];
     }
 }

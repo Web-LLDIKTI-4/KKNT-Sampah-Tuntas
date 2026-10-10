@@ -20,7 +20,7 @@ class KpiSeederTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $this->assertSame(1, Kpi::count());
-        $this->assertSame(['Pengurangan Sampah Rumah Tangga', 20.0, '%'], [Kpi::first()->nama_kpi, (float) Kpi::first()->target, Kpi::first()->satuan]);
+        $this->assertSame('Pengurangan Sampah Rumah Tangga', Kpi::first()->nama_kpi);
         $this->assertSame(12 * 3, Pjdesa::where('email', 'like', '%@kknt.test')->count());
         $this->assertTrue(Kpicapaian::where('status_capaian', 'Y')->exists());
         $this->assertSame(12 * 3, Kpicapaian::count());

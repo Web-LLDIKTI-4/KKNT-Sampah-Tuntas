@@ -46,7 +46,7 @@ class LogHarianExportTest extends TestCase
         $this->actingAs($user)->get('logharian/export'.$query)->assertOk();
 
         $emails = [];
-        Excel::assertDownloaded('/^log_harian_.+\.xlsx$/', function (LogHarianLengkapExport $export) use (&$emails) {
+        Excel::assertDownloaded('/^log_aktivitas_.+\.xlsx$/', function (LogHarianLengkapExport $export) use (&$emails) {
             $emails = $export->query()->pluck('l.email')->unique()->sort()->values()->all();
 
             return true;
@@ -130,7 +130,7 @@ class LogHarianExportTest extends TestCase
         Excel::fake();
         $this->actingAs($admin)->get('logharian/export?bulan=2026-08')->assertOk();
         Excel::matchByRegex();
-        Excel::assertDownloaded('/^log_harian_2026-08_.+\.xlsx$/', fn (LogHarianLengkapExport $e) => $e->query()->count() === 1);
+        Excel::assertDownloaded('/^log_aktivitas_2026-08_.+\.xlsx$/', fn (LogHarianLengkapExport $e) => $e->query()->count() === 1);
 
         foreach (['2026-13', 'abc', "2026-08' OR 1=1"] as $bulan) {
             $this->actingAs($admin)->get('logharian/export?bulan='.urlencode($bulan))->assertSessionHasErrors('bulan');
@@ -159,7 +159,7 @@ class LogHarianExportTest extends TestCase
         $ws = $sheet($this->user('dpl', 'dplA@uji.test'));
         $this->assertSame([
             'Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak', 'Tanggal',
-            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'Aktivitas',
+            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'KPI',
             'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti',
         ], $ws->rangeToArray('A1:M1')[0]);
         $this->assertSame('FFFF00', $ws->getStyle('M1')->getFill()->getStartColor()->getRGB());
@@ -198,11 +198,12 @@ class LogHarianExportTest extends TestCase
         Logkegiatan::where('email', $mhs->email)->update(['deskripsi' => '=HYPERLINK("http://x","klik")']);
 
         $export = new LogHarianLengkapExport($this->user('mahasiswa', $mhs->email));
-        $header = ['Tanggal', 'Aktivitas', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
+        $header = ['No', 'Tanggal', 'KPI', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
         $this->assertSame($header, $export->headings());
         $r = $export->map($export->query()->first());
-        $this->assertCount(6, $r);
-        $this->assertSame('05/09/2026', $r[0]);
+        $this->assertCount(7, $r);
+        $this->assertSame(1, $r[0]);
+        $this->assertSame('05/09/2026', $r[1]);
         $this->assertNotContains($mhs->email, $r);
         $this->assertNotContains($mhs->phone, $r);
         $this->assertNotContains($mhs->nama, $r);
@@ -211,12 +212,12 @@ class LogHarianExportTest extends TestCase
         file_put_contents($path, Excel::raw($export, ExcelType::XLSX));
         $ws = IOFactory::load($path)->getActiveSheet();
         @unlink($path);
-        $this->assertSame('F', $ws->getHighestColumn());
-        $this->assertSame($header, $ws->rangeToArray('A1:F1')[0]);
-        $this->assertSame('FFFF00', $ws->getStyle('F1')->getFill()->getStartColor()->getRGB());
-        $this->assertSame('none', $ws->getStyle('G1')->getFill()->getFillType());
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('C2')->getDataType());
-        $this->assertSame(45, (int) $ws->getColumnDimension('C')->getWidth());
+        $this->assertSame('G', $ws->getHighestColumn());
+        $this->assertSame($header, $ws->rangeToArray('A1:G1')[0]);
+        $this->assertSame('FFFF00', $ws->getStyle('G1')->getFill()->getStartColor()->getRGB());
+        $this->assertSame('none', $ws->getStyle('H1')->getFill()->getFillType());
+        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('D2')->getDataType());
+        $this->assertSame(45, (int) $ws->getColumnDimension('D')->getWidth());
 
         $admin = new LogHarianLengkapExport($this->user('admin', 'admin@uji.test'));
         $this->assertCount(13, $admin->headings());

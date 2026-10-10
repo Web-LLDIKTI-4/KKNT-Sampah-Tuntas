@@ -28,6 +28,9 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
     // Mahasiswa: kolom identitas & lokasi disembunyikan, sama dengan tabel log aktivitas
     private bool $modeMahasiswa;
 
+    // Nomor urut baris; aman untuk chunking FromQuery karena map() dipanggil berurutan
+    private int $no = 0;
+
     public function __construct(private User $user, private ?string $bulan = null)
     {
         $this->modeMahasiswa = $user->role === 'mahasiswa';
@@ -64,7 +67,7 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
         $kegiatan = [$row->nama_kpi, strip_tags((string) $row->deskripsi), $row->volume, $row->satuan, $row->tautan];
 
         if ($this->modeMahasiswa) {
-            return [$tanggal, ...$kegiatan];
+            return [++$this->no, $tanggal, ...$kegiatan];
         }
 
         return [
@@ -82,10 +85,10 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
 
     public function headings(): array
     {
-        $kegiatan = ['Aktivitas', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
+        $kegiatan = ['KPI', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
 
         if ($this->modeMahasiswa) {
-            return ['Tanggal', ...$kegiatan];
+            return ['No', 'Tanggal', ...$kegiatan];
         }
 
         return [
@@ -98,7 +101,7 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
     public function columnWidths(): array
     {
         if ($this->modeMahasiswa) {
-            return ['A' => 12, 'B' => 24, 'C' => 45, 'D' => 14, 'E' => 18, 'F' => 35];
+            return ['A' => 6, 'B' => 12, 'C' => 24, 'D' => 45, 'E' => 14, 'F' => 18, 'G' => 35];
         }
 
         return [
@@ -111,7 +114,7 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
     {
         return [AfterSheet::class => function (AfterSheet $event) {
             $sheet = $event->sheet->getDelegate();
-            $akhir = $this->modeMahasiswa ? 'F' : 'M';
+            $akhir = $this->modeMahasiswa ? 'G' : 'M';
             $sheet->getStyle("A1:{$akhir}1")->applyFromArray([
                 'font' => ['bold' => true],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFF00']],

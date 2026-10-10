@@ -15,7 +15,7 @@ class LogharianExportController extends Controller
 
         return Excel::download(
             new LogHarianLengkapExport($request->user(), $bulan),
-            'log_harian_'.($bulan ?? 'semua').'_'.date('Y-m-d_H-i-s').'.xlsx'
+            'log_aktivitas_'.($bulan ?? 'semua').'_'.date('Y-m-d_H-i-s').'.xlsx'
         );
     }
 }

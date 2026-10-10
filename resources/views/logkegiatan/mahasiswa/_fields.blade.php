@@ -9,12 +9,12 @@
 </div>
 <div class="form-group form-floating form-floating-outline mb-6">
     <select name="id_kpi" class="form-select" required>
-        <option value="">Pilih Aktivitas</option>
+        <option value="">Pilih KPI</option>
         @foreach($kpi as $item)
             <option value="{{ $item->id_kpi }}" @selected($nilai('id_kpi') === $item->id_kpi)>{{ $item->nama_kpi }}</option>
         @endforeach
     </select>
-    <label>Aktivitas <span class="text-danger">*</span></label>
+    <label>KPI <span class="text-danger">*</span></label>
     <span id="id_kpi_error" class="text-danger"></span>
 </div>
 <div class="form-group form-floating form-floating-outline mb-6">

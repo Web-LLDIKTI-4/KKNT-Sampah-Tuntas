@@ -7,7 +7,7 @@
                     <th width="1">No</th>
                     {{-- <th>Id LOG </th> --}}
                     <th>Tanggal</th>
-                    <th>Aktivitas</th>
+                    <th>KPI</th>
                     <th>Deskripsi Kegiatan</th>
                     <th>Volume/Kuantitas Output</th>
                     <th>Satuan</th>
