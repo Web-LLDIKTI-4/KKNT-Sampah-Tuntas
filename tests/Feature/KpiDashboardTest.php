@@ -8,6 +8,7 @@ use App\Models\Dpl;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
+use App\Models\PendataanPemilahanSampah;
 use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
 use App\Models\User;
@@ -45,6 +46,16 @@ class KpiDashboardTest extends TestCase
         Pjdesa::create(['email' => $mhs->email, 'id_desa' => Desa::factory()->create()->id_desa]);
 
         return $mhs;
+    }
+
+    // Basis laporan = pendataan: tiap ketua menempati kelurahan pj_desa-nya & mengisi 1 log
+    private function isiPendataan(): void
+    {
+        foreach (Pjdesa::all() as $pj) {
+            $mhs = Mahasiswa::where('email', $pj->email)->firstOrFail();
+            Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $pj->id_desa, 'user_in_up' => $mhs->email]);
+            PendataanPemilahanSampah::factory()->create(['email' => $mhs->email, 'tanggal' => now()->format('Y-m').'-05']);
+        }
     }
 
     private static function jumlahKecamatan(array $laporan): int
@@ -103,6 +114,7 @@ class KpiDashboardTest extends TestCase
 
     public function test_kepala_home_shows_totals_for_all_pt(): void
     {
+        $this->isiPendataan();
         $this->loginAs('kepala');
 
         $this->get('home')->assertOk()
@@ -115,6 +127,7 @@ class KpiDashboardTest extends TestCase
 
     public function test_pt_is_locked_to_its_own_pt_but_not_to_account_lokasi(): void
     {
+        $this->isiPendataan();
         $lokasiAkun = LokasiProgram::factory()->create();
         $this->loginAs('pt', ['email' => $this->pt1->npsn, 'location_program' => $lokasiAkun->id]);
 
@@ -225,11 +238,19 @@ class KpiDashboardTest extends TestCase
 
     public function test_login_page_shows_laporan_kegiatan(): void
     {
+        $this->isiPendataan();
         $this->get(route('login'))
             ->assertOk()
             ->assertSee('Capaian Program')
             ->assertSee('Persentase Pengurangan Sampah (%)')
             ->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 3
                 && $l['kecamatan']->first()->nama_lokasi === $this->lokasi->nama_lokasi);
+    }
+
+    public function test_ketua_without_pendataan_is_not_listed(): void
+    {
+        // Setup hanya pj_desa tanpa pendataan: daftar kosong
+        $this->loginAs('kepala');
+        $this->get('dashboardkpi')->assertOk()->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 0);
     }
 }

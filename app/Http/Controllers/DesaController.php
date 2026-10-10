@@ -34,6 +34,8 @@ class DesaController extends Controller
         return DataTables::of(Desa::with('kecamatan')->get())
             ->addIndexColumn()
             ->addColumn('kecamatan', fn (Desa $row) => $row->kecamatan->kecamatan ?? '')
+            ->editColumn('latitude', fn (Desa $row) => $row->latitude !== null ? (float) $row->latitude : null)
+            ->editColumn('longitude', fn (Desa $row) => $row->longitude !== null ? (float) $row->longitude : null)
             ->addColumn('action', fn (Desa $row) => ActionButtons::make(
                 urlEdit: url('desa/edit/'.$row->id_desa),
                 urlDelete: url('desa/destroy'),
@@ -51,7 +53,7 @@ class DesaController extends Controller
 
     public function insert(DesaRequest $request)
     {
-        Desa::create($request->safe()->only('id_kecamatan', 'desa'));
+        Desa::create($request->safe()->only('id_kecamatan', 'desa', 'latitude', 'longitude'));
 
         return $this->saved();
     }
@@ -67,7 +69,7 @@ class DesaController extends Controller
     public function update(DesaRequest $request)
     {
         Desa::findOrFail($request->validated('id_desa'))
-            ->update($request->safe()->only('id_kecamatan', 'desa'));
+            ->update($request->safe()->only('id_kecamatan', 'desa', 'latitude', 'longitude'));
 
         return $this->saved();
     }

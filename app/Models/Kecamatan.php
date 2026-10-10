@@ -1,9 +1,12 @@
 <?php
 namespace App\Models;
+use App\Observers\PetaSebaranCacheObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon; 
+#[ObservedBy(PetaSebaranCacheObserver::class)]
 class Kecamatan extends Model
 {
     use HasFactory, HasUuids;

@@ -32,7 +32,7 @@ class CapaianPublikTest extends TestCase
     /**
      * Lokasi A / Kec Alfa: Desa Satu (Univ Hijau 25%, Univ Tanpa Data tanpa isian) + Desa Tiga (Univ Kuning 15%)
      * -> kecamatan & lokasi = 40/200 = 20,00%. Lokasi B / Kec Beta / Desa Dua: Univ Merah 5%. Total = 45/300 = 15%.
-     * Sumber: pendataan pemilahan sampah; kelurahan = mahasiswa_lokasi ketua.
+     * Sumber daftar & angka: pendataan pemilahan sampah (kelurahan = mahasiswa_lokasi pengisi); pj_desa = atribut ketua.
      */
     protected function setUp(): void
     {
@@ -75,6 +75,16 @@ class CapaianPublikTest extends TestCase
             'email' => $mhs->email, 'tanggal' => $bulan.'-10', 'memilah' => true,
             'organik_kg' => $terkelola, 'anorganik_kg' => 0, 'residu_kg' => 100 - $terkelola,
         ]);
+    }
+
+    // Mahasiswa non-ketua pengisi pendataan di $desa
+    private function pengisi(Satuanpendidikan $pt, ?LokasiProgram $lokasi, Desa $desa, string $bulan, float $terkelola): Mahasiswa
+    {
+        $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'nama' => 'Pengisi '.$desa->desa, 'location_program' => $lokasi?->id]);
+        Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $desa->id_desa, 'user_in_up' => $mhs->email]);
+        $this->logSampah($mhs, $bulan, $terkelola);
+
+        return $mhs;
     }
 
     private function publik(array $filter = []): array
@@ -295,7 +305,7 @@ class CapaianPublikTest extends TestCase
 
     public function test_export_capaian_program_matches_dashboard_and_handles_empty_data(): void
     {
-        // Kelurahan berketua tanpa data sampah di Kec Alfa
+        // Kelurahan berketua yang hanya berdata di bulan lain (tetap muncul, persen kosong)
         $desaKosong = Desa::factory()->create(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'desa' => 'Desa Kosong']);
         $mhs = Mahasiswa::factory()->create(['location_program' => $this->d['lokasiA']->id, 'kodept' => $this->d['pt_hijau']->npsn]);
         Pjdesa::create(['email' => $mhs->email, 'id_desa' => $desaKosong->id_desa]);
@@ -429,13 +439,20 @@ class CapaianPublikTest extends TestCase
     {
         $email = $this->d['ketua_hijau']->email;
         Kpicapaian::factory()->create(['email' => $email, 'permasalahan' => 'Masalah Uji', 'bulan' => $this->bulan.'-01']);
+        // Pengisi pendataan non-ketua: email & nama tidak boleh tampil
+        $pengisi = $this->pengisi($this->d['pt_hijau'], $this->d['lokasiA'], $this->d['desaA'], $this->bulan, 25);
         Cache::flush();
 
         $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa)->assertOk()
-            ->assertSee('Masalah Uji')->assertDontSee($email);
+            ->assertSee('Masalah Uji')->assertDontSee($email)->assertDontSee($pengisi->email)->assertDontSee($pengisi->nama);
+        // Isi cache halaman login (array store) bebas email pengisi
+        $this->assertStringContainsString('Masalah Uji', serialize(Cache::getStore()));
+        $this->assertStringNotContainsString($pengisi->email, serialize(Cache::getStore()));
 
         $data = $this->publik(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $this->d['desaA']->id_desa]);
         $this->assertStringNotContainsString($email, serialize($data));
+        $this->assertStringNotContainsString($pengisi->email, serialize($data));
+        $this->assertStringNotContainsString($pengisi->email, serialize(app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan])));
 
         // Revisi-5: no. kontak pengisi capaian boleh tampil, email tidak
         $isian = $data['kelompok']->firstWhere('nama_pt', 'Univ Hijau')->capaian->first();
@@ -503,5 +520,166 @@ class CapaianPublikTest extends TestCase
         // Guest (login) tidak memakai export dashboard
         auth()->logout();
         $this->get('login/laporan')->assertOk()->assertDontSee('export-capaian', false);
+    }
+
+    public function test_kelurahan_with_data_but_without_ketua_is_listed_with_empty_ketua(): void
+    {
+        $pt = Satuanpendidikan::factory()->create(['nm_lemb' => 'Univ Anggota']);
+        $desa = Desa::factory()->create(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'desa' => 'Desa Empat']);
+        $this->pengisi($pt, $this->d['lokasiA'], $desa, $this->bulan, 30);
+
+        $data = $this->publik(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $desa->id_desa]);
+        $this->assertContains('Desa Empat', $data['kelurahan']->pluck('desa')->all());
+        $this->assertEquals(30.0, $data['kelurahan']->firstWhere('desa', 'Desa Empat')->persen);
+        $this->assertSame(['Univ Anggota'], $data['kelompok']->pluck('nama_pt')->all());
+        $kelompok = $data['kelompok']->first();
+        $this->assertSame(0, $kelompok->jumlah_ketua);
+        $this->assertTrue($kelompok->ketua->isEmpty());
+        $this->assertTrue($kelompok->detail->isEmpty());
+        $this->assertEquals(30.0, $kelompok->persen_pt);
+        $this->assertSame(1, $kelompok->jumlah_mahasiswa);
+
+        $internal = app(KpiSampahService::class)->drilldown(['bulan' => null, 'id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $desa->id_desa])['kelompok']->first();
+        $this->assertSame('-', $internal->nama_ketua);
+        $this->assertTrue($internal->ketua_email->isEmpty() && $internal->capaian->isEmpty());
+
+        $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$desa->id_desa)->assertOk()->assertSee('Univ Anggota');
+
+        // Filter kodept: hanya desa/PT dari data PT tsb
+        $pt1 = $this->publik(['kodept' => $pt->npsn, 'id_kecamatan' => $this->d['kecA']->id_kecamatan]);
+        $this->assertSame(['Desa Empat'], $pt1['kelurahan']->pluck('desa')->all());
+        $this->assertSame(['Kota Alfa'], $pt1['kecamatan']->pluck('nama_lokasi')->all());
+    }
+
+    public function test_kelurahan_with_data_only_in_other_month_has_null_persen(): void
+    {
+        $desa = Desa::factory()->create(['id_kecamatan' => $this->d['kecB']->id_kecamatan, 'desa' => 'Desa Lalu']);
+        $this->pengisi($this->d['pt_merah'], $this->d['lokasiB'], $desa, now()->subMonths(2)->format('Y-m'), 50);
+
+        $data = $this->publik(['id_kecamatan' => $this->d['kecB']->id_kecamatan]);
+        $this->assertSame($this->bulan, $data['params']['bulan']);
+        $lalu = $data['kelurahan']->firstWhere('desa', 'Desa Lalu');
+        $this->assertNotNull($lalu);
+        $this->assertNull($lalu->persen);
+        $this->assertNull($lalu->klaster);
+    }
+
+    public function test_pengisi_without_location_program_grouped_as_tanpa_lokasi(): void
+    {
+        $kec = Kecamatan::factory()->create(['kecamatan' => 'Kec Gamma']);
+        $desa = Desa::factory()->create(['id_kecamatan' => $kec->id_kecamatan, 'desa' => 'Desa Gamma']);
+        $this->pengisi($this->d['pt_merah'], null, $desa, $this->bulan, 40);
+
+        $lokasi = $this->publik()['kecamatan']->firstWhere('nama_lokasi', 'Tanpa Lokasi Program');
+        $this->assertNotNull($lokasi);
+        $this->assertSame(['Kec Gamma'], $lokasi->kecamatan->pluck('kecamatan')->all());
+        $this->assertEquals(40.0, $lokasi->kecamatan->first()->persen);
+
+        $rows = (new CapaianProgramSheet(app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array();
+        $this->assertContains(['Desa Gamma', 0.4, 'Hijau'], $rows);
+    }
+
+    public function test_kelurahan_with_ketua_but_without_any_data_is_hidden(): void
+    {
+        $desa = Desa::factory()->create(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'desa' => 'Desa Hampa']);
+        $this->ketua('hampa', 'Univ Hampa', $this->d['lokasiA'], $desa, null);
+
+        $data = $this->publik(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $desa->id_desa]);
+        $this->assertNotContains('Desa Hampa', $data['kelurahan']->pluck('desa')->all());
+        $this->assertTrue($data['kelompok']->isEmpty());
+        $this->assertNull($data['namaDesa']);
+
+        $rows = (new CapaianProgramSheet(app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array();
+        $this->assertNotContains('Desa Hampa', array_column($rows, 0));
+    }
+
+    // QA: angka kelurahan & PT sama di Capaian login, dashboard PT, export, rekap LLDIKTI, peta sebaran
+    public function test_qa_angka_kelurahan_dan_pt_konsisten_di_semua_tempat(): void
+    {
+        // Desa Satu: + pengisi non-ketua Univ Hijau (35%) & PT baru tanpa ketua (10%) -> desa = (25+35+10)/300
+        $this->pengisi($this->d['pt_hijau'], $this->d['lokasiA'], $this->d['desaA'], $this->bulan, 35);
+        $ptBaru = Satuanpendidikan::factory()->create(['nm_lemb' => 'Univ Baru']);
+        $this->pengisi($ptBaru, $this->d['lokasiA'], $this->d['desaA'], $this->bulan, 10);
+        $this->d['desaA']->update(['latitude' => -6.9, 'longitude' => 107.6]);
+        $idDesa = $this->d['desaA']->id_desa;
+        $sampah = app(KpiSampahService::class);
+        $expectDesa = round(70 / 300 * 100, 2);
+
+        $login = $this->publik(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $idDesa]);
+        $this->assertEquals($expectDesa, $login['kelurahan']->firstWhere('id_desa', $idDesa)->persen);
+        $this->assertEquals(30.0, $login['kelompok']->firstWhere('nama_pt', 'Univ Hijau')->persen_pt);
+        $this->assertEquals(10.0, $login['kelompok']->firstWhere('nama_pt', 'Univ Baru')->persen_pt);
+
+        $export = $sampah->capaianProgram(['bulan' => $this->bulan]);
+        $kunci = $this->d['lokasiA']->id.'|'.$this->d['kecA']->id_kecamatan;
+        $this->assertEquals($expectDesa, $export['kelurahan'][$kunci]->firstWhere('desa', 'Desa Satu')->persen);
+
+        $rekap = $sampah->rekapLldikti(['bulan' => $this->bulan]);
+        $this->assertEquals($expectDesa, $rekap->first()->kecamatan->flatMap->desa->firstWhere('id_desa', $idDesa)->persen_pengurangan);
+        $rekapPt = $sampah->rekapLldikti(['bulan' => $this->bulan, 'kodept' => $this->d['pt_hijau']->npsn]);
+        $this->assertEquals(30.0, $rekapPt->first()->kecamatan->flatMap->desa->firstWhere('id_desa', $idDesa)->persen_pengurangan);
+
+        // Dashboard PT Hijau (kodept dikunci): persen kelurahan = persen PT di kelurahan tsb
+        $pt = $this->publik(['kodept' => $this->d['pt_hijau']->npsn, 'id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $idDesa]);
+        $this->assertEquals(30.0, $pt['kelurahan']->firstWhere('id_desa', $idDesa)->persen);
+        $this->assertSame(['Univ Hijau'], $pt['kelompok']->pluck('nama_pt')->all());
+
+        $peta = app(\App\Services\PetaSebaranService::class)->sebaran(['tahun' => (int) substr($this->bulan, 0, 4), 'kodept' => null]);
+        $this->assertSame($this->bulan, $peta['periode']['bulan']);
+        $this->assertEquals($expectDesa, collect($peta['desa'])->firstWhere('desa', 'Desa Satu')['persen_pengurangan']);
+    }
+
+    // QA: memo penempatanData per instance tidak bocor antar filter kodept
+    public function test_qa_memo_penempatan_tidak_bocor_antar_filter(): void
+    {
+        $sampah = app(KpiSampahService::class);
+        $f = ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null];
+
+        $merah = $sampah->drilldownPublik(['kodept' => $this->d['pt_merah']->npsn] + $f);
+        $semua = $sampah->drilldownPublik($f);
+        $merahLagi = $sampah->drilldownPublik(['kodept' => $this->d['pt_merah']->npsn] + $f);
+
+        $this->assertSame(['Kabupaten Beta'], $merah['kecamatan']->pluck('nama_lokasi')->all());
+        $this->assertSame(['Kabupaten Beta', 'Kota Alfa'], $semua['kecamatan']->pluck('nama_lokasi')->all());
+        $this->assertSame(['Kabupaten Beta'], $merahLagi['kecamatan']->pluck('nama_lokasi')->all());
+        // capaianProgram setelah filter PT tetap semua kelurahan
+        $this->assertCount(3, $sampah->capaianProgram(['bulan' => null])['kelurahan']->flatten());
+    }
+
+    // QA: jumlah query level PT konstan terhadap jumlah PT di kelurahan (tanpa N+1)
+    public function test_qa_query_level_pt_tanpa_n_plus_1(): void
+    {
+        $filter = ['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $this->d['desaA']->id_desa];
+        $hitung = function () use ($filter) {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->publik($filter);
+            $n = count(DB::getQueryLog());
+            DB::disableQueryLog();
+
+            return $n;
+        };
+
+        $awal = $hitung();
+        foreach (range(1, 4) as $i) {
+            $pt = Satuanpendidikan::factory()->create(['nm_lemb' => 'Univ N'.$i]);
+            $this->pengisi($pt, $this->d['lokasiA'], $this->d['desaA'], $this->bulan, 10 + $i);
+        }
+        $this->assertSame($awal, $hitung());
+        $this->assertLessThanOrEqual(15, $awal);
+    }
+
+    // QA: kelurahan dengan pengisi dari 2 lokasi program tampil di kedua lokasi (export) dengan persen desa yang sama
+    public function test_qa_desa_dua_lokasi_program_persen_sama(): void
+    {
+        $this->pengisi($this->d['pt_merah'], $this->d['lokasiB'], $this->d['desaA'], $this->bulan, 55);
+
+        $export = app(KpiSampahService::class)->capaianProgram(['bulan' => $this->bulan]);
+        $a = $export['kelurahan'][$this->d['lokasiA']->id.'|'.$this->d['kecA']->id_kecamatan]->firstWhere('desa', 'Desa Satu');
+        $b = $export['kelurahan'][$this->d['lokasiB']->id.'|'.$this->d['kecA']->id_kecamatan]->firstWhere('desa', 'Desa Satu');
+        $this->assertNotNull($a);
+        $this->assertNotNull($b);
+        $this->assertEquals($a->persen, $b->persen);
+        $this->assertEquals(40.0, $a->persen);
     }
 }

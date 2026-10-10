@@ -27,3 +27,5 @@ Thumbs.db
 docs
 # dev-team
 /.dev-team/
+
+/.claude/dev-team.json

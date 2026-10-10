@@ -18,6 +18,8 @@ class DesaRequest extends AjaxFormRequest
                     ->where('id_kecamatan', $this->input('id_kecamatan'))
                     ->ignore($this->input('id_desa'), 'id_desa'),
             ],
+            'latitude' => ['nullable', 'required_with:longitude', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'required_with:latitude', 'numeric', 'between:-180,180'],
         ];
     }
 
@@ -28,6 +30,12 @@ class DesaRequest extends AjaxFormRequest
             'id_kecamatan.exists' => 'Kecamatan tidak valid.',
             'desa.required' => 'Nama desa harus diisi.',
             'desa.unique' => 'Data sudah ada!',
+            'latitude.required_with' => 'Latitude harus diisi jika longitude diisi.',
+            'latitude.numeric' => 'Latitude harus berupa angka.',
+            'latitude.between' => 'Latitude harus di antara -90 dan 90.',
+            'longitude.required_with' => 'Longitude harus diisi jika latitude diisi.',
+            'longitude.numeric' => 'Longitude harus berupa angka.',
+            'longitude.between' => 'Longitude harus di antara -180 dan 180.',
         ];
     }
 }
