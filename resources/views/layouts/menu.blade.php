@@ -94,7 +94,7 @@
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('kategori-kegiatan') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i>
-                                            <span data-i18n="Pricing">Kelola Kategori Kegiatan</span>
+                                            <span data-i18n="Pricing">Kategori Kegiatan</span>
                                         </a>
                                     </li>
 
@@ -176,7 +176,7 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankegiatan') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian Kegiatan
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -313,7 +313,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankegiatan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian Kegiatan
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
                                 </a>
                             </li>
                         </ul>
@@ -446,7 +446,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankegiatan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian Kegiatan
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -516,7 +516,7 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('capaiankegiatan') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian Kegiatan
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
                                     </a>
                                 </li>
                                 <li class="nav-item">

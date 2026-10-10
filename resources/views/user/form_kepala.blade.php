@@ -26,6 +26,6 @@
         <input type="password" name="password" class="form-control form-control-sm" minlength="8" maxlength="255" autocomplete="new-password" @unless ($user) required @endunless>
         <label>Kata Sandi{{ $user ? ' (kosongkan jika tidak diubah)' : '' }}</label>
     </div>
-    <p class="small text-muted mb-4">Peran kepala &amp; pemda — hanya dapat melihat Dashboard Pengurangan Sampah dan Laporan Capaian Kegiatan.</p>
+    <p class="small text-muted mb-4">Peran kepala &amp; pemda — hanya dapat melihat Dashboard Pengurangan Sampah dan Laporan Capaian KPI.</p>
     <x-button.save formId="form-kepala">Simpan</x-button.save>
 </form>

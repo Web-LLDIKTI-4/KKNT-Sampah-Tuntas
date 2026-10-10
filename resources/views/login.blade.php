@@ -158,7 +158,7 @@
           color: rgba(255, 255, 255, 0.88);
           font-size: 1.1rem;
           line-height: 1.6;
-          margin-bottom: 2rem;
+          margin-bottom: 0;
           max-width: 46rem;
         }
 
@@ -179,7 +179,8 @@
         }
 
         .lokasi-grid-wrap {
-          padding: 1.25rem 1.5rem 1.5rem;
+          /* top 0.5rem: sisa ruang untuk ring .active & hover lift */
+          padding: 0.5rem 1.5rem 1.5rem;
           overflow: auto;
         }
 
@@ -1258,14 +1259,9 @@
               <h2 class="lokasi-panel-title">Program GRADASI : KKN Tematik <br /> Sampah Tuntas LLDIKTI Wilayah IV</h2>
 
               <p class="lokasi-panel-subtitle">
-                Silahkan <b>pilih Lokasi</b> terlebih dahulu sebelum Anda Login <br />
                 Kegiatan ini melibatkan <b>{{ $jumlahMahasiswa }} Mahasiswa</b>  dan <b>{{ $jumlahDpl }} DPL</b> dari <b>{{ $jumlahPt }} Perguruan Tinggi.</b> <br />
                 Lokus kegiatan disebar ke {{ $jumlahKecamatan }} Kecamatan dan {{ $jumlahKelurahan }} Kelurahan/Desa.
               </p>
-              {{-- <div class="input-group lokasi-search">
-                <span class="input-group-text"><i class="ri-search-line"></i></span>
-                <input type="text" id="lokasiSearch" class="form-control" placeholder="Cari lokasi program..." />
-              </div> --}}
             </div>
 
             <div class="lokasi-grid-wrap">
@@ -1444,7 +1440,9 @@
                 <i class="ri-map-pin-2-fill"></i>
                 <span id="selectedLokasiName"></span>
               </div>
-              <p class="mb-0 text-muted">Silakan masuk untuk membuka Dashboard</p>
+                <p class="mb-0 text-muted">
+                    Sebelum login atau masuk ke dalam dashboard, pilih lokasi kegiatan terlebih dahulu
+                </p>
             </div>
 
             <form id="formAuthentication" class="mb-5" action="{{ url('login') }}" method="POST">

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Capaian Kegiatan')
+@section('title','Capaian KPI')
 @section('container')
 @php
     use App\Models\PenguranganSampah;
@@ -8,7 +8,7 @@
 
 <x-page-header
     icon="ri-line-chart-line"
-    title="Capaian Kegiatan"
+    title="Capaian Key Performance Indicator (KPI)"
     :subtitle="$desa ? 'Rekap sampah Kel. '.$desa->desa.', Kec. '.($desa->kecamatan?->kecamatan ?? '-').' dari Pendataan Sampah Penduduk.' : 'Rekap sampah dari Pendataan Sampah Penduduk.'" />
 
 {{-- Read-only: rekap dihitung otomatis dari Pendataan Sampah Penduduk --}}
@@ -43,7 +43,7 @@
 
 <div class="card">
     <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h5 class="mb-0">Riwayat Capaian Kegiatan</h5>
+        <h5 class="mb-0">Riwayat Capaian KPI</h5>
         {{-- Input capaian hanya ketua kelompok --}}
         @if ($isKetua ?? false)
             <x-button :modal="url('capaiankegiatan/tambah')" title="Tambah Data" icon="ri-add-circle-line">Tambah Data</x-button>

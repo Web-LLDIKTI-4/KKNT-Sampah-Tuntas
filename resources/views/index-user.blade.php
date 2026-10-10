@@ -168,8 +168,8 @@
                         <div class="col border-bottom">
                             <div class="d-flex justify-content-between align-items-start pb-3 card-widget-2">
                                 <div>
-                                    <p class="mb-1">Capaian Kegiatan</p>
-                                    <h4 class="mb-1">{{ $jumlahcapaiankegiatan }} <span class="fs-5">Capaian</span></h4>
+                                    <p class="mb-1">Capaian KPI</p>
+                                    <h4 class="mb-1">{{ $jumlahcapaiankegiatan }} <span class="fs-5">KPI</span></h4>
                                     {{-- @php
                                         if($jumlahcapaiankegiatan == 0){
                                             $persenjumlahcapaiankegiatan = 0;

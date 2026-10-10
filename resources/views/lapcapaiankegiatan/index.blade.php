@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Laporan Capaian Kegiatan')
+@section('title','Laporan Capaian KPI')
 
 @section('container')
 <div class="d-flex mb-4 gap-4">
@@ -10,9 +10,9 @@
     </div>
     <div>
         <h5 class="mb-0">
-            <span class="align-middle">Capaian Kegiatan</span>
+            <span class="align-middle">Capaian Key Performance Indicator (KPI)</span>
         </h5>
-        <span>Data Capaian Kegiatan</span>
+        <span>Data Capaian KPI</span>
     </div>
 </div> 
 
