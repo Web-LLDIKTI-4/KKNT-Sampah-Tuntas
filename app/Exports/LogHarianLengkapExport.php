@@ -64,7 +64,7 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
     public function map($row): array
     {
         $tanggal = Carbon::parse($row->tanggal)->format('d/m/Y');
-        $kegiatan = [$row->nama_kategori, strip_tags((string) $row->deskripsi), $row->volume, $row->satuan, $row->tautan];
+        $kegiatan = [$row->nama_kategori, $row->nama_aktivitas, strip_tags((string) $row->deskripsi), $row->volume, $row->satuan, $row->tautan];
 
         if ($this->modeMahasiswa) {
             return [++$this->no, $tanggal, ...$kegiatan];
@@ -85,7 +85,7 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
 
     public function headings(): array
     {
-        $kegiatan = ['Kategori Kegiatan', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
+        $kegiatan = ['Kategori Kegiatan', 'Nama Aktivitas', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
 
         if ($this->modeMahasiswa) {
             return ['No', 'Tanggal', ...$kegiatan];
@@ -101,12 +101,12 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
     public function columnWidths(): array
     {
         if ($this->modeMahasiswa) {
-            return ['A' => 6, 'B' => 12, 'C' => 24, 'D' => 45, 'E' => 14, 'F' => 18, 'G' => 35];
+            return ['A' => 6, 'B' => 12, 'C' => 24, 'D' => 30, 'E' => 45, 'F' => 14, 'G' => 18, 'H' => 35];
         }
 
         return [
             'A' => 20, 'B' => 28, 'C' => 28, 'D' => 16, 'E' => 12, 'F' => 20, 'G' => 20, 'H' => 22,
-            'I' => 24, 'J' => 45, 'K' => 14, 'L' => 18, 'M' => 35,
+            'I' => 24, 'J' => 30, 'K' => 45, 'L' => 14, 'M' => 18, 'N' => 35,
         ];
     }
 
@@ -114,7 +114,7 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
     {
         return [AfterSheet::class => function (AfterSheet $event) {
             $sheet = $event->sheet->getDelegate();
-            $akhir = $this->modeMahasiswa ? 'G' : 'M';
+            $akhir = $this->modeMahasiswa ? 'H' : 'N';
             $sheet->getStyle("A1:{$akhir}1")->applyFromArray([
                 'font' => ['bold' => true],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFF00']],

@@ -24,6 +24,7 @@ class LogkegiatanTest extends TestCase
             'volume' => '2',
             'satuan' => 'kegiatan',
             'id_kategori' => KategoriKegiatan::factory()->create()->id_kategori,
+            'nama_aktivitas' => 'Pembersihan selokan',
             'tautan' => 'https://example.test/bukti',
             'nama_kepala_keluarga' => 'Budi Santoso',
             'alamat_rumah' => 'Jl. Melati No. 5',

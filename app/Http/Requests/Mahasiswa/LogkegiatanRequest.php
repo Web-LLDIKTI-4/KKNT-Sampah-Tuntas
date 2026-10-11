@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 class LogkegiatanRequest extends AjaxFormRequest
 {
     public const FIELDS = [
-        'tanggal', 'deskripsi', 'volume', 'satuan', 'id_kategori', 'tautan',
+        'tanggal', 'deskripsi', 'volume', 'satuan', 'id_kategori', 'nama_aktivitas', 'tautan',
     ];
 
     protected array $htmlFields = ['deskripsi'];
@@ -30,6 +30,7 @@ class LogkegiatanRequest extends AjaxFormRequest
             'volume' => ['required', 'numeric', 'min:0', 'max:1000000'],
             'satuan' => ['required', 'string', 'max:255'],
             'id_kategori' => ['required', 'uuid', 'exists:kategori_kegiatan,id_kategori'],
+            'nama_aktivitas' => ['required', 'string', 'max:255'],
             'tautan' => ['nullable', 'url:http,https', 'max:255'],
         ];
     }
@@ -56,6 +57,7 @@ class LogkegiatanRequest extends AjaxFormRequest
         return [
             'volume' => 'Volume/Kuantitas Output',
             'id_kategori' => 'Aktivitas',
+            'nama_aktivitas' => 'Nama Aktivitas',
         ];
     }
 
@@ -70,6 +72,7 @@ class LogkegiatanRequest extends AjaxFormRequest
             'volume.numeric' => 'Volume/Kuantitas Output harus berupa angka.',
             'satuan.required' => 'Satuan harus di isi.',
             'id_kategori.required' => 'Aktivitas harus dipilih.',
+            'nama_aktivitas.required' => 'Nama Aktivitas harus di isi.',
             'tautan.url' => 'Tautan harus berupa URL http/https yang valid.',
         ];
     }

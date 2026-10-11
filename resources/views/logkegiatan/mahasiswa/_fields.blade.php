@@ -20,6 +20,11 @@
     <span id="id_kategori_error" class="text-danger"></span>
 </div>
 <div class="form-group form-floating form-floating-outline mb-6">
+    <input type="text" name="nama_aktivitas" class="form-control form-control-sm" required maxlength="255" placeholder="Nama Aktivitas" value="{{ $nilai('nama_aktivitas') }}">
+    <label>Nama Aktivitas <span class="text-danger">*</span></label>
+    <span id="nama_aktivitas_error" class="text-danger"></span>
+</div>
+<div class="form-group form-floating form-floating-outline mb-6">
     <textarea name="deskripsi" class="form-control" rows="5" maxlength="65000" required placeholder="Pendataan sampah didampingi oleh...">{{ $nilai('deskripsi') }}</textarea>
     <label>Deskripsi Kegiatan <span class="text-danger">*</span></label>
     <span id="deskripsi_error" class="text-danger"></span>

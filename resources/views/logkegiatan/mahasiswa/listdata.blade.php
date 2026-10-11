@@ -8,6 +8,7 @@
                     {{-- <th>Id LOG </th> --}}
                     <th>Tanggal</th>
                     <th>Kategori Kegiatan</th>
+                    <th>Nama Aktivitas</th>
                     <th>Deskripsi Kegiatan</th>
                     <th>Volume/Kuantitas Output</th>
                     <th>Satuan</th>
@@ -43,6 +44,7 @@
             // {data: 'id_log', name: 'id_log', visible: false}, 
             {data: 'tanggal', name: 'tanggal'},
             {data: 'nama_kategori', name: 'nama_kategori', orderable: false},
+            {data: 'nama_aktivitas', name: 'nama_aktivitas'},
             {data: 'deskripsi', name: 'deskripsi', className: 'text-wrap'},
             {data: 'volume', name: 'volume'},
             {data: 'satuan', name: 'satuan'},
