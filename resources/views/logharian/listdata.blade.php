@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<x-button.export-bulan :url="route('logharian.export')" label="Export Semua Log Aktivitas" />
+<x-button.export-bulan :url="route('logharian.export')" label="Export Semua Log Harian" />
 
 <script type="text/javascript">
   $(function () {
@@ -33,13 +33,13 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
-            {data: 'kodept', name: 'kodept', className: 'text-center'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
+            {data: 'kodept', name: 'kodept'},
             {data: 'nm_lemb', name: 'nm_lemb'},
-            {data: 'nim', name: 'nim'},           
-            {data: 'nama', name: 'nama'},           
-            {data: 'jumlah_log', name: 'jumlah_log', className: 'text-center'},           
-            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false, visible:true},
+            {data: 'nim', name: 'nim'},
+            {data: 'nama', name: 'nama'},
+            {data: 'jumlah_log', name: 'jumlah_log'},
+            {data: 'action', name: 'action', orderable: false, searchable: false, visible:true},
         ],
     });
   });

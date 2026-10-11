@@ -40,7 +40,7 @@
             ? round(($jumlahlogkegiatan / $targetLogKegiatan) * 100, 1)
             : 0;
     @endphp
-    
+
     <div class="row g-6">
     <!-- Organic Sessions Chart-->
     <div class="col-lg-4 col-md-6 order-1 order-lg-0">
@@ -60,7 +60,7 @@
                         <h6 class="mb-1">Jumlah DPL</h6>
                         <small>{{$jumlahdpl}} Orang</small>
                     </div>
-                </div>               
+                </div>
                 @if (!in_array($userRole, ['pt', 'kepala', 'pemda']))
                     <div class="d-flex align-items-center mb-6">
                         <div class="avatar">
@@ -74,7 +74,7 @@
                         </div>
                     </div>
                 @endif
-                
+
                 @if (!in_array($userRole, ['pt', 'kepala', 'pemda']))
                     <div class="d-flex align-items-center">
                         <div class="avatar">
@@ -151,9 +151,9 @@
                             </div>
                         </div>
                         <div class="ms-3 d-flex flex-column">
-                            <h6 class="mb-1">Log Aktivitas Mahasiswa</h6>
+                            <h6 class="mb-1">Log Harian Mahasiswa</h6>
                             <small>{{$jumlahlogkegiatan}} Kegiatan</small>
-                        </div>  
+                        </div>
                     </div>
                     <div class="d-flex align-items-center mb-6">
                         <div class="avatar">
@@ -164,7 +164,7 @@
                         <div class="ms-3 d-flex flex-column">
                             <h6 class="mb-1">Log Bulanan Mahasiswa</h6>
                             <small>{{$jumlahlogbulanan}} Laporan</small>
-                        </div>  
+                        </div>
                     </div>
                 </div>
             </div>
@@ -179,4 +179,4 @@
     @endisset
 </div>
 
-@stop 
+@stop

@@ -1,8 +1,8 @@
 @extends('layouts.app')
-@section('title', 'Log Aktivitas')
+@section('title', 'Log Harian')
 @section('container')
 
-<x-page-header title="Log Aktivitas" subtitle="Data Log Aktivitas" />
+<x-page-header title="Log Harian" subtitle="Data Log Harian" />
 
 <div class="card">
     <div class="card-body">
@@ -44,11 +44,11 @@
                 infoEmpty: "Tidak ada data yang ditemukan",
             },
             columns: [
-                {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
-                {data: 'tanggal', name: 'tanggal', className: 'text-center'},
+                {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
+                {data: 'tanggal', name: 'tanggal'},
                 {data: 'nama_kategori', name: 'nama_kategori', orderable: false},
                 {data: 'deskripsi', name: 'deskripsi'},
-                {data: 'volume', name: 'volume', className: 'text-end'},
+                {data: 'volume', name: 'volume'},
                 {data: 'satuan', name: 'satuan'},
                 {data: 'tautan', name: 'tautan', orderable: false, searchable: false},
             ]

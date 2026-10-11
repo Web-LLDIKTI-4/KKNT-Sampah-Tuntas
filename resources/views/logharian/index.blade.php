@@ -1,7 +1,7 @@
 @extends('layouts.app')
-@section('title','Log Aktivitas Mahasiswa')
+@section('title','Log Harian Mahasiswa')
 @section('container')
-<x-page-header /> 
+<x-page-header />
 
 <div class="card">
     <div class="card-body">
@@ -13,4 +13,4 @@
         $("#resultcontent").load("{{ url('admlogharian/listdata') }}");
     })
 </script>
-@stop 
+@stop

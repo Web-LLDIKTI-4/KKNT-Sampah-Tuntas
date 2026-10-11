@@ -43,7 +43,7 @@
                     Tambah Log Harian
                 </x-button>
             </div>
-            
+
             <div class="divider">
                 <div class="divider-text"><h4><i class="ri-calendar-todo-line"></i> {{ date("d-m-Y") }}</h4></div>
             </div>
@@ -129,7 +129,7 @@
                     <div class="col border-bottom">
                         <div class="d-flex justify-content-between align-items-start pb-3 card-widget-3">
                             <div>
-                            <p class="mb-1">Log Aktivitas</p>
+                            <p class="mb-1">Log Harian</p>
                             <h4 class="mb-1">{{$jumlahlogkegiatan}} <span class="fs-5">Kegiatan</span></h4>
                             {{-- @php
                                 $persenkegiatan = round(($jumlahlogkegiatan/30)*100,1);
@@ -351,4 +351,4 @@
     }
 })();
 </script>
-@stop 
+@stop

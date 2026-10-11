@@ -1,12 +1,12 @@
 @extends('layouts.app')
-@section('title','Log Aktivitas')
+@section('title','Log Harian')
 @section('container')
 
-<x-page-header /> 
+<x-page-header />
 
 <div class="card">
     <div class="card-header">
-        <x-button.export-bulan :url="route('logharian.export')" label="Export Semua Log Aktivitas" />
+        <x-button.export-bulan :url="route('logharian.export')" label="Export Semua Log Harian" />
     </div>
     <div class="card-body">
         <p id="resultcontent">loading data...</p>
@@ -17,4 +17,4 @@
         $("#resultcontent").load("{{ url('admlogkegiatan/listdatagroup') }}");
     })
 </script>
-@stop 
+@stop

@@ -25,7 +25,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  */
 class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueBinder, FromQuery, WithMapping, WithHeadings, WithEvents, WithStrictNullComparison, WithColumnWidths
 {
-    // Mahasiswa: kolom identitas & lokasi disembunyikan, sama dengan tabel log aktivitas
+    // Mahasiswa: kolom identitas & lokasi disembunyikan, sama dengan tabel Log Harian
     private bool $modeMahasiswa;
 
     // Nomor urut baris; aman untuk chunking FromQuery karena map() dipanggil berurutan

@@ -156,7 +156,7 @@
                                 <ul class="nav flex-column">
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkegiatan') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Aktivitas Mahasiswa
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Harian Mahasiswa
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -293,7 +293,7 @@
                         <ul class="nav flex-column">
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkegiatan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Aktivitas
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Harian
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -426,7 +426,7 @@
                         <ul class="nav flex-column">
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkegiatan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Aktivitas Mahasiswa
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Harian Mahasiswa
                                 </a>
                             </li>
                             <li class="nav-item">
