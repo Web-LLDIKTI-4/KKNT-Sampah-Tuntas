@@ -27,8 +27,8 @@
         }
         var iconOnly = $.trim($btn.text()) === '';
         $btn.data('btn-html', $btn.html()).data('btn-loading', true).prop('disabled', true)
-            .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'
-                + (iconOnly ? '' : ' ' + (label || 'Loading...')));
+            .html('<span class="spinner-border spinner-border-sm' + (iconOnly ? '' : ' me-2') + '" role="status" aria-hidden="true"></span>'
+                + (iconOnly ? '' : (label || 'Loading...')));
     };
 
     function csrfToken() {

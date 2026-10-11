@@ -91,7 +91,7 @@ $(function () {
       var $this = $(this);
       $this.closest('.card').block({
         message:
-          '<div class="sk-fold sk-primary"><div class="sk-fold-cube"></div><div class="sk-fold-cube"></div><div class="sk-fold-cube"></div><div class="sk-fold-cube"></div></div><h5>LOADING...</h5>',
+          '<div class="sk-fold sk-primary"><div class="sk-fold-cube"></div><div class="sk-fold-cube"></div><div class="sk-fold-cube"></div><div class="sk-fold-cube"></div></div><h5> LOADING...</h5>',
 
         css: {
           backgroundColor: 'transparent',
