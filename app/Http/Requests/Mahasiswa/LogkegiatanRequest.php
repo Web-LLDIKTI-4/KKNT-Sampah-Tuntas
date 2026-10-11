@@ -25,7 +25,7 @@ class LogkegiatanRequest extends AjaxFormRequest
                 Rule::unique('logkegiatan', 'deskripsi')
                     ->where('email', $this->user()->email)
                     ->where('tanggal', $this->input('tanggal'))
-                    ->ignore($this->input('id_log'), 'id_log'),
+                    ->ignore($this->isUpdate() ? $this->input('id_log') : null, 'id_log'),
             ],
             'volume' => ['required', 'numeric', 'min:0', 'max:1000000'],
             'satuan' => ['required', 'string', 'max:255'],
@@ -46,7 +46,7 @@ class LogkegiatanRequest extends AjaxFormRequest
                 ->whereIn('status_kehadiran', AttendanceService::BLOCKING_STATUSES)
                 ->exists();
             if ($blocked) {
-                $validator->errors()->add('tanggal', 'Tidak bisa menambah log aktivitas karena status kehadiran hari ini bukan hadir.');
+                $validator->errors()->add('tanggal', 'Tidak bisa menambah log harian karena status kehadiran hari ini bukan hadir.');
             }
         }];
     }

@@ -14,10 +14,17 @@ class PendataanPemilahanSampahRequest extends AjaxFormRequest
 
     public function rules(): array
     {
+        return [
+            'id_pendataan' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'uuid'],
+        ] + self::dataRules();
+    }
+
+    // Rules data pendataan (tanpa id), dipakai ulang oleh LogHarianRequest
+    public static function dataRules(): array
+    {
         $berat = ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:99999999'];
 
         return [
-            'id_pendataan' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'uuid'],
             'tanggal' => ['required', 'date', 'before_or_equal:today'],
             'nama_kepala_keluarga' => ['required', 'string', 'max:150', 'not_regex:/^[=+\-@]/'],
             'alamat_rumah' => ['required', 'string', 'max:255', 'not_regex:/^[=+\-@]/'],

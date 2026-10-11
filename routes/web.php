@@ -426,7 +426,7 @@ Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
     Route::get('logkegiatan/listdata', [LogkegiatanController::class, 'listdata'])->name('logkegiatan.listdata');
     Route::get('logkegiatan/listdataserver', [LogkegiatanController::class, 'listdataserver'])->name('logkegiatan.listdataserver');
     Route::get('logkegiatan/tambah', [LogkegiatanController::class, 'tambah']);
-    Route::put('logkegiatan/insert', [LogkegiatanController::class, 'insert']);
+    Route::put('logkegiatan/insert', [LogkegiatanController::class, 'insert'])->middleware('throttle:30,1');
     Route::get('logkegiatan/edit/{id_log}', [LogkegiatanController::class, 'edit']);
     Route::put('logkegiatan/update', [LogkegiatanController::class, 'update']);
     Route::put('logkegiatan/destroy', [LogkegiatanController::class, 'destroy']);
@@ -474,8 +474,9 @@ Route::middleware(['auth', 'role:admin,dpl,pt,kepala,pemda,mahasiswa', 'user.gua
 });
 
 Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
-    Route::get('pendataanpemilahan/tambah', [PendataanPemilahanSampahController::class, 'tambah']);
-    Route::put('pendataanpemilahan/insert', [PendataanPemilahanSampahController::class, 'insert']);
+    // Create dinonaktifkan: data baru diinput lewat Log Harian (logkegiatan/insert)
+    // Route::get('pendataanpemilahan/tambah', [PendataanPemilahanSampahController::class, 'tambah']);
+    // Route::put('pendataanpemilahan/insert', [PendataanPemilahanSampahController::class, 'insert']);
     Route::get('pendataanpemilahan/edit/{id_pendataan}', [PendataanPemilahanSampahController::class, 'edit']);
     Route::put('pendataanpemilahan/update', [PendataanPemilahanSampahController::class, 'update']);
     Route::put('pendataanpemilahan/destroy', [PendataanPemilahanSampahController::class, 'destroy']);

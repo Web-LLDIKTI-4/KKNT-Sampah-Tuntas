@@ -4,6 +4,7 @@ namespace Tests\Feature\Mahasiswa;
 
 use App\Models\KategoriKegiatan;
 use App\Models\Logkegiatan;
+use App\Models\PendataanPemilahanSampah;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use App\Models\Kehadiran;
@@ -24,6 +25,15 @@ class LogkegiatanTest extends TestCase
             'satuan' => 'kegiatan',
             'id_kategori' => KategoriKegiatan::factory()->create()->id_kategori,
             'tautan' => 'https://example.test/bukti',
+            'nama_kepala_keluarga' => 'Budi Santoso',
+            'alamat_rumah' => 'Jl. Melati No. 5',
+            'rt' => '003',
+            'rw' => '07',
+            'memilah' => '1',
+            'organik_kg' => 2.5,
+            'anorganik_kg' => 1.25,
+            'residu_kg' => 0,
+            'ada_kegiatan_lain' => '1',
         ];
     }
 
@@ -40,6 +50,18 @@ class LogkegiatanTest extends TestCase
         $this->assertSame('kegiatan', $log->satuan);
         $this->assertSame('https://example.test/bukti', $log->tautan);
         $this->assertNull($log->nama_kepala_keluarga);
+        $this->assertDatabaseHas('pendataan_pemilahan_sampah', ['email' => $user->email, 'nama_kepala_keluarga' => 'Budi Santoso']);
+    }
+
+    public function test_daily_log_without_other_activity_only_saves_waste_data(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0', 'deskripsi' => '', 'volume' => '', 'satuan' => '', 'id_kategori' => '']))
+            ->assertJson(['success' => true]);
+
+        $this->assertSame(1, PendataanPemilahanSampah::where('email', $user->email)->count());
+        $this->assertDatabaseCount('logkegiatan', 0);
     }
 
     public function test_required_fields_and_invalid_values_are_rejected(): void
@@ -47,7 +69,9 @@ class LogkegiatanTest extends TestCase
         $this->loginAs('mahasiswa');
 
         $this->put('logkegiatan/insert', [])
-            ->assertJsonValidationErrors(['tanggal', 'deskripsi', 'volume', 'satuan', 'id_kategori'], 'errors');
+            ->assertJsonValidationErrors(['tanggal', 'nama_kepala_keluarga', 'memilah', 'ada_kegiatan_lain'], 'errors');
+        $this->put('logkegiatan/insert', ['ada_kegiatan_lain' => '1'])
+            ->assertJsonValidationErrors(['deskripsi', 'volume', 'satuan', 'id_kategori'], 'errors');
         $this->put('logkegiatan/insert', $this->payload([
             'tanggal' => now()->addDay()->toDateString(),
             'volume' => -1,
@@ -62,6 +86,20 @@ class LogkegiatanTest extends TestCase
 
         $this->put('logkegiatan/insert', $payload)->assertJson(['success' => true]);
         $this->put('logkegiatan/insert', $payload)->assertJsonValidationErrors('deskripsi', 'errors');
+    }
+
+    public function test_insert_cannot_bypass_unique_description_with_existing_id_log(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $existing = Logkegiatan::factory()->create([
+            'email' => $user->email,
+            'tanggal' => today()->toDateString(),
+            'deskripsi' => '<p>Membersihkan lingkungan</p>',
+        ]);
+
+        $this->put('logkegiatan/insert', $this->payload(['id_log' => $existing->id_log]))
+            ->assertJsonValidationErrors('deskripsi', 'errors');
+        $this->assertDatabaseCount('logkegiatan', 1);
     }
 
     public function test_student_can_only_update_or_delete_own_daily_logs(): void
@@ -93,7 +131,7 @@ class LogkegiatanTest extends TestCase
             'satuan' => 'kegiatan',
             'tautan' => 'https://example.test/bukti',
         ]);
-        Logkegiatan::create(['email' => $user->email, 'tanggal' => today(), 'nama_kepala_keluarga' => 'Pindahan']);
+        Logkegiatan::forceCreate(['email' => $user->email, 'tanggal' => today(), 'nama_kepala_keluarga' => 'Pindahan']);
         Logkegiatan::factory()->create(['email' => 'lain@pps.test']);
 
         $this->get('logkegiatan/tambah')
@@ -111,7 +149,7 @@ class LogkegiatanTest extends TestCase
             ->assertSee('Deskripsi Kegiatan')
             ->assertSee('Volume')
             ->assertSee('Satuan')
-            ->assertSee('Aktivitas')
+            ->assertSee('Kategori Kegiatan')
             ->assertSee('Tautan Bukti')
             ->assertDontSee('Nama Kepala Keluarga');
 
@@ -150,6 +188,7 @@ class LogkegiatanTest extends TestCase
 
         $this->put('logkegiatan/insert', $this->payload())->assertJsonValidationErrors(['tanggal'], 'errors');
         $this->assertDatabaseCount('logkegiatan', 1);
+        $this->assertDatabaseCount('pendataan_pemilahan_sampah', 0);
 
         $this->put('logkegiatan/update', $this->payload([
             'id_log' => $log->id_log,

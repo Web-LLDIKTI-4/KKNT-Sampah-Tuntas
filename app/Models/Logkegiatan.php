@@ -12,7 +12,7 @@ class Logkegiatan extends Model
     protected $table = 'logkegiatan';
     protected $primaryKey = 'id_log'; // Tentukan primary key sesuai dengan struktur tabel
 
-    protected $guarded = [];
+    protected $fillable = ['email', 'tanggal', 'deskripsi', 'volume', 'satuan', 'id_kategori', 'tautan'];
     protected $with = ['mahasiswa','dplmentoring'];
 
     public function mahasiswa()

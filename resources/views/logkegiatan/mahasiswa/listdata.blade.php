@@ -22,7 +22,7 @@
     </div>
 </div>
 
-<x-button.export :url="route('logharian.export')" label="Export Log Aktivitas" />
+<x-button.export :url="route('logharian.export')" label="Export Log Harian" />
 
 <script type="text/javascript">
   $(function () {
@@ -39,15 +39,15 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
             // {data: 'id_log', name: 'id_log', visible: false}, 
-            {data: 'tanggal', name: 'tanggal', className: 'text-center'},
+            {data: 'tanggal', name: 'tanggal'},
             {data: 'nama_kategori', name: 'nama_kategori', orderable: false},
             {data: 'deskripsi', name: 'deskripsi'},
-            {data: 'volume', name: 'volume', className: 'text-end'},
+            {data: 'volume', name: 'volume'},
             {data: 'satuan', name: 'satuan'},
             {data: 'tautan', name: 'tautan', orderable: false, searchable: false},
-            {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
+            {data: 'action', name: 'action', orderable: false, searchable: false},
         ],
         decodeEntities: false
     });

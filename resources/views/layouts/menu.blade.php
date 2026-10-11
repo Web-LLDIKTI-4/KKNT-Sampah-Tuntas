@@ -491,7 +491,7 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('logkegiatan') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Aktivitas
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Log Harian
                                     </a>
                                 </li>
                                 <li class="nav-item">

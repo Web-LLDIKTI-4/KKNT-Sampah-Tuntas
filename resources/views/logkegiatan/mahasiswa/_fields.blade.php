@@ -2,11 +2,13 @@
     $data ??= null;
     $nilai = fn (string $kolom) => $data ? $data->$kolom : '';
 @endphp
+@if($withTanggal ?? true)
 <div class="form-group form-floating form-floating-outline mb-6">
     <input type="date" name="tanggal" class="form-control form-control-sm" required max="{{ date('Y-m-d') }}" value="{{ $nilai('tanggal') }}">
     <label>Tanggal <span class="text-danger">*</span></label>
     <span id="tanggal_error" class="text-danger"></span>
 </div>
+@endif
 <div class="form-group form-floating form-floating-outline mb-6">
     <select name="id_kategori" class="form-select" required>
         <option value="">Pilih Kategori Kegiatan</option>

@@ -38,7 +38,10 @@ class PendataanPemilahanSampahTest extends TestCase
         $user = $this->loginAs('mahasiswa');
         $this->get('pendataanpemilahan')->assertOk()->assertSee('Pendataan Sampah Penduduk');
 
-        $this->put('pendataanpemilahan/insert', $this->payload())->assertJson(['success' => true]);
+        // Create hanya lewat Log Harian
+        $this->get('pendataanpemilahan/tambah')->assertNotFound();
+        $this->put('pendataanpemilahan/insert', $this->payload())->assertNotFound();
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0']))->assertJson(['success' => true]);
         $data = PendataanPemilahanSampah::where('email', $user->email)->firstOrFail();
         $this->assertTrue(Str::isUuid($data->id_pendataan));
         $this->assertSame('Budi Santoso', $data->nama_kepala_keluarga);
@@ -60,12 +63,13 @@ class PendataanPemilahanSampahTest extends TestCase
     {
         $this->loginAs('mahasiswa');
 
-        $this->put('pendataanpemilahan/insert', [])
+        $this->put('logkegiatan/insert', [])
             ->assertJsonValidationErrors([
                 'tanggal', 'nama_kepala_keluarga', 'alamat_rumah', 'rt', 'rw',
                 'memilah', 'organik_kg', 'anorganik_kg', 'residu_kg',
             ], 'errors');
-        $this->put('pendataanpemilahan/insert', $this->payload([
+        $this->put('logkegiatan/insert', $this->payload([
+            'ada_kegiatan_lain' => '0',
             'tanggal' => today()->addDay()->toDateString(),
             'rt' => '1/2',
             'memilah' => 'mungkin',
@@ -78,7 +82,7 @@ class PendataanPemilahanSampahTest extends TestCase
         $migration = require database_path('migrations/2026_10_07_000001_create_pendataan_pemilahan_sampah_table.php');
         $migration->down();
 
-        $dailyLog = Logkegiatan::create($this->payload() + ['email' => 'mahasiswa@pps.test']);
+        $dailyLog = Logkegiatan::forceCreate($this->payload() + ['email' => 'mahasiswa@pps.test']);
         $migration->up();
 
         $this->assertDatabaseHas('pendataan_pemilahan_sampah', [
@@ -140,7 +144,7 @@ class PendataanPemilahanSampahTest extends TestCase
         $this->assertStringNotContainsString('btn-delete', $action);
         $this->assertStringNotContainsString('<a', (string) $grouped->json('data.0.nama_mahasiswa'));
         $this->get('pendataanpemilahan/listdatagroup')->assertOk()->assertSee('Aksi')->assertSee("data: 'action'", false);
-        $this->get('pendataanpemilahan/tambah')->assertRedirect();
+        $this->get('pendataanpemilahan/tambah')->assertNotFound();
     }
 
     public function test_dpl_and_pt_grouped_counts_only_include_students_in_their_scope(): void

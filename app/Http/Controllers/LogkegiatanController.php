@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Mahasiswa\LogHarianRequest;
 use App\Http\Requests\Mahasiswa\LogkegiatanRequest;
 use App\Models\Kehadiran;
 use App\Models\KategoriKegiatan;
 use App\Models\Logkegiatan;
+use App\Services\LogHarianService;
 use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
@@ -59,11 +61,11 @@ class LogkegiatanController extends Controller
         return view('logkegiatan.mahasiswa.tambah', ['kategoriKegiatan' => KategoriKegiatan::orderBy('nama_kategori')->get()]);
     }
 
-    public function insert(LogkegiatanRequest $request)
+    public function insert(LogHarianRequest $request, LogHarianService $logHarian)
     {
-        Logkegiatan::create($request->safe()->only(LogkegiatanRequest::FIELDS) + ['email' => $request->user()->email]);
+        $logHarian->store($request->validated(), $request->user()->email);
 
-        return $this->saved('Log aktivitas berhasil disimpan');
+        return $this->saved('Log harian berhasil disimpan');
     }
 
     public function edit(Request $request, string $id_log)
@@ -83,7 +85,7 @@ class LogkegiatanController extends Controller
 
         $log->update($request->safe()->only(LogkegiatanRequest::FIELDS));
 
-        return $this->saved('Log aktivitas berhasil disimpan');
+        return $this->saved('Log harian berhasil disimpan');
     }
 
     public function destroy(Request $request)
