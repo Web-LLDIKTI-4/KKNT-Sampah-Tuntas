@@ -56,7 +56,7 @@
             }
           },
           error:function(xhr,ajaxOptions,thrownError){
-            alert(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
+            toastr.error('Terjadi kesalahan, silakan coba lagi.');				
           }			
         })
         return false;

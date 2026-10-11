@@ -71,6 +71,7 @@ $(function(){
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
+                toastr.error('Terjadi kesalahan, silakan coba lagi.');
             }			
             
         })

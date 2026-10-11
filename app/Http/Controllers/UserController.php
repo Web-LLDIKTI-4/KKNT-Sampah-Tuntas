@@ -38,7 +38,7 @@ class UserController extends Controller
 
     public function getdatamember()
     {
-        return view('user.listmember', ['data' => Mahasiswa::with('sp')->whereDoesntHave('user')->get()]);
+        return view('user.listmember', ['data' => Mahasiswa::with(['sp', 'locationProgram'])->whereDoesntHave('user')->get()]);
     }
 
     public function insert(Request $request)
@@ -55,7 +55,7 @@ class UserController extends Controller
 
     public function adduser()
     {
-        return view('user.listdpl', ['data' => Dpl::with('sp')->whereDoesntHave('user')->get()]);
+        return view('user.listdpl', ['data' => Dpl::with(['sp', 'locationProgram'])->whereDoesntHave('user')->get()]);
     }
 
     public function insertuser(Request $request)

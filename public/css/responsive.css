@@ -7,6 +7,14 @@ div.dataTables_wrapper > .row.dt-row > [class*="col"],
   -webkit-overflow-scrolling: touch;
 }
 
+/* Touch: horizontal table scrollers never capture vertical swipes (page keeps scrolling); .scroll-box stays a vertical scroller */
+@media (hover: none) and (pointer: coarse) {
+  div.dataTables_wrapper > .row.dt-row > [class*="col"],
+  .table-responsive:not(.scroll-box) {
+    overflow-y: hidden;
+  }
+}
+
 /* Drop negative row gutters inside DT wrapper (no page-level overflow at 360px) */
 div.dataTables_wrapper > .row {
   --bs-gutter-x: 0;
@@ -86,6 +94,78 @@ video,
     justify-content: center !important;
     row-gap: 0.25rem;
     overflow-x: visible;
+  }
+
+  /* Mobile hides overlay scrollbars: always-visible thin bar so horizontal scroll is discoverable */
+  div.dataTables_wrapper > .row.dt-row > [class*="col"],
+  .table-responsive,
+  .scroll-box {
+    padding-bottom: 0.375rem;
+  }
+
+  div.dataTables_wrapper > .row.dt-row > [class*="col"]::-webkit-scrollbar,
+  .table-responsive::-webkit-scrollbar,
+  .scroll-box::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  div.dataTables_wrapper > .row.dt-row > [class*="col"]::-webkit-scrollbar-track,
+  .table-responsive::-webkit-scrollbar-track,
+  .scroll-box::-webkit-scrollbar-track {
+    background: rgba(var(--bs-secondary-rgb), 0.12);
+    border-radius: 8px;
+  }
+
+  div.dataTables_wrapper > .row.dt-row > [class*="col"]::-webkit-scrollbar-thumb,
+  .table-responsive::-webkit-scrollbar-thumb,
+  .scroll-box::-webkit-scrollbar-thumb {
+    background: rgba(var(--bs-primary-rgb), 0.55);
+    border-radius: 8px;
+  }
+
+  div.dataTables_wrapper > .row.dt-row > [class*="col"]::-webkit-scrollbar-corner,
+  .table-responsive::-webkit-scrollbar-corner,
+  .scroll-box::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Standard properties only where ::-webkit-scrollbar is unsupported (Firefox); Chrome 121+ would otherwise ignore the rules above */
+  @supports not selector(::-webkit-scrollbar) {
+    div.dataTables_wrapper > .row.dt-row > [class*="col"],
+    .table-responsive,
+    .scroll-box {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(var(--bs-primary-rgb), 0.55) rgba(var(--bs-secondary-rgb), 0.12);
+    }
+  }
+
+  /* Action buttons outside tables stack full width; row actions, pagination, navbar, input groups & icon buttons untouched */
+  .btn:is(.card-header *, .modal-footer *, form > *, [type="submit"], :is(.card-body, .modal-body, .tab-pane, #resultcontent, [class*="col-"]) > *):not(.btn-icon, .btn-link, .btn-close, [class*="btn-action-"], .dropdown-toggle):not(table *, .dataTables_wrapper *, .input-group *, .btn-group *, .navbar *, .capaian-toolbar *) {
+    width: 100%;
+  }
+
+  /* Consecutive stacked buttons in block (non-flex) containers get the same gap as flex ones */
+  :not(.d-flex, .d-grid, .modal-footer) > .btn:is(.card-header *, form > *, [type="submit"], :is(.card-body, .modal-body, .tab-pane, #resultcontent, [class*="col-"]) > *):not(.btn-icon, .btn-link, .btn-close, [class*="btn-action-"], .dropdown-toggle):not(table *, .dataTables_wrapper *, .input-group *, .btn-group *, .navbar *, .capaian-toolbar *) + .btn:not(.btn-icon, .btn-link, .btn-close, [class*="btn-action-"], .dropdown-toggle):not(table *, .dataTables_wrapper *, .input-group *, .btn-group *, .navbar *, .capaian-toolbar *) {
+    margin-top: 0.5rem;
+  }
+
+  /* Forms / button groups inside header action rows take a full line too */
+  :is(.card-header, .card-header .d-flex) > form {
+    flex: 1 1 100%;
+  }
+
+  form.d-flex.flex-wrap:has(> .btn) > * {
+    flex: 1 1 100%;
+  }
+
+  .btn-group:is(.card-header *, .card-body > *):not(table *, .dataTables_wrapper *, .input-group *, .navbar *) {
+    display: flex;
+    width: 100%;
+  }
+
+  .btn-group:is(.card-header *, .card-body > *):not(table *, .dataTables_wrapper *, .input-group *, .navbar *) > .btn {
+    flex: 1 1 0;
   }
 }
 

@@ -241,7 +241,12 @@
 			$(".modal-title").text(title);
 			//$('.modal').modal();        
 			$('#modalisi').html('Loading, mohon tunggu...');
-			$('#modalisi').load(src);
+			$('#modalisi').load(src, function(response, status){
+				if(status === 'error'){
+					$('#modalisi').html('<p class="text-danger mb-0">Gagal memuat konten.</p>');
+					toastr.error('Terjadi kesalahan, silakan coba lagi.');
+				}
+			});
 		})
 
 	})

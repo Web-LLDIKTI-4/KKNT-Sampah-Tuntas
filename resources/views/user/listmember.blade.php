@@ -35,7 +35,7 @@
                                         {{ $mahasiswa->kodept }}
                                     @endif
                                 </td>
-                                <td>{{ $mahasiswa->locationProgram->nama_lokasi }}</td>
+                                <td>{{ $mahasiswa->locationProgram->nama_lokasi ?? 'Lokasi Tidak Tersedia' }}</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="createuser[]" value="{{ $mahasiswa->email }}">
                                 </td>
@@ -158,7 +158,7 @@ $(function () {
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
-                alert(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
+                toastr.error('Terjadi kesalahan, silakan coba lagi.');				
             }	
 
         });
