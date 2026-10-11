@@ -17,14 +17,15 @@ class DatabaseSeeder extends Seeder
             PerguruanTinggiSeeder::class,
             DplSeeder::class,
             MahasiswaSeeder::class,
-            // KehadiranSeeder::class,
-            // LogHarianSeeder::class,
-            // LogBulananSeeder::class,
-            // CapaianKegiatanSeeder::class,
-            // PendataanPemilahanSeeder::class,
-            // RencanaKerjaSeeder::class,
-            // PenilaianSeeder::class,
-            // EvaluasiSaranSeeder::class,
+            KehadiranSeeder::class,
+            LogHarianSeeder::class,
+            LogBulananSeeder::class,
+            CapaianKegiatanSeeder::class,
+            PendataanPemilahanSeeder::class,
+            RencanaKerjaSeeder::class,
+            PenilaianSeeder::class,
+            EvaluasiSaranSeeder::class,
+            PetaSebaranDemoSeeder::class,
         ]);
 
         // Wilayah/PT ikut berganti UUID; cache publik lama tidak boleh dipakai

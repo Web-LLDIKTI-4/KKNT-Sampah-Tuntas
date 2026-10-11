@@ -99,7 +99,7 @@ class WilayahRoleAccessTest extends TestCase
     {
         $this->loginAs('pemda');
 
-        $this->put('pjdesa/insert', [])->assertForbidden();
+        $this->put('pjdesa/destroy', [])->assertForbidden();
         $this->put('lokasiprogram/insert', [])->assertForbidden();
     }
 

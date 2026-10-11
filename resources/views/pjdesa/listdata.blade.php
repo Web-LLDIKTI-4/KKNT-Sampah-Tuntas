@@ -8,7 +8,8 @@
                     <th>Nama Kecamatan</th>
                     <th>Nama Kelurahan/Desa</th>
                     <th>Ketua Kelompok</th>
-                    <th>Instansi</th>
+                    <th>Perguruan Tinggi</th>
+                    <th>Capaian KPI</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
@@ -36,6 +37,7 @@
             {data: 'desa', name: 'desa'},
             {data: 'pjdesa', name: 'pjdesa'},
             {data: 'instansi', name: 'instansi'},
+            {data: 'capaian_kpi', name: 'capaian_kpi', className: 'text-center', orderable: false, searchable: false},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
         ],
         columnDefs: [

@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\RespondsWithJson;
-use App\Http\Requests\Master\PjdesaRequest;
-use App\Models\Kecamatan;
 use App\Models\CapaianKegiatan;
 use App\Models\Pjdesa;
 use App\Models\User;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class PjdesaController extends Controller
@@ -31,6 +30,11 @@ class PjdesaController extends Controller
         abort_unless($request->ajax(), 404);
 
         $data = Pjdesa::with(['desa.kecamatan', 'mahasiswa.sp'])->get();
+        // Current-year capaian count per email, single grouped query
+        $capaian = CapaianKegiatan::whereYear('bulan', now()->year)
+            ->whereIn('email', $data->pluck('email')->filter()->unique())
+            ->groupBy('email')
+            ->pluck(DB::raw('count(*)'), 'email');
 
         return DataTables::of($data)
             ->addIndexColumn()
@@ -38,39 +42,14 @@ class PjdesaController extends Controller
             ->addColumn('desa', fn (Pjdesa $row) => $row->desa->desa ?? '')
             ->addColumn('pjdesa', fn (Pjdesa $row) => $row->mahasiswa->nama ?? 'Data tidak tersedia')
             ->addColumn('instansi', fn (Pjdesa $row) => $row->mahasiswa->sp->nm_lemb ?? 'Data tidak tersedia')
+            ->addColumn('capaian_kpi', fn (Pjdesa $row) => (int) ($capaian[$row->email] ?? 0))
             ->addColumn('action', fn (Pjdesa $row) => ActionButtons::make(
-                urlEdit: url('pjdesa/edit/'.$row->id_pjdesa),
                 urlDelete: url('pjdesa/destroy'),
                 idField: 'id_pjdesa',
                 idValue: $row->id_pjdesa,
             ))
             ->rawColumns(['action'])
             ->make(true);
-    }
-
-    public function tambah()
-    {
-        return view('pjdesa.tambah', $this->formData());
-    }
-
-    public function insert(PjdesaRequest $request)
-    {
-        Pjdesa::create($request->safe()->only('id_desa', 'email'));
-
-        return $this->saved();
-    }
-
-    public function edit(string $id_pjdesa)
-    {
-        return view('pjdesa.edit', ['data' => Pjdesa::findOrFail($id_pjdesa)] + $this->formData());
-    }
-
-    public function update(PjdesaRequest $request)
-    {
-        Pjdesa::findOrFail($request->validated('id_pjdesa'))
-            ->update($request->safe()->only('id_desa', 'email'));
-
-        return $this->saved();
     }
 
     public function destroy(Request $request)
@@ -80,20 +59,18 @@ class PjdesaController extends Controller
             return $this->notFound();
         }
 
-        if (CapaianKegiatan::where('email', $pjdesa->email)->exists()) {
-            return $this->deleteRejected('Data tidak dapat di hapus karena terkait dengan data capaian');
+        if (CapaianKegiatan::where('email', $pjdesa->email)->whereYear('bulan', now()->year)->exists()) {
+            return $this->deleteRejected('Tidak dapat dihapus karena ketua kelompok memiliki capaian KPI tahun ini');
         }
 
-        $pjdesa->delete();
+        DB::transaction(function () use ($pjdesa) {
+            $pjdesa->delete();
+            // Revoke only when no other assignment remains for this email
+            if (! Pjdesa::where('email', $pjdesa->email)->exists()) {
+                User::where('email', $pjdesa->email)->where('akses', 'pjdesa')->update(['akses' => null]);
+            }
+        });
 
-        return $this->deleted();
-    }
-
-    private function formData(): array
-    {
-        return [
-            'kecamatan' => Kecamatan::with(['desa' => fn ($q) => $q->orderBy('desa')])->orderBy('kecamatan')->get(),
-            'user' => User::with('mahasiswa.sp')->where('akses', 'pjdesa')->orderBy('name')->get(),
-        ];
+        return $this->deleted('Akses ketua kelompok berhasil dicabut');
     }
 }

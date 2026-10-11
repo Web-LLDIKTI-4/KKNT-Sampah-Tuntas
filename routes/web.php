@@ -203,10 +203,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('pjdesa', [PjdesaController::class, 'index']);
     Route::get('pjdesa/listdata', [PjdesaController::class, 'listdata'])->name('pjdesa.listdata');
     Route::get('pjdesa/listdataserver', [PjdesaController::class, 'listdataserver'])->name('pjdesa.listdataserver');
-    Route::get('pjdesa/tambah', [PjdesaController::class, 'tambah']);
-    Route::put('pjdesa/insert', [PjdesaController::class, 'insert']);
-    Route::get('pjdesa/edit/{id_pjdesa}', [PjdesaController::class, 'edit']);
-    Route::put('pjdesa/update', [PjdesaController::class, 'update']);
     Route::put('pjdesa/destroy', [PjdesaController::class, 'destroy']);
 
     Route::get('lokasiprogram', [LokasiprogramController::class, 'index']);
