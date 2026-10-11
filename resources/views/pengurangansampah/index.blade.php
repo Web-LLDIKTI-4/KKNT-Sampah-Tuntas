@@ -11,7 +11,7 @@
     :subtitle="'Capaian diukur dari persentase pengurangan sampah per bulan; target terpenuhi bila ≥ '.(int) \App\Models\PenguranganSampah::TARGET_PENGURANGAN.'%.'" />
 
 <div class="card mb-6">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
         <h5 class="mb-0">Ringkasan</h5>
         @if (auth()->user()->role === 'admin' || auth()->user()->isPemantau())
             <x-button.export :url="route('rekapsampah.export')" id="pengurangan-sampah-export" label="Export" size="sm" class="btn-filter" />

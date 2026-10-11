@@ -40,7 +40,7 @@
             {data: 'nama', name: 'nama'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'prodi', name: 'prodi'},
-            {data: 'matakuliah', name: 'matakuliah'},
+            {data: 'matakuliah', name: 'matakuliah', className: 'text-wrap'},
             {data: 'sks', name: 'sks', className: 'text-center'},
             {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center'},
             // {data: 'nilai_dpa', name: 'nilai_dpa', className: 'text-center'},

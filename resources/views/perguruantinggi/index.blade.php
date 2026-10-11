@@ -4,12 +4,12 @@
 <x-page-header subtitle="Daftar {{ $__env->yieldContent('title') }}" />
 <div class="card">
     <div class="card-header">
-        <div class="d-flex">
+        <div class="d-flex flex-wrap gap-2">
             <form id="form-tambah" method="post" action="{{ url('perguruantinggi/getdata') }}">
                 @csrf
                 @method('PUT')
                 <x-button.save formId="form-tambah" icon="ri-loop-left-line">Sync PDDIKTI</x-button.save>
-            </form>&nbsp;
+            </form>
             <x-button modal="{{ url('perguruantinggi/tambah') }}" title="Tambah Perguruan Tinggi" icon="ri-play-list-add-line">Tambah Perguruan Tinggi</x-button>
         </div>
     </div>
@@ -47,7 +47,6 @@
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
             }			
             
         });
@@ -105,7 +104,6 @@
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
             }			
             
         });

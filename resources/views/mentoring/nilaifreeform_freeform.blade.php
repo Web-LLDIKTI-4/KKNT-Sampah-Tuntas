@@ -1,3 +1,4 @@
+<div class="table-responsive">
 <table class="table table-sm table-bordered">
     <thead>
         <tr>
@@ -27,7 +28,7 @@
                 @endphp
                 <tr>
                     <td>{{$loop->iteration}}</td>
-                    <td>{{$item->freeform}}</td>
+                    <td class="text-wrap">{{$item->freeform}}</td>
                     <td>{{$item->nilai_dpl}}</td>
                     <td>{{$item->nilai_dpa}}</td>
                     <td>{{ $nilaiakhir }} - {{ $grade }}</td>
@@ -36,3 +37,4 @@
         @endif
     </tbody>
 </table>
+</div>

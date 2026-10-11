@@ -65,7 +65,6 @@ $(document).on("submit", "#form-simpan", function(e){
         },
 
         error: function (xhr) {
-            console.log(xhr.responseText);
             toastr.error("Terjadi kesalahan saat menyimpan data.");
         }
     });

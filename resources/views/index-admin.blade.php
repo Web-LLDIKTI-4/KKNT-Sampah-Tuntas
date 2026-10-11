@@ -116,7 +116,7 @@
                 </div> --}}
                 <div class="col-md-4 col-12 border-start">
                 <div class="card-header">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex flex-wrap justify-content-between gap-2">
                         <h5 class="mb-1">Informasi Mahasiswa</h5>
                     </div>
                     <p class="mb-0 card-subtitle">Data Mahasiswa</p>

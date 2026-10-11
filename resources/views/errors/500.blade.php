@@ -21,7 +21,12 @@
             display: block;
             text-align: left;
             width: 650px;
+            max-width: 100%;
             margin: 0 auto;
+        }
+        @media (max-width: 575.98px) {
+            body { padding: 24px 16px; }
+            h1 { font-size: 36px; }
         }
         a {
             color: #dc8100;

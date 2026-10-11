@@ -13,7 +13,7 @@
     </div> --}}
 
     <div class="row">
-        <div class="form-group col form-floating form-floating-outline">
+        <div class="form-group col-12 col-md form-floating form-floating-outline mb-4 mb-md-0">
             <select name="id_desa" class="form-control select2" required>
                 <option value="" selected>--pilih--</option>
             @if($desa)
@@ -73,7 +73,6 @@ $(function(){
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);
             }
 
         });

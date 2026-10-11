@@ -10,7 +10,7 @@
             </select>
             <label>Tahun</label>
         </div>
-        <div class="form-group col form-floating form-floating-outline mb-6">
+        <div class="form-group col-12 col-md form-floating form-floating-outline mb-6">
             <select name="id_desa" class="form-control" required>
             @if($kecamatan)
                 @foreach($kecamatan as $item)

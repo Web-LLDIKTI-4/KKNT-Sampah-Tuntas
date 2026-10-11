@@ -49,6 +49,7 @@
             {
                 data: 'deskripsi',
                 name: 'deskripsi',
+                className: 'text-wrap',
                 render: function (data, type, row) {
                     // Ambil teks lewat DOMParser (inert), lalu escape ulang saat dirender
                     var strippedText = new DOMParser().parseFromString(data || '', 'text/html').body.textContent || '';

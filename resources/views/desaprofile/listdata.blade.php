@@ -7,8 +7,8 @@
                     <th>Id profile</th>
                     <th>Tahun</th>
                     <th>Nama Kelurahan/Desa</th>
-                    <th>Potensi</th>
-                    <th>Masalah</th>
+                    <th class="text-wrap">Potensi</th>
+                    <th class="text-wrap">Masalah</th>
                     @if ($canManage)
                         <th width="1">Aksi</th>
                     @endif
@@ -36,8 +36,8 @@
             {data: 'id_profile', name: 'id_profile', visible:false},
             {data: 'tahun', name: 'tahun', className: 'text-center'},
             {data: 'desa', name: 'desa'},
-            {data: 'potensi', name: 'potensi'},
-            {data: 'masalah', name: 'masalah'},
+            {data: 'potensi', name: 'potensi', className: 'text-wrap'},
+            {data: 'masalah', name: 'masalah', className: 'text-wrap'},
             @if ($canManage)
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
             @endif

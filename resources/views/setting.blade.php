@@ -13,12 +13,12 @@
                 <span id="plama_error" class="text-danger"></span>
             </div>
             <div class="row">
-                <div class="form-group col form-floating form-floating-outline mb-6">
+                <div class="form-group col-12 col-md form-floating form-floating-outline mb-6">
                     <input type="password" name="pbaru" class="form-control" required minlength="8" autocomplete="new-password">
                     <label>Masukkan Kata Sandi Baru</label>
                     <span id="pbaru_error" class="text-danger"></span>
                 </div>
-                <div class="form-group col form-floating form-floating-outline mb-6">
+                <div class="form-group col-12 col-md form-floating form-floating-outline mb-6">
                     <input type="password" name="pbaruulangi" class="form-control" required minlength="8" autocomplete="new-password">
                     <label>Ulangi Kata Sandi Baru</label>
                     <span id="pbaruulangi_error" class="text-danger"></span>

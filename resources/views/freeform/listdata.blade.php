@@ -43,7 +43,7 @@
             {data: 'nama', name: 'nama'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'prodi', name: 'prodi'},
-            {data: 'freeform', name: 'freeform'},
+            {data: 'freeform', name: 'freeform', className: 'text-wrap'},
             {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center'},
             {data: 'nilai_dpa', name: 'nilai_dpa', className: 'text-center'},
             {data: 'nilai_akhir', name: 'nilai_akhir', className: 'text-center'}

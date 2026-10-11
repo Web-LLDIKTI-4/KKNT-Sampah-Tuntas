@@ -25,12 +25,12 @@
     <span id="deskripsi_error" class="text-danger"></span>
 </div>
 <div class="row">
-    <div class="form-group form-floating form-floating-outline mb-6 col">
+    <div class="form-group form-floating form-floating-outline mb-6 col-12 col-sm">
         <input type="number" name="volume" class="form-control form-control-sm" required min="0" max="1000000" step="any" value="{{ $nilai('volume') }}">
         <label>Volume/Kuantitas Output <span class="text-danger">*</span></label>
         <span id="volume_error" class="text-danger"></span>
     </div>
-    <div class="form-group form-floating form-floating-outline mb-6 col">
+    <div class="form-group form-floating form-floating-outline mb-6 col-12 col-sm">
         <input type="text" name="satuan" class="form-control form-control-sm" required maxlength="255" value="{{ $nilai('satuan') }}">
         <label>Satuan <span class="text-danger">*</span></label>
         <span id="satuan_error" class="text-danger"></span>

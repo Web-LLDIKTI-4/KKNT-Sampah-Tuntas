@@ -60,7 +60,7 @@
             <div class="col-md-4">
                 <a href="#" data-klaster="{{ $kode }}" @class(['card h-100 text-body border', 'border-3 border-primary' => $filter['klaster'] === $kode])>
                     <div class="card-body py-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
                             <span class="badge {{ $k['badge'] }}">{{ $k['label'] }} {{ $k['ket'] }}</span>
                             <span class="fs-4 fw-semibold">{{ $anggota->count() }} <small class="fs-6 text-muted">PT</small></span>
                         </div>

@@ -4,7 +4,7 @@
 <span id="tanggal_error" class="text-danger d-flex justify-content-center"></span>
 <div class="d-flex justify-content-center">
     <div class="row">
-        <div class="col ">
+        <div class="col-auto">
             <form id="form-datang" method="post" action="{{ url('logkehadiran/insert') }}">
                 @csrf
                 @method('PUT')
@@ -12,7 +12,7 @@
                 <x-button.save formId="form-datang">Datang</x-button.save>
             </form>
         </div>
-        <div class="col">
+        <div class="col-auto">
             <form id="form-pulang"  method="post" action="{{ url('logkehadiran/insert') }}">
                 @csrf
                 @method('PUT')

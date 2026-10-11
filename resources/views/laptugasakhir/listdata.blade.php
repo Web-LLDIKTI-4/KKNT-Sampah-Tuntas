@@ -38,7 +38,7 @@
             {data: 'nim', name: 'nim', className: 'text-center'},
             {data: 'nama', name: 'nama'},
             {data: 'nm_lemb', name: 'nm_lemb'},
-            {data: 'tautan', name: 'tautan'},
+            {data: 'tautan', name: 'tautan', className: 'text-wrap text-break'},
             {data: 'nilai_dpl', name: 'nilai_dpl', className: 'text-center', orderable: false, searchable: false}
         ],
         layout: {

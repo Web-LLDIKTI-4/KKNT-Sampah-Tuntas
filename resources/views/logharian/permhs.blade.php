@@ -40,7 +40,7 @@ $(function(){
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
             {data: 'tanggal', name: 'tanggal'},
-            {data: 'deskripsi', name: 'deskripsi'},
+            {data: 'deskripsi', name: 'deskripsi', className: 'text-wrap'},
             {data: 'volume', name: 'volume'},
             {data: 'satuan', name: 'satuan'},
         ],

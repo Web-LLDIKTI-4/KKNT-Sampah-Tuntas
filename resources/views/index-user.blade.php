@@ -122,7 +122,7 @@
     </div>
 
     {{-- Right Section --}}
-    <div class="card col align-self-start">
+    <div class="card col align-self-md-start">
         <div class="card-widget-separator-wrapper">
             <div class="card-body card-widget-separator">
                 <div class="d-flex flex-column gy-4 gy-sm-1 gap-5">

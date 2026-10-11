@@ -4,12 +4,12 @@
     <input type="hidden" name="id" value="{{ $data->id }}">
 
     <div class="row">   
-        <div class="form-group col form-floating form-floating-outline mb-6">
+        <div class="form-group col-12 col-md form-floating form-floating-outline mb-6">
             <input type="text" name="name" class="form-control form-control-sm" value="{{ $data->name }}" required>
             <label>Nama</label>
             <span id="name_error" class="text-danger"></span>
         </div>
-        <div class="form-group col form-floating form-floating-outline mb-6">
+        <div class="form-group col-12 col-md form-floating form-floating-outline mb-6">
             <input type="text" name="email" class="form-control form-control-sm" value="{{ $data->email }}" required readonly>
             <label>Email</label>
             <span id="email_error" class="text-danger"></span>
@@ -85,7 +85,6 @@
                     }
                 },
                 error:function(xhr,ajaxOptions,thrownError){
-                    console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
                 }			
                 
             });

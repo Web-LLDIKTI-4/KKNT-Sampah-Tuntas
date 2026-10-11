@@ -84,7 +84,6 @@ $(function () {
         ordering: true,
         info: true,
         autoWidth: false,
-        responsive: true,
         serverSide: false,
         language: {
             "search": "",
@@ -102,7 +101,6 @@ $(function () {
     $("#tabel-data tbody").on("change", "input[name='createuser[]']", function () {
         var nip = $(this).val();
         checkedState[nip] = $(this).prop('checked');
-        console.log('Checked state:', checkedState); // Log the checked state
         saveCheckedState(checkedState);
     });
 
@@ -118,8 +116,6 @@ $(function () {
             }
         });
 
-        // Log the checked checkboxes
-        console.log('Checked checkboxes:', uniqueCheckedCheckboxes);
 
         // Create a unique checked checkboxes object
         var uniqueCheckedCheckboxesObject = {};
@@ -151,7 +147,6 @@ $(function () {
                 btnLoading($("#btnSubmit_" + id), false);	
             },
             success: function(data) {                
-                console.log(data.error);
                 if($.isEmptyObject(data.error)){  
                     $("#modalku").modal("hide");
                     toastr.success(data.success) 

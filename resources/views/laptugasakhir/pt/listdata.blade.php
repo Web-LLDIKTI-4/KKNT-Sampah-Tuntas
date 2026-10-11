@@ -31,7 +31,7 @@
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'nim', name: 'nim', className: 'text-center'},
             {data: 'nama', name: 'nama'},
-            {data: 'tugas_akhir', name: 'tugas_akhir'},
+            {data: 'tugas_akhir', name: 'tugas_akhir', className: 'text-wrap text-break'},
         ],
         layout: {
             top1: {

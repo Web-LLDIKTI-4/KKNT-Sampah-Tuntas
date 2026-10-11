@@ -16,7 +16,7 @@
                     @foreach($data as $item)
                     <tr>
                         <td class="text-center">{{$loop->iteration}}</td>
-                        <td><a href="{{$item->tautan}}" target="_blank">{{$item->tautan}}</a></td>
+                        <td class="text-wrap text-break"><a href="{{$item->tautan}}" target="_blank">{{$item->tautan}}</a></td>
                         <td class="text-center">{{ $item->nilai_dpl }}</td>
                         <td>
                             <x-action-data :urlEdit="url('tugasakhir/edit/'.$item->id_tugasakhir)" :urlDelete="url('tugasakhir/destroy')" idField="id_tugasakhir" :idValue="$item->id_tugasakhir" />

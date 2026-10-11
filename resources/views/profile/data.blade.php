@@ -28,7 +28,7 @@
                         <div
                             class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-6">
                             <div class="user-profile-info">
-                            <h4 class="mb-2">{{ $displayName }} [{{ $profile->email }}]</h4>
+                            <h4 class="mb-2 text-break">{{ $displayName }} [{{ $profile->email }}]</h4>
                             <ul  class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-4">
                                 @if (in_array($profile->role, ['pt']))
                                     <li class="list-inline-item">
@@ -138,7 +138,7 @@
                             @method('PUT')
                             <!-- General information -->
                             <div class="row">
-                                <div class="col">
+                                <div class="col-12">
                                     <div class="form-group form-floating form-floating-outline mb-6">
                                         <input class="form-control" type="text" name="nama" value="{{ $profile->name }}">
                                         <label class="form-control-label">Nama</label>
@@ -173,7 +173,7 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col">
+                                <div class="col-12">
                                     <div class="form-group form-floating form-floating-outline mb-6">
                                     <select class="form-control" id="select2" name="kodept" data-toggle="select">
                                         @if($sp)
@@ -238,7 +238,7 @@
                             </div>
                             </div>
                             <div class="row">
-                            <div class="col">
+                            <div class="col-12">
                                 <div class="form-group form-floating form-floating-outline mb-6">
                                 <select class="form-control" id="select2" name="kodept" data-toggle="select">
                                     @if($sp)
@@ -263,7 +263,7 @@
                             </div>
                             </div>
                             <div class="row">
-                            <div class="col">
+                            <div class="col-12">
                                 <div class="form-group form-floating form-floating-outline mb-6">
                                 <input class="form-control" type="phone" name="phone" placeholder="nomor HP" value="{{ $dpl ? $dpl->phone : '' }}">
                                 <label class="form-control-label">Kontak</label>
@@ -307,11 +307,11 @@
                             <label for="plama">Masukkan Kata Sandi Lama</label>
                         </div>
                         <div class="row">
-                          <div class="form-group form-floating form-floating-outline col mb-6">
+                          <div class="form-group form-floating form-floating-outline col-12 col-md mb-6">
                               <input type="password" name="pbaru" class="form-control">
                               <label for="pbaru">Kata Sandi Baru</label>
                           </div>
-                          <div class="form-group form-floating form-floating-outline col mb-6">
+                          <div class="form-group form-floating form-floating-outline col-12 col-md mb-6">
                           <input type="password" name="pbaruulangi" class="form-control">
                               <label for="pbaruulangi">Ulangi Kata Sandi Baru</label>
                           </div>
@@ -434,7 +434,6 @@ $(function(){
             }
 			  },
 			  error:function(xhr,ajaxOptions,thrownError){
-				  console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);
                   toastr.error(thrownError)				
 			  }	
 
@@ -480,7 +479,6 @@ $(function(){
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
             }			
             
         });

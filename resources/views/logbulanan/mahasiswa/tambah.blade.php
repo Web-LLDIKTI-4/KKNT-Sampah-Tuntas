@@ -18,7 +18,7 @@
                     <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $row->tanggal }}</td>
-                    <td>{!! \App\Support\HtmlSanitizer::clean($row->deskripsi) !!}</td>
+                    <td class="text-wrap">{!! \App\Support\HtmlSanitizer::clean($row->deskripsi) !!}</td>
                     <td class="text-end">{{ $row->volume }}</td>
                     <td>{{ $row->satuan }}</td>
                     </tr>
@@ -71,7 +71,6 @@
             ordering: true,
             info: true,
             autoWidth: false,
-            responsive: true,
             serverSide: false,
             language: {
                 "zeroRecords": "Tidak ada data yang ditemukan",
@@ -173,7 +172,6 @@
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
             }			
             
         });

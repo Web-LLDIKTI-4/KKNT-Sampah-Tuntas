@@ -1,0 +1,104 @@
+/* Global responsive rules (all roles). Loaded after vendor CSS in layouts/app.blade.php */
+
+/* Only the table scrolls horizontally; search/length/info/pagination stay put */
+div.dataTables_wrapper > .row.dt-row > [class*="col"],
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Drop negative row gutters inside DT wrapper (no page-level overflow at 360px) */
+div.dataTables_wrapper > .row {
+  --bs-gutter-x: 0;
+}
+
+/* Media never wider than its container */
+img,
+iframe,
+video,
+.leaflet-container {
+  max-width: 100%;
+}
+
+/* Header with title + buttons wraps neatly */
+.card-header.d-flex {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (max-width: 767.98px) {
+  /* Cells stay on one line inside scroll containers; .text-wrap opts out */
+  .table-responsive .table :is(th, td),
+  div.dataTables_wrapper .table :is(th, td),
+  .scroll-box .table :is(th, td) {
+    white-space: nowrap;
+  }
+
+  /* Capaian publik headers keep wrapping (overrides nowrap above) */
+  .capaian-publik .table th {
+    white-space: normal;
+  }
+
+  .table :is(th, td).text-wrap {
+    white-space: normal;
+    min-width: 12rem;
+  }
+
+  /* DT controls: full width, centered, symmetric spacing */
+  div.dataTables_wrapper > .row:not(.dt-row) > [class*="col"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  div.dataTables_wrapper div.dataTables_length,
+  div.dataTables_wrapper div.dataTables_filter {
+    margin-block: 0.5rem;
+    text-align: center;
+  }
+
+  div.dataTables_wrapper div.dataTables_filter label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  div.dataTables_wrapper div.dataTables_filter input {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+  }
+
+  div.dataTables_wrapper div.dataTables_info {
+    padding-block: 0.5rem;
+    text-align: center;
+    white-space: normal;
+  }
+
+  div.dataTables_wrapper div.dataTables_paginate {
+    margin-bottom: 0.5rem;
+    white-space: normal;
+  }
+
+  div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+    flex-wrap: wrap;
+    justify-content: center !important;
+    row-gap: 0.25rem;
+    overflow-x: visible;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  /* front-page-landing.css .section-py (loaded later) overrides .first-section-pt, hiding page header under the fixed navbar */
+  .section-py.first-section-pt {
+    padding-top: 6.5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /* Prevent iOS auto-zoom on focus (template inputs are 15px) */
+  :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]), select, textarea) {
+    font-size: 16px;
+  }
+}

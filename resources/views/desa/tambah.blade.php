@@ -17,13 +17,13 @@
         <label>Nama Kelurahan/Desa</label>
     </div>
     <div class="row g-4 mb-2">
-        <div class="col-6">
+        <div class="col-12 col-sm-6">
             <div class="form-group form-floating form-floating-outline">
                 <input type="number" name="latitude" class="form-control form-control-sm" step="any" min="-90" max="90" placeholder="-6.9175">
                 <label>Latitude</label>
             </div>
         </div>
-        <div class="col-6">
+        <div class="col-12 col-sm-6">
             <div class="form-group form-floating form-floating-outline">
                 <input type="number" name="longitude" class="form-control form-control-sm" step="any" min="-180" max="180" placeholder="107.6191">
                 <label>Longitude</label>

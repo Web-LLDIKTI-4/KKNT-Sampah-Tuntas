@@ -45,7 +45,6 @@
         lengthChange: true,
         processing: true,
         serverSide: true,
-        scrollX: true,
         order: [[1, 'desc']],
         ajax: "{{ route('capaiankegiatan.listdataserver') }}",
         language: {
@@ -63,6 +62,7 @@
             {
                 data: 'permasalahan',
                 name: 'permasalahan',
+                className: 'text-wrap',
                 render: function (data, type, row) {
                     return multilineText(data);
                 }
@@ -70,6 +70,7 @@
             {
                 data: 'solusi',
                 name: 'solusi',
+                className: 'text-wrap',
                 render: function (data, type, row) {
                     return multilineText(data);
                 }

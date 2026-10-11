@@ -128,6 +128,7 @@
 
         .lokasi-header-logo img {
           width: 90px;
+          max-width: 100%;
           height: auto;
           display: block;
           margin-bottom: 0.1rem;
@@ -1430,10 +1431,10 @@
               <div class="d-flex justify-content-center">
                 <div class="lokasi-header-logo">
                   <img src="../../assets/images/logo-kkn-berdampak.jpeg" alt="KKN Tematik Berdampak" />
-                  <img src="../../assets/images/gradasi.png" alt="Gradasi 4" style="width: 110px; height: auto;" />
+                  <img src="../../assets/images/gradasi.png" alt="Gradasi 4" style="width: 110px; max-width: 100%; height: auto;" />
                 </div>
               </div>
-              <img src="../../assets/images/lldikti4_logo.png" alt="LLDIKTI Wilayah IV" style="width: 250px; height: auto; margin-bottom: 30px;" />
+              <img src="../../assets/images/lldikti4_logo.png" alt="LLDIKTI Wilayah IV" style="width: 250px; max-width: 100%; height: auto; margin-bottom: 30px;" />
 
               <h4 class="login-title fw-bold">KKNT Sampah Tuntas</h4>
               <div id="selectedLokasiLabel" class="selected-lokasi-label d-none" aria-live="polite">

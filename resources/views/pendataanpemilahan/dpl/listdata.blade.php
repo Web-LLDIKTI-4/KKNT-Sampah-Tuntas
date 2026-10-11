@@ -47,7 +47,7 @@
                 {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                 {data: 'tanggal', name: 'tanggal'},
                 {data: 'nama_kepala_keluarga', name: 'nama_kepala_keluarga'},
-                {data: 'alamat_rumah', name: 'alamat_rumah'},
+                {data: 'alamat_rumah', name: 'alamat_rumah', className: 'text-wrap'},
                 {data: 'rt', name: 'rt'},
                 {data: 'rw', name: 'rw'},
                 {data: 'memilah', name: 'memilah'},

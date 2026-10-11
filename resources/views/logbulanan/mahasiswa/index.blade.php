@@ -26,7 +26,7 @@
         <form method="post" id="form-bulan" action="{{ url('logbulanan/tambah') }}" data-ajax-form data-result-target="#resultcontent">
             @csrf
             <div class="row">
-                <div class="col form-group form-floating form-floating-outline mb-6">
+                <div class="col-12 col-md form-group form-floating form-floating-outline mb-6">
                     <select name="tahun" class="form-control form-control-sm">
                         @for($th=date('Y')-1; $th<=date('Y'); $th++)
                         <option value="{{ $th }}" @if($th == date("Y")) selected @endif>{{ $th }}</option>
@@ -34,7 +34,7 @@
                     </select>
                     <label>Pilih Tahun</label>
                 </div>
-                <div class="col form-group form-floating form-floating-outline mb-6">
+                <div class="col-12 col-md form-group form-floating form-floating-outline mb-6">
                     <select name="bulan" class="form-control form-control-sm">
                         @foreach ($namaBulan as $nomorBulan => $bulan)
                             <option value="{{ $nomorBulan }}" @if($nomorBulan == date("m")) selected @endif>{{ Carbon\Carbon::create()->month($nomorBulan)->translatedFormat('F') }}</option>
@@ -42,7 +42,7 @@
                     </select>
                     <label> Pilih Bulan </label>
                 </div>
-                <div class="col mt-1">
+                <div class="col-12 col-md mt-1">
                     <x-button.save formId="form-bulan" size="lg">
                         Isi Log Bulanan
                     </x-button.save>

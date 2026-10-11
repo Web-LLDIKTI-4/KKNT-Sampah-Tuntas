@@ -22,11 +22,11 @@
     <label>Free Form</label>
 </div>
 <div class="row">   
-    <div class="form-group col form-floating form-floating-outline mb-6">
+    <div class="form-group col-12 col-md form-floating form-floating-outline mb-6">
         <input type="number" class="form-control" name="nilai_dpl" required min="0" max="100" step="any">
         <label>Nilai DPL : (A >= 80 ; B 70 -79 ; C < 70)</label>
     </div>
-    <div class="form-group col form-floating form-floating-outline mb-6">
+    <div class="form-group col-12 col-md form-floating form-floating-outline mb-6">
         <input type="number" class="form-control" name="nilai_dpa" min="0" max="100" step="any">
         <label>Nilai DPA : (A >= 80 ; B 70 -79 ; C < 70)</label>
     </div>

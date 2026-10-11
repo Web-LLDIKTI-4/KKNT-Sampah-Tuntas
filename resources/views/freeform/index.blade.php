@@ -70,7 +70,6 @@ $(function(){
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
-                console.log(xhr.status+"\n"+xhr.responseText+"\n"+thrownError);				
             }			
             
         })

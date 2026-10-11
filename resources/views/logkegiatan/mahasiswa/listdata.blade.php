@@ -43,7 +43,7 @@
             // {data: 'id_log', name: 'id_log', visible: false}, 
             {data: 'tanggal', name: 'tanggal'},
             {data: 'nama_kategori', name: 'nama_kategori', orderable: false},
-            {data: 'deskripsi', name: 'deskripsi'},
+            {data: 'deskripsi', name: 'deskripsi', className: 'text-wrap'},
             {data: 'volume', name: 'volume'},
             {data: 'satuan', name: 'satuan'},
             {data: 'tautan', name: 'tautan', orderable: false, searchable: false},

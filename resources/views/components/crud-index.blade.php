@@ -4,7 +4,7 @@
 
 <div class="card" data-crud-index>
     @if ($addUrl || isset($actions))
-        <div class="card-header d-flex gap-2">
+        <div class="card-header d-flex flex-wrap gap-2">
             @if ($addUrl)
                 <x-button :modal="$addUrl" :title="$addTitle" icon="ri-add-circle-line">{{ $addTitle }}</x-button>
             @endif

@@ -1,3 +1,4 @@
+<div class="table-responsive">
 <table class="table table-sm table-striped">
     <thead>
         <tr>
@@ -28,7 +29,7 @@
                 @endphp
                 <tr>
                     <td>{{$loop->iteration}}</td>
-                    <td>{{$item->matakuliah}}</td>
+                    <td class="text-wrap">{{$item->matakuliah}}</td>
                     <td class="text-center">{{$item->sks}}</td>
                     <td class="text-center">{{$item->nilai_dpl}}</td>
                     {{-- <td class="text-center">{{$item->nilai_dpa}}</td> --}}
@@ -38,3 +39,4 @@
         @endif
     </tbody>
 </table>
+</div>

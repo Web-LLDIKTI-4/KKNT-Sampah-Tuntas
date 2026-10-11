@@ -2,14 +2,14 @@
     :ajax="route('admevaluasikegiatan.pertanyaanevaluasiserver')"
     :columns="[
         ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
-        ['data' => 'pertanyaan', 'name' => 'pertanyaan'],
+        ['data' => 'pertanyaan', 'name' => 'pertanyaan', 'className' => 'text-wrap'],
         ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
     ]"
 >
     <x-slot:thead>
         <tr>
             <th width="1">No</th>
-            <th>Pertanyaan</th>
+            <th class="text-wrap">Pertanyaan</th>
             <th width="1">Aksi</th>
         </tr>
     </x-slot:thead>
