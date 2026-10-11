@@ -12,7 +12,7 @@
                 @foreach ($records as $index => $item)
                     <tr>
                         @foreach ($bulan as $angka => $nama)
-                            <td>{{ $month == $angka ? $item->nilai : '' }}</td>
+                            <td class="text-center">{{ $month == $angka ? $item->nilai : '' }}</td>
                         @endforeach
                     </tr>
                 @endforeach

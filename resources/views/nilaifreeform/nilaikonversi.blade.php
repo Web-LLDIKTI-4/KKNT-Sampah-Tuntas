@@ -28,7 +28,7 @@
                     }
                 @endphp
                 <tr>
-                    <td>{{$loop->iteration}}</td>
+                    <td class="text-center">{{$loop->iteration}}</td>
                     <td class="text-wrap">{{$item->matakuliah}}</td>
                     <td class="text-center">{{$item->sks}}</td>
                     <td class="text-center">{{$item->nilai_dpl}}</td>

@@ -40,7 +40,7 @@
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_konversi', name: 'id_konversi', visible:false},
-            {data: 'nim', name: 'nim'},
+            {data: 'nim', name: 'nim', className: 'text-center'},
             {data: 'nama', name: 'nama'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'prodi', name: 'prodi'},

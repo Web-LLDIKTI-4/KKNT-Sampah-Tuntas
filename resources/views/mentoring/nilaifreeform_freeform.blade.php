@@ -27,11 +27,11 @@
                     }
                 @endphp
                 <tr>
-                    <td>{{$loop->iteration}}</td>
+                    <td class="text-center">{{$loop->iteration}}</td>
                     <td class="text-wrap">{{$item->freeform}}</td>
-                    <td>{{$item->nilai_dpl}}</td>
-                    <td>{{$item->nilai_dpa}}</td>
-                    <td>{{ $nilaiakhir }} - {{ $grade }}</td>
+                    <td class="text-center">{{$item->nilai_dpl}}</td>
+                    <td class="text-center">{{$item->nilai_dpa}}</td>
+                    <td class="text-center">{{ $nilaiakhir }} - {{ $grade }}</td>
                 </tr>
             @endforeach
         @endif

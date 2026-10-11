@@ -34,7 +34,7 @@
             {data: 'judul', name: 'judul'},
             {data: 'is_aktif', name: 'is_aktif', searchable: false},
             {data: 'file', name: 'nama_file'},
-            {data: 'created_at', name: 'created_at', searchable: false},
+            {data: 'created_at', name: 'created_at', className: 'text-center', searchable: false},
             {data: 'action', name: 'action', orderable: false, searchable: false},
         ]
     });

@@ -38,10 +38,10 @@ $(function(){
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-            {data: 'tanggal', name: 'tanggal'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
+            {data: 'tanggal', name: 'tanggal', className: 'text-center'},
             {data: 'deskripsi', name: 'deskripsi', className: 'text-wrap'},
-            {data: 'volume', name: 'volume'},
+            {data: 'volume', name: 'volume', className: 'text-center'},
             {data: 'satuan', name: 'satuan'},
         ],
         layout: {

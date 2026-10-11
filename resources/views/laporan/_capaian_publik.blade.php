@@ -204,7 +204,7 @@
                                                 <td>{!! $isian->kendala ? nl2br(e($isian->kendala)) : '-' !!}</td>
                                                 <td>{!! $isian->status_capaian ? \App\Models\CapaianKegiatan::statusBadge($isian->status_capaian) : '-' !!}</td>
                                                 <td>{{ $isian->nama_ketua ?: '-' }}</td>
-                                                <td class="text-nowrap">{{ $isian->phone ?: '-' }}</td>
+                                                <td class="text-center text-nowrap">{{ $isian->phone ?: '-' }}</td>
                                             </tr>
                                         @empty
                                             <tr><td colspan="6" class="text-muted">Belum mengisi capaian</td></tr>

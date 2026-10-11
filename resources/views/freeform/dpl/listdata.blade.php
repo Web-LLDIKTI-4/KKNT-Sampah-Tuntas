@@ -37,7 +37,7 @@
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id_freeform', name: 'id_freeform', visible:false},
             {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false,visible:false},
-            {data: 'nim', name: 'nim'},
+            {data: 'nim', name: 'nim', className: 'text-center'},
             {data: 'nama', name: 'nama'},
             {data: 'nm_lemb', name: 'nm_lemb'},
             {data: 'prodi', name: 'prodi'},

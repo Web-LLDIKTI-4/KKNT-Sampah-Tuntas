@@ -4,7 +4,7 @@
             <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
-                    <th>Kode Perguruan Tinggi</th>
+                    <th>Kode PT</th>
                     <th>Nama Perguruan Tinggi</th>
                     <th>NIM</th>
                     <th>Nama</th>
@@ -33,12 +33,12 @@
             infoEmpty: "Tidak ada data yang ditemukan",
         },
         columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-            {data: 'kodept', name: 'kodept'},
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
+            {data: 'kodept', name: 'kodept', className: 'text-center'},
             {data: 'nm_lemb', name: 'nm_lemb'},
-            {data: 'nim', name: 'nim'},
+            {data: 'nim', name: 'nim', className: 'text-center'},
             {data: 'nama', name: 'nama'},
-            {data: 'jumlah_log', name: 'jumlah_log'},
+            {data: 'jumlah_log', name: 'jumlah_log', className: 'text-center'},
             {data: 'action', name: 'action', orderable: false, searchable: false, visible:true},
         ],
     });

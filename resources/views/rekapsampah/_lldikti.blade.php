@@ -40,15 +40,15 @@
                                 <td rowspan="{{ $kec->desa->count() }}" class="fw-medium align-top">{{ $kec->kecamatan ?? '-' }}</td>
                             @endif
                             <td>{{ $row->desa ?? '-' }}</td>
-                            <td class="text-end">{{ $angka($row->jml_rumah) }}</td>
-                            <td class="text-end">{{ $angka($row->jml_rumah_memilah) }}</td>
-                            <td class="text-end">{{ $persen($row->persen_ketaatan, $row->jml_rumah) }}</td>
-                            <td class="text-end">{{ $berat($row->organik) }}</td>
-                            <td class="text-end">{{ $berat($row->anorganik) }}</td>
-                            <td class="text-end">{{ $berat($row->residu) }}</td>
-                            <td class="text-end">{{ $berat($row->total_terkelola) }}</td>
-                            <td class="text-end">{{ $berat($row->total_dihasilkan) }}</td>
-                            <td class="text-end fw-medium">{{ $persen($row->persen_penurunan, $row->total_dihasilkan) }}</td>
+                            <td class="text-center">{{ $angka($row->jml_rumah) }}</td>
+                            <td class="text-center">{{ $angka($row->jml_rumah_memilah) }}</td>
+                            <td class="text-center">{{ $persen($row->persen_ketaatan, $row->jml_rumah) }}</td>
+                            <td class="text-center">{{ $berat($row->organik) }}</td>
+                            <td class="text-center">{{ $berat($row->anorganik) }}</td>
+                            <td class="text-center">{{ $berat($row->residu) }}</td>
+                            <td class="text-center">{{ $berat($row->total_terkelola) }}</td>
+                            <td class="text-center">{{ $berat($row->total_dihasilkan) }}</td>
+                            <td class="text-center fw-medium">{{ $persen($row->persen_penurunan, $row->total_dihasilkan) }}</td>
                         </tr>
                     @endforeach
                 @endforeach

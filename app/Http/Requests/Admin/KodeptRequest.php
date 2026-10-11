@@ -18,9 +18,9 @@ class KodeptRequest extends AjaxFormRequest
     public function messages(): array
     {
         return [
-            'kodept.required' => 'Kode perguruan tinggi harus di isi',
-            'kodept.regex' => 'Kode perguruan tinggi harus 6 digit angka',
-            'kodept.unique' => 'Kode perguruan tinggi sudah ada!',
+            'kodept.required' => 'Kode PT harus di isi',
+            'kodept.regex' => 'Kode PT harus 6 digit angka',
+            'kodept.unique' => 'Kode PT sudah ada!',
         ];
     }
 

@@ -16,10 +16,10 @@
             <tbody>
                 @foreach($logharian as $row)
                     <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $row->tanggal }}</td>
+                    <td class="text-center">{{ $loop->iteration }}</td>
+                    <td class="text-center">{{ $row->tanggal }}</td>
                     <td class="text-wrap">{!! \App\Support\HtmlSanitizer::clean($row->deskripsi) !!}</td>
-                    <td class="text-end">{{ $row->volume }}</td>
+                    <td class="text-center">{{ $row->volume }}</td>
                     <td>{{ $row->satuan }}</td>
                     </tr>
                 @endforeach

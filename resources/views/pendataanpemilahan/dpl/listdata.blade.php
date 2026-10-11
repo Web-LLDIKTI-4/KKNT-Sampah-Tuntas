@@ -44,16 +44,16 @@
                 infoEmpty: 'Tidak ada data yang ditemukan',
             },
             columns: [
-                {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-                {data: 'tanggal', name: 'tanggal'},
+                {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
+                {data: 'tanggal', name: 'tanggal', className: 'text-center'},
                 {data: 'nama_kepala_keluarga', name: 'nama_kepala_keluarga'},
                 {data: 'alamat_rumah', name: 'alamat_rumah', className: 'text-wrap'},
-                {data: 'rt', name: 'rt'},
-                {data: 'rw', name: 'rw'},
+                {data: 'rt', name: 'rt', className: 'text-center'},
+                {data: 'rw', name: 'rw', className: 'text-center'},
                 {data: 'memilah', name: 'memilah'},
-                {data: 'organik_kg', name: 'organik_kg'},
-                {data: 'anorganik_kg', name: 'anorganik_kg'},
-                {data: 'residu_kg', name: 'residu_kg'},
+                {data: 'organik_kg', name: 'organik_kg', className: 'text-center'},
+                {data: 'anorganik_kg', name: 'anorganik_kg', className: 'text-center'},
+                {data: 'residu_kg', name: 'residu_kg', className: 'text-center'},
             ],
         });
     });

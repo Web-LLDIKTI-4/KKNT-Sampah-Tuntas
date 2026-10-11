@@ -27,7 +27,7 @@
                     }
                 @endphp
                 <tr>
-                    <td>{{$loop->iteration}}</td>
+                    <td class="text-center">{{$loop->iteration}}</td>
                     <td class="text-wrap">{{$item->freeform}}</td>
                     <td class="text-center">{{$item->nilai_dpl}}</td>
                     {{-- <td class="text-center">{{$item->nilai_dpa}}</td> --}}

@@ -17,7 +17,7 @@
         @else
             @foreach($laporan as $row)
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
+                    <td class="text-center">{{ $loop->iteration }}</td>
                     <td class="text-center">{{ $row->tahun }}</td>
                     <td class="text-center">{{ Carbon\Carbon::create()->month($row->bulan)->translatedFormat('F') }}</td>
                     <td>

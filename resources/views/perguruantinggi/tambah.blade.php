@@ -3,7 +3,7 @@
     @method('PUT')
     <div class="form-group form-floating form-floating-outline mb-6">
         <input type="text" name="kodept" class="form-control" placeholder="041047">
-        <label>Masukan Kode Perguruan Tinggi</label>
+        <label>Masukan Kode PT</label>
     </div>
     <x-button.save formId="tambahpilih">
         Simpan

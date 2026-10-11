@@ -24,7 +24,7 @@
                         @foreach($data as $mahasiswa)
                             <tr>
                                 <td class="text-center">{{ $loop->iteration }}</td>
-                                <td>{{ $mahasiswa->nim }}</td>
+                                <td class="text-center">{{ $mahasiswa->nim }}</td>
                                 <td>{{ $mahasiswa->nama }}</td>
                                 <td>{{ $mahasiswa->email }}</td>
                                 {{-- <td>{{ $mahasiswa->phone }}</td> --}}

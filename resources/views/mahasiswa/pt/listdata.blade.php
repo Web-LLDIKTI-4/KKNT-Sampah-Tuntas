@@ -2,10 +2,10 @@
     :ajax="route('ptmahasiswa.listdataserver')"
     :columns="[
         ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
-        ['data' => 'nim', 'name' => 'nim'],
+        ['data' => 'nim', 'name' => 'nim', 'className' => 'text-center'],
         ['data' => 'nama', 'name' => 'nama'],
         ['data' => 'email', 'name' => 'email'],
-        ['data' => 'phone', 'name' => 'phone'],
+        ['data' => 'phone', 'name' => 'phone', 'className' => 'text-center'],
         ['data' => 'nm_lemb', 'name' => 'nm_lemb'],
         ['data' => 'location_program', 'name' => 'location_program'],
         ['data' => 'ketua_kelompok', 'name' => 'ketua_kelompok', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],

@@ -11,7 +11,7 @@
     <x-slot:thead>
         <tr>
             <th width="1">No</th>
-            <th>Kode Perguruan Tinggi</th>
+            <th>Kode PT</th>
             <th>Nama Perguruan Tinggi</th>
             <th class="text-wrap">Pertanyaan</th>
             <th class="text-wrap">Jawaban</th>

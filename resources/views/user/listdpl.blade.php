@@ -23,7 +23,7 @@
                     @foreach($data as $dpl)
                         <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
-                            <td>{{ $dpl->nidn }}</td>
+                            <td class="text-center">{{ $dpl->nidn }}</td>
                             <td>{{ $dpl->nama }}</td>
                             <td>{{ $dpl->prodi }}</td>
                             <td>
