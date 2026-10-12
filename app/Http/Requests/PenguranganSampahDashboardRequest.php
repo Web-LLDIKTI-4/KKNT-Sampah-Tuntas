@@ -18,8 +18,8 @@ class PenguranganSampahDashboardRequest extends FormRequest
         return [
             'kodept' => ['nullable', 'string', 'max:10', 'exists:ref_satuanpendidikan,npsn'],
             'bulan' => ['nullable', 'date_format:Y-m'],
-            'kecamatan' => ['nullable', 'uuid', 'exists:kecamatan,id_kecamatan'],
-            'desa' => ['nullable', 'uuid', 'exists:desa,id_desa'],
+            'kecamatan' => ['nullable', 'string', 'max:36', 'exists:kecamatan,id_kecamatan'],
+            'desa' => ['nullable', 'string', 'max:36', 'exists:desa,id_desa'],
             'klaster' => ['nullable', 'string', Rule::in(array_keys(PenguranganSampah::KLASTER))],
         ];
     }

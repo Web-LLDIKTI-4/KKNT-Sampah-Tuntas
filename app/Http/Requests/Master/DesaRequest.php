@@ -10,8 +10,8 @@ class DesaRequest extends AjaxFormRequest
     public function rules(): array
     {
         return [
-            'id_desa' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'uuid', 'exists:desa,id_desa'],
-            'id_kecamatan' => ['required', 'uuid', 'exists:kecamatan,id_kecamatan'],
+            'id_desa' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'string', 'max:36', 'exists:desa,id_desa'],
+            'id_kecamatan' => ['required', 'string', 'max:36', 'exists:kecamatan,id_kecamatan'],
             'desa' => [
                 'required', 'string', 'max:200',
                 Rule::unique('desa', 'desa')

@@ -10,7 +10,7 @@ class KecamatanRequest extends AjaxFormRequest
     public function rules(): array
     {
         return [
-            'id_kecamatan' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'uuid', 'exists:kecamatan,id_kecamatan'],
+            'id_kecamatan' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'string', 'max:36', 'exists:kecamatan,id_kecamatan'],
             'kecamatan' => [
                 'required', 'string', 'max:200',
                 Rule::unique('kecamatan', 'kecamatan')->ignore($this->input('id_kecamatan'), 'id_kecamatan'),

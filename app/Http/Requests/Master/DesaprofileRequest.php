@@ -13,7 +13,7 @@ class DesaprofileRequest extends AjaxFormRequest
     {
         return [
             'id_profile' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'uuid', 'exists:desa_profile,id_profile'],
-            'id_desa' => ['required', 'uuid', 'exists:desa,id_desa'],
+            'id_desa' => ['required', 'string', 'max:36', 'exists:desa,id_desa'],
             'tahun' => ['required', 'integer', 'between:2000,2100'],
             'potensi' => [
                 'required', 'string', 'max:65000',

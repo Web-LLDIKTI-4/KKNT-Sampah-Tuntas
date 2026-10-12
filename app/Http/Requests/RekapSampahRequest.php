@@ -17,7 +17,7 @@ class RekapSampahRequest extends FormRequest
     {
         return [
             'bulan' => ['nullable', 'regex:/^(semua|\d{4}-(0[1-9]|1[0-2]))$/'],
-            'kecamatan' => ['nullable', 'uuid', 'exists:kecamatan,id_kecamatan'],
+            'kecamatan' => ['nullable', 'string', 'max:36', 'exists:kecamatan,id_kecamatan'],
             'kodept' => ['nullable', 'string', 'max:10', 'exists:ref_satuanpendidikan,npsn'],
             'klaster' => ['nullable', Rule::in(array_keys(PenguranganSampah::KLASTER))],
         ];

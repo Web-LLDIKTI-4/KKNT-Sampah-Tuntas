@@ -20,9 +20,9 @@ class LaporanPublikRequest extends FormRequest
         return [
             // Hanya bulan yang ada datanya, agar kombinasi key cache terbatas
             'bulan' => ['nullable', 'date_format:Y-m', Rule::in($this->bulanTersedia())],
-            'kecamatan' => ['nullable', 'uuid', 'exists:kecamatan,id_kecamatan'],
+            'kecamatan' => ['nullable', 'string', 'max:36', 'exists:kecamatan,id_kecamatan'],
             'desa' => [
-                'nullable', 'uuid',
+                'nullable', 'string', 'max:36',
                 Rule::exists('desa', 'id_desa')->when($this->input('kecamatan'), fn ($rule, $id) => $rule->where('id_kecamatan', $id)),
             ],
             'klaster' => ['nullable', 'string', Rule::in(array_keys(PenguranganSampah::KLASTER))],
