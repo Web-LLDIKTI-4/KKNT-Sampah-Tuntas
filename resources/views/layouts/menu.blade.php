@@ -124,6 +124,11 @@
                                         </a>
                                     </li>
                                     <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('picdlh') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> PIC DLH
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lokasiprogram') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i>
                                             <span data-i18n="Pricing">Lokasi Program</span>
@@ -281,6 +286,11 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Kelurahan/Desa
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('picdlh') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> PIC DLH
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                         <div class="col-12 col-lg">
@@ -390,6 +400,11 @@
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Kelurahan/Desa
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('picdlh') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> PIC DLH
                                         </a>
                                     </li>
                                 @endunless

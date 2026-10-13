@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Master\KecamatanRequest;
 use App\Models\Desa;
 use App\Models\Kecamatan;
+use App\Models\Picdlh;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,7 +15,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class KecamatanController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     public function index()
     {
@@ -28,8 +30,14 @@ class KecamatanController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
+        $whitelist = ['id_kecamatan', 'kecamatan'];
 
-        return DataTables::of(Kecamatan::query())
+        $query = Kecamatan::query()
+            // Default order only when the client sends none
+            ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q->orderBy('kecamatan'));
+
+        return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('action', fn (Kecamatan $row) => ActionButtons::make(
                 urlEdit: url('kecamatan/edit/'.$row->id_kecamatan),
@@ -38,6 +46,7 @@ class KecamatanController extends Controller
                 idValue: $row->id_kecamatan,
             ))
             ->rawColumns(['action'])
+            ->whitelist($whitelist)
             ->make(true);
     }
 
@@ -75,7 +84,8 @@ class KecamatanController extends Controller
             return $this->notFound();
         }
 
-        if (Desa::where('id_kecamatan', $kecamatan->id_kecamatan)->exists()) {
+        if (Desa::where('id_kecamatan', $kecamatan->id_kecamatan)->exists()
+            || Picdlh::where('id_kecamatan', $kecamatan->id_kecamatan)->exists()) {
             return $this->deleteRejected('Data gagal dihapus karena terkait dengan data lain');
         }
 

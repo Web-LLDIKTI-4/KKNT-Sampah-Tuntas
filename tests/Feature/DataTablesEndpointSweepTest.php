@@ -149,8 +149,9 @@ class DataTablesEndpointSweepTest extends TestCase
         $mhs = Mahasiswa::where('email', 'like', 'ketua.k1.pt1.%')->firstOrFail();
         $akun = [
             'admin' => User::where('role', 'admin')->first(),
-            'kepala' => User::where('role', 'kepala')->first(),
-            'pemda' => User::where('role', 'pemda')->first(),
+            // Seeder bisa tidak membuat akun kepala/pemda (dikomentari untuk production)
+            'kepala' => User::where('role', 'kepala')->first() ?? User::factory()->role('kepala')->create(),
+            'pemda' => User::where('role', 'pemda')->first() ?? User::factory()->role('pemda')->create(),
             'dpl' => User::where('email', Dplmentoring::where('email_mahasiswa', $mhs->email)->value('email_dpl'))->first(),
             'pt' => User::where('email', $mhs->kodept)->first(),
             'mahasiswa' => User::where('email', $mhs->email)->first(),

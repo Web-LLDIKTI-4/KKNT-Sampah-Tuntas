@@ -1,6 +1,7 @@
 <?php  
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Session;
@@ -11,10 +12,11 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 use App\Exports\CapaianKegiatanExport;
 use Illuminate\Support\Carbon;
-use Yajra\DataTables\Utilities\Request as DataTablesRequest;
 
 class LapcapaiankegiatanController extends Controller
 {    
+    use HandlesDataTablesOrder;
+
     public function index()
     {  
         return view('lapcapaiankegiatan.index');
@@ -26,10 +28,13 @@ class LapcapaiankegiatanController extends Controller
     public function listdataserver(Request $request)
     {
         if ($request->ajax()) {
+            $this->sanitizeDataTablesInput();
+            // Only columns shown in the view; blocks dotted relation names like user.password
+            $whitelist = ['bulan', 'pjdesa', 'nama_kategori', 'permasalahan', 'solusi', 'kendala', 'status_capaian', 'tautan'];
             $query = CapaianKegiatan::query()
                 ->with(['kategoriKegiatan', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
                 // Urutan default hanya bila user tidak memilih kolom (agar sort user tidak jadi urutan kedua)
-                ->when((new DataTablesRequest)->orderableColumns() === [], fn ($q) => $q
+                ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q
                     ->orderByDesc('capaian_kegiatan.bulan')->orderByDesc('capaian_kegiatan.created_at'));
 
             if (in_array(Auth::user()->role, ['dpl'])) {
@@ -69,6 +74,7 @@ class LapcapaiankegiatanController extends Controller
                     return \App\Support\HtmlSanitizer::link($row->tautan) ?: 'Tidak Ada';
                 })
                 ->rawColumns(['lokasi', 'tautan', 'status_capaian'])
+                ->whitelist($whitelist)
                 ->make(true);
         }
         

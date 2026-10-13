@@ -48,6 +48,7 @@ use App\Http\Controllers\RencanaKerjaController;
 use App\Http\Controllers\DesaController;
 use App\Http\Controllers\PjdesaController;
 use App\Http\Controllers\DesaprofileController;
+use App\Http\Controllers\PicdlhController;
 use App\Http\Controllers\LokasiprogramController;
 
 use App\Http\Controllers\LogbulananController;
@@ -285,6 +286,21 @@ Route::middleware(['auth', 'role:admin,pemda'])->group(function () {
     Route::get('desaprofile/edit/{id_profile}', [DesaprofileController::class, 'edit']);
     Route::put('desaprofile/update', [DesaprofileController::class, 'update']);
     Route::put('desaprofile/destroy', [DesaprofileController::class, 'destroy']);
+});
+
+// PIC DLH per kecamatan: admin, kepala, pt, dpl dapat melihat; hanya admin dapat mengelola
+Route::middleware(['auth', 'role:admin,kepala,pt,dpl'])->group(function () {
+    Route::get('picdlh', [PicdlhController::class, 'index']);
+    Route::get('picdlh/listdata', [PicdlhController::class, 'listdata'])->name('picdlh.listdata');
+    Route::get('picdlh/listdataserver', [PicdlhController::class, 'listdataserver'])->name('picdlh.listdataserver');
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('picdlh/tambah', [PicdlhController::class, 'tambah']);
+    Route::put('picdlh/insert', [PicdlhController::class, 'insert']);
+    Route::get('picdlh/edit/{id_pic_dlh}', [PicdlhController::class, 'edit']);
+    Route::put('picdlh/update', [PicdlhController::class, 'update']);
+    Route::put('picdlh/destroy', [PicdlhController::class, 'destroy']);
 });
 
 // Hasil evaluasi yang juga dipantau kepala (read-only lewat KepalaReadOnly)

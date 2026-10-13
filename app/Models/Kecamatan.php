@@ -19,4 +19,9 @@ class Kecamatan extends Model
     {
         return $this->hasMany(Desa::class,'id_kecamatan','id_kecamatan');
     }
+
+    public function picDlh()
+    {
+        return $this->hasMany(Picdlh::class, 'id_kecamatan', 'id_kecamatan');
+    }
 }

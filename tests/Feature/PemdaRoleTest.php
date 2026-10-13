@@ -47,8 +47,10 @@ class PemdaRoleTest extends TestCase
             'kecamatan', 'kecamatan/listdata', 'kecamatan/listdataserver', 'kecamatan/tambah',
             'desa', 'desa/listdata', 'desa/listdataserver', 'desa/tambah',
         ], true);
-        $kepala = array_diff_key($this->statuses('kepala'), $pemdaOnly);
-        $pemda = array_diff_key($this->statuses('pemda'), $pemdaOnly);
+        // Kepala boleh melihat PIC DLH, pemda tidak
+        $kepalaOnly = array_fill_keys(['picdlh', 'picdlh/listdata', 'picdlh/listdataserver'], true);
+        $kepala = array_diff_key($this->statuses('kepala'), $pemdaOnly, $kepalaOnly);
+        $pemda = array_diff_key($this->statuses('pemda'), $pemdaOnly, $kepalaOnly);
 
         $this->assertSame($kepala, $pemda);
     }
@@ -73,6 +75,8 @@ class PemdaRoleTest extends TestCase
         $this->get('dplkonversinilai')->assertRedirect(route('home'));
         $this->get('pttugasakhir')->assertRedirect(route('home'));
         $this->get('dashboard-pengurangan-sampah/export-capaian')->assertRedirect(route('home'));
+        $this->get('picdlh')->assertRedirect(route('home'));
+        $this->get('picdlh/listdata')->assertRedirect(route('home'));
     }
 
     public function test_pemda_home_uses_kepala_dashboard_and_menu(): void

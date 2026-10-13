@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
 class PicpjController extends Controller
 {
+    use HandlesDataTablesOrder;
+
     public function index()
     {
         return view('picpj.index');
@@ -21,6 +24,8 @@ class PicpjController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
+        $whitelist = ['kodept', 'nm_lemb', 'no_tel'];
 
         // PT users store kode PT (npsn) in users.email
         $query = User::query()
@@ -29,11 +34,11 @@ class PicpjController extends Controller
             ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', 'users.email')
             ->select('users.email as kodept', 'users.name', 'sp.nm_lemb', 'users.phone as no_tel')
             // Stable default order; only when no user-orderable column (yajra appends user order after base order)
-            ->when(! DataTables::getRequest()->orderableColumns(), fn ($q) => $q->orderBy('users.email'));
+            ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q->orderBy('users.email'));
 
         return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->whitelist(['kodept', 'nm_lemb', 'no_tel'])
+            ->whitelist($whitelist)
             ->editColumn('nm_lemb', fn ($row) => $row->nm_lemb ?: $row->name)
             // No. Kontak comes only from users.phone
             ->editColumn('no_tel', fn ($row) => $row->no_tel ?: '-')
