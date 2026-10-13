@@ -20,6 +20,7 @@ class PtUserRequest extends AjaxFormRequest
                 Rule::unique('users', 'email')->ignore($this->input('id')),
             ],
             'location_program' => ['required', 'uuid', 'exists:lokasi_program,id'],
+            'phone' => [$update ? 'nullable' : 'required', 'string', 'max:50', 'regex:/^[0-9+\-\s()]+$/'],
             'password' => [$update ? 'nullable' : 'required', 'string', 'max:255', Password::min(8)],
         ];
     }
@@ -33,6 +34,8 @@ class PtUserRequest extends AjaxFormRequest
             'kodept.unique' => 'PT tersebut sudah digunakan oleh akun lain!',
             'location_program.required' => 'Lokasi program harus di isi.',
             'location_program.exists' => 'Lokasi program tidak valid.',
+            'phone.required' => 'Nomor telepon harus di isi.',
+            'phone.regex' => 'Nomor telepon hanya boleh berisi angka.',
             'password.required' => 'Kata sandi harus diisi.',
             'password.min' => 'Kata sandi minimal 8 karakter.',
         ];

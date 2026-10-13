@@ -32,7 +32,14 @@ class ProfileController extends Controller
     public function update(ProfileRequest $request)
     {
         $user = $request->user();
-        $user->forceFill(['name' => $request->validated('nama')])->save();
+        $user->forceFill(['name' => $request->validated('nama')]);
+
+        // Pemantau (kepala/pemda) and pt store contact on users table
+        if ($user->isPemantau() || $user->role === 'pt') {
+            $user->forceFill(['phone' => $request->validated('phone')]);
+        }
+
+        $user->save();
 
         if ($user->role === 'dpl') {
             Dpl::updateOrCreate(['email' => $user->email], [

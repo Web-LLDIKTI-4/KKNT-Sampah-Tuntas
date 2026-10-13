@@ -10,7 +10,9 @@ class ProfileRequest extends AjaxFormRequest
     {
         $rules = ['nama' => ['required', 'string', 'max:255']];
 
-        if ($this->user()->role !== 'admin') {
+        if ($this->user()->isPemantau() || $this->user()->role === 'pt') {
+            $rules['phone'] = ['required', 'string', 'max:50', 'regex:/^[0-9+\-\s()]+$/'];
+        } elseif ($this->user()->role !== 'admin') {
             $rules += [
                 'nidn' => ['required', 'string', 'max:100'],
                 'prodi' => ['required', 'string', 'max:100'],

@@ -68,6 +68,7 @@ use App\Http\Controllers\PtevaluasikegiatanController;
 use App\Http\Controllers\PtmahasiswaController;
 use App\Http\Controllers\PtdplController;
 use App\Http\Controllers\PttugasakhirController;
+use App\Http\Controllers\PicpjController;
 
 use App\Http\Controllers\SaranController;
 
@@ -502,6 +503,13 @@ Route::middleware(['auth', 'role:pt,kepala,pemda'])->group(function () {
     Route::get('ptdpl', [PtdplController::class, 'index'])->name('ptdpl');
     Route::get('ptdpl/listdata', [PtdplController::class, 'listdata'])->name('ptdpl.listdata');
     Route::get('ptdpl/listdataserver', [PtdplController::class, 'listdataserver'])->name('ptdpl.listdataserver');
+});
+
+// Data PIC/PJ perguruan tinggi, read-only untuk pemantau
+Route::middleware(['auth', 'role:kepala,pemda'])->group(function () {
+    Route::get('picpj', [PicpjController::class, 'index'])->name('picpj');
+    Route::get('picpj/listdata', [PicpjController::class, 'listdata'])->name('picpj.listdata');
+    Route::get('picpj/listdataserver', [PicpjController::class, 'listdataserver'])->name('picpj.listdataserver');
 });
 
 // Laporan akhir tidak untuk kepala

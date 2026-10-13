@@ -140,6 +140,7 @@ class UserController extends Controller
             'name' => $request->validated('name'),
             'email' => $request->validated('kodept'),
             'location_program' => $request->validated('location_program'),
+            'phone' => $request->validated('phone'),
             'role' => 'pt',
             'password' => Hash::make($request->validated('password')),
         ])->save();
@@ -162,6 +163,7 @@ class UserController extends Controller
             'name' => $request->validated('name'),
             'email' => $request->validated('kodept'),
             'location_program' => $request->validated('location_program'),
+            'phone' => $request->validated('phone'),
         ];
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->validated('password'));

@@ -51,6 +51,7 @@
         <label for="sampah-organik">Organik Terkelola (kg) {!! $wajib !!}</label>
     </div>
     <span id="organik_kg_error" class="text-danger"></span>
+    <span>Dikomposkan (loseda, dikubur langsung ke tanah, bata terawang, komposter, biopori, dll); Maggot BSF; Digunakan sebagai pakan ternak/ikan; Diserahkan ke fasilitas pengolahan sampah (TPS 3R, TPST, POO, dll)</span>
 </div>
 <div class="mb-6">
     <div class="form-group form-floating form-floating-outline">
@@ -58,7 +59,7 @@
         <label for="sampah-anorganik">Anorganik Terkelola (kg) {!! $wajib !!}</label>
     </div>
     <span id="anorganik_kg_error" class="text-danger"></span>
-    <span>Ditabung ke bank sampang Dijual/Diambil ke pengepul/pemulung: Disedekahkan ke pemulung; Didaur ulang secara mandiri, dan/atau Diserahkan ke fasilitas pengolahan sampah (TPS 3R, TPST, Pusat Daur Ulang, Insinerator, Motah, Nawasena, dll.)</span>
+    <span>Ditabung ke bank sampah Dijual/Diambil ke pengepul/pemulung; Disedekahkan ke pemulung; Didaur ulang secara mandiri, dan/atau Diserahkan ke fasilitas pengolahan sampah (TPS 3R, TPST, Pusat Daur Ulang, Insinerator, Motah, Nawasena, dll.)</span>
 </div>
 <div class="mb-6">
     <div class="form-group form-floating form-floating-outline">
@@ -66,4 +67,5 @@
         <label for="sampah-residu">Residu (kg) {!! $wajib !!}</label>
     </div>
     <span id="residu_kg_error" class="text-danger"></span>
+    <span>Diangkut oleh petugas tanpa pemilihan; Diangkut ke TPS; Dibakar secara terbuka; Dibuang ke sungai; Dibuang ke jalan, lahan kosong, kuburan, dll.</span>
 </div>

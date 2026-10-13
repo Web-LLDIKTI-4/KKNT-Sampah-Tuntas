@@ -132,7 +132,7 @@
 
                   <div id="accordionPayment-1" class="accordion-collapse collapse show">
                     <div class="accordion-body">
-                    @if(in_array(Auth::user()->role, ['admin', 'pt']))
+                    @if(in_array(Auth::user()->role, ['admin']))
                         <form method="post" id="form-update" action="{{ $updateUrl }}">
                             @csrf
                             @method('PUT')
@@ -209,6 +209,32 @@
                             </div>
                             <hr />
                             
+                            <!-- Simpan buttons -->
+                            <x-button.save formId="form-update">Simpan</x-button.save>
+                        </form>
+                    @elseif(Auth::user()->isPemantau() || Auth::user()->role === 'pt')
+                        <form method="post" id="form-update" action="{{ $updateUrl }}">
+                            @csrf
+                            @method('PUT')
+                            <!-- General information -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group form-floating form-floating-outline mb-6">
+                                        <input class="form-control" type="text" name="nama" value="{{ $profile->name }}">
+                                        <label class="form-control-label">Nama</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group form-floating form-floating-outline mb-6">
+                                        <input class="form-control" type="text" name="phone" placeholder="nomor HP" value="{{ $profile->phone }}">
+                                        <label class="form-control-label">No. Kontak</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+
                             <!-- Simpan buttons -->
                             <x-button.save formId="form-update">Simpan</x-button.save>
                         </form>

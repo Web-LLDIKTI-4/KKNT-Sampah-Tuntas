@@ -356,6 +356,13 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Mahasiswa
                                     </a>
                                 </li>
+                                @if (Auth::user()->isPemantau())
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('picpj') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data PIC/PJ
+                                        </a>
+                                    </li>
+                                @endif
                                 {{-- @if (Auth::user()->role === 'pt')
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('dplkonversinilai') }}">

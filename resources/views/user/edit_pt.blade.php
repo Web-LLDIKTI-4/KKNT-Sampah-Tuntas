@@ -29,6 +29,11 @@
         <label>Lokasi Program</label>
         <span id="location_program_error" class="text-danger"></span>
     </div>
+    <div class="form-group form-floating form-floating-outline mb-6">
+        <input type="text" name="phone" value="{{ $user->phone }}" class="form-control" placeholder="No. Kontak">
+        <label>No. Kontak</label>
+        <span id="phone_error" class="text-danger"></span>
+    </div>
     <div class="row">   
         <div class="form-group col form-floating form-floating-outline mb-6">
             <input type="text" name="password" class="form-control" placeholder="Kata Sandi">
@@ -49,7 +54,7 @@ $(function(){
         var action = $(this).attr("action");
         var id = $(this).attr("id");
         var dString = $(this).serialize();
-        $("#name_error,#kodept_error,#password_error,#role_error").html('');
+        $("#name_error,#kodept_error,#location_program_error,#phone_error,#password_error,#role_error").html('');
         $.ajax({
             dataType:'json',
             type:'post',

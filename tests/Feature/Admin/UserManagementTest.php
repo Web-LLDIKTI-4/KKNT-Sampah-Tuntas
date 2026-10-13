@@ -39,7 +39,7 @@ class UserManagementTest extends TestCase
 
         $this->put('user/insertuserpt', [
             'name' => 'PT X', 'kodept' => $sp->npsn, 'location_program' => LokasiProgram::factory()->create()->id,
-            'password' => 'Rahasia123', 'role' => 'admin',
+            'phone' => '0812 3456', 'password' => 'Rahasia123', 'role' => 'admin',
         ])->assertJson(['success' => true]);
 
         $this->assertSame('pt', User::where('email', $sp->npsn)->value('role'));
