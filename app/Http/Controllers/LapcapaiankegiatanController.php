@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Session;
 use DataTables;
-use App\Models\KategoriKegiatan;
 use App\Models\CapaianKegiatan;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
@@ -30,9 +29,9 @@ class LapcapaiankegiatanController extends Controller
         if ($request->ajax()) {
             $this->sanitizeDataTablesInput();
             // Only columns shown in the view; blocks dotted relation names like user.password
-            $whitelist = ['bulan', 'pjdesa', 'nama_kategori', 'permasalahan', 'solusi', 'kendala', 'status_capaian', 'tautan'];
+            $whitelist = ['bulan', 'pjdesa', 'permasalahan', 'solusi', 'kendala', 'status_capaian', 'tautan'];
             $query = CapaianKegiatan::query()
-                ->with(['kategoriKegiatan', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
+                ->with(['pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
                 // Urutan default hanya bila user tidak memilih kolom (agar sort user tidak jadi urutan kedua)
                 ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q
                     ->orderByDesc('capaian_kegiatan.bulan')->orderByDesc('capaian_kegiatan.created_at'));
@@ -61,13 +60,8 @@ class LapcapaiankegiatanController extends Controller
                 ->addColumn('pjdesa', function($row) {
                     return $row->pjdesa?->mahasiswa?->nama ?? 'Ketua Kelompok Tidak Tersedia';
                 })
-                ->addColumn('nama_kategori', function($row) {
-                    return isset($row->kategoriKegiatan->nama_kategori) ? $row->kategoriKegiatan->nama_kategori : 'Tidak Diketahui';
-                })
                 // Kolom turunan: search/order dipetakan ke relasi agar tidak jadi "Unknown column"
-                ->filterColumn('nama_kategori', fn ($q, $keyword) => $q->whereHas('kategoriKegiatan', fn ($k) => $k->where('nama_kategori', 'like', "%{$keyword}%")))
                 ->filterColumn('pjdesa', fn ($q, $keyword) => $q->whereHas('pjdesa.mahasiswa', fn ($m) => $m->where('nama', 'like', "%{$keyword}%")))
-                ->orderColumn('nama_kategori', '(SELECT nama_kategori FROM kategori_kegiatan WHERE kategori_kegiatan.id_kategori = capaian_kegiatan.id_kategori LIMIT 1) $1')
                 ->orderColumn('pjdesa', '(SELECT m.nama FROM pj_desa pj JOIN mahasiswa m ON m.email = pj.email WHERE pj.email = capaian_kegiatan.email LIMIT 1) $1')
                 ->addColumn('status_capaian', fn ($row) => CapaianKegiatan::statusBadge($row->status_capaian))
                 ->addColumn('tautan', function($row) {

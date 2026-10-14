@@ -23,7 +23,7 @@ class CapaianKegiatanPeriodeSheet extends SafeValueBinder implements WithCustomV
 {
     // Sama dengan kolom tampil di capaiankegiatan/listdata
     public const HEADER_CAPAIAN = [
-        'Bulan', 'Lokasi Kegiatan', 'Kategori Kegiatan', 'Permasalahan',
+        'No', 'Bulan', 'Lokasi Kegiatan', 'Permasalahan',
         'Solusi', 'Kebutuhan Dukungan', 'Tindak Lanjut', 'Tautan',
     ];
 
@@ -41,7 +41,7 @@ class CapaianKegiatanPeriodeSheet extends SafeValueBinder implements WithCustomV
 
     /**
      * @param  Collection  $rekap  output PenguranganSampahService::rekapLldikti()
-     * @param  Collection  $capaian  CapaianKegiatan dengan relasi kategoriKegiatan & pjdesa sudah di-load
+     * @param  Collection  $capaian  CapaianKegiatan dengan relasi pjdesa sudah di-load
      */
     public function __construct(private Collection $rekap, private Collection $capaian) {}
 
@@ -82,9 +82,9 @@ class CapaianKegiatanPeriodeSheet extends SafeValueBinder implements WithCustomV
             $tambah($this->barisCapaian($i + 1, $item));
         }
         if ($this->capaian->isEmpty()) {
-            $this->kosong[] = [$tambah(['Belum ada data']), 'I'];
+            $this->kosong[] = [$tambah(['Belum ada data']), 'H'];
         }
-        $this->tabel[] = [$awal, $baris - 1, 'I'];
+        $this->tabel[] = [$awal, $baris - 1, 'H'];
 
         return $rows;
     }
@@ -135,9 +135,9 @@ class CapaianKegiatanPeriodeSheet extends SafeValueBinder implements WithCustomV
         $lokasi = $nama && $desa?->kecamatan ? "$nama\n{$desa->kecamatan->kecamatan}, {$desa->desa}" : 'Tidak Diketahui';
 
         return [
+            $no,
             $item->bulan ? Carbon::parse($item->bulan)->translatedFormat('F Y') : '-',
             $lokasi,
-            $item->kategoriKegiatan?->nama_kategori ?? '',
             $item->permasalahan,
             $item->solusi,
             $item->kendala,

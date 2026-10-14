@@ -6,7 +6,6 @@ use App\Exports\CapaianKegiatanExport;
 use App\Exports\Sheets\CapaianKegiatanPeriodeSheet;
 use App\Exports\Sheets\RekapLldiktiSheet;
 use App\Models\Desa;
-use App\Models\KategoriKegiatan;
 use App\Models\CapaianKegiatan;
 use App\Models\PendataanPemilahanSampah;
 use App\Models\Mahasiswa;
@@ -46,7 +45,7 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
     private function capaian(string $email, string $bulan, array $attr = []): CapaianKegiatan
     {
         return CapaianKegiatan::factory()->create($attr + [
-            'email' => $email, 'bulan' => $bulan, 'id_kategori' => KategoriKegiatan::factory()->create()->id_kategori,
+            'email' => $email, 'bulan' => $bulan,
         ]);
     }
 
@@ -109,13 +108,13 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
         $this->assertNull($ws->getCell('A5')->getValue());
         $this->assertSame('Capaian Kegiatan', $ws->getCell('A6')->getValue());
         $this->assertSame(
-            ['No', 'Bulan', 'Lokasi Kegiatan', 'Kategori Kegiatan', 'Permasalahan', 'Solusi', 'Kebutuhan Dukungan', 'Tindak Lanjut', 'Tautan'],
-            $ws->rangeToArray('A7:I7')[0],
+            ['No', 'Bulan', 'Lokasi Kegiatan', 'Permasalahan', 'Solusi', 'Kebutuhan Dukungan', 'Tindak Lanjut', 'Tautan'],
+            $ws->rangeToArray('A7:H7')[0],
         );
         $this->assertEquals(1, $ws->getCell('A8')->getValue());
         $this->assertSame('September 2026', $ws->getCell('B8')->getValue());
-        $this->assertSame('Masalah Sept', $ws->getCell('E8')->getValue());
-        $this->assertSame('Proses', $ws->getCell('H8')->getValue());
+        $this->assertSame('Masalah Sept', $ws->getCell('D8')->getValue());
+        $this->assertSame('Proses', $ws->getCell('G8')->getValue());
         $this->assertSame(8, $ws->getHighestRow());
 
         // Tidak ada baris sekat / "Belum ada ..." per periode
@@ -131,7 +130,7 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
 
         // Format tabel sampah sama dengan RekapLldiktiSheet
         $this->assertSame('FFFF00', $ws->getStyle('A2')->getFill()->getStartColor()->getRGB());
-        $this->assertSame('FFFF00', $ws->getStyle('I7')->getFill()->getStartColor()->getRGB());
+        $this->assertSame('FFFF00', $ws->getStyle('H7')->getFill()->getStartColor()->getRGB());
         $this->assertSame(45.0, (float) $ws->getRowDimension(2)->getRowHeight());
         $this->assertTrue($ws->getStyle('A2')->getAlignment()->getWrapText());
         $this->assertSame(22.0, (float) $ws->getColumnDimension('C')->getWidth());
@@ -197,7 +196,7 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
         $this->assertSame('Belum ada data', $ws->getCell('A7')->getValue());
         $merge = array_values($ws->getMergeCells());
         $this->assertContains('A3:L3', $merge);
-        $this->assertContains('A7:I7', $merge);
+        $this->assertContains('A7:H7', $merge);
         $this->assertSame(7, $ws->getHighestRow());
     }
 
@@ -222,9 +221,9 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
         $ws = $this->render($this->exportDari('capaiankegiatan/export', CapaianKegiatanPeriodeSheet::class));
 
         // Data Sampah(1) header(2) kosong(3) pemisah(4) Capaian Kegiatan(5) header(6) data(7)
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('E7')->getDataType());
-        $this->assertSame($formula, $ws->getCell('E7')->getValue());
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('I7')->getDataType());
+        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('D7')->getDataType());
+        $this->assertSame($formula, $ws->getCell('D7')->getValue());
+        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('H7')->getDataType());
     }
 
     public function test_jumlah_query_export_mahasiswa_tidak_bertambah_per_baris(): void
@@ -266,16 +265,17 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
         $export = new CapaianKegiatanExport();
         $ws = $this->render($export);
 
-        // Tanpa kolom No: A–J, kolom K tidak ikut di-style
-        $this->assertSame($export->headings(), $ws->rangeToArray('A1:J1')[0]);
+        // Tanpa kolom No/Kategori: A–I, kolom J tidak ikut di-style
+        $this->assertSame($export->headings(), $ws->rangeToArray('A1:I1')[0]);
         $this->assertNotContains('No', $export->headings());
+        $this->assertNotContains('Kategori Kegiatan', $export->headings());
         $this->assertSame('ketua@pps.test', $ws->getCell('C2')->getValue());
-        $this->assertSame('FFFF00', $ws->getStyle('J1')->getFill()->getStartColor()->getRGB());
-        $this->assertSame('none', $ws->getStyle('K1')->getFill()->getFillType());
+        $this->assertSame('FFFF00', $ws->getStyle('I1')->getFill()->getStartColor()->getRGB());
+        $this->assertSame('none', $ws->getStyle('J1')->getFill()->getFillType());
         $this->assertTrue($ws->getStyle('A1')->getFont()->getBold());
         $this->assertSame('A2', $ws->getFreezePane());
-        $this->assertSame('thin', $ws->getStyle('J2')->getBorders()->getBottom()->getBorderStyle());
-        $this->assertSame('none', $ws->getStyle('K2')->getBorders()->getBottom()->getBorderStyle());
+        $this->assertSame('thin', $ws->getStyle('I2')->getBorders()->getBottom()->getBorderStyle());
+        $this->assertSame('none', $ws->getStyle('J2')->getBorders()->getBottom()->getBorderStyle());
         $this->assertSame(14.0, (float) $ws->getColumnDimension('A')->getWidth());
     }
 

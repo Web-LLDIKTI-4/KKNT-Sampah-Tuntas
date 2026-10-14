@@ -7,7 +7,6 @@
                     <th class="text-center">Bulan</th>
                     <th>Id Capaian</th>
                     <th>Lokasi Kegiatan</th>
-                    <th>Kategori Kegiatan</th>
                     <th>Permasalahan</th>
                     <th>Solusi</th>
                     <th>Kebutuhan Dukungan</th>
@@ -58,7 +57,6 @@
             {data: 'bulan_label', name: 'bulan', className: 'text-center', orderable: true, searchable: false},
             {data: 'id_capaian', name: 'id_capaian', visible:false},
             {data: 'lokasi', name: 'lokasi'},
-            {data: 'nama_kategori', name: 'nama_kategori'},
             {
                 data: 'permasalahan',
                 name: 'permasalahan',

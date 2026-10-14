@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Desa;
-use App\Models\KategoriKegiatan;
 use App\Models\CapaianKegiatan;
 use App\Models\Mahasiswa;
 use App\Models\Pjdesa;
@@ -16,20 +15,17 @@ class LapcapaiankegiatanTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function capaian(string $namaKetua, string $namaKategori): void
+    private function capaian(string $namaKetua): void
     {
         $mhs = Mahasiswa::factory()->create(['nama' => $namaKetua]);
         Pjdesa::create(['email' => $mhs->email, 'id_desa' => Desa::factory()->create()->id_desa]);
-        CapaianKegiatan::factory()->create([
-            'email' => $mhs->email,
-            'id_kategori' => KategoriKegiatan::factory()->create(['nama_kategori' => $namaKategori])->id_kategori,
-        ]);
+        CapaianKegiatan::factory()->create(['email' => $mhs->email]);
     }
 
     private function datatable(string $query): TestResponse
     {
         $columns = '';
-        foreach (['nama_kategori', 'pjdesa'] as $i => $kolom) {
+        foreach (['pjdesa'] as $i => $kolom) {
             $columns .= "&columns[$i][data]=$kolom&columns[$i][name]=$kolom&columns[$i][searchable]=true&columns[$i][orderable]=true";
         }
 
@@ -37,17 +33,17 @@ class LapcapaiankegiatanTest extends TestCase
             ->assertOk();
     }
 
-    public function test_search_and_order_on_kategori_and_ketua_columns(): void
+    public function test_search_and_order_on_ketua_column(): void
     {
         $this->loginAs('admin');
-        $this->capaian('Andi Ketua', 'Bank Sampah');
-        $this->capaian('Zaki Ketua', 'Komposter');
+        $this->capaian('Andi Ketua');
+        $this->capaian('Zaki Ketua');
 
-        $this->datatable('&search[value]=Kompos')->assertJsonPath('recordsFiltered', 1)->assertJsonPath('data.0.nama_kategori', 'Komposter');
         $this->datatable('&search[value]=Andi')->assertJsonPath('recordsFiltered', 1)->assertJsonPath('data.0.pjdesa', 'Andi Ketua');
 
-        $this->datatable('&order[0][column]=0&order[0][dir]=desc')->assertJsonPath('data.0.nama_kategori', 'Komposter');
-        $this->datatable('&order[0][column]=1&order[0][dir]=asc')->assertJsonPath('data.0.pjdesa', 'Andi Ketua');
+        $this->datatable('&order[0][column]=0&order[0][dir]=desc')->assertJsonPath('data.0.pjdesa', 'Zaki Ketua');
+        $this->datatable('&order[0][column]=0&order[0][dir]=asc')->assertJsonPath('data.0.pjdesa', 'Andi Ketua');
+        $this->datatable('')->assertJsonMissingPath('data.0.nama_kategori');
     }
 
     public function test_listdata_has_bulan_label_and_defaults_to_latest_month(): void

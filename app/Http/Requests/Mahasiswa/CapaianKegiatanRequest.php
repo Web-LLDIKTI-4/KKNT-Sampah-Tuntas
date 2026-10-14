@@ -29,7 +29,6 @@ class CapaianKegiatanRequest extends AjaxFormRequest
     {
         return [
             'id_capaian' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'uuid'],
-            'id_kategori' => ['required', 'uuid', 'exists:kategori_kegiatan,id_kategori'],
             'bulan' => ['required', 'date', 'after_or_equal:2020-01-01', 'before_or_equal:today'],
             'status_capaian' => ['required', Rule::in(array_keys(CapaianKegiatan::STATUS))],
             'tautan' => ['required', 'url:http,https', 'max:2000'],
@@ -59,7 +58,6 @@ class CapaianKegiatanRequest extends AjaxFormRequest
     public function messages(): array
     {
         return [
-            'id_kategori.required' => 'Kategori kegiatan harus dipilih.',
             'bulan.required' => 'Tanggal harus diisi.',
             'bulan.date' => 'Tanggal tidak valid.',
             'bulan.before_or_equal' => 'Tanggal tidak boleh melebihi hari ini.',

@@ -2,18 +2,6 @@
     @csrf
     @method('PUT')
     <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="id_kategori" class="form-control form-control-sm" required>
-            <option value="">--pilih Kategori Kegiatan--</option>
-            @if($kategoriKegiatan)
-                @foreach($kategoriKegiatan as $item)
-                    <option value="{{$item->id_kategori}}">{{$item->nama_kategori}}</option>
-                @endforeach
-            @endif
-        </select>
-        <label>Kategori Kegiatan</label>
-    </div>
-
-    <div class="form-group form-floating form-floating-outline mb-6">
         <input type="date" name="bulan" required max="{{ now()->toDateString() }}" class="form-control form-control-sm">
         <label>Tanggal Capaian</label>
         <div class="form-text">Capaian disimpan per bulan (1 capaian per bulan).</div>

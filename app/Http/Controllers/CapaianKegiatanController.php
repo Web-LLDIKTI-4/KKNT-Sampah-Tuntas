@@ -7,7 +7,6 @@ use App\Exports\Sheets\CapaianKegiatanPeriodeSheet;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\CapaianKegiatanRequest;
 use App\Models\Desa;
-use App\Models\KategoriKegiatan;
 use App\Models\CapaianKegiatan;
 use App\Models\Pjdesa;
 use App\Models\User;
@@ -24,7 +23,7 @@ class CapaianKegiatanController extends Controller
 {
     use RespondsWithJson;
 
-    private const FIELDS = ['id_kategori', 'status_capaian', 'tautan', 'permasalahan', 'solusi', 'kendala'];
+    private const FIELDS = ['status_capaian', 'tautan', 'permasalahan', 'solusi', 'kendala'];
 
     // Read-only: rekap sampah desa mahasiswa dari pendataan pemilahan (semua bulan)
     public function index(Request $request, PenguranganSampahService $sampah)
@@ -51,7 +50,7 @@ class CapaianKegiatanController extends Controller
 
         $isKetua = $this->isKetua($request->user());
         $data = CapaianKegiatan::visibleToMahasiswa($request->user()->email)
-            ->with(['kategoriKegiatan', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
+            ->with(['pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
             ->orderByDesc('bulan')->orderByDesc('created_at')
             ->get();
 
@@ -66,7 +65,6 @@ class CapaianKegiatanController extends Controller
 
                 return e($lokasi).'<br /> '.e($desa->kecamatan->kecamatan).', '.e($desa->desa);
             })
-            ->addColumn('nama_kategori', fn (CapaianKegiatan $row) => $row->kategoriKegiatan->nama_kategori ?? '')
             // Label tampilan; kolom 'bulan' mentah (Y-m-d) tetap dikirim untuk order
             ->addColumn('bulan_label', fn (CapaianKegiatan $row) => $row->bulan ? Carbon::parse($row->bulan)->translatedFormat('F Y') : '-')
             ->editColumn('permasalahan', fn (CapaianKegiatan $row) => nl2br(e($row->permasalahan)))
@@ -89,7 +87,7 @@ class CapaianKegiatanController extends Controller
     {
         abort_unless($this->isKetua($request->user()), 403);
 
-        return view('capaiankegiatan.tambah', ['kategoriKegiatan' => KategoriKegiatan::orderBy('nama_kategori')->get()]);
+        return view('capaiankegiatan.tambah');
     }
 
     public function insert(CapaianKegiatanRequest $request)
@@ -110,7 +108,6 @@ class CapaianKegiatanController extends Controller
 
         return view('capaiankegiatan.edit', [
             'data' => CapaianKegiatan::ownedBy($request->user())->findOrFail($id_capaian),
-            'kategoriKegiatan' => KategoriKegiatan::orderBy('nama_kategori')->get(),
         ]);
     }
 
@@ -155,7 +152,7 @@ class CapaianKegiatanController extends Controller
         // Mahasiswa: blok per periode (data sampah desa + capaian kegiatan); tanpa desa → sampah kosong
         $idDesa = $sampah->desaMahasiswa($user->email);
         $capaian = CapaianKegiatan::visibleToMahasiswa($user->email)
-            ->with(['kategoriKegiatan', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
+            ->with(['pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
             ->orderByDesc('bulan')->orderByDesc('created_at')->get();
 
         return Excel::download(new CapaianKegiatanPeriodeSheet(

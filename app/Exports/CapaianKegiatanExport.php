@@ -59,21 +59,19 @@ class CapaianKegiatanExport extends SafeValueBinder implements WithCustomValueBi
 
         }
 
-        $capaian->load(['kategoriKegiatan', 'pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram']);
+        $capaian->load(['pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram']);
 
         // Lakukan relasi yang diperlukan dan tambahkan judul kolom
         $data = $capaian->map(function ($item) {
             $lokasi = $item?->pjdesa?->mahasiswa?->user?->locationProgram->nama_lokasi.', '.$item?->pjdesa?->desa?->kecamatan?->kecamatan.', '.$item?->pjdesa?->desa?->desa;
             $desa = $item?->pjdesa?->desa?->desa ?? '';
             $pjdesa = $item?->email ?? '';
-            $kategori = $item->kategoriKegiatan ? $item->kategoriKegiatan->nama_kategori : null;
 
             return [
                 'Bulan' => $item->bulan ? \Illuminate\Support\Carbon::parse($item->bulan)->translatedFormat('F Y') : '-',
                 'Lokasi Kegiatan' => $lokasi,
                 'PJ Desa' => $pjdesa,
                 'Desa' => $desa,
-                'Kategori Kegiatan' => $kategori,
                 'Permasalahan' => $item->permasalahan,
                 'Solusi' => $item->solusi,
                 'Kebutuhan Dukungan' => $item->kendala,
@@ -94,7 +92,6 @@ class CapaianKegiatanExport extends SafeValueBinder implements WithCustomValueBi
             'Lokasi Kegiatan',
             'PJ Desa',
             'Desa',
-            'Kategori Kegiatan',
             'Permasalahan',
             'Solusi',
             'Kebutuhan Dukungan',
@@ -110,18 +107,18 @@ class CapaianKegiatanExport extends SafeValueBinder implements WithCustomValueBi
             $sheet = $event->sheet->getDelegate();
             $akhir = $sheet->getHighestRow();
 
-            $sheet->getStyle('A1:J1')->applyFromArray([
+            $sheet->getStyle('A1:I1')->applyFromArray([
                 'font' => ['bold' => true],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFF00']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
             ]);
-            $sheet->getStyle("A1:J$akhir")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-            $sheet->getStyle("A1:J$akhir")->getAlignment()->setWrapText(true);
+            $sheet->getStyle("A1:I$akhir")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle("A1:I$akhir")->getAlignment()->setWrapText(true);
             if ($akhir >= 2) {
-                $sheet->getStyle("A2:J$akhir")->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
+                $sheet->getStyle("A2:I$akhir")->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
             }
 
-            $lebar = ['A' => 14, 'B' => 30, 'C' => 28, 'D' => 20, 'E' => 30, 'F' => 40, 'G' => 40, 'H' => 40, 'I' => 14, 'J' => 30];
+            $lebar = ['A' => 14, 'B' => 30, 'C' => 28, 'D' => 20, 'E' => 40, 'F' => 40, 'G' => 40, 'H' => 14, 'I' => 30];
             foreach ($lebar as $kolom => $w) {
                 $sheet->getColumnDimension($kolom)->setWidth($w);
             }

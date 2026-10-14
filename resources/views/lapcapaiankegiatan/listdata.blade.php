@@ -8,7 +8,6 @@
                     {{-- <th>Id Capaian</th> --}}
                     <th>Lokasi Kegiatan</th>
                     <th>Ketua Kelompok</th>
-                    <th>Kategori Kegiatan</th>
                     <th>Permasalahan</th>
                     <th>Solusi</th>
                     <th>Kebutuhan Dukungan</th>
@@ -59,7 +58,6 @@
             // {data: 'id_target', name: 'id_target', visible:false},
             {data: 'lokasi', name: 'lokasi', orderable: false, searchable: false},
             {data: 'pjdesa', name: 'pjdesa'},
-            {data: 'nama_kategori', name: 'nama_kategori'},
             {
                 data: 'permasalahan',
                 name: 'permasalahan',
