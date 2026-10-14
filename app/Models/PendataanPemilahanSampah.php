@@ -19,6 +19,7 @@ class PendataanPemilahanSampah extends Model
 
     protected $casts = [
         'memilah' => 'boolean',
+        'jumlah_anggota_keluarga' => 'integer',
         'organik_kg' => 'float',
         'anorganik_kg' => 'float',
         'residu_kg' => 'float',

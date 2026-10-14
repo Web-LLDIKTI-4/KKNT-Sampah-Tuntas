@@ -15,6 +15,11 @@
     <span id="nama_kepala_keluarga_error" class="text-danger"></span>
 </div>
 <div class="form-group form-floating form-floating-outline mb-6">
+    <input type="number" name="jumlah_anggota_keluarga" class="form-control form-control-sm" required min="1" step="1" inputmode="numeric" value="{{ $nilai('jumlah_anggota_keluarga') }}">
+    <label>Jumlah Anggota Keluarga {!! $wajib !!}</label>
+    <span id="jumlah_anggota_keluarga_error" class="text-danger"></span>
+</div>
+<div class="form-group form-floating form-floating-outline mb-6">
     <input type="text" name="alamat_rumah" class="form-control form-control-sm" required maxlength="255" value="{{ $nilai('alamat_rumah') }}">
     <label>Alamat Rumah {!! $wajib !!}</label>
     <span id="alamat_rumah_error" class="text-danger"></span>

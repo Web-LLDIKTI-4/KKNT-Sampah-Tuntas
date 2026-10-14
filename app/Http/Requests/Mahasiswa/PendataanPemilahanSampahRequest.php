@@ -8,7 +8,7 @@ use Illuminate\Validation\Rule;
 class PendataanPemilahanSampahRequest extends AjaxFormRequest
 {
     public const FIELDS = [
-        'tanggal', 'nama_kepala_keluarga', 'alamat_rumah', 'rt', 'rw',
+        'tanggal', 'nama_kepala_keluarga', 'jumlah_anggota_keluarga', 'alamat_rumah', 'rt', 'rw',
         'memilah', 'organik_kg', 'anorganik_kg', 'residu_kg',
     ];
 
@@ -27,6 +27,8 @@ class PendataanPemilahanSampahRequest extends AjaxFormRequest
         return [
             'tanggal' => ['required', 'date', 'before_or_equal:today'],
             'nama_kepala_keluarga' => ['required', 'string', 'max:150', 'not_regex:/^[=+\-@]/'],
+            // max hanya guard batas kolom unsigned int
+            'jumlah_anggota_keluarga' => ['required', 'integer', 'min:1', 'max:4294967295'],
             'alamat_rumah' => ['required', 'string', 'max:255', 'not_regex:/^[=+\-@]/'],
             'rt' => ['required', 'string', 'max:5', 'regex:/^[0-9A-Za-z]+$/'],
             'rw' => ['required', 'string', 'max:5', 'regex:/^[0-9A-Za-z]+$/'],
@@ -40,8 +42,11 @@ class PendataanPemilahanSampahRequest extends AjaxFormRequest
     public function messages(): array
     {
         return [
+            // Key spesifik harus sebelum wildcard (dicocokkan sesuai urutan)
+            'jumlah_anggota_keluarga.min' => 'Minimal 1 orang.',
             '*.required' => 'Kolom ini harus diisi.',
             '*.numeric' => 'Nilai harus berupa angka.',
+            '*.integer' => 'Nilai harus berupa bilangan bulat.',
             '*.min' => 'Nilai tidak boleh negatif.',
             '*.max' => 'Nilai melebihi batas maksimum.',
             '*.decimal' => 'Maksimal 2 angka di belakang koma.',

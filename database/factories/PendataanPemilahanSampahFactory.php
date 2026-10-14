@@ -18,6 +18,7 @@ class PendataanPemilahanSampahFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'tanggal' => fake()->dateTimeBetween('-60 days')->format('Y-m-d'),
             'nama_kepala_keluarga' => fake()->name(),
+            'jumlah_anggota_keluarga' => fake()->numberBetween(1, 8),
             'alamat_rumah' => fake()->streetAddress(),
             'rt' => sprintf('%03d', fake()->numberBetween(1, 15)),
             'rw' => sprintf('%03d', fake()->numberBetween(1, 10)),

@@ -5,6 +5,7 @@
                 <th>No</th>
                 <th>Tanggal</th>
                 <th>Nama Kepala Keluarga</th>
+                <th>Anggota Keluarga</th>
                 <th>Alamat Rumah</th>
                 <th>RT</th>
                 <th>RW</th>
@@ -35,6 +36,7 @@
                 {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
                 {data: 'tanggal', name: 'tanggal', className: 'text-center'},
                 {data: 'nama_kepala_keluarga', name: 'nama_kepala_keluarga'},
+                {data: 'jumlah_anggota_keluarga', name: 'jumlah_anggota_keluarga', className: 'text-center'},
                 {data: 'alamat_rumah', name: 'alamat_rumah', className: 'text-wrap'},
                 {data: 'rt', name: 'rt', className: 'text-center'},
                 {data: 'rw', name: 'rw', className: 'text-center'},

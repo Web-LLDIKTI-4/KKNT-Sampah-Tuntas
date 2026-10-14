@@ -36,6 +36,7 @@ class PendataanPemilahanSeeder extends Seeder
                 // Identitas rumah sama tiap bulan agar dihitung 1 rumah di rekap
                 $rumah = [
                     'nama_kepala_keluarga' => fake()->name(),
+                    'jumlah_anggota_keluarga' => mt_rand(1, 8),
                     'alamat_rumah' => 'Jl. Simulasi No. '.($m * self::RUMAH_PER_MAHASISWA + $r),
                     'rt' => sprintf('%03d', mt_rand(1, 10)),
                     'rw' => sprintf('%03d', mt_rand(1, 5)),

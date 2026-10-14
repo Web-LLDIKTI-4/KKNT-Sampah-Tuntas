@@ -8,6 +8,7 @@ use App\Models\Logkegiatan;
 use App\Models\Mahasiswa;
 use App\Models\PendataanPemilahanSampah;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Tests\TestCase;
@@ -23,6 +24,7 @@ class PendataanPemilahanSampahTest extends TestCase
         return $override + [
             'tanggal' => today()->toDateString(),
             'nama_kepala_keluarga' => 'Budi Santoso',
+            'jumlah_anggota_keluarga' => 4,
             'alamat_rumah' => 'Jl. Melati No. 5',
             'rt' => '003',
             'rw' => '07',
@@ -45,6 +47,7 @@ class PendataanPemilahanSampahTest extends TestCase
         $data = PendataanPemilahanSampah::where('email', $user->email)->firstOrFail();
         $this->assertTrue(Str::isUuid($data->id_pendataan));
         $this->assertSame('Budi Santoso', $data->nama_kepala_keluarga);
+        $this->assertSame(4, $data->jumlah_anggota_keluarga);
         $this->assertSame(2.5, $data->organik_kg);
 
         $this->put('pendataanpemilahan/update', $this->payload([
@@ -65,7 +68,7 @@ class PendataanPemilahanSampahTest extends TestCase
 
         $this->put('logkegiatan/insert', [])
             ->assertJsonValidationErrors([
-                'tanggal', 'nama_kepala_keluarga', 'alamat_rumah', 'rt', 'rw',
+                'tanggal', 'nama_kepala_keluarga', 'jumlah_anggota_keluarga', 'alamat_rumah', 'rt', 'rw',
                 'memilah', 'organik_kg', 'anorganik_kg', 'residu_kg',
             ], 'errors');
         $this->put('logkegiatan/insert', $this->payload([
@@ -74,7 +77,10 @@ class PendataanPemilahanSampahTest extends TestCase
             'rt' => '1/2',
             'memilah' => 'mungkin',
             'organik_kg' => -1,
-        ]))->assertJsonValidationErrors(['tanggal', 'rt', 'memilah', 'organik_kg'], 'errors');
+            'jumlah_anggota_keluarga' => 1.5,
+        ]))->assertJsonValidationErrors(['tanggal', 'rt', 'memilah', 'organik_kg', 'jumlah_anggota_keluarga'], 'errors');
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0', 'jumlah_anggota_keluarga' => 0]))
+            ->assertJsonValidationErrors(['jumlah_anggota_keluarga' => 'Minimal 1 orang.'], 'errors');
     }
 
     public function test_migration_copies_existing_household_data_out_of_daily_logs(): void
@@ -82,7 +88,8 @@ class PendataanPemilahanSampahTest extends TestCase
         $migration = require database_path('migrations/2026_10_07_000001_create_pendataan_pemilahan_sampah_table.php');
         $migration->down();
 
-        $dailyLog = Logkegiatan::forceCreate($this->payload() + ['email' => 'mahasiswa@pps.test']);
+        // Kolom legacy logkegiatan tidak punya jumlah_anggota_keluarga
+        $dailyLog = Logkegiatan::forceCreate(Arr::except($this->payload(), 'jumlah_anggota_keluarga') + ['email' => 'mahasiswa@pps.test']);
         $migration->up();
 
         $this->assertDatabaseHas('pendataan_pemilahan_sampah', [
@@ -192,16 +199,20 @@ class PendataanPemilahanSampahTest extends TestCase
     public function test_student_export_filters_population_data_by_month(): void
     {
         $user = $this->loginAs('mahasiswa');
-        PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => '2026-05-12']);
-        PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => '2026-06-12']);
+        PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => '2026-05-12', 'jumlah_anggota_keluarga' => 5]);
+        PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => '2026-06-12', 'jumlah_anggota_keluarga' => null]);
         Excel::fake();
 
         $this->get('pendataanpemilahan/export?bulan=2026-05')->assertOk();
 
         Excel::matchByRegex();
         Excel::assertDownloaded('/^pendataan_pemilahan_.+_2026-05_.+\.xlsx$/', function (PendataanPemilahanSampahByMhsExport $export) {
-            return $export->collection()->count() === 1;
+            return $export->collection()->count() === 1
+                && $export->headings()[3] === 'Anggota Keluarga'
+                && $export->collection()->first()[3] === 5;
         });
+        // Data lama tanpa nilai tetap diekspor sebagai sel kosong
+        $this->assertNull((new PendataanPemilahanSampahByMhsExport($user->email, '2026-06'))->collection()->first()[3]);
     }
 
     public function test_reviewer_export_is_limited_to_students_they_can_view(): void

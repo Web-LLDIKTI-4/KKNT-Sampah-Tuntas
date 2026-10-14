@@ -27,6 +27,7 @@ class LogkegiatanTest extends TestCase
             'nama_aktivitas' => 'Pembersihan selokan',
             'tautan' => 'https://example.test/bukti',
             'nama_kepala_keluarga' => 'Budi Santoso',
+            'jumlah_anggota_keluarga' => 4,
             'alamat_rumah' => 'Jl. Melati No. 5',
             'rt' => '003',
             'rw' => '07',
@@ -51,7 +52,7 @@ class LogkegiatanTest extends TestCase
         $this->assertSame('kegiatan', $log->satuan);
         $this->assertSame('https://example.test/bukti', $log->tautan);
         $this->assertNull($log->nama_kepala_keluarga);
-        $this->assertDatabaseHas('pendataan_pemilahan_sampah', ['email' => $user->email, 'nama_kepala_keluarga' => 'Budi Santoso']);
+        $this->assertDatabaseHas('pendataan_pemilahan_sampah', ['email' => $user->email, 'nama_kepala_keluarga' => 'Budi Santoso', 'jumlah_anggota_keluarga' => 4]);
     }
 
     public function test_daily_log_without_other_activity_only_saves_waste_data(): void

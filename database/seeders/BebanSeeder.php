@@ -161,7 +161,8 @@ class BebanSeeder extends Seeder
                 ] + $this->waktu());
                 $this->tambah('pendataan_pemilahan_sampah', [
                     'id_pendataan' => (string) Str::uuid7(), 'email' => $email, 'tanggal' => $tanggal,
-                    'nama_kepala_keluarga' => 'KK Beban '.mt_rand(1, 999), 'alamat_rumah' => 'Jl. Beban No. '.mt_rand(1, 99),
+                    'nama_kepala_keluarga' => 'KK Beban '.mt_rand(1, 999), 'jumlah_anggota_keluarga' => mt_rand(1, 8),
+                    'alamat_rumah' => 'Jl. Beban No. '.mt_rand(1, 99),
                     'rt' => sprintf('%03d', mt_rand(1, 15)), 'rw' => sprintf('%03d', mt_rand(1, 10)), 'memilah' => mt_rand(0, 1),
                     'organik_kg' => mt_rand(0, 500) / 100, 'anorganik_kg' => mt_rand(0, 300) / 100, 'residu_kg' => mt_rand(0, 200) / 100,
                 ] + $this->waktu());

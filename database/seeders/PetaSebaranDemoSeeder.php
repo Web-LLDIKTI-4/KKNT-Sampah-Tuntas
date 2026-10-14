@@ -341,6 +341,7 @@ class PetaSebaranDemoSeeder extends Seeder
                             'email' => $emailTahunIni[($r - 1) % count($emailTahunIni)],
                             'tanggal' => sprintf('%d-%02d-%02d', $tahun, $bulan, 10 + $r),
                             'nama_kepala_keluarga' => 'KK Demo '.$r,
+                            'jumlah_anggota_keluarga' => mt_rand(1, 8),
                             'alamat_rumah' => 'Jl. Demo No. '.$r.', '.$namaDesa,
                             'rt' => '001',
                             'rw' => '001',
