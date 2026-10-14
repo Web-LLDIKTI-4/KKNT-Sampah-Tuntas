@@ -2,15 +2,30 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\CapaianKegiatan;
+use App\Models\Desa;
 use App\Models\Dpl;
+use App\Models\Dpllaporan;
 use App\Models\Dplmentoring;
+use App\Models\Evaluasikegiatanjawaban;
+use App\Models\Freeform;
+use App\Models\Kehadiran;
 use App\Models\Logkegiatan;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
+use App\Models\Mahasiswa_lokasi;
+use App\Models\Nilaikonversi;
+use App\Models\PenguranganSampah;
+use App\Models\Pjdesa;
+use App\Models\RencanaKerja;
 use App\Models\Satuanpendidikan;
+use App\Models\Tugasakhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Tests\TestCase;
 
 class UserManagementTest extends TestCase
@@ -92,5 +107,183 @@ class UserManagementTest extends TestCase
         $this->loginAs('dpl');
 
         $this->put('user/insertuserpt', ['name' => 'x'])->assertRedirect(route('home'));
+    }
+
+    public function test_admin_deletes_mahasiswa_with_all_related_data(): void
+    {
+        $this->loginAs('admin');
+        $user = User::factory()->role('mahasiswa')->create(['image' => 'foto.jpg']);
+        $mhs = Mahasiswa::factory()->create(['email' => $user->email]);
+        Storage::disk('local')->put('photo/foto.jpg', 'x');
+        Logkegiatan::factory()->create(['email' => $user->email]);
+        Kehadiran::factory()->create(['email' => $user->email]);
+        Nilaikonversi::factory()->create(['id_mahasiswa' => $mhs->id_mahasiswa]);
+        Mahasiswa_lokasi::create(['tahun' => 2026, 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => Desa::factory()->create()->id_desa]);
+        Dplmentoring::create(['email_mahasiswa' => $user->email, 'email_dpl' => 'dpl@pps.test']);
+        $this->sampah($user->email);
+        $this->accountTraces($user);
+        $other = Logkegiatan::factory()->create(['email' => 'lain@pps.test']);
+
+        $this->put('user/destroy', ['id' => $user->id])->assertJson(['success' => true]);
+
+        foreach (['users', 'mahasiswa', 'logkegiatan', 'kehadiran', 'pengurangan_sampah', 'password_resets'] as $table) {
+            $this->assertDatabaseMissing($table, ['email' => $user->email]);
+        }
+        $this->assertDatabaseMissing('nilai_konversi', ['id_mahasiswa' => $mhs->id_mahasiswa]);
+        $this->assertDatabaseMissing('mahasiswa_lokasi', ['id_mahasiswa' => $mhs->id_mahasiswa]);
+        $this->assertDatabaseMissing('dpl_mentoring', ['email_mahasiswa' => $user->email]);
+        $this->assertDatabaseMissing('sessions', ['user_id' => $user->id]);
+        Storage::disk('local')->assertMissing('photo/foto.jpg');
+        $this->assertModelExists($other);
+    }
+
+    public function test_admin_deletes_mahasiswa_account_without_master_row(): void
+    {
+        $this->loginAs('admin');
+        $user = User::factory()->role('mahasiswa')->create();
+        Logkegiatan::factory()->create(['email' => $user->email]);
+
+        $this->put('user/destroy', ['id' => $user->id])->assertJson(['success' => true]);
+
+        $this->assertModelMissing($user);
+        $this->assertDatabaseMissing('logkegiatan', ['email' => $user->email]);
+    }
+
+    public function test_deleting_ketua_kelompok_removes_group_data(): void
+    {
+        $this->loginAs('admin');
+        $user = User::factory()->role('mahasiswa')->create(['akses' => 'pjdesa']);
+        Mahasiswa::factory()->create(['email' => $user->email]);
+        Pjdesa::create(['email' => $user->email, 'id_desa' => Desa::factory()->create()->id_desa]);
+        CapaianKegiatan::factory()->create(['email' => $user->email]);
+        $this->sampah($user->email);
+        $otherCapaian = CapaianKegiatan::factory()->create(['email' => 'ketua-lain@pps.test']);
+
+        $this->put('user/destroy', ['id' => $user->id])->assertJson(['success' => true]);
+
+        foreach (['pj_desa', 'capaian_kegiatan', 'pengurangan_sampah'] as $table) {
+            $this->assertDatabaseMissing($table, ['email' => $user->email]);
+        }
+        $this->assertModelExists($otherCapaian);
+    }
+
+    public function test_deleting_dpl_detaches_grades_and_final_assignment(): void
+    {
+        $this->loginAs('admin');
+        $user = User::factory()->role('dpl')->create();
+        $dpl = Dpl::factory()->create(['email' => $user->email]);
+        $nilai = Nilaikonversi::factory()->create(['email_dpl' => $user->email]);
+        $freeform = Freeform::factory()->create(['email_dpl' => $user->email]);
+        $ta = Tugasakhir::factory()->create(['email' => 'mhs@pps.test', 'email_dpl' => $user->email]);
+        Dplmentoring::create(['email_mahasiswa' => 'mhs@pps.test', 'email_dpl' => $user->email]);
+        Dpllaporan::factory()->create(['email' => $user->email]);
+
+        $this->put('user/destroy', ['id' => $user->id])->assertJson(['success' => true]);
+
+        $this->assertModelMissing($user);
+        $this->assertModelMissing($dpl);
+        $this->assertNull($nilai->fresh()->email_dpl);
+        $this->assertNull($freeform->fresh()->email_dpl);
+        $this->assertNull($ta->fresh()->email_dpl);
+        $this->assertDatabaseMissing('dpl_mentoring', ['email_dpl' => $user->email]);
+        $this->assertDatabaseMissing('dpl_laporan_bulanan', ['email' => $user->email]);
+    }
+
+    public function test_deleting_pt_removes_rencana_kerja_and_evaluation_answers(): void
+    {
+        $this->loginAs('admin');
+        $sp = Satuanpendidikan::factory()->create();
+        $user = User::factory()->role('pt')->create(['email' => $sp->npsn]);
+        $mhs = Mahasiswa::factory()->create(['kodept' => $sp->npsn]);
+        $rencana = RencanaKerja::factory()->forPt($sp->npsn)->create(['uploaded_by' => $user->id]);
+        Storage::disk(RencanaKerja::DISK)->put($rencana->file_path, 'pdf');
+        Evaluasikegiatanjawaban::create(['user' => $sp->npsn, 'kodept' => $sp->npsn, 'jawaban' => 'ok', 'tahun' => 2026]);
+
+        $this->put('user/destroy', ['id' => $user->id])->assertJson(['success' => true]);
+
+        $this->assertModelMissing($user);
+        $this->assertModelMissing($rencana);
+        Storage::disk(RencanaKerja::DISK)->assertMissing($rencana->file_path);
+        $this->assertDatabaseMissing('evaluasi_kegiatan_jawaban', ['user' => $sp->npsn]);
+        $this->assertModelExists($sp);
+        $this->assertModelExists($mhs);
+    }
+
+    public function test_deleting_kepala_and_pemda_removes_account_only(): void
+    {
+        $this->loginAs('admin');
+
+        foreach (['kepala', 'pemda'] as $role) {
+            $user = User::factory()->role($role)->create();
+            $this->accountTraces($user);
+
+            $this->put('user/destroy', ['id' => $user->id])->assertJson(['success' => true]);
+
+            $this->assertModelMissing($user);
+            $this->assertDatabaseMissing('sessions', ['user_id' => $user->id]);
+            $this->assertDatabaseMissing('password_resets', ['email' => $user->email]);
+        }
+    }
+
+    public function test_destroy_rejects_admin_target_and_self(): void
+    {
+        $admin = $this->loginAs('admin');
+        $otherAdmin = User::factory()->role('admin')->create();
+
+        $this->put('user/destroy', ['id' => $otherAdmin->id])->assertJsonValidationErrors('id', 'errors');
+        $this->put('user/destroy', ['id' => $admin->id])->assertForbidden();
+        $this->put('user/destroy', ['id' => 'bukan-uuid'])->assertJsonValidationErrors('id', 'errors');
+
+        $this->assertModelExists($otherAdmin);
+        $this->assertModelExists($admin);
+    }
+
+    public function test_non_admin_cannot_delete_users(): void
+    {
+        $target = User::factory()->role('mahasiswa')->create();
+        $this->loginAs('pt');
+
+        $this->put('user/destroy', ['id' => $target->id])->assertRedirect(route('home'));
+
+        $this->assertModelExists($target);
+    }
+
+    public function test_failed_deletion_rolls_back_and_keeps_files(): void
+    {
+        $this->loginAs('admin');
+        $sp = Satuanpendidikan::factory()->create();
+        $user = User::factory()->role('pt')->create(['email' => $sp->npsn, 'image' => 'pt.jpg']);
+        $rencana = RencanaKerja::factory()->forPt($sp->npsn)->create();
+        Storage::disk(RencanaKerja::DISK)->put($rencana->file_path, 'pdf');
+        Storage::disk('local')->put('photo/pt.jpg', 'x');
+        // Gagalkan langkah terakhir transaksi
+        DB::listen(function ($query) {
+            if (preg_match('/^delete from [`"]users[`"]/', $query->sql)) {
+                throw new RuntimeException('boom');
+            }
+        });
+
+        $this->put('user/destroy', ['id' => $user->id])->assertJson(['success' => false, 'message' => 'Data gagal dihapus']);
+
+        $this->assertModelExists($user);
+        $this->assertModelExists($rencana);
+        Storage::disk(RencanaKerja::DISK)->assertExists($rencana->file_path);
+        Storage::disk('local')->assertExists('photo/pt.jpg');
+    }
+
+    private function sampah(string $email): void
+    {
+        PenguranganSampah::create([
+            'email' => $email, 'id_desa' => Desa::factory()->create()->id_desa, 'bulan' => '2026-09-01',
+            'jml_rw' => 1, 'jml_penduduk' => 10, 'jml_rumah' => 3, 'jml_rumah_memilah' => 1,
+            'timbulan' => 5, 'organik_sumber' => 1, 'organik_dlh' => 1, 'anorganik_sumber' => 1,
+            'pengurangan' => 2, 'belum_terkelola' => 3,
+        ]);
+    }
+
+    private function accountTraces(User $user): void
+    {
+        DB::table('sessions')->insert(['id' => 'sess-'.$user->id, 'user_id' => $user->id, 'payload' => 'x', 'last_activity' => time()]);
+        DB::table('password_resets')->insert(['email' => $user->email, 'token' => 'hash', 'created_at' => now()]);
     }
 }

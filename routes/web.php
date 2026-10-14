@@ -153,6 +153,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('user/insertuser', [UserController::class, 'insertuser']);
     Route::get('user/edit/{id}', [UserController::class, 'edit']);
     Route::put('user/updateuser', [UserController::class, 'updateuser']);
+    Route::put('user/destroy', [UserController::class, 'destroy'])->middleware('throttle:sensitive');
 
     Route::get('user/adduserpt', [UserController::class, 'adduserpt']);
     Route::put('user/insertuserpt', [UserController::class, 'insertuserpt']);

@@ -49,12 +49,17 @@
                     @endif
                     <td>{{ $row->role }}</td>
                     <td class="text-center no-sort">
+                        @php
+                            $deleteConfirm = $row->akses === 'pjdesa'
+                                ? 'User ini ketua kelompok. Capaian KPI dan data pengurangan sampah kelompok/desa ikut terhapus. Lanjutkan? Tindakan ini tidak dapat dibatalkan.'
+                                : 'Hapus user ini beserta SEMUA datanya? Tindakan ini tidak dapat dibatalkan.';
+                        @endphp
                         @if(in_array($row->role, ['kepala', 'pemda'], true))
-                            <x-action-data urlEdit="{{ url('user/edituserkepala/'.$row->id) }}" />
+                            <x-action-data urlEdit="{{ url('user/edituserkepala/'.$row->id) }}" :urlDelete="url('user/destroy')" idField="id" :idValue="$row->id" :confirm="$deleteConfirm" />
                         @elseif($row->role != "pt")
-                            <x-action-data urlEdit="{{ url('user/edit/'.$row->id) }}" />
+                            <x-action-data urlEdit="{{ url('user/edit/'.$row->id) }}" :urlDelete="url('user/destroy')" idField="id" :idValue="$row->id" :confirm="$deleteConfirm" />
                         @else
-                            <x-action-data urlEdit="{{ url('user/edituserpt/'.$row->id) }}" />
+                            <x-action-data urlEdit="{{ url('user/edituserpt/'.$row->id) }}" :urlDelete="url('user/destroy')" idField="id" :idValue="$row->id" :confirm="$deleteConfirm" />
                         @endif
                     </td>
                 </tr>

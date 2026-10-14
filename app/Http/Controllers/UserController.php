@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\UserExport;
 use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Admin\DestroyUserRequest;
 use App\Http\Requests\Admin\KepalaUserRequest;
 use App\Http\Requests\Admin\PtUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
@@ -14,11 +15,14 @@ use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
 use App\Models\User;
+use App\Services\PersonDeletionService;
 use App\Services\UserAccountService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+use Throwable;
 
 class UserController extends Controller
 {
@@ -211,6 +215,21 @@ class UserController extends Controller
         User::whereIn('role', ['kepala', 'pemda'])->findOrFail($request->validated('id'))->forceFill($data)->save();
 
         return $this->saved('User '.$request->validated('role').' berhasil diupdate');
+    }
+
+    public function destroy(DestroyUserRequest $request, PersonDeletionService $deletion)
+    {
+        $user = User::findOrFail($request->validated('id'));
+
+        try {
+            $deletion->deleteUser($user);
+        } catch (Throwable $e) {
+            Log::error('Hapus user gagal', ['user_id' => $user->id, 'exception' => $e]);
+
+            return $this->failed('Data gagal dihapus');
+        }
+
+        return $this->deleted();
     }
 
     public function export()

@@ -28,6 +28,13 @@ class ProfilePhotoService
         $user->forceFill(['image' => basename($path)])->save();
     }
 
+    public function delete(User $user): void
+    {
+        if ($user->image) {
+            Storage::disk(self::DISK)->delete(self::DIR.'/'.basename($user->image));
+        }
+    }
+
     public function response(User $user): BinaryFileResponse
     {
         $disk = Storage::disk(self::DISK);

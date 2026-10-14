@@ -43,17 +43,36 @@ class PersonMasterTest extends TestCase
         $this->assertDatabaseMissing('dpl_mentoring', ['email_mahasiswa' => $mhs->email]);
     }
 
+    public function test_deleting_mahasiswa_without_email_keeps_other_data(): void
+    {
+        $this->loginAs('admin');
+        $mhs = Mahasiswa::factory()->create(['email' => null]);
+        $other = Mahasiswa::factory()->create(['email' => null]);
+        Logkegiatan::factory()->create(['email' => 'lain@pps.test']);
+
+        $this->put('mahasiswa/destroy', ['id_mahasiswa' => $mhs->id_mahasiswa])->assertJson(['success' => true]);
+
+        $this->assertDatabaseMissing('mahasiswa', ['id_mahasiswa' => $mhs->id_mahasiswa]);
+        $this->assertDatabaseHas('mahasiswa', ['id_mahasiswa' => $other->id_mahasiswa]);
+        $this->assertDatabaseHas('logkegiatan', ['email' => 'lain@pps.test']);
+    }
+
     public function test_deleting_dpl_keeps_student_final_assignment(): void
     {
         $this->loginAs('admin');
         $dpl = Dpl::factory()->create();
+        User::factory()->role('dpl')->create(['email' => $dpl->email]);
         $ta = Tugasakhir::factory()->create(['email' => 'mhs@pps.test', 'email_dpl' => $dpl->email, 'nilai_dpl' => 88]);
+        $nilai = Nilaikonversi::factory()->create(['email_dpl' => $dpl->email]);
 
         $this->put('dpl/destroy', ['id_dpl' => $dpl->id_dpl])->assertJson(['success' => true]);
 
         $this->assertDatabaseMissing('dpl', ['id_dpl' => $dpl->id_dpl]);
+        $this->assertDatabaseMissing('users', ['email' => $dpl->email]);
         $this->assertNull($ta->fresh()->email_dpl);
         $this->assertSame(88, $ta->fresh()->nilai_dpl);
+        // Nilai dari DPL tetap ada, hanya dilepas
+        $this->assertNull($nilai->fresh()->email_dpl);
     }
 
     public function test_import_rejects_non_spreadsheet_files(): void
