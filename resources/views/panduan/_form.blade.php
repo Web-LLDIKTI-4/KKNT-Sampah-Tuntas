@@ -23,7 +23,7 @@
     </div>
     <div class="col-12">
         <label class="form-label" for="{{ $fieldPrefix }}file">
-            File Panduan
+            File Dokumen
             @if ($panduan)
                 <small class="text-body-secondary">(opsional, isi hanya untuk mengganti file)</small>
             @else

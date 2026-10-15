@@ -129,7 +129,7 @@ class PanduanController extends Controller
     public function download(string $id_panduan): Response
     {
         $panduan = Panduan::findOrFail($id_panduan);
-        abort_unless(Storage::disk(Panduan::DISK)->exists($panduan->file_path), 404, 'File panduan tidak ditemukan.');
+        abort_unless(Storage::disk(Panduan::DISK)->exists($panduan->file_path), 404, 'File dokumen tidak ditemukan.');
 
         return PanduanDownload::response($panduan);
     }

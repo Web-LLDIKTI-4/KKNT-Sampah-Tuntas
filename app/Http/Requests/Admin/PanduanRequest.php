@@ -38,9 +38,9 @@ class PanduanRequest extends AjaxFormRequest
             'deskripsi.max' => 'Deskripsi maksimal 2000 karakter.',
             'is_aktif.required' => 'Status harus dipilih.',
             'is_aktif.boolean' => 'Status tidak valid.',
-            'file.required' => 'File panduan harus diunggah.',
+            'file.required' => 'File dokumen harus diunggah.',
             'file.uploaded' => $this->describeFailedUpload(),
-            'file.file' => 'File panduan gagal diunggah.',
+            'file.file' => 'File dokumen gagal diunggah.',
             'file.mimes' => 'Format file harus pdf, doc, docx, xls, xlsx, ppt, atau pptx.',
             'file.max' => 'Ukuran file maksimal 100MB.',
         ];
@@ -58,6 +58,6 @@ class PanduanRequest extends AjaxFormRequest
                 .'). Kecilkan file atau minta admin server menaikkan batas upload.';
         }
 
-        return 'File panduan gagal diunggah, silakan coba lagi.';
+        return 'File dokumen gagal diunggah, silakan coba lagi.';
     }
 }
