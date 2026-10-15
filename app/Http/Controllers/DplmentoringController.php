@@ -62,20 +62,33 @@ class DplmentoringController extends Controller
             ->make(true);
     }
 
-    public function tambah()
+    public function tambah(Request $request)
     {
-        return view('mentoring.tambah', ['data' => Mahasiswa::with('sp')->whereDoesntHave('dplmentoring')->get()]);
+        abort_unless($request->user()->role === 'dpl', 403);
+        $kodept = $request->user()->dpl?->kodept;
+        $data = $kodept
+            ? Mahasiswa::with(['sp', 'locationProgram'])->where('kodept', $kodept)->whereDoesntHave('dplmentoring')->get()
+            : collect();
+
+        return view('mentoring.tambah', ['data' => $data, 'kodeptMissing' => ! $kodept]);
     }
 
     public function insert(Request $request)
     {
+        abort_unless($request->user()->role === 'dpl', 403);
         $emails = array_filter((array) $request->input('createuser', []), 'is_string');
         if ($emails === [] || count($emails) > 500) {
             return response()->json(['error' => 'user harus dipilih (maksimal 500)']);
         }
 
-        // Hanya mahasiswa terdaftar yang belum punya DPL
+        // Hanya mahasiswa terdaftar sekampus dengan DPL yang belum punya DPL
+        $kodept = $request->user()->dpl?->kodept;
+        if (! $kodept) {
+            return response()->json(['error' => 'Lengkapi kampus di profil DPL terlebih dahulu']);
+        }
+
         $eligible = Mahasiswa::whereIn('email', $emails)
+            ->where('kodept', $kodept)
             ->whereDoesntHave('dplmentoring')
             ->pluck('email');
 

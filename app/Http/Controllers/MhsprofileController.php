@@ -6,6 +6,8 @@ use App\Http\Controllers\Concerns\ManagesProfilePhoto;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Profile\MahasiswaProfileRequest;
 use App\Http\Requests\Profile\SetLokasiRequest;
+use App\Models\Dpl;
+use App\Models\Dplmentoring;
 use App\Models\Kecamatan;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
@@ -23,9 +25,14 @@ class MhsprofileController extends Controller
 
     public function data(Request $request)
     {
+        $mahasiswa = Mahasiswa::where('email', $request->user()->email)->first();
+
         return view('profile.data', [
             'profile' => $request->user(),
-            'mahasiswa' => Mahasiswa::where('email', $request->user()->email)->first(),
+            'mahasiswa' => $mahasiswa,
+            'mentor' => $mahasiswa
+                ? Dpl::with('sp')->whereIn('email', Dplmentoring::where('email_mahasiswa', $mahasiswa->email)->select('email_dpl'))->first()
+                : null,
             'dpl' => null,
             'sp' => Satuanpendidikan::orderBy('nm_lemb')->get(),
         ]);

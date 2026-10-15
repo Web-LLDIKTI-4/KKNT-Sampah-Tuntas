@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Dpl;
 
+use App\Models\Dpl;
 use App\Models\Dplmentoring;
 use App\Models\Freeform;
 use App\Models\Mahasiswa;
 use App\Models\Nilaikonversi;
+use App\Models\Satuanpendidikan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,16 +26,32 @@ class MentoringNilaiTest extends TestCase
     public function test_dpl_can_claim_unassigned_students_only(): void
     {
         $dpl = $this->loginAs('dpl');
-        $bebas = Mahasiswa::factory()->create();
-        $sudahAda = Mahasiswa::factory()->create();
+        $this->put('dplmentoring/insert', ['createuser' => ['x@pps.test']])
+            ->assertJson(['error' => 'Lengkapi kampus di profil DPL terlebih dahulu']);
+
+        $kodept = Satuanpendidikan::factory()->create()->npsn;
+        Dpl::factory()->create(['email' => $dpl->email, 'kodept' => $kodept]);
+        $dpl->unsetRelation('dpl');
+        $bebas = Mahasiswa::factory()->create(['kodept' => $kodept]);
+        $sudahAda = Mahasiswa::factory()->create(['kodept' => $kodept]);
+        $kampusLain = Mahasiswa::factory()->create(['kodept' => Satuanpendidikan::factory()->create()->npsn]);
         Dplmentoring::create(['email_mahasiswa' => $sudahAda->email, 'email_dpl' => 'dpl-lain@pps.test']);
 
-        $this->put('dplmentoring/insert', ['createuser' => [$bebas->email, $sudahAda->email, 'hantu@pps.test']])
+        $this->put('dplmentoring/insert', ['createuser' => [$bebas->email, $sudahAda->email, $kampusLain->email, 'hantu@pps.test']])
             ->assertJson(['success' => '1 mahasiswa berhasil ditambahkan']);
 
         $this->assertTrue(Dplmentoring::isMentor($dpl, $bebas->email));
         $this->assertFalse(Dplmentoring::isMentor($dpl, $sudahAda->email));
+        $this->assertDatabaseMissing('dpl_mentoring', ['email_mahasiswa' => $kampusLain->email]);
         $this->put('dplmentoring/insert', [])->assertJsonStructure(['error']);
+    }
+
+    public function test_non_dpl_cannot_claim_students(): void
+    {
+        $this->loginAs('pt');
+
+        $this->get('dplmentoring/tambah')->assertForbidden();
+        $this->put('dplmentoring/insert', ['createuser' => ['x@pps.test']])->assertForbidden();
     }
 
     public function test_dpl_cannot_delete_or_view_other_dpl_mentees(): void

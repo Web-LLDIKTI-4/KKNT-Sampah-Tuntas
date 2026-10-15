@@ -3,7 +3,9 @@
 namespace Tests\Feature\Profile;
 
 use App\Models\Desa;
+use App\Models\Dpl;
 use App\Models\Mahasiswa_lokasi;
+use App\Models\Satuanpendidikan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -59,6 +61,19 @@ class ProfileTest extends TestCase
         $this->assertSame('Dr. Budi', $user->fresh()->name);
         $this->assertDatabaseHas('dpl', ['email' => $user->email, 'nidn' => '0412345678']);
         $this->get('profile/data')->assertOk();
+    }
+
+    public function test_dpl_cannot_change_existing_kodept(): void
+    {
+        $user = $this->loginAs('dpl');
+        $kampusAsal = Satuanpendidikan::factory()->create()->npsn;
+        $kampusLain = Satuanpendidikan::factory()->create()->npsn;
+        Dpl::factory()->create(['email' => $user->email, 'kodept' => $kampusAsal]);
+
+        $this->put('profile/update', ['nama' => 'Dr. Budi', 'nidn' => '0412345678', 'prodi' => 'TI', 'phone' => '0812-3456', 'kodept' => $kampusLain])
+            ->assertJson(['success' => true]);
+
+        $this->assertSame($kampusAsal, Dpl::where('email', $user->email)->value('kodept'));
     }
 
     public function test_mahasiswa_profile_and_lokasi(): void

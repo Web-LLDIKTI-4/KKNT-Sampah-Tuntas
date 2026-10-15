@@ -42,11 +42,13 @@ class ProfileController extends Controller
         $user->save();
 
         if ($user->role === 'dpl') {
+            // Campus is locked once set; only an empty kodept can be filled from input
+            $existingKodept = Dpl::where('email', $user->email)->value('kodept');
             Dpl::updateOrCreate(['email' => $user->email], [
                 'nidn' => $request->validated('nidn'),
                 'nama' => $request->validated('nama'),
                 'prodi' => $request->validated('prodi'),
-                'kodept' => $request->validated('kodept'),
+                'kodept' => $existingKodept ?: $request->validated('kodept'),
                 'phone' => $request->validated('phone'),
             ]);
         }

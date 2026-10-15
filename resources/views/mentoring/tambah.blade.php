@@ -6,6 +6,10 @@
         <x-button.save formId="form-create">Tambah Pengguna</x-button.save>
         <hr>
 
+        @if($kodeptMissing ?? false)
+            <div class="alert alert-warning">Lengkapi kampus di profil DPL terlebih dahulu</div>
+        @endif
+
         <table class="table table-sm" id="tabel-data">
             <thead>
                 <tr>

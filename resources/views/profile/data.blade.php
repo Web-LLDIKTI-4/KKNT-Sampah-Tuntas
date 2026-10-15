@@ -67,6 +67,37 @@
         </div>
     </div>
 
+    @if($isMahasiswa)
+        <!-- DPL info (read-only) -->
+        <div class="card mb-6">
+            <div class="card-body">
+                <h5 class="card-title mb-4"><i class="ri-user-star-line me-2"></i>Dosen Pembimbing Lapangan</h5>
+                @if($mentor ?? null)
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Nama DPL</small>
+                            <span class="fw-medium">{{ $mentor->nama }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Kampus DPL</small>
+                            <span class="fw-medium">{{ $mentor->sp->nm_lemb ?? '-' }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Email</small>
+                            <span class="fw-medium text-break">{{ $mentor->email }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Kontak</small>
+                            <span class="fw-medium">{{ $mentor->phone ?? '-' }}</span>
+                        </div>
+                    </div>
+                @else
+                    <div class="alert alert-warning mb-0">Belum memiliki DPL, silahkan hubungi pihak kampus.</div>
+                @endif
+            </div>
+        </div>
+    @endif
+
     @if (auth()->user()->role == 'mahasiswa' && !auth()->user()->mahasiswa?->lokasi?->exists())
         <div class="alert alert-warning d-flex gap-3">
             <i class="ri-information-line me-2"></i>
@@ -266,7 +297,7 @@
                             <div class="row">
                             <div class="col-12">
                                 <div class="form-group form-floating form-floating-outline mb-6">
-                                <select class="form-control" id="select2" name="kodept" data-toggle="select">
+                                <select class="form-control" id="select2" name="kodept" data-toggle="select" @if($dpl && $dpl->kodept) disabled @endif>
                                     @if($sp)
                                         @foreach($sp as $row)
                                             @php
@@ -277,6 +308,9 @@
                                     @endif
                                 </select>
                                 <label class="form-control-label">Perguruan Tinggi</label>
+                                @if($dpl && $dpl->kodept)
+                                    <small class="text-muted">Perguruan tinggi tidak dapat diubah. Hubungi admin/PT bila perlu perubahan.</small>
+                                @endif
                                 </div>
                             </div>
                             </div>
