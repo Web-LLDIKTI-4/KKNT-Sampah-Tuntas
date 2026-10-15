@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -60,6 +61,20 @@ class User extends Authenticatable
     public function pt()
     {
         return $this->belongsTo(Satuanpendidikan::class,'email','npsn');
+    }
+
+    // Users shown in Kelola Pengguna, filtered by role and PT (kodept)
+    public function scopeManaged(Builder $query, array $filters = []): Builder
+    {
+        $kodept = $filters['kodept'] ?? null;
+
+        return $query->whereIn('role', ['mahasiswa', 'dpl', 'pt', 'kepala', 'pemda'])
+            ->with(['mahasiswa.sp', 'dpl.sp', 'pt'])
+            ->when($filters['role'] ?? null, fn ($q, $role) => $q->where('role', $role))
+            ->when($kodept, fn ($q) => $q->where(fn ($q) => $q
+                ->where(fn ($q) => $q->where('role', 'mahasiswa')->whereHas('mahasiswa', fn ($q) => $q->where('kodept', $kodept)))
+                ->orWhere(fn ($q) => $q->where('role', 'dpl')->whereHas('dpl', fn ($q) => $q->where('kodept', $kodept)))
+                ->orWhere(fn ($q) => $q->where('role', 'pt')->where('email', $kodept))));
     }
 
     // Role pemantau read-only (kepala & pemda)

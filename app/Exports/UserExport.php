@@ -2,19 +2,23 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\SafeValueBinder;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 use App\Models\User;
 
-class UserExport implements FromCollection, WithHeadings
+class UserExport extends SafeValueBinder implements WithCustomValueBinder, FromCollection, WithHeadings
 {
+    public function __construct(private array $filters = []) {}
+
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
-        $users = User::whereNotIn('role', ['admin'])->get();
+        $users = User::managed($this->filters)->get();
 
         $data = $users->map(function ($data, $key) {
 

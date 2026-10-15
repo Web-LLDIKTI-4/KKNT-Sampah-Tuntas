@@ -62,7 +62,7 @@
                     </div>
                 </div>
                 @if (!in_array($userRole, ['pt', 'kepala', 'pemda']))
-                    <div class="d-flex align-items-center mb-6">
+                    <div class="d-flex align-items-center">
                         <div class="avatar">
                             <div class="avatar-initial bg-label-info rounded">
                             <i class="ri-pencil-ruler-2-line ri-24px"></i>
@@ -75,7 +75,7 @@
                     </div>
                 @endif
 
-                @if (!in_array($userRole, ['pt', 'kepala', 'pemda']))
+                {{-- @if (!in_array($userRole, ['pt', 'kepala', 'pemda']))
                     <div class="d-flex align-items-center">
                         <div class="avatar">
                             <div class="avatar-initial bg-label-info rounded">
@@ -87,7 +87,7 @@
                             <small>{{ $jumlahdplnilaikonversi }} Mahasiswa</small>
                         </div>
                     </div>
-                @endif
+                @endif --}}
             </div>
         </div>
     </div>

@@ -14,6 +14,28 @@
         </x-button>
     </div>
     <div class="card-body">
+        <div class="d-flex flex-column flex-md-row gap-3 mb-4">
+            <div class="col-12 col-md-3">
+                <label for="filter-role" class="form-label">Peran</label>
+                <select id="filter-role" class="form-select user-filter">
+                    <option value="">Semua Peran</option>
+                    <option value="mahasiswa">Mahasiswa</option>
+                    <option value="dpl">DPL</option>
+                    <option value="pt">Perguruan Tinggi</option>
+                    <option value="kepala">Kepala</option>
+                    <option value="pemda">Pemda</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-5">
+                <label for="filter-kodept" class="form-label">Perguruan Tinggi</label>
+                <select id="filter-kodept" class="form-select user-filter">
+                    <option value="">Semua Perguruan Tinggi</option>
+                    @foreach($perguruanTinggi as $npsn => $nama)
+                        <option value="{{ $npsn }}">{{ $nama }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
         <p id="resultcontent">loading user...</p>
     </div>
 </div>
@@ -23,6 +45,15 @@ $(function(){
         $(".modal-dialog").addClass('modal-xl');
     })
     $("#resultcontent").load("{{ url('user/listdata') }}");
+
+    $('.user-filter').on('change', function () {
+        var params = {};
+        var role = $('#filter-role').val();
+        var kodept = $('#filter-kodept').val();
+        if (role) params.role = role;
+        if (kodept) params.kodept = kodept;
+        $("#resultcontent").html('loading user...').load("{{ url('user/listdata') }}?" + $.param(params));
+    });
 
 })    
 </script>

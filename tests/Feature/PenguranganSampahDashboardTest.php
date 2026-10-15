@@ -90,7 +90,7 @@ class PenguranganSampahDashboardTest extends TestCase
 
         $this->get('home')->assertOk()
             ->assertViewHas('penguranganSampahHome', fn ($k) => $k['perPt'] === true)
-            ->assertSee('Konversi Nilai')->assertSee('data-drilldown=', false);
+            ->assertDontSee('Konversi Nilai')->assertSee('data-drilldown=', false);
     }
 
     public function test_dashboard_filter_returns_partial_for_ajax(): void

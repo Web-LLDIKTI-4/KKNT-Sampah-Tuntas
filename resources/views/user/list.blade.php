@@ -69,7 +69,7 @@
 </table>
 </div>
 
-<x-button.export url="{{ route('user.export') }}" />
+<x-button.export url="{{ route('user.export', array_filter(request()->only(['role', 'kodept']))) }}" />
 
 <script>
     $(function () {

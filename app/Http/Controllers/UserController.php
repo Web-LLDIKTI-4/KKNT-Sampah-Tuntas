@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\DestroyUserRequest;
 use App\Http\Requests\Admin\KepalaUserRequest;
 use App\Http\Requests\Admin\PtUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Http\Requests\Admin\UserFilterRequest;
 use App\Models\Dpl;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
@@ -32,12 +33,20 @@ class UserController extends Controller
 
     public function index()
     {
-        return view('user.index');
+        // Only PTs that have at least one user account
+        $perguruanTinggi = Satuanpendidikan::where(fn ($q) => $q
+            ->whereIn('npsn', Mahasiswa::whereHas('user')->select('kodept'))
+            ->orWhereIn('npsn', Dpl::whereHas('user')->select('kodept'))
+            ->orWhereIn('npsn', User::where('role', 'pt')->select('email')))
+            ->orderBy('nm_lemb')
+            ->pluck('nm_lemb', 'npsn');
+
+        return view('user.index', ['perguruanTinggi' => $perguruanTinggi]);
     }
 
-    public function listdata()
+    public function listdata(UserFilterRequest $request)
     {
-        return view('user.list', ['data' => User::whereIn('role', ['mahasiswa', 'dpl', 'pt', 'kepala', 'pemda'])->get()]);
+        return view('user.list', ['data' => User::managed($request->validated())->get()]);
     }
 
     public function getdatamember()
@@ -232,9 +241,9 @@ class UserController extends Controller
         return $this->deleted();
     }
 
-    public function export()
+    public function export(UserFilterRequest $request)
     {
-        return Excel::download(new UserExport, 'users_'.date('Y-m-d_H-i-s').'.xlsx');
+        return Excel::download(new UserExport($request->validated()), 'users_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 
     private function selectedEmails(Request $request): array

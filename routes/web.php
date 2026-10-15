@@ -163,7 +163,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('user/insertuserkepala', [UserController::class, 'insertuserkepala'])->middleware('throttle:sensitive');
     Route::get('user/edituserkepala/{id}', [UserController::class, 'edituserkepala']);
     Route::put('user/updateuserkepala', [UserController::class, 'updateuserkepala'])->middleware('throttle:sensitive');
-    Route::get('user/export', [UserController::class, 'export'])->name('user.export');
+    Route::get('user/export', [UserController::class, 'export'])->middleware('throttle:3,1')->name('user.export');
 
     Route::get('dpl', [DplController::class, 'index']);
     Route::get('dpl/listdata', [DplController::class, 'listdata'])->name('dpl.listdata');

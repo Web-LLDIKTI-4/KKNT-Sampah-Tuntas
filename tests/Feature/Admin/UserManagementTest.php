@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\CapaianKegiatan;
 use App\Models\Desa;
+use App\Exports\UserExport;
 use App\Models\Dpl;
 use App\Models\Dpllaporan;
 use App\Models\Dplmentoring;
@@ -25,6 +26,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -248,6 +250,18 @@ class UserManagementTest extends TestCase
         $this->assertModelExists($target);
     }
 
+    public function test_non_admin_cannot_filter_or_export_users(): void
+    {
+        $sp = Satuanpendidikan::factory()->create();
+
+        foreach (['dpl', 'pt'] as $role) {
+            $this->loginAs($role);
+
+            $this->get('user/listdata?role=mahasiswa')->assertRedirect(route('home'));
+            $this->get('user/export?kodept='.$sp->npsn)->assertRedirect(route('home'));
+        }
+    }
+
     public function test_failed_deletion_rolls_back_and_keeps_files(): void
     {
         $this->loginAs('admin');
@@ -271,6 +285,57 @@ class UserManagementTest extends TestCase
         Storage::disk('local')->assertExists('photo/pt.jpg');
     }
 
+    public function test_listdata_filters_by_role_and_perguruan_tinggi(): void
+    {
+        $this->loginAs('admin');
+        [$sp, $users] = $this->usersAcrossPt();
+
+        $this->get('user/listdata')->assertOk()->assertViewHas('data', fn ($data) => $data->count() === 6);
+        $this->get('user/listdata?role=dpl')->assertOk()
+            ->assertViewHas('data', fn ($data) => $data->pluck('email')->sort()->values()->all() === collect([$users['dpl'], $users['dplLain']])->pluck('email')->sort()->values()->all());
+        $this->get('user/listdata?kodept='.$sp->npsn)->assertOk()
+            ->assertViewHas('data', fn ($data) => $data->pluck('email')->sort()->values()->all() === collect([$users['mhs'], $users['dpl'], $users['pt']])->pluck('email')->sort()->values()->all());
+        $this->get('user/listdata?role=mahasiswa&kodept='.$sp->npsn)->assertOk()
+            ->assertViewHas('data', fn ($data) => $data->pluck('email')->all() === [$users['mhs']->email]);
+        $this->get('user/listdata?role=kepala&kodept='.$sp->npsn)->assertOk()->assertViewHas('data', fn ($data) => $data->isEmpty());
+    }
+
+    public function test_listdata_rejects_invalid_filter(): void
+    {
+        $this->loginAs('admin');
+
+        $this->get('user/listdata?role=admin')->assertSessionHasErrors('role');
+        $this->get('user/listdata?kodept='.urlencode("x' OR 1=1"))->assertSessionHasErrors('kodept');
+    }
+
+    public function test_export_follows_filter(): void
+    {
+        $this->loginAs('admin');
+        [$sp, $users] = $this->usersAcrossPt();
+        Excel::fake();
+        Excel::matchByRegex();
+
+        $this->get('user/export?kodept='.$sp->npsn)->assertOk();
+        Excel::assertDownloaded('/^users_.+\.xlsx$/', function (UserExport $export) use ($users, $sp) {
+            $rows = $export->collection();
+
+            return $rows->pluck('Email')->sort()->values()->all() === collect([$users['mhs'], $users['dpl'], $users['pt']])->pluck('email')->sort()->values()->all()
+                && $rows->pluck('Perguruan Tinggi')->unique()->all() === [$sp->nm_lemb];
+        });
+
+        $this->get('user/export')->assertOk();
+        Excel::assertDownloaded('/^users_.+\.xlsx$/', fn (UserExport $export) => $export->collection()->count() === 6);
+    }
+
+    public function test_index_lists_perguruan_tinggi_with_users(): void
+    {
+        $this->loginAs('admin');
+        [$sp] = $this->usersAcrossPt();
+        $unused = Satuanpendidikan::factory()->create();
+
+        $this->get('user')->assertOk()->assertViewHas('perguruanTinggi', fn ($pt) => $pt->has($sp->npsn) && ! $pt->has($unused->npsn));
+    }
+
     private function sampah(string $email): void
     {
         PenguranganSampah::create([
@@ -285,5 +350,21 @@ class UserManagementTest extends TestCase
     {
         DB::table('sessions')->insert(['id' => 'sess-'.$user->id, 'user_id' => $user->id, 'payload' => 'x', 'last_activity' => time()]);
         DB::table('password_resets')->insert(['email' => $user->email, 'token' => 'hash', 'created_at' => now()]);
+    }
+
+    // Users in two PTs plus one kepala (admin login excluded)
+    private function usersAcrossPt(): array
+    {
+        $sp = Satuanpendidikan::factory()->create();
+        $spLain = Satuanpendidikan::factory()->create();
+        $users = [];
+        foreach (['mhs' => [$sp, 'mahasiswa'], 'mhsLain' => [$spLain, 'mahasiswa'], 'dpl' => [$sp, 'dpl'], 'dplLain' => [$spLain, 'dpl']] as $key => [$pt, $role]) {
+            $users[$key] = User::factory()->role($role)->create();
+            ($role === 'mahasiswa' ? Mahasiswa::factory() : Dpl::factory())->create(['email' => $users[$key]->email, 'kodept' => $pt->npsn]);
+        }
+        $users['pt'] = User::factory()->role('pt')->create(['email' => $sp->npsn]);
+        User::factory()->role('kepala')->create();
+
+        return [$sp, $users];
     }
 }
