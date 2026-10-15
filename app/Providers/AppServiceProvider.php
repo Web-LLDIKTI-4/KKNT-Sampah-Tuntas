@@ -30,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('public-form', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
 
         // Unduhan panduan publik di halaman login: per IP, cegah penyedotan bandwidth
-        RateLimiter::for('public-download', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
+        RateLimiter::for('public-download', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
 
         // Peta sebaran publik: bucket per IP, terpisah dari login
         RateLimiter::for('peta', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));

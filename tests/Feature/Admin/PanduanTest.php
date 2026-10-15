@@ -85,7 +85,7 @@ class PanduanTest extends TestCase
             'php' => UploadedFile::fake()->create('shell.php', 5, 'application/x-php'),
             'image' => UploadedFile::fake()->image('foto.png'),
             'html' => UploadedFile::fake()->create('xss.html', 5, 'text/html'),
-            'too large' => UploadedFile::fake()->create('besar.pdf', 10241, 'application/pdf'),
+            'too large' => UploadedFile::fake()->create('besar.pdf', 102401, 'application/pdf'),
             'missing' => null,
         ];
 
@@ -211,6 +211,20 @@ class PanduanTest extends TestCase
 
         Storage::disk(Panduan::DISK)->delete($panduan->file_path);
         $this->get(route('panduan.download', $panduan->id_panduan))->assertNotFound();
+    }
+
+    public function test_download_uses_x_accel_redirect_when_prefix_configured(): void
+    {
+        config(['filesystems.panduan_x_accel_prefix' => '/_protected']);
+        $this->loginAs('admin');
+        $panduan = $this->createPanduanWithFile();
+
+        $response = $this->get(route('panduan.download', $panduan->id_panduan))->assertOk();
+
+        $this->assertSame('/_protected/'.$panduan->file_path, $response->headers->get('x-accel-redirect'));
+        $this->assertStringContainsString('attachment', $response->headers->get('content-disposition'));
+        $this->assertStringContainsString('lama.pdf', $response->headers->get('content-disposition'));
+        $this->assertSame('', $response->getContent());
     }
 
     public function test_edit_form_shows_current_file(): void

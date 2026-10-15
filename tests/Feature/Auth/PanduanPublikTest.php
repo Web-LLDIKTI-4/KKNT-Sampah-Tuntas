@@ -68,6 +68,20 @@ class PanduanPublikTest extends TestCase
         $this->assertSame('nosniff', $response->headers->get('x-content-type-options'));
     }
 
+    public function test_download_uses_x_accel_redirect_when_prefix_configured(): void
+    {
+        config(['filesystems.panduan_x_accel_prefix' => '/_protected']);
+        $panduan = $this->createPanduan();
+
+        $response = $this->get(route('panduan.unduh', $panduan->id_panduan))->assertOk();
+
+        $this->assertSame('/_protected/'.$panduan->file_path, $response->headers->get('x-accel-redirect'));
+        $this->assertStringContainsString('attachment', $response->headers->get('content-disposition'));
+        $this->assertStringContainsString('Panduan Logbook.pdf', $response->headers->get('content-disposition'));
+        $this->assertStringContainsString('no-store', $response->headers->get('cache-control'));
+        $this->assertSame('', $response->getContent());
+    }
+
     public function test_logged_in_user_can_download_active_panduan(): void
     {
         $panduan = $this->createPanduan();
@@ -93,7 +107,7 @@ class PanduanPublikTest extends TestCase
         $panduan = $this->createPanduan();
         $url = route('panduan.unduh', $panduan->id_panduan);
 
-        for ($attempt = 1; $attempt <= 30; $attempt++) {
+        for ($attempt = 1; $attempt <= 10; $attempt++) {
             $this->get($url)->assertOk();
         }
 

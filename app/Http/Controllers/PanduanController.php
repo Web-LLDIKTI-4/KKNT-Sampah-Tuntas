@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
 
 use App\Http\Controllers\Concerns\RespondsWithJson;
@@ -14,6 +14,7 @@ use App\Http\Requests\Admin\PanduanRequest;
 use App\Models\Panduan;
 use App\Support\ActionButtons;
 use App\Support\FileSize;
+use App\Support\PanduanDownload;
 
 class PanduanController extends Controller
 {
@@ -64,9 +65,16 @@ class PanduanController extends Controller
     {
         $metadata = $request->safe()->only(self::METADATA_FIELDS);
 
-        Panduan::create($metadata + $this->storeUploadedFile($request->file('file')) + [
-            'uploaded_by' => $request->user()->id,
-        ]);
+        $fileAttributes = $this->storeUploadedFile($request->file('file'));
+
+        try {
+            Panduan::create($metadata + $fileAttributes + [
+                'uploaded_by' => $request->user()->id,
+            ]);
+        } catch (\Throwable $exception) {
+            Storage::disk(Panduan::DISK)->delete($fileAttributes['file_path']);
+            throw $exception;
+        }
 
         return $this->saved();
     }
@@ -118,12 +126,12 @@ class PanduanController extends Controller
         return $this->deleted();
     }
 
-    public function download(string $id_panduan): StreamedResponse
+    public function download(string $id_panduan): Response
     {
         $panduan = Panduan::findOrFail($id_panduan);
         abort_unless(Storage::disk(Panduan::DISK)->exists($panduan->file_path), 404, 'File panduan tidak ditemukan.');
 
-        return Storage::disk(Panduan::DISK)->download($panduan->file_path, $panduan->nama_file);
+        return PanduanDownload::response($panduan);
     }
 
     private function storeUploadedFile(UploadedFile $uploadedFile): array

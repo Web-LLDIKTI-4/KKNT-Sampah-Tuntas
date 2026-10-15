@@ -62,6 +62,9 @@ return [
 
     ],
 
+    // Prefix location internal nginx yang dipetakan ke storage/app/private; kosong = stream via PHP
+    'panduan_x_accel_prefix' => env('PANDUAN_X_ACCEL_PREFIX'),
+
     /*
     |--------------------------------------------------------------------------
     | Symbolic Links

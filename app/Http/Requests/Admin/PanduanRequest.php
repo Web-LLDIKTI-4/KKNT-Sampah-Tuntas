@@ -8,7 +8,7 @@ use Illuminate\Validation\Rule;
 
 class PanduanRequest extends AjaxFormRequest
 {
-    public const MAX_KILOBYTES = 10240;
+    public const MAX_KILOBYTES = 102400;
 
     public const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
 
@@ -42,12 +42,12 @@ class PanduanRequest extends AjaxFormRequest
             'file.uploaded' => $this->describeFailedUpload(),
             'file.file' => 'File panduan gagal diunggah.',
             'file.mimes' => 'Format file harus pdf, doc, docx, xls, xlsx, ppt, atau pptx.',
-            'file.max' => 'Ukuran file maksimal 10MB.',
+            'file.max' => 'Ukuran file maksimal 100MB.',
         ];
     }
 
     // Pesan bawaan "failed to upload" tidak menjelaskan penyebab; kasus tersering adalah
-    // file melebihi upload_max_filesize di php.ini (lebih kecil dari batas aplikasi 10MB)
+    // file melebihi upload_max_filesize di php.ini (lebih kecil dari batas aplikasi 100MB)
     private function describeFailedUpload(): string
     {
         $uploadedFile = $this->files->get('file');
