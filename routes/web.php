@@ -171,6 +171,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('dpl/import', [DplController::class, 'import']);
     Route::put('dpl/prosesimport', [DplController::class, 'prosesimport'])->middleware('throttle:sensitive');
     Route::put('dpl/destroy', [DplController::class, 'destroy']);
+    Route::get('dpl/edit/{id}', [DplController::class, 'edit'])->whereUuid('id');
+    Route::put('dpl/update', [DplController::class, 'update'])->middleware('throttle:sensitive');
 
     Route::get('mahasiswa', [MahasiswaController::class, 'index']);
     Route::get('mahasiswa/listdata', [MahasiswaController::class, 'listdata'])->name('mahasiswa.listdata');

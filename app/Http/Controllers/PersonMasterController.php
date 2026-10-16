@@ -52,12 +52,19 @@ abstract class PersonMasterController extends Controller
             ->addColumn('nm_lemb', fn ($row) => $row->sp->nm_lemb ?? 'Belum Terdata')
             ->addColumn('location_program', fn ($row) => $row->locationProgram->nama_lokasi ?? 'Belum Terdata')
             ->addColumn('action', fn ($row) => ActionButtons::make(
+                urlEdit: $this->editUrl($row),
                 urlDelete: url($this->viewPrefix().'/destroy'),
                 idField: $key,
                 idValue: $row->{$key},
             ))
             ->rawColumns(['action'])
             ->make(true);
+    }
+
+    // Tombol edit hanya muncul bila subclass mengembalikan URL
+    protected function editUrl(Model $record): ?string
+    {
+        return null;
     }
 
     protected function listQuery(): Builder

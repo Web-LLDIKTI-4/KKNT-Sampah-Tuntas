@@ -35,6 +35,9 @@
                     @endforeach
                 </select>
             </div>
+            <div class="col-12 col-md-auto d-flex align-items-end">
+                <x-button id="reset-filter" variant="outline-secondary" size="" icon="ri-refresh-line">Reset Filter</x-button>
+            </div>
         </div>
         <p id="resultcontent">loading user...</p>
     </div>
@@ -53,6 +56,12 @@ $(function(){
         if (role) params.role = role;
         if (kodept) params.kodept = kodept;
         $("#resultcontent").html('loading user...').load("{{ url('user/listdata') }}?" + $.param(params));
+    });
+
+    // Clear both filters, then reuse the change handler for a single reload
+    $('#reset-filter').on('click', function () {
+        $('.user-filter').val('').trigger('change.select2');
+        $('#filter-role').trigger('change');
     });
 
 })    

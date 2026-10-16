@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\DplRequest;
 use App\Imports\DPLImport;
 use App\Models\Dpl;
+use App\Models\LokasiProgram;
+use App\Models\Satuanpendidikan;
+use App\Models\User;
 use App\Services\PersonDeletionService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class DplController extends PersonMasterController
 {
@@ -34,5 +39,45 @@ class DplController extends PersonMasterController
     protected function deleteRecord(Model $record): void
     {
         $this->deletion->deleteDpl($record);
+    }
+
+    protected function editUrl(Model $record): ?string
+    {
+        return url('dpl/edit/'.$record->id_dpl);
+    }
+
+    public function edit(string $id)
+    {
+        $dpl = Dpl::findOrFail($id);
+
+        return view('dpl.edit', [
+            'data' => $dpl,
+            'canEditEmail' => ! $dpl->hasAccount(),
+            'perguruanTinggi' => Satuanpendidikan::orderBy('nm_lemb')->pluck('nm_lemb', 'npsn'),
+            'lokasiProgram' => LokasiProgram::orderBy('nama_lokasi')->pluck('nama_lokasi', 'id'),
+        ]);
+    }
+
+    // Email hanya diubah bila DPL belum punya akun: kunci relasi ke users, dplmentoring, dpllaporan
+    public function update(DplRequest $request)
+    {
+        DB::transaction(function () use ($request) {
+            // Lock row so the email lock is evaluated atomically
+            $dpl = Dpl::lockForUpdate()->findOrFail($request->validated('id_dpl'));
+            $hasAccount = $dpl->hasAccount();
+            $fields = ['nidn', 'nama', 'phone', 'prodi', 'kodept', 'location_program'];
+            if (! $hasAccount) {
+                $fields[] = 'email';
+            }
+
+            $dpl->update($request->safe()->only($fields));
+
+            // Keep linked DPL account name in sync, as ProfileController does
+            if ($hasAccount) {
+                User::where('email', $dpl->email)->where('role', 'dpl')->first()?->forceFill(['name' => $dpl->nama])->save();
+            }
+        });
+
+        return $this->saved('Data DPL berhasil diupdate');
     }
 }

@@ -23,6 +23,12 @@ class Dpl extends Model
         };
     }
 
+    // Sudah punya akun login (role apa pun) => email terkunci
+    public function hasAccount(): bool
+    {
+        return filled($this->email) && User::where('email', $this->email)->exists();
+    }
+
     public function user()
     {
         return $this->hasOne(User::class,'email','email');
