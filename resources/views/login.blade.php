@@ -648,7 +648,7 @@
 
         /* Tab Data Peserta: tabel scroll di dalam wrapper, header sticky */
         .peserta-table-wrap {
-          max-height: max(18rem, calc(100vh - 340px));
+          max-height: max(16rem, calc(100vh - 430px));
           overflow-y: auto;
           overscroll-behavior: contain;
         }
@@ -677,6 +677,56 @@
 
         .peserta-empty {
           color: var(--bs-secondary-color);
+        }
+
+        .peserta-toolbar,
+        .peserta-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 0.5rem 1rem;
+          font-size: 0.8125rem;
+          color: var(--bs-secondary-color);
+        }
+
+        .peserta-toolbar {
+          margin-bottom: 0.75rem;
+        }
+
+        .peserta-footer {
+          margin-top: 0.75rem;
+        }
+
+        .peserta-limit {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin: 0;
+          white-space: nowrap;
+        }
+
+        .peserta-limit .form-select {
+          width: auto;
+        }
+
+        .peserta-search {
+          flex: 0 1 18rem;
+        }
+
+        .peserta-info {
+          font-variant-numeric: tabular-nums;
+        }
+
+        .peserta-footer .pagination {
+          margin: 0;
+          flex-wrap: wrap;
+        }
+
+        .peserta-footer .page-link {
+          min-width: 2rem;
+          text-align: center;
+          font-variant-numeric: tabular-nums;
         }
 
         /* Tab Peta Sebaran */
@@ -1180,6 +1230,38 @@
             max-height: none;
             min-height: 0;
           }
+
+          /* Data Peserta: toolbar & footer ditumpuk vertikal */
+          .peserta-toolbar,
+          .peserta-footer {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .peserta-limit {
+            justify-content: space-between;
+          }
+
+          .peserta-search {
+            flex-basis: auto;
+          }
+
+          .peserta-info {
+            text-align: center;
+          }
+
+          .peserta-footer .pagination {
+            justify-content: center;
+          }
+
+          .peserta-footer .page-link {
+            min-width: 1.75rem;
+            padding: 0.2rem 0.45rem;
+          }
+
+          .peserta-table td:nth-child(2) {
+            min-width: 10rem;
+          }
         }
 
         /* Tablet kecil & desktop kecil: 5 pill dirapatkan */
@@ -1391,6 +1473,23 @@
                     </div>
 
                     @if(isset($dataPesertaList) && count($dataPesertaList))
+                      <div class="peserta-toolbar">
+                        <label class="peserta-limit" for="pesertaLimit">
+                          <span>Tampilkan</span>
+                          <select id="pesertaLimit" class="form-select form-select-sm">
+                            <option value="10" selected>10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="0">Semua</option>
+                          </select>
+                          <span>data</span>
+                        </label>
+                        <div class="input-group input-group-sm peserta-search">
+                          <span class="input-group-text"><i class="ri-search-line" aria-hidden="true"></i></span>
+                          <input type="search" id="pesertaSearch" class="form-control" placeholder="Cari perguruan tinggi…"
+                            aria-label="Cari perguruan tinggi" aria-controls="pesertaTbody" autocomplete="off" />
+                        </div>
+                      </div>
                       <div class="table-responsive peserta-table-wrap">
                         <table class="table table-sm table-hover align-middle peserta-table">
                           <thead>
@@ -1401,10 +1500,10 @@
                               <th scope="col" class="text-center">Jumlah DPL</th>
                             </tr>
                           </thead>
-                          <tbody>
+                          <tbody id="pesertaTbody">
                             @foreach($dataPesertaList as $peserta)
-                              <tr>
-                                <td class="text-center">{{ $loop->iteration }}</td>
+                              <tr data-search="{{ mb_strtolower((string) $peserta->nama_pt) }}">
+                                <td class="text-center peserta-no">{{ $loop->iteration }}</td>
                                 <td>{{ $peserta->nama_pt }}</td>
                                 <td class="text-center">{{ number_format($peserta->jumlah_mahasiswa, 0, ',', '.') }}</td>
                                 <td class="text-center">{{ number_format($peserta->jumlah_dpl, 0, ',', '.') }}</td>
@@ -1412,6 +1511,13 @@
                             @endforeach
                           </tbody>
                         </table>
+                        <p id="pesertaNoResult" class="lokasi-empty peserta-empty d-none mb-0">Data tidak ditemukan.</p>
+                      </div>
+                      <div class="peserta-footer">
+                        <span id="pesertaInfo" class="peserta-info" aria-live="polite"></span>
+                        <nav aria-label="Navigasi halaman data peserta">
+                          <ul id="pesertaPagination" class="pagination pagination-sm"></ul>
+                        </nav>
                       </div>
                     @else
                       <p class="lokasi-empty peserta-empty mb-0">Data peserta belum tersedia.</p>
@@ -1791,6 +1897,116 @@ $(function(){
         $("#panduanList").toggleClass("d-none", visibleCount === 0);
         $("#panduanNoResult").toggleClass("d-none", visibleCount > 0);
       });
+
+      // Data peserta: filter, limit & pagination di sisi klien
+      var $pesertaTbody = $("#pesertaTbody");
+      if ($pesertaTbody.length) {
+        var $pesertaRows = $pesertaTbody.children("tr");
+        var $pesertaSearch = $("#pesertaSearch");
+        var $pesertaLimit = $("#pesertaLimit");
+        var $pesertaInfo = $("#pesertaInfo");
+        var $pesertaPagination = $("#pesertaPagination");
+        var $pesertaNoResult = $("#pesertaNoResult");
+        var $pesertaWrap = $pesertaTbody.closest(".peserta-table-wrap");
+        var pesertaPage = 1;
+        var pesertaTimer = null;
+
+        var formatNum = function (n) {
+          return n.toLocaleString("id-ID");
+        };
+
+        var pageItem = function (label, page, opts) {
+          opts = opts || {};
+          var cls = "page-item" + (opts.disabled ? " disabled" : "") + (opts.active ? " active" : "");
+          var attrs = opts.active ? ' aria-current="page"' : "";
+          if (opts.aria) {
+            attrs += ' aria-label="' + opts.aria + '"';
+          }
+          if (opts.disabled) {
+            attrs += " disabled";
+          }
+          return '<li class="' + cls + '"><button type="button" class="page-link" data-page="' + page + '"' + attrs + ">" + label + "</button></li>";
+        };
+
+        var renderPeserta = function () {
+          var keyword = String($pesertaSearch.val() || "").toLowerCase().trim();
+          var limit = parseInt($pesertaLimit.val(), 10) || 0;
+          var total = $pesertaRows.length;
+          var matched = keyword === "" ? $pesertaRows : $pesertaRows.filter(function () {
+            return String($(this).attr("data-search")).indexOf(keyword) !== -1;
+          });
+          var count = matched.length;
+          var perPage = limit > 0 ? limit : Math.max(count, 1);
+          var pages = Math.max(1, Math.ceil(count / perPage));
+          pesertaPage = Math.min(Math.max(1, pesertaPage), pages);
+          var start = (pesertaPage - 1) * perPage;
+          var end = Math.min(start + perPage, count);
+
+          $pesertaRows.addClass("d-none");
+          matched.slice(start, end).each(function (i) {
+            $(this).removeClass("d-none").children(".peserta-no").text(start + i + 1);
+          });
+
+          $pesertaTbody.toggleClass("d-none", count === 0);
+          $pesertaNoResult.toggleClass("d-none", count > 0);
+
+          var suffix = keyword === "" ? "" : " (total " + formatNum(total) + ")";
+          var info = count === 0
+            ? (keyword === "" ? "Tidak ada data perguruan tinggi" : "Tidak ada hasil" + suffix)
+            : "Menampilkan " + formatNum(start + 1) + "–" + formatNum(end) + " dari " + formatNum(count) + (keyword === "" ? " perguruan tinggi" : " hasil" + suffix);
+          $pesertaInfo.text(info);
+
+          if (pages <= 1) {
+            $pesertaPagination.empty().closest("nav").addClass("d-none");
+            return;
+          }
+
+          // Jendela halaman: pertama, terakhir, aktif ±1; celah 1 halaman diisi angka
+          var nums = [];
+          for (var p = 1; p <= pages; p++) {
+            if (p === 1 || p === pages || Math.abs(p - pesertaPage) <= 1 ||
+                (p === 2 && pesertaPage === 4) || (p === pages - 1 && pesertaPage === pages - 3)) {
+              nums.push(p);
+            }
+          }
+
+          var html = pageItem('<i class="ri-arrow-left-s-line" aria-hidden="true"></i>', pesertaPage - 1, { disabled: pesertaPage === 1, aria: "Sebelumnya" });
+          nums.forEach(function (n, i) {
+            if (i > 0 && n - nums[i - 1] > 1) {
+              html += '<li class="page-item disabled"><span class="page-link" aria-hidden="true">…</span></li>';
+            }
+            html += pageItem(n, n, { active: n === pesertaPage, aria: "Halaman " + n });
+          });
+          html += pageItem('<i class="ri-arrow-right-s-line" aria-hidden="true"></i>', pesertaPage + 1, { disabled: pesertaPage === pages, aria: "Berikutnya" });
+
+          $pesertaPagination.html(html).closest("nav").removeClass("d-none");
+        };
+
+        $pesertaSearch.on("input", function () {
+          clearTimeout(pesertaTimer);
+          pesertaTimer = setTimeout(function () {
+            pesertaPage = 1;
+            renderPeserta();
+          }, 200);
+        });
+
+        $pesertaLimit.on("change", function () {
+          pesertaPage = 1;
+          renderPeserta();
+        });
+
+        $pesertaPagination.on("click", "button.page-link", function () {
+          var target = parseInt($(this).data("page"), 10);
+          if ($(this).prop("disabled") || !target || target === pesertaPage) {
+            return;
+          }
+          pesertaPage = target;
+          renderPeserta();
+          $pesertaWrap.scrollTop(0);
+        });
+
+        renderPeserta();
+      }
 
       // Peta sebaran: Leaflet dimuat saat tab pertama dibuka; respons di-cache per kombinasi filter
       var petaMap = null;
