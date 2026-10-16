@@ -90,19 +90,13 @@ abstract class PersonMasterController extends Controller
 
         $failed = count($import->errors);
         if ($failed > 0) {
-            // Batasi agar respons tetap kecil untuk file besar
-            $errors = array_slice($import->errors, 0, 100);
-            if ($failed > 100) {
-                $errors[] = 'dan '.($failed - 100).' baris lainnya.';
-            }
-
             return response()->json([
                 'success' => true,
                 'toast' => $import->imported > 0 ? 'warning' : 'error',
                 'message' => $import->imported > 0
                     ? "{$import->imported} data berhasil diimpor, {$failed} baris dilewati."
                     : "Tidak ada data yang diimpor, {$failed} baris dilewati.",
-                'import_errors' => $errors,
+                'import_errors' => $import->errors,
             ]);
         }
 
