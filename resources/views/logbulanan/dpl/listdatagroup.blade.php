@@ -24,6 +24,7 @@
             lengthChange: true,
             processing: true,
             serverSide: true,
+            searchDelay: 500,
             ajax: "{{ route('admlogbulanan.listdatagrouping') }}",
             language: {
                 search: "",

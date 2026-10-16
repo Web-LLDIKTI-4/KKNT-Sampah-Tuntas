@@ -21,6 +21,7 @@
     var table = $('#dataTable').DataTable({
         processing: true,
         serverSide: true,
+        searchDelay: 500,
         ajax: "{{ route('ptpeserta.listdataserver') }}",
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},

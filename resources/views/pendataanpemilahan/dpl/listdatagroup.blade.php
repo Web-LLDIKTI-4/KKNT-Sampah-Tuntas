@@ -20,6 +20,7 @@
             lengthChange: true,
             processing: true,
             serverSide: true,
+            searchDelay: 500,
             ajax: "{{ route('pendataanpemilahan.listdatagrouping') }}",
             language: {
                 search: '',

@@ -27,6 +27,11 @@ class MahasiswaController extends PersonMasterController
         return 'mahasiswa';
     }
 
+    protected function idNumberColumn(): string
+    {
+        return 'nim';
+    }
+
     // ketua_kelompok: EXISTS pj_desa per baris dalam 1 query (tanpa N+1)
     protected function listQuery(): Builder
     {

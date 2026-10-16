@@ -60,7 +60,7 @@ abstract class StudentLogReportController extends Controller
         abort_unless($request->ajax(), 404);
 
         $query = Mahasiswa::visibleTo($request->user())
-            ->with('sp')
+            ->with('sp:npsn,nm_lemb')
             ->withCount([$this->logRelation().' as count_log' => fn ($query) => $this->constrainCountedLogs($query)])
             ->unless($this->userSorts(), fn ($q) => $q->orderByDesc('created_at'));
 

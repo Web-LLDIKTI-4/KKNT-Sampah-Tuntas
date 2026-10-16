@@ -25,6 +25,7 @@
         lengthChange: true,
         processing: true,
         serverSide: true,
+        searchDelay: 500,
         ajax: "{{ route('admlogharian.listdataserver') }}",
         language: {
             search: "",

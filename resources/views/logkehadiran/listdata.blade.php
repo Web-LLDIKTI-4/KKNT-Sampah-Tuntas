@@ -38,6 +38,7 @@
             lengthChange: true,
             processing: true,
             serverSide: true,
+            searchDelay: 500,
             ajax: "{{ route('admlogkehadiran.listdataserver',request()->route('email')) }}",
             language: {
                 search: "",

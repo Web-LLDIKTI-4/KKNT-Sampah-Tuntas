@@ -24,6 +24,7 @@
             lengthChange: true,
             processing: true,
             serverSide: true,
+            searchDelay: 500,
             ajax: "{{ route('admlogkegiatan.listdatagrouping') }}",
             language: {
                 search: "",
@@ -37,7 +38,7 @@
                 {data: 'nama_mahasiswa', name: 'nama_mahasiswa'},
                 {data: 'email', name: 'email'},
                 {data: 'nm_lemb', name: 'nm_lemb'},
-                {data: 'count_log', name: 'count_log', className: 'text-center', searchable: false},
+                {data: 'count_log', name: 'count_log', className: 'text-center', orderable: false, searchable: false},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
             ]
         });

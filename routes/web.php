@@ -147,6 +147,7 @@ Route::get('ptpeserta/listdataserver', [PtpesertaController::class, 'listdataser
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('user',[UserController::class, 'index']);
     Route::get('user/listdata', [UserController::class, 'listdata']);
+    Route::get('user/listdataserver', [UserController::class, 'listdataserver'])->name('user.listdataserver');
     Route::get('user/getdatamember', [UserController::class, 'getdatamember']);
     Route::put('user/insert', [UserController::class, 'insert']);
     Route::get('user/adduser', [UserController::class, 'adduser']);

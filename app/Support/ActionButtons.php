@@ -15,8 +15,10 @@ class ActionButtons
         ?string $urlDelete = null,
         string $idField = 'id',
         string|int|null $idValue = null,
+        ?string $confirm = null,
     ): string {
-        return view('components.action-data', compact('urlView', 'urlEdit', 'urlDelete', 'idField', 'idValue'))->render();
+        // Null confirm falls back to the component's @props default
+        return view('components.action-data', compact('urlView', 'urlEdit', 'urlDelete', 'idField', 'idValue', 'confirm'))->render();
     }
 
     /**

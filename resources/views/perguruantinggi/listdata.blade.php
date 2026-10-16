@@ -14,6 +14,7 @@ $(function () {
     $('#dataTable').DataTable({
         processing: true,
         serverSide: true,
+        searchDelay: 500,
         searching: true,
         lengthChange: true,
         ajax: "{{ route('perguruantinggi.listdataserver') }}",

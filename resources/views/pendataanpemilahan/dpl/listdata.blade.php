@@ -37,6 +37,7 @@
             lengthChange: true,
             processing: true,
             serverSide: true,
+            searchDelay: 500,
             ajax: "{{ route('pendataanpemilahan.listdataserver.mahasiswa', ['email' => $email]) }}",
             language: {
                 search: '',

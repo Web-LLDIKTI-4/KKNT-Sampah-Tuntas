@@ -21,6 +21,7 @@
         lengthChange: true,
         processing: true,
         serverSide: true,
+        searchDelay: 500,
         order: [[4, 'desc']],
         ajax: "{{ route('panduan.listdataserver') }}",
         language: {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Admin\ImportFileRequest;
 use App\Support\ActionButtons;
@@ -18,7 +19,7 @@ use Yajra\DataTables\Facades\DataTables;
  */
 abstract class PersonMasterController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     /** @return class-string<Model> */
     abstract protected function model(): string;
@@ -30,6 +31,9 @@ abstract class PersonMasterController extends Controller
     abstract protected function makeImport(): object;
 
     abstract protected function deleteRecord(Model $record): void;
+
+    // Identity number column shown in the list, e.g. nim / nidn
+    abstract protected function idNumberColumn(): string;
 
     public function index()
     {
@@ -45,12 +49,23 @@ abstract class PersonMasterController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $key = (new ($this->model()))->getKeyName();
+        $this->sanitizeDataTablesInput();
+        $model = new ($this->model());
+        $key = $model->getKeyName();
+        $whitelist = [$this->idNumberColumn(), 'nama', 'email', 'phone', 'nm_lemb', 'location_program'];
 
-        return DataTables::of($this->listQuery()->get())
+        $query = $this->listQuery()
+            ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q->orderBy($model->getTable().'.nama'));
+
+        return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->addColumn('nm_lemb', fn ($row) => $row->sp->nm_lemb ?? 'Belum Terdata')
-            ->addColumn('location_program', fn ($row) => $row->locationProgram->nama_lokasi ?? 'Belum Terdata')
+            ->addColumn('nm_lemb', fn ($row) => $row->nm_lemb ?? 'Belum Terdata')
+            ->addColumn('location_program', fn ($row) => $row->nama_lokasi ?? 'Belum Terdata')
+            // Joined columns: map search & sort to the joined tables
+            ->filterColumn('nm_lemb', fn ($q, $k) => $q->where('sp.nm_lemb', 'like', "%{$k}%"))
+            ->orderColumn('nm_lemb', 'sp.nm_lemb $1')
+            ->filterColumn('location_program', fn ($q, $k) => $q->where('lp.nama_lokasi', 'like', "%{$k}%"))
+            ->orderColumn('location_program', 'lp.nama_lokasi $1')
             ->addColumn('action', fn ($row) => ActionButtons::make(
                 urlEdit: $this->editUrl($row),
                 urlDelete: url($this->viewPrefix().'/destroy'),
@@ -58,6 +73,7 @@ abstract class PersonMasterController extends Controller
                 idValue: $row->{$key},
             ))
             ->rawColumns(['action'])
+            ->whitelist($whitelist)
             ->make(true);
     }
 
@@ -67,9 +83,24 @@ abstract class PersonMasterController extends Controller
         return null;
     }
 
+    // Joins replace eager loads: npsn is unique and lokasi_program.id is PK, so no duplicate rows
     protected function listQuery(): Builder
     {
-        return $this->model()::with(['sp', 'locationProgram']);
+        $model = new ($this->model());
+        $table = $model->getTable();
+
+        return $model->newQuery()
+            ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', $table.'.kodept')
+            ->leftJoin('lokasi_program as lp', 'lp.id', '=', $table.'.location_program')
+            ->select([
+                $table.'.'.$model->getKeyName(),
+                $table.'.'.$this->idNumberColumn(),
+                $table.'.nama',
+                $table.'.email',
+                $table.'.phone',
+                'sp.nm_lemb',
+                'lp.nama_lokasi',
+            ]);
     }
 
     public function import()

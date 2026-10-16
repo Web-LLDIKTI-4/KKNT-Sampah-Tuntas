@@ -41,6 +41,7 @@
         lengthChange: true,
         processing: true,
         serverSide: true,
+        searchDelay: 500,
         order: [[columns.length - {{ $canAct ? 2 : 1 }}, 'desc']],
         ajax: "{{ route('rencanakerja.listdataserver') }}",
         language: {

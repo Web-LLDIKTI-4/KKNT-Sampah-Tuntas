@@ -26,6 +26,7 @@
         lengthChange: true,
         processing: true,
         serverSide: true,
+        searchDelay: 500,
         ajax: "{{ route('dplkonversinilai.listdataserver') }}",
         language: {
             search: "",

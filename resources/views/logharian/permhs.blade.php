@@ -30,6 +30,7 @@ $(function(){
         lengthChange: true,
         processing: true,
         serverSide: true,
+        searchDelay: 500,
         ajax: "{{ url('admlogharian/permhsserver') }}/{{$email}}",
         language: {
             search: "",

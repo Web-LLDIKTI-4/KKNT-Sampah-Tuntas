@@ -16,6 +16,7 @@ $(function () {
         $table.DataTable({
             processing: true,
             serverSide: true,
+            searchDelay: 500, // debounce search requests
             ajax: $table.data('ajax'),
             columns: $table.data('columns'),
             order: $table.data('order'),

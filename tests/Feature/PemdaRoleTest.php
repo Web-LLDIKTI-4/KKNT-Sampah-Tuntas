@@ -97,7 +97,8 @@ class PemdaRoleTest extends TestCase
         $this->assertSame('pemda', $pemda->role);
 
         $this->get('user/edituserkepala/'.$pemda->id)->assertOk()->assertSee('value="pemda" selected', false);
-        $this->get('user/listdata')->assertOk()->assertSee('user/edituserkepala/'.$pemda->id, false);
+        $rows = $this->getJson('user/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->json('data');
+        $this->assertStringContainsString('user/edituserkepala/'.$pemda->id, collect($rows)->pluck('action')->implode(''));
 
         $this->put('user/updateuserkepala', ['id' => $pemda->id, 'name' => 'Pemda Baru', 'email' => 'pemda@pps.test', 'role' => 'kepala'])
             ->assertJson(['success' => true]);

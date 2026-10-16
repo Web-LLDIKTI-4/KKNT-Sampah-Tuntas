@@ -290,14 +290,16 @@ class UserManagementTest extends TestCase
         $this->loginAs('admin');
         [$sp, $users] = $this->usersAcrossPt();
 
-        $this->get('user/listdata')->assertOk()->assertViewHas('data', fn ($data) => $data->count() === 6);
-        $this->get('user/listdata?role=dpl')->assertOk()
-            ->assertViewHas('data', fn ($data) => $data->pluck('email')->sort()->values()->all() === collect([$users['dpl'], $users['dplLain']])->pluck('email')->sort()->values()->all());
-        $this->get('user/listdata?kodept='.$sp->npsn)->assertOk()
-            ->assertViewHas('data', fn ($data) => $data->pluck('email')->sort()->values()->all() === collect([$users['mhs'], $users['dpl'], $users['pt']])->pluck('email')->sort()->values()->all());
-        $this->get('user/listdata?role=mahasiswa&kodept='.$sp->npsn)->assertOk()
-            ->assertViewHas('data', fn ($data) => $data->pluck('email')->all() === [$users['mhs']->email]);
-        $this->get('user/listdata?role=kepala&kodept='.$sp->npsn)->assertOk()->assertViewHas('data', fn ($data) => $data->isEmpty());
+        $emails = fn (string $query) => collect($this->getJson('user/listdataserver?draw=1&start=0&length=50'.$query, ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()->json('data'))->pluck('email')->sort()->values()->all();
+        $expected = fn (array $list) => collect($list)->pluck('email')->sort()->values()->all();
+
+        $this->get('user/listdata?role=dpl')->assertOk()->assertViewHas('filters', ['role' => 'dpl']);
+        $this->assertCount(6, $emails(''));
+        $this->assertSame($expected([$users['dpl'], $users['dplLain']]), $emails('&role=dpl'));
+        $this->assertSame($expected([$users['mhs'], $users['dpl'], $users['pt']]), $emails('&kodept='.$sp->npsn));
+        $this->assertSame([$users['mhs']->email], $emails('&role=mahasiswa&kodept='.$sp->npsn));
+        $this->assertSame([], $emails('&role=kepala&kodept='.$sp->npsn));
     }
 
     public function test_listdata_rejects_invalid_filter(): void

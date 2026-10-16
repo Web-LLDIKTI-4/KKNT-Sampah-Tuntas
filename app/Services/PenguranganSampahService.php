@@ -91,7 +91,7 @@ class PenguranganSampahService
      */
     public function totalPer(string $kolom, array $filter): Collection
     {
-        $kolom = ['kecamatan' => 'd.id_kecamatan', 'desa' => 's.id_desa', 'kodept' => 'm.kodept', 'lokasi' => 'm.location_program'][$kolom];
+        $kolom = ['kecamatan' => 'd.id_kecamatan', 'desa' => 's.id_desa', 'kodept' => 's.kodept', 'lokasi' => 's.location_program'][$kolom];
 
         return $this->withJumlah($this->query($filter))
             ->whereNotNull($kolom)
@@ -111,7 +111,7 @@ class PenguranganSampahService
 
     public function bulanTerakhir(?string $kodept = null, ?int $tahun = null): ?string
     {
-        $bulan = $this->query(['kodept' => $kodept, 'tahun' => $tahun])->max('s.bulan');
+        $bulan = $this->query(['kodept' => $kodept, 'tahun' => $tahun])->max('s.tanggal');
 
         return $bulan ? Carbon::parse($bulan)->format('Y-m') : null;
     }
@@ -315,8 +315,8 @@ class PenguranganSampahService
     {
         return $this->penempatanData[(string) $kodept] ??= $this->query(['kodept' => $kodept])
             ->whereNotNull('kc.id_kecamatan')
-            ->groupBy('m.location_program', 's.id_desa', 'm.kodept', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan')
-            ->select('m.location_program', 's.id_desa', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan', 'm.kodept')
+            ->groupBy('s.location_program', 's.id_desa', 's.kodept', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan')
+            ->select('s.location_program', 's.id_desa', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan', 's.kodept')
             ->get();
     }
 
@@ -404,19 +404,19 @@ class PenguranganSampahService
                 $q->whereBetween('p.tanggal', [$awal->toDateString(), $awal->copy()->endOfMonth()->toDateString()]);
             })
             ->when($filter['tahun'] ?? null, fn (Builder $q, $v) => $q->whereBetween('p.tanggal', [$v.'-01-01', $v.'-12-31']))
-            ->selectRaw("p.email, ml.id_desa, DATE_FORMAT(p.tanggal, '%Y-%m-01') as bulan, p.memilah, p.organik_kg, p.anorganik_kg, p.residu_kg")
+            // Filter PT/lokasi di query dalam agar derived table tidak memuat semua pendataan
+            ->when($filter['kodept'] ?? null, fn (Builder $q, $v) => $q->where('lm.kodept', $v))
+            ->when($filter['lokasi'] ?? null, fn (Builder $q, $v) => $q->where('lm.location_program', $v))
+            // Daftar PT hasil pilihan klaster; daftar kosong = tidak ada data
+            ->when(array_key_exists('kodept_in', $filter), fn (Builder $q) => $q->whereIn('lm.kodept', $filter['kodept_in']))
+            ->selectRaw("p.email, lm.kodept, lm.location_program, ml.id_desa, p.tanggal, DATE_FORMAT(p.tanggal, '%Y-%m-01') as bulan, p.memilah, p.organik_kg, p.anorganik_kg, p.residu_kg")
             ->selectRaw("CONCAT_WS('|', ml.id_desa, p.nama_kepala_keluarga, p.alamat_rumah, p.rt, p.rw) as rumah");
 
         return DB::query()->fromSub($log, 's')
             ->join('desa as d', 'd.id_desa', '=', 's.id_desa')
             ->leftJoin('kecamatan as kc', 'kc.id_kecamatan', '=', 'd.id_kecamatan')
-            ->leftJoin('mahasiswa as m', 'm.email', '=', 's.email')
             ->when($filter['id_kecamatan'] ?? null, fn (Builder $q, $v) => $q->where('d.id_kecamatan', $v))
-            ->when($filter['id_desa'] ?? null, fn (Builder $q, $v) => $q->where('s.id_desa', $v))
-            ->when($filter['kodept'] ?? null, fn (Builder $q, $v) => $q->where('m.kodept', $v))
-            ->when($filter['lokasi'] ?? null, fn (Builder $q, $v) => $q->where('m.location_program', $v))
-            // Daftar PT hasil pilihan klaster; daftar kosong = tidak ada data
-            ->when(array_key_exists('kodept_in', $filter), fn (Builder $q) => $q->whereIn('m.kodept', $filter['kodept_in']));
+            ->when($filter['id_desa'] ?? null, fn (Builder $q, $v) => $q->where('s.id_desa', $v));
     }
 
     private function withJumlah(Builder $query): Builder

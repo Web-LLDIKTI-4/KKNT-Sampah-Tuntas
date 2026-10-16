@@ -31,6 +31,7 @@
         lengthChange: true,
         processing: true,
         serverSide: true,
+        searchDelay: 500,
         ajax: "{{ route('admlogbulanan.listdataserver', request()->route('email')) }}",
         language: {
             search: "",

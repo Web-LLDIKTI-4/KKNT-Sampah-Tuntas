@@ -22,6 +22,7 @@
             lengthChange: true,
             processing: true,
             serverSide: true,
+            searchDelay: 500,
             ajax: "{{ route('admlogkehadiran.listdatagrouping') }}",
             language: {
                 search: "",

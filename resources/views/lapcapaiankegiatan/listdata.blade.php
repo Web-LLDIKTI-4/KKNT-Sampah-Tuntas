@@ -44,6 +44,7 @@
         lengthChange: true,
         processing: true,
         serverSide: true,
+        searchDelay: 500,
         ajax: "{{ route('lapcapaiankegiatan.listdataserver') }}",
         order: [[1, 'desc']],
         language: {

@@ -29,6 +29,7 @@
         lengthChange: true,
         processing: true,
         serverSide: true,
+        searchDelay: 500,
         ajax: "{{ route('admfreeform.listdataserver') }}",
         language: {
             search: "",

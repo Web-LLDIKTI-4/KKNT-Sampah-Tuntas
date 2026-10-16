@@ -31,6 +31,11 @@ class DplController extends PersonMasterController
         return 'DPL';
     }
 
+    protected function idNumberColumn(): string
+    {
+        return 'nidn';
+    }
+
     protected function makeImport(): object
     {
         return new DPLImport;

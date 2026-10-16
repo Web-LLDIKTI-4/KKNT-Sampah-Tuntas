@@ -69,11 +69,11 @@ class User extends Authenticatable
         $kodept = $filters['kodept'] ?? null;
 
         return $query->whereIn('role', ['mahasiswa', 'dpl', 'pt', 'kepala', 'pemda'])
-            ->with(['mahasiswa.sp', 'dpl.sp', 'pt'])
+            ->with(['mahasiswa:email,nim,kodept', 'mahasiswa.sp:npsn,nm_lemb', 'dpl:email,nidn,kodept', 'dpl.sp:npsn,nm_lemb', 'pt:npsn,nm_lemb'])
             ->when($filters['role'] ?? null, fn ($q, $role) => $q->where('role', $role))
             ->when($kodept, fn ($q) => $q->where(fn ($q) => $q
-                ->where(fn ($q) => $q->where('role', 'mahasiswa')->whereHas('mahasiswa', fn ($q) => $q->where('kodept', $kodept)))
-                ->orWhere(fn ($q) => $q->where('role', 'dpl')->whereHas('dpl', fn ($q) => $q->where('kodept', $kodept)))
+                ->where(fn ($q) => $q->where('role', 'mahasiswa')->whereIn('email', Mahasiswa::select('email')->where('kodept', $kodept)))
+                ->orWhere(fn ($q) => $q->where('role', 'dpl')->whereIn('email', Dpl::select('email')->where('kodept', $kodept)))
                 ->orWhere(fn ($q) => $q->where('role', 'pt')->where('email', $kodept))));
     }
 

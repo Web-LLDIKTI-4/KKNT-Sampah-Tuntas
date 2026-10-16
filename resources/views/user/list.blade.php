@@ -1,6 +1,18 @@
 <div class="table-responsive">
-<table class="table table-bordered table-sm" id="dataTable-user">
-    <thead>
+<x-table
+    id="dataTable-user"
+    :ajax="route('user.listdataserver', $filters)"
+    :columns="[
+        ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
+        ['data' => 'email', 'name' => 'email'],
+        ['data' => 'name', 'name' => 'name'],
+        ['data' => 'id_number', 'name' => 'id_number', 'className' => 'text-center'],
+        ['data' => 'pt_name', 'name' => 'pt_name'],
+        ['data' => 'role', 'name' => 'role'],
+        ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
+    ]"
+>
+    <x-slot:thead>
         <tr>
             <th width="1">No</th>
             <th>Nama Pengguna</th>
@@ -10,86 +22,8 @@
             <th>Peran</th>
             <th width="1">Aksi</th>
         </tr>
-    </thead>
-    <tbody>
-        @if($data->isEmpty())
-            
-        @else
-            @foreach($data as $row)
-                <tr>
-                    <td class="text-center">{{ $loop->iteration }}</td>
-                    <td>{{ $row->email }}</td>
-                    <td>{{ $row->name }}</td>
-                    @if ($row->role === 'mahasiswa' && $row->mahasiswa)
-                        <td class="text-center">{{ $row->mahasiswa->nim }}</td>
-                        <td>
-                            @if($row->mahasiswa->sp && $row->mahasiswa->sp->nm_lemb)
-                                {{ $row->mahasiswa->sp->nm_lemb }}
-                            @else
-                                {{ $row->mahasiswa->kodept }}
-                            @endif
-                        </td>
-                    @elseif ($row->role === 'dpl' && $row->dpl)
-                        <td class="text-center">{{ $row->dpl->nidn }}</td>
-                        <td>
-                            @if($row->dpl->sp && $row->dpl->sp->nm_lemb)
-                                {{ $row->dpl->sp->nm_lemb }}
-                            @else
-                                {{ $row->dpl->kodept }}
-                            @endif
-                        </td>  
-                    @elseif ($row->role === 'pt' && $row->pt)
-                        <td class="text-center">-</td>
-                        <td>
-                            {{ $row->pt->nm_lemb }}
-                        </td> 
-                    @else
-                        <td class="text-center">-</td>
-                        <td>-</td>
-                    @endif
-                    <td>{{ $row->role }}</td>
-                    <td class="text-center no-sort">
-                        @php
-                            $deleteConfirm = $row->akses === 'pjdesa'
-                                ? 'User ini ketua kelompok. Capaian KPI dan data pengurangan sampah kelompok/desa ikut terhapus. Lanjutkan? Tindakan ini tidak dapat dibatalkan.'
-                                : 'Hapus user ini beserta SEMUA datanya? Tindakan ini tidak dapat dibatalkan.';
-                        @endphp
-                        @if(in_array($row->role, ['kepala', 'pemda'], true))
-                            <x-action-data urlEdit="{{ url('user/edituserkepala/'.$row->id) }}" :urlDelete="url('user/destroy')" idField="id" :idValue="$row->id" :confirm="$deleteConfirm" />
-                        @elseif($row->role != "pt")
-                            <x-action-data urlEdit="{{ url('user/edit/'.$row->id) }}" :urlDelete="url('user/destroy')" idField="id" :idValue="$row->id" :confirm="$deleteConfirm" />
-                        @else
-                            <x-action-data urlEdit="{{ url('user/edituserpt/'.$row->id) }}" :urlDelete="url('user/destroy')" idField="id" :idValue="$row->id" :confirm="$deleteConfirm" />
-                        @endif
-                    </td>
-                </tr>
-            @endforeach
-        @endif
-    </tbody>
-</table>
+    </x-slot:thead>
+</x-table>
 </div>
 
-<x-button.export url="{{ route('user.export', array_filter(request()->only(['role', 'kodept']))) }}" />
-
-<script>
-    $(function () {
-        let table = $('#dataTable-user').DataTable({
-            paging: true,
-            lengthChange: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            autoWidth: false,
-            serverSide: false,
-            language: {
-                "search": "",
-                "searchPlaceholder": "Cari...",
-                "zeroRecords": "Tidak ada data yang ditemukan",
-                "infoEmpty": "Tidak ada data yang tersedia"
-            },
-            columnDefs: [
-                { targets: 'no-sort', orderable: false } // Tambahkan class 'no-sort' pada kolom 'Aksi'
-            ],
-        });
-    })
-</script>
+<x-button.export url="{{ route('user.export', $filters) }}" />
