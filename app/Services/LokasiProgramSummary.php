@@ -13,31 +13,36 @@ class LokasiProgramSummary
      */
     public function all(): Collection
     {
-        $kodeptDpl = DB::table('users')
-            ->join('dpl', 'dpl.email', '=', 'users.email')
+        // Same definitions as header stats in LoginController::statistikPublik()
+        $jumlahDplPerLokasi = DB::table('dpl')
+            ->join('users', 'users.email', '=', 'dpl.email')
             ->whereNotNull('users.location_program')
-            ->whereNotNull('dpl.kodept')
-            ->select('users.location_program', 'dpl.kodept');
+            ->select('users.location_program', DB::raw('COUNT(*) as total'))
+            ->groupBy('users.location_program')
+            ->pluck('total', 'location_program');
 
-        $kodeptMahasiswa = DB::table('users')
-            ->join('mahasiswa', 'mahasiswa.email', '=', 'users.email')
+        $jumlahMahasiswaPerLokasi = DB::table('mahasiswa')
+            ->join('users', 'users.email', '=', 'mahasiswa.email')
+            ->whereNotNull('users.location_program')
+            ->select('users.location_program', DB::raw('COUNT(*) as total'))
+            ->groupBy('users.location_program')
+            ->pluck('total', 'location_program');
+
+        $jumlahPtPerLokasi = DB::table('mahasiswa')
+            ->join('users', 'users.email', '=', 'mahasiswa.email')
             ->whereNotNull('users.location_program')
             ->whereNotNull('mahasiswa.kodept')
-            ->select('users.location_program', 'mahasiswa.kodept');
-
-        $jumlahPtPerLokasi = DB::query()
-            ->fromSub($kodeptDpl->unionAll($kodeptMahasiswa), 'gabungan')
-            ->select('location_program', DB::raw('COUNT(DISTINCT kodept) as total'))
-            ->groupBy('location_program')
+            ->select('users.location_program', DB::raw('COUNT(DISTINCT mahasiswa.kodept) as total'))
+            ->groupBy('users.location_program')
             ->pluck('total', 'location_program');
 
         return LokasiProgram::query()
-            ->withCount([
-                'users as jumlah_dpl' => fn ($q) => $q->where('role', 'dpl'),
-                'users as jumlah_mahasiswa' => fn ($q) => $q->where('role', 'mahasiswa'),
-            ])
             ->orderBy('nama_lokasi')
             ->get()
-            ->each(fn ($lokasi) => $lokasi->jumlah_pt = $jumlahPtPerLokasi[$lokasi->id] ?? 0);
+            ->each(function ($lokasi) use ($jumlahDplPerLokasi, $jumlahMahasiswaPerLokasi, $jumlahPtPerLokasi) {
+                $lokasi->jumlah_dpl = $jumlahDplPerLokasi[$lokasi->id] ?? 0;
+                $lokasi->jumlah_mahasiswa = $jumlahMahasiswaPerLokasi[$lokasi->id] ?? 0;
+                $lokasi->jumlah_pt = $jumlahPtPerLokasi[$lokasi->id] ?? 0;
+            });
     }
 }

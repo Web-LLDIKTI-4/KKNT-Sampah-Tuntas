@@ -646,6 +646,39 @@
           box-shadow: 0 8px 22px rgba(20, 24, 70, 0.14);
         }
 
+        /* Tab Data Peserta: tabel scroll di dalam wrapper, header sticky */
+        .peserta-table-wrap {
+          max-height: max(18rem, calc(100vh - 340px));
+          overflow-y: auto;
+          overscroll-behavior: contain;
+        }
+
+        .peserta-table {
+          margin-bottom: 0;
+          font-size: 0.8125rem;
+        }
+
+        .peserta-table thead th {
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background: var(--bs-card-bg, #fff);
+          color: var(--bs-primary);
+          font-weight: 700;
+          white-space: nowrap;
+          box-shadow: inset 0 -1px 0 var(--bs-border-color);
+        }
+
+        .peserta-table td.text-center,
+        .peserta-table td.text-end {
+          white-space: nowrap;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .peserta-empty {
+          color: var(--bs-secondary-color);
+        }
+
         /* Tab Peta Sebaran */
         .peta-head {
           display: flex;
@@ -1149,15 +1182,15 @@
           }
         }
 
-        /* Desktop kecil: panel kiri sempit, pill dirapatkan */
-        @media (min-width: 992px) and (max-width: 1199px) {
+        /* Tablet kecil & desktop kecil: 5 pill dirapatkan */
+        @media (min-width: 576px) and (max-width: 767px), (min-width: 992px) and (max-width: 1199px) {
           .panel-switch .nav-link {
             padding: 0.5rem 0.8rem;
             font-size: 0.875rem;
           }
         }
 
-        /* HP: 4 pill jadi grid 2x2 agar semua terlihat tanpa scroll */
+        /* HP: pill jadi grid 2 kolom agar semua terlihat tanpa scroll */
         @media (max-width: 575px) {
           .panel-switch {
             display: grid;
@@ -1168,6 +1201,11 @@
 
           .panel-switch .nav-link {
             min-width: 0;
+          }
+
+          /* pill ganjil terakhir dibuat penuh selebar grid */
+          .panel-switch .nav-link:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
           }
         }
 
@@ -1243,6 +1281,9 @@
                 </button>
                 <button type="button" class="nav-link" id="tabLaporan" data-bs-toggle="pill" data-bs-target="#paneLaporan" role="tab" aria-controls="paneLaporan" aria-selected="false">
                   <i class="ri-file-chart-line"></i> Capaian Program
+                </button>
+                <button type="button" class="nav-link" id="tabPeserta" data-bs-toggle="pill" data-bs-target="#panePeserta" role="tab" aria-controls="panePeserta" aria-selected="false" title="Data Peserta">
+                  <i class="ri-team-line"></i> <span><span class="d-none d-xl-inline">Data </span>Peserta</span>
                 </button>
                 <button type="button" class="nav-link" id="tabPeta" data-bs-toggle="pill" data-bs-target="#panePeta" role="tab" aria-controls="panePeta" aria-selected="false" title="Peta Sebaran Mahasiswa">
                   <i class="ri-map-pin-line"></i> <span>Peta<span class="d-none d-lg-inline"> Sebaran</span><span class="d-none d-xl-inline"> Mahasiswa</span></span>
@@ -1330,6 +1371,51 @@
                     <div data-drilldown="{{ route('login.laporan') }}" aria-live="polite">
                       @include('laporan._capaian_publik', $laporan)
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="panePeserta" role="tabpanel" aria-labelledby="tabPeserta">
+              <div class="laporan-wrap">
+                <div class="card laporan-card">
+                  <div class="card-body">
+                    <div class="peta-head">
+                      <div class="peta-head-title">
+                        <span class="peta-head-icon" aria-hidden="true"><i class="ri-team-line"></i></span>
+                        <div>
+                          <h2 class="peta-title">Data Peserta</h2>
+                          <p class="peta-subtitle mb-0">Jumlah mahasiswa dan DPL per perguruan tinggi.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    @if(isset($dataPesertaList) && count($dataPesertaList))
+                      <div class="table-responsive peserta-table-wrap">
+                        <table class="table table-sm table-hover align-middle peserta-table">
+                          <thead>
+                            <tr>
+                              <th scope="col" class="text-center">No</th>
+                              <th scope="col" class="text-center">Nama PTS</th>
+                              <th scope="col" class="text-center">Jumlah Mahasiswa</th>
+                              <th scope="col" class="text-center">Jumlah DPL</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @foreach($dataPesertaList as $peserta)
+                              <tr>
+                                <td class="text-center">{{ $loop->iteration }}</td>
+                                <td>{{ $peserta->nama_pt }}</td>
+                                <td class="text-center">{{ number_format($peserta->jumlah_mahasiswa, 0, ',', '.') }}</td>
+                                <td class="text-center">{{ number_format($peserta->jumlah_dpl, 0, ',', '.') }}</td>
+                              </tr>
+                            @endforeach
+                          </tbody>
+                        </table>
+                      </div>
+                    @else
+                      <p class="lokasi-empty peserta-empty mb-0">Data peserta belum tersedia.</p>
+                    @endif
                   </div>
                 </div>
               </div>

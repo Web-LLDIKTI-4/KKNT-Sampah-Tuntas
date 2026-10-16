@@ -12,6 +12,7 @@ use App\Models\Mahasiswa;
 use App\Models\PenguranganSampah;
 use App\Models\LokasiProgram;
 use App\Models\Panduan;
+use App\Services\DataPesertaSummary;
 use App\Services\PenguranganSampahService;
 use App\Services\LokasiProgramSummary;
 use App\Services\PetaSebaranService;
@@ -21,10 +22,11 @@ use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
 {
-    public function index(LokasiProgramSummary $summary, PenguranganSampahService $sampah)
+    public function index(LokasiProgramSummary $summary, PenguranganSampahService $sampah, DataPesertaSummary $peserta)
     {
         return view('login', [
             'lokasiProgramList' => $summary->all(),
+            'dataPesertaList' => Cache::remember('login.data_peserta.v1.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1), now()->addMinutes(10), fn () => $peserta->all()),
             'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]),
             'panduanList' => $this->getPanduanPublik(),
         ] + $this->statistikPublik());
