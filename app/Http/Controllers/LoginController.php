@@ -26,7 +26,7 @@ class LoginController extends Controller
     {
         return view('login', [
             'lokasiProgramList' => $summary->all(),
-            'dataPesertaList' => Cache::remember('login.data_peserta.v1.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1), now()->addMinutes(10), fn () => $peserta->all()),
+            'dataPesertaList' => Cache::remember('login.data_peserta.v2.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1), now()->addMinutes(10), fn () => $peserta->all()),
             'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]),
             'panduanList' => $this->getPanduanPublik(),
         ] + $this->statistikPublik());

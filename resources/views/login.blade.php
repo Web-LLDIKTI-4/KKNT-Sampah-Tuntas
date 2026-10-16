@@ -1262,6 +1262,16 @@
           .peserta-table td:nth-child(2) {
             min-width: 10rem;
           }
+
+          /* 6 columns: tighten cells so numeric columns stay compact */
+          .peserta-table {
+            font-size: 0.75rem;
+          }
+
+          .peserta-table th,
+          .peserta-table td {
+            padding: 0.3rem 0.4rem;
+          }
         }
 
         /* Tablet kecil & desktop kecil: 5 pill dirapatkan */
@@ -1467,7 +1477,7 @@
                         <span class="peta-head-icon" aria-hidden="true"><i class="ri-team-line"></i></span>
                         <div>
                           <h2 class="peta-title">Data Peserta</h2>
-                          <p class="peta-subtitle mb-0">Jumlah mahasiswa dan DPL per perguruan tinggi.</p>
+                          <p class="peta-subtitle mb-0">Jumlah mahasiswa, DPL, PIC, dan ketua kelompok per perguruan tinggi.</p>
                         </div>
                       </div>
                     </div>
@@ -1496,8 +1506,10 @@
                             <tr>
                               <th scope="col" class="text-center">No</th>
                               <th scope="col" class="text-center">Nama PTS</th>
-                              <th scope="col" class="text-center">Jumlah Mahasiswa</th>
-                              <th scope="col" class="text-center">Jumlah DPL</th>
+                              <th scope="col" class="text-center">Jml. Mahasiswa</th>
+                              <th scope="col" class="text-center">Jml. DPL</th>
+                              <th scope="col" class="text-center">Jml. PIC</th>
+                              <th scope="col" class="text-center">Jml. Ketua Kelompok</th>
                             </tr>
                           </thead>
                           <tbody id="pesertaTbody">
@@ -1507,6 +1519,8 @@
                                 <td>{{ $peserta->nama_pt }}</td>
                                 <td class="text-center">{{ number_format($peserta->jumlah_mahasiswa, 0, ',', '.') }}</td>
                                 <td class="text-center">{{ number_format($peserta->jumlah_dpl, 0, ',', '.') }}</td>
+                                <td class="text-center">{{ number_format($peserta->jumlah_pic ?? 0, 0, ',', '.') }}</td>
+                                <td class="text-center">{{ number_format($peserta->jumlah_ketua_kelompok ?? 0, 0, ',', '.') }}</td>
                               </tr>
                             @endforeach
                           </tbody>
