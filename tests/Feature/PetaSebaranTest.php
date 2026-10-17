@@ -316,8 +316,9 @@ class PetaSebaranTest extends TestCase
 
         // Cache flushed on change, no TTL wait
         Mahasiswa::factory()->create(['kodept' => '043003']);
+        Dpl::factory()->create(['kodept' => '044004']); // PT with DPL only still counts
         $this->get(route('login'))->assertSeeInOrder([
-            'data-target="4">4</span> Mahasiswa</b>', 'data-target="3">3</span> Perguruan Tinggi.</b>',
+            'data-target="4">4</span> Mahasiswa</b>', 'data-target="4">4</span> Perguruan Tinggi.</b>',
         ], false);
 
         // Top 5 desa diurutkan berdasarkan persen pengurangan sampah

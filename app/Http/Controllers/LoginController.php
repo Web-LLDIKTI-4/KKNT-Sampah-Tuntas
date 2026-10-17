@@ -103,7 +103,9 @@ class LoginController extends Controller
         return [
             'jumlahMahasiswa' => Mahasiswa::count(),
             'jumlahDpl' => Dpl::count(),
-            'jumlahPt' => Mahasiswa::whereNotNull('kodept')->distinct()->count('kodept'),
+            // PT from mahasiswa + dpl, same as DataPesertaSummary table
+            'jumlahPt' => Mahasiswa::whereNotNull('kodept')->select('kodept')
+                ->union(Dpl::whereNotNull('kodept')->select('kodept'))->count(),
             'jumlahKecamatan' => Kecamatan::count(),
             'jumlahKelurahan' => Desa::count(),
         ];

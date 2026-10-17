@@ -109,7 +109,9 @@ class DashboardService
     {
         return [
             'jumlahdpl' => Dpl::count(),
-            'jumlahpt' => Mahasiswa::whereNotNull('kodept')->distinct()->count('kodept'),
+            // PT from mahasiswa + dpl, same as login header
+            'jumlahpt' => Mahasiswa::whereNotNull('kodept')->select('kodept')
+                ->union(Dpl::whereNotNull('kodept')->select('kodept'))->count(),
             'saran' => collect(),
         ];
     }
