@@ -1263,7 +1263,7 @@
             min-width: 10rem;
           }
 
-          /* 7 columns: tighten cells so numeric columns stay compact */
+          /* 6 columns: tighten cells so numeric columns stay compact */
           .peserta-table {
             font-size: 0.75rem;
           }
@@ -1510,7 +1510,6 @@
                               <th scope="col" class="text-center">Jml. DPL</th>
                               <th scope="col" class="text-center">Jml. PIC</th>
                               <th scope="col" class="text-center">Jml. Ketua Kelompok</th>
-                              <th scope="col" class="text-center">Total</th>
                             </tr>
                           </thead>
                           <tbody id="pesertaTbody">
@@ -1522,10 +1521,19 @@
                                 <td class="text-center">{{ number_format($peserta->jumlah_dpl, 0, ',', '.') }}</td>
                                 <td class="text-center">{{ number_format($peserta->jumlah_pic ?? 0, 0, ',', '.') }}</td>
                                 <td class="text-center">{{ number_format($peserta->jumlah_ketua_kelompok ?? 0, 0, ',', '.') }}</td>
-                                <td class="text-center fw-semibold">{{ number_format((int) ($peserta->jumlah_mahasiswa ?? 0) + (int) ($peserta->jumlah_dpl ?? 0) + (int) ($peserta->jumlah_pic ?? 0), 0, ',', '.') }}</td>
                               </tr>
                             @endforeach
                           </tbody>
+                          {{-- Static totals over all data --}}
+                          <tfoot class="fw-semibold border-top">
+                            <tr>
+                              <th colspan="2" class="text-center">Total</th>
+                              <th class="text-center">{{ number_format($dataPesertaList->sum('jumlah_mahasiswa'), 0, ',', '.') }}</th>
+                              <th class="text-center">{{ number_format($dataPesertaList->sum('jumlah_dpl'), 0, ',', '.') }}</th>
+                              <th class="text-center">{{ number_format($dataPesertaList->sum('jumlah_pic'), 0, ',', '.') }}</th>
+                              <th class="text-center">{{ number_format($dataPesertaList->sum('jumlah_ketua_kelompok'), 0, ',', '.') }}</th>
+                            </tr>
+                          </tfoot>
                         </table>
                         <p id="pesertaNoResult" class="lokasi-empty peserta-empty d-none mb-0">Data tidak ditemukan.</p>
                       </div>

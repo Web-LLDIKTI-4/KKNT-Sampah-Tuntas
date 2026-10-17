@@ -120,23 +120,11 @@ $(function () {
             }
         });
 
-
-        // Create a unique checked checkboxes object
-        var uniqueCheckedCheckboxesObject = {};
-        uniqueCheckedCheckboxes.forEach(function (value) {
-            uniqueCheckedCheckboxesObject[value] = true;
-        });
-
-        // Append the checked checkboxes to the form data
+        // Send as one comma-separated field to avoid PHP max_input_vars truncation
         var formData = $(this).serializeArray().filter(function (item) {
-            // Filter out duplicates in formData
-            return !uniqueCheckedCheckboxesObject[item.value];
+            return item.name !== 'createuser[]';
         });
-
-        // Append unique checked checkboxes to formData
-        $.each(uniqueCheckedCheckboxes, function (index, value) {
-            formData.push({ name: 'createuser[]', value: value });
-        });
+        formData.push({ name: 'createuser', value: uniqueCheckedCheckboxes.join(',') });
 
         var action = $(this).attr("action");
         var id = $(this).attr("id");

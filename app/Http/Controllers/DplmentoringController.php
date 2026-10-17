@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Dpl\MentoringInsertRequest;
 use App\Models\Dplmentoring;
 use App\Models\Freeform;
 use App\Models\Logbulanan;
@@ -11,6 +12,7 @@ use App\Models\Nilaikonversi;
 use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 class DplmentoringController extends Controller
@@ -73,13 +75,9 @@ class DplmentoringController extends Controller
         return view('mentoring.tambah', ['data' => $data, 'kodeptMissing' => ! $kodept]);
     }
 
-    public function insert(Request $request)
+    public function insert(MentoringInsertRequest $request)
     {
-        abort_unless($request->user()->role === 'dpl', 403);
-        $emails = array_filter((array) $request->input('createuser', []), 'is_string');
-        if ($emails === [] || count($emails) > 500) {
-            return response()->json(['error' => 'user harus dipilih (maksimal 500)']);
-        }
+        $emails = $request->validated('createuser');
 
         // Hanya mahasiswa terdaftar sekampus dengan DPL yang belum punya DPL
         $kodept = $request->user()->dpl?->kodept;
@@ -92,11 +90,18 @@ class DplmentoringController extends Controller
             ->whereDoesntHave('dplmentoring')
             ->pluck('email');
 
-        foreach ($eligible as $email) {
-            Dplmentoring::create(['email_mahasiswa' => $email, 'email_dpl' => $request->user()->email]);
-        }
+        // Single atomic insert; duplicates skipped via unique email_mahasiswa
+        $now = now();
+        $rows = $eligible->map(fn ($email) => [
+            'id_mentoring' => (string) Str::uuid(),
+            'email_mahasiswa' => $email,
+            'email_dpl' => $request->user()->email,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ])->all();
+        $inserted = $rows ? Dplmentoring::insertOrIgnore($rows) : 0;
 
-        return response()->json(['success' => $eligible->count().' mahasiswa berhasil ditambahkan']);
+        return response()->json(['success' => $inserted.' mahasiswa berhasil ditambahkan']);
     }
 
     public function destroy(Request $request, string $id_mentoring)

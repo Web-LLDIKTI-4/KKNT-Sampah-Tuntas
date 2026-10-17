@@ -19,7 +19,7 @@
                 </thead>
                 <tbody>
                     @if($data->isEmpty())
-                        
+
                     @else
                         @foreach($data as $mahasiswa)
                             <tr>
@@ -47,7 +47,7 @@
         </div>
     </form>
 <script>
-    
+
 // Function to uncheck all checkboxes
 function uncheckAllCheckboxes() {
     $("input[name='createuser[]']").prop('checked', false);
@@ -62,7 +62,7 @@ $('#modalku').on('show.bs.modal', function (e) {
     // Optionally, you can clear the checked state object and storage
     checkedState = {};
     saveCheckedState(checkedState);
-});    
+});
     // Function to get checked state from storage
 function getCheckedState() {
     var checkedState = sessionStorage.getItem('checkedState');
@@ -84,6 +84,7 @@ $(function () {
         info: true,
         autoWidth: false,
         serverSide: false,
+        lengthMenu: [10, 25, 50, 100, 500],
         language: {
             search: "",
             searchPlaceholder: "Cari...",
@@ -140,29 +141,29 @@ $(function () {
             type:'POST',
             data: formData,
             beforeSend:function(){
-                btnLoading($("#btnSubmit_" + id), true);			
+                btnLoading($("#btnSubmit_" + id), true);
             },
             complete:function(){
-                btnLoading($("#btnSubmit_" + id), false);	
+                btnLoading($("#btnSubmit_" + id), false);
             },
-            success: function(data) {                
-                if($.isEmptyObject(data.error)){  
+            success: function(data) {
+                if($.isEmptyObject(data.error)){
                     $("#modalku").modal("hide");
-                    toastr.success(data.success)	
+                    toastr.success(data.success)
                     var table = $('#table-data').DataTable(); // Menginisialisasi objek tabel
                     // // Memuat ulang data tabel secara manual
                     table.ajax.reload();
-                    window.location.reload(); // Redirect to the user page    
-                }else{                    
-                    toastr.warning(data.error)	 
+                    window.location.reload(); // Redirect to the user page
+                }else{
+                    toastr.warning(data.error)
                 }
             },
             error:function(xhr,ajaxOptions,thrownError){
-                toastr.error('Terjadi kesalahan, silakan coba lagi.');				
-            }	
+                toastr.error('Terjadi kesalahan, silakan coba lagi.');
+            }
 
         });
 
     });
-}); 
+});
 </script>
