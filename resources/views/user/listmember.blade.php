@@ -84,7 +84,7 @@ $(function () {
         info: true,
         autoWidth: false,
         serverSide: false,
-        lengthMenu: [10, 25, 50, 100, 500],
+        lengthMenu: [10, 25, 50, 100, 200, 250, 300, 350, 400, 450, 500],
         language: {
             search: "",
             searchPlaceholder: "Cari...",
