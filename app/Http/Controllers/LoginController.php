@@ -12,7 +12,6 @@ use App\Models\Mahasiswa;
 use App\Models\PenguranganSampah;
 use App\Models\LokasiProgram;
 use App\Models\Panduan;
-use App\Observers\LoginStatistikCacheObserver;
 use App\Services\DataPesertaSummary;
 use App\Services\PenguranganSampahService;
 use App\Services\LokasiProgramSummary;
@@ -98,16 +97,16 @@ class LoginController extends Controller
     }
 
     // Hanya kolom aman untuk publik; file_path & uploader tidak boleh sampai ke HTML.
-    // Same definitions as admin dashboard; flushed by LoginStatistikCacheObserver
+    // Same definitions as admin dashboard; uncached so header stays in sync
     private function statistikPublik(): array
     {
-        return Cache::rememberForever(LoginStatistikCacheObserver::CACHE_KEY, fn () => [
+        return [
             'jumlahMahasiswa' => Mahasiswa::count(),
             'jumlahDpl' => Dpl::count(),
             'jumlahPt' => Mahasiswa::whereNotNull('kodept')->distinct()->count('kodept'),
             'jumlahKecamatan' => Kecamatan::count(),
             'jumlahKelurahan' => Desa::count(),
-        ]);
+        ];
     }
 
     // Cache di-forget oleh hook model Panduan setiap ada perubahan

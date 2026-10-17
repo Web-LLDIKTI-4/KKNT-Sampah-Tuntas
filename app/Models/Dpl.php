@@ -5,10 +5,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon; 
-use App\Observers\LoginStatistikCacheObserver;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-
-#[ObservedBy(LoginStatistikCacheObserver::class)]
 class Dpl extends Model
 {
     use HasFactory, HasUuids;

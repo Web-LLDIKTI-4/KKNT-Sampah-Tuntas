@@ -20,7 +20,6 @@ use App\Models\Pjdesa;
 use App\Models\RencanaKerja;
 use App\Models\Tugasakhir;
 use App\Models\User;
-use App\Observers\LoginStatistikCacheObserver;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -138,6 +137,5 @@ class PersonDeletionService
         }
         PenguranganSampah::forgetPublicCache();
         PetaSebaranService::flushCache();
-        LoginStatistikCacheObserver::flush();
     }
 }
