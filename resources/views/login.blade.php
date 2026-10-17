@@ -1431,17 +1431,17 @@
                         <div class="lokasi-item-stats">
                           <div class="lokasi-stat">
                             <i class="ri-user-star-line"></i>
-                            <span class="lokasi-stat-value">{{ $lokasi->jumlah_dpl }}</span>
+                            <span class="lokasi-stat-value count-up" data-target="{{ (int) $lokasi->jumlah_dpl }}">{{ number_format($lokasi->jumlah_dpl, 0, ',', '.') }}</span>
                             <span class="lokasi-stat-label">DPL</span>
                           </div>
                           <div class="lokasi-stat">
                             <i class="ri-group-line"></i>
-                            <span class="lokasi-stat-value">{{ $lokasi->jumlah_mahasiswa }}</span>
+                            <span class="lokasi-stat-value count-up" data-target="{{ (int) $lokasi->jumlah_mahasiswa }}">{{ number_format($lokasi->jumlah_mahasiswa, 0, ',', '.') }}</span>
                             <span class="lokasi-stat-label">Mahasiswa</span>
                           </div>
                           <div class="lokasi-stat">
                             <i class="ri-building-4-line"></i>
-                            <span class="lokasi-stat-value">{{ $lokasi->jumlah_pt }}</span>
+                            <span class="lokasi-stat-value count-up" data-target="{{ (int) $lokasi->jumlah_pt }}">{{ number_format($lokasi->jumlah_pt, 0, ',', '.') }}</span>
                             <span class="lokasi-stat-label">PTS</span>
                           </div>
                         </div>
