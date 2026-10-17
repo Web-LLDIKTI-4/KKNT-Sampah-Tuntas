@@ -155,6 +155,10 @@
           text-shadow: 0 2px 16px rgba(20, 24, 70, 0.25);
         }
 
+        .count-up {
+          font-variant-numeric: tabular-nums;
+        }
+
         .lokasi-panel-subtitle {
           color: rgba(255, 255, 255, 0.88);
           font-size: 1.1rem;
@@ -1393,8 +1397,8 @@
               <h2 class="lokasi-panel-title">Program GRADASI : KKN Tematik <br /> Sampah Tuntas LLDIKTI Wilayah IV</h2>
 
               <p class="lokasi-panel-subtitle">
-                Kegiatan ini melibatkan <b>{{ $jumlahMahasiswa }} Mahasiswa</b>  dan <b>{{ $jumlahDpl }} DPL</b> dari <b>{{ $jumlahPt }} Perguruan Tinggi.</b> <br />
-                Lokus kegiatan disebar ke {{ $jumlahKecamatan }} Kecamatan dan {{ $jumlahKelurahan }} Kelurahan/Desa.
+                Kegiatan ini melibatkan <b><span class="count-up" data-target="{{ $jumlahMahasiswa }}">{{ number_format($jumlahMahasiswa, 0, ',', '.') }}</span> Mahasiswa</b>  dan <b><span class="count-up" data-target="{{ $jumlahDpl }}">{{ number_format($jumlahDpl, 0, ',', '.') }}</span> DPL</b> dari <b><span class="count-up" data-target="{{ $jumlahPt }}">{{ number_format($jumlahPt, 0, ',', '.') }}</span> Perguruan Tinggi.</b> <br />
+                Lokus kegiatan disebar ke <span class="count-up" data-target="{{ $jumlahKecamatan }}">{{ number_format($jumlahKecamatan, 0, ',', '.') }}</span> Kecamatan dan <span class="count-up" data-target="{{ $jumlahKelurahan }}">{{ number_format($jumlahKelurahan, 0, ',', '.') }}</span> Kelurahan/Desa.
               </p>
             </div>
 
@@ -1770,6 +1774,30 @@
     @if($recaptchaSiteKey)
       <script src="https://www.google.com/recaptcha/api.js?render={{ urlencode($recaptchaSiteKey) }}" async defer></script>
     @endif
+    <script>
+      // Count-up animation for header stats; real numbers stay if JS fails
+      (function () {
+        var els = document.querySelectorAll('.count-up');
+        if (!els.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+        var fmt = new Intl.NumberFormat('id-ID');
+        var run = function (el) {
+          var target = parseInt(el.dataset.target, 10) || 0, start = null, dur = 1800;
+          var step = function (ts) {
+            if (start === null) start = ts;
+            var p = Math.min((ts - start) / dur, 1);
+            el.textContent = fmt.format(Math.round(target * (1 - Math.pow(1 - p, 3))));
+            if (p < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        };
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) { io.unobserve(e.target); run(e.target); }
+          });
+        }, { threshold: 0.5 });
+        els.forEach(function (el) { el.textContent = '0'; io.observe(el); });
+      })();
+    </script>
   </body>
 </html>
 <script>

@@ -310,8 +310,14 @@ class PetaSebaranTest extends TestCase
         Dpl::factory()->count(2)->create();
 
         $this->get(route('login'))->assertOk()->assertSeeInOrder([
-            '<b>3 Mahasiswa</b>', '<b>2 DPL</b>', '<b>2 Perguruan Tinggi.</b>',
-            'disebar ke 1 Kecamatan dan 3 Kelurahan/Desa',
+            'data-target="3">3</span> Mahasiswa</b>', 'data-target="2">2</span> DPL</b>', 'data-target="2">2</span> Perguruan Tinggi.</b>',
+            'data-target="1">1</span> Kecamatan dan', 'data-target="3">3</span> Kelurahan/Desa',
+        ], false);
+
+        // Cache flushed on change, no TTL wait
+        Mahasiswa::factory()->create(['kodept' => '043003']);
+        $this->get(route('login'))->assertSeeInOrder([
+            'data-target="4">4</span> Mahasiswa</b>', 'data-target="3">3</span> Perguruan Tinggi.</b>',
         ], false);
 
         // Top 5 desa diurutkan berdasarkan persen pengurangan sampah

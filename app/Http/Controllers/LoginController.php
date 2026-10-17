@@ -12,6 +12,7 @@ use App\Models\Mahasiswa;
 use App\Models\PenguranganSampah;
 use App\Models\LokasiProgram;
 use App\Models\Panduan;
+use App\Observers\LoginStatistikCacheObserver;
 use App\Services\DataPesertaSummary;
 use App\Services\PenguranganSampahService;
 use App\Services\LokasiProgramSummary;
@@ -97,18 +98,16 @@ class LoginController extends Controller
     }
 
     // Hanya kolom aman untuk publik; file_path & uploader tidak boleh sampai ke HTML.
-    // Same definitions as admin dashboard; version key bumped by PetaSebaranCacheObserver
+    // Same definitions as admin dashboard; flushed by LoginStatistikCacheObserver
     private function statistikPublik(): array
     {
-        $key = 'login.statistik.v1.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1);
-
-        return array_map(fn ($v) => number_format($v, 0, ',', '.'), Cache::remember($key, now()->addMinutes(10), fn () => [
+        return Cache::rememberForever(LoginStatistikCacheObserver::CACHE_KEY, fn () => [
             'jumlahMahasiswa' => Mahasiswa::count(),
             'jumlahDpl' => Dpl::count(),
             'jumlahPt' => Mahasiswa::whereNotNull('kodept')->distinct()->count('kodept'),
             'jumlahKecamatan' => Kecamatan::count(),
             'jumlahKelurahan' => Desa::count(),
-        ]));
+        ]);
     }
 
     // Cache di-forget oleh hook model Panduan setiap ada perubahan
