@@ -26,10 +26,14 @@ class LokasiProgramSummary
             ->groupBy('location_program')
             ->pluck('total', 'location_program');
 
-        $jumlahPtPerLokasi = DB::table('mahasiswa')
-            ->whereNotNull('location_program')
-            ->whereNotNull('kodept')
-            ->select('location_program', DB::raw('COUNT(DISTINCT kodept) as total'))
+        // PT from mahasiswa + dpl; UNION dedupes (lokasi, kodept) pairs
+        $ptPerLokasi = DB::table('mahasiswa')
+            ->whereNotNull('location_program')->whereNotNull('kodept')
+            ->select('location_program', 'kodept')
+            ->union(DB::table('dpl')->whereNotNull('location_program')->whereNotNull('kodept')->select('location_program', 'kodept'));
+
+        $jumlahPtPerLokasi = DB::query()->fromSub($ptPerLokasi, 'pt')
+            ->select('location_program', DB::raw('COUNT(*) as total'))
             ->groupBy('location_program')
             ->pluck('total', 'location_program');
 

@@ -5,10 +5,12 @@ namespace Tests\Feature;
 use App\Models\Desa;
 use App\Models\Dpl;
 use App\Models\Kecamatan;
+use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\PendataanPemilahanSampah;
 use App\Models\Satuanpendidikan;
+use App\Services\LokasiProgramSummary;
 use App\Services\PetaSebaranService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -325,6 +327,18 @@ class PetaSebaranTest extends TestCase
         $this->get(route('login'))
             ->assertSee('Top 5 Desa · Pengurangan Sampah Tertinggi')
             ->assertDontSee('Top 5 Desa Terbanyak');
+    }
+
+    public function test_lokasi_card_counts_pt_from_mahasiswa_and_dpl(): void
+    {
+        $lokasi = LokasiProgram::factory()->create();
+        Mahasiswa::factory()->count(2)->create(['kodept' => '041001', 'location_program' => $lokasi->id]);
+        Dpl::factory()->create(['kodept' => '041001', 'location_program' => $lokasi->id]);
+        Dpl::factory()->create(['kodept' => '042002', 'location_program' => $lokasi->id]); // DPL-only PT
+
+        $card = app(LokasiProgramSummary::class)->all()->firstWhere('id', $lokasi->id);
+
+        $this->assertSame([2, 2, 2], [(int) $card->jumlah_mahasiswa, (int) $card->jumlah_dpl, (int) $card->jumlah_pt]);
     }
 
     public function test_listdataserver_includes_float_coordinates(): void
