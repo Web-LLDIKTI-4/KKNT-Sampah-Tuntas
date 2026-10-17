@@ -13,27 +13,24 @@ class LokasiProgramSummary
      */
     public function all(): Collection
     {
-        // Same definitions as header stats in LoginController::statistikPublik()
+        // Count from master tables (not users) so it matches header stats in LoginController::statistikPublik()
         $jumlahDplPerLokasi = DB::table('dpl')
-            ->join('users', 'users.email', '=', 'dpl.email')
-            ->whereNotNull('users.location_program')
-            ->select('users.location_program', DB::raw('COUNT(*) as total'))
-            ->groupBy('users.location_program')
+            ->whereNotNull('location_program')
+            ->select('location_program', DB::raw('COUNT(*) as total'))
+            ->groupBy('location_program')
             ->pluck('total', 'location_program');
 
         $jumlahMahasiswaPerLokasi = DB::table('mahasiswa')
-            ->join('users', 'users.email', '=', 'mahasiswa.email')
-            ->whereNotNull('users.location_program')
-            ->select('users.location_program', DB::raw('COUNT(*) as total'))
-            ->groupBy('users.location_program')
+            ->whereNotNull('location_program')
+            ->select('location_program', DB::raw('COUNT(*) as total'))
+            ->groupBy('location_program')
             ->pluck('total', 'location_program');
 
         $jumlahPtPerLokasi = DB::table('mahasiswa')
-            ->join('users', 'users.email', '=', 'mahasiswa.email')
-            ->whereNotNull('users.location_program')
-            ->whereNotNull('mahasiswa.kodept')
-            ->select('users.location_program', DB::raw('COUNT(DISTINCT mahasiswa.kodept) as total'))
-            ->groupBy('users.location_program')
+            ->whereNotNull('location_program')
+            ->whereNotNull('kodept')
+            ->select('location_program', DB::raw('COUNT(DISTINCT kodept) as total'))
+            ->groupBy('location_program')
             ->pluck('total', 'location_program');
 
         return LokasiProgram::query()
