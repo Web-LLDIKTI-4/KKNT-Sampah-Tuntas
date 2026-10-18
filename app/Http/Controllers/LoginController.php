@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Auth\LaporanPublikRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\PesertaDetailRequest;
 use App\Http\Requests\Auth\PetaSebaranRequest;
 use App\Models\Desa;
 use App\Models\Dpl;
@@ -26,7 +27,7 @@ class LoginController extends Controller
     {
         return view('login', [
             'lokasiProgramList' => $summary->all(),
-            'dataPesertaList' => Cache::remember('login.data_peserta.v2.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1), now()->addMinutes(10), fn () => $peserta->all()),
+            'dataPesertaList' => $this->dataPeserta($peserta),
             'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]),
             'panduanList' => $this->getPanduanPublik(),
         ] + $this->statistikPublik());
@@ -44,6 +45,27 @@ class LoginController extends Controller
         $filter = $request->filter();
 
         return response()->json(Cache::remember('login.peta.v4.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1).'.'.Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0').'.'.$filter['tahun'].'.'.($filter['kodept'] ?? 'all'), now()->addMinutes(10), fn () => $peta->sebaran($filter)));
+    }
+
+    // Detail peserta per PT untuk modal tab Data Peserta (tidak disamarkan, sesuai keputusan pemilik)
+    public function peserta(PesertaDetailRequest $request, DataPesertaSummary $peserta)
+    {
+        $kodept = $request->validated('kodept');
+        $jenis = $request->validated('jenis');
+
+        // Only PT listed in the summary, so cache keys stay bounded
+        // Strict compare: loose == matches numeric variants like 0+kode or kode+e0
+        $pt = $this->dataPeserta($peserta)->firstWhere('kodept', '===', $kodept);
+        abort_if($pt === null, 404);
+        $kodept = $pt->kodept;
+
+        $key = 'login.data_peserta.detail.v2.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1).'.'.$kodept.'.'.$jenis;
+
+        return response()->json(Cache::remember($key, now()->addMinutes(10), fn () => [
+            'nama_pt' => $pt->nama_pt,
+            'jenis' => $jenis,
+            'data' => $peserta->members($kodept, $jenis),
+        ]));
     }
 
     public function petaFilter(PetaSebaranService $peta)
@@ -109,6 +131,11 @@ class LoginController extends Controller
             'jumlahKecamatan' => Kecamatan::count(),
             'jumlahKelurahan' => Desa::count(),
         ];
+    }
+
+    private function dataPeserta(DataPesertaSummary $peserta)
+    {
+        return Cache::remember('login.data_peserta.v2.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1), now()->addMinutes(10), fn () => $peserta->all());
     }
 
     // Cache di-forget oleh hook model Panduan setiap ada perubahan

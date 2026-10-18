@@ -108,6 +108,8 @@ Route::middleware('guest')->group(function () {
     Route::get('login/laporan/export', [CapaianProgramExportController::class, 'publik'])->middleware('throttle:10,1')->name('login.laporan.export');
 });
 
+Route::get('login/peserta', [LoginController::class, 'peserta'])->middleware('throttle:peta')->name('login.peserta');
+
 Route::middleware('auth')->group(function () {
     Route::get('home', [HomeController::class, 'index'])->name('home');
     Route::get('home/{lokasi}', [HomeController::class, 'index'])->name('home.lokasi')->middleware('user.guard');
@@ -181,6 +183,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('mahasiswa/import', [MahasiswaController::class, 'import']);
     Route::put('mahasiswa/prosesimport', [MahasiswaController::class, 'prosesimport'])->middleware('throttle:sensitive');
     Route::put('mahasiswa/destroy', [MahasiswaController::class, 'destroy']);
+    Route::get('mahasiswa/edit/{id}', [MahasiswaController::class, 'edit'])->whereUuid('id');
+    Route::put('mahasiswa/update', [MahasiswaController::class, 'update'])->middleware('throttle:sensitive');
 
     Route::get('kategori-kegiatan', [KategoriKegiatanController::class, 'index']);
     Route::get('kategori-kegiatan/listdata', [KategoriKegiatanController::class, 'listdata'])->name('kategori-kegiatan.listdata');

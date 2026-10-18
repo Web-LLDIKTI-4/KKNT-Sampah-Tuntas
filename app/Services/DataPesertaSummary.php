@@ -51,4 +51,41 @@ class DataPesertaSummary
             'jumlah_ketua_kelompok' => (int) ($jumlahKetuaPerPt[$kode] ?? 0),
         ])->sortBy('nama_pt', SORT_NATURAL | SORT_FLAG_CASE)->values();
     }
+
+    /**
+     * Daftar anggota satu PT per jenis; filter wajib sama dengan hitungan di all().
+     *
+     * @return array<int, array{nim: string, nama: string}>|array<int, array{kode_pt: string, nama_pt: string, nama_user: string}>
+     */
+    public function members(string $kodept, string $jenis): array
+    {
+        if ($jenis === 'pic') {
+            // PT account: users.email holds kode PT
+            $namaPt = DB::table('ref_satuanpendidikan')->where('npsn', $kodept)->value('nm_lemb');
+
+            return DB::table('users')->where('role', 'pt')->where('email', $kodept)
+                ->orderBy('name')->get(['email', 'name'])
+                ->map(fn ($row) => [
+                    'kode_pt' => (string) ($row->email ?? '-'),
+                    'nama_pt' => (string) ($namaPt ?? '-'),
+                    'nama_user' => (string) ($row->name ?? '-'),
+                ])->all();
+        }
+
+        $query = match ($jenis) {
+            'mahasiswa' => DB::table('mahasiswa')->where('kodept', $kodept)->select('nama', 'nim'),
+            'dpl' => DB::table('dpl')->where('kodept', $kodept)->select('nama', 'nidn as nim'),
+            // One whole row (MAX id) per distinct email, matching COUNT(DISTINCT mahasiswa.email)
+            'ketua' => DB::table('mahasiswa')
+                ->where('mahasiswa.kodept', $kodept)
+                ->whereExists(fn ($q) => $q->from('pj_desa')->whereColumn('pj_desa.email', 'mahasiswa.email'))
+                ->whereRaw('mahasiswa.id_mahasiswa = (select max(m2.id_mahasiswa) from mahasiswa m2 where m2.email = mahasiswa.email and m2.kodept = mahasiswa.kodept)')
+                ->select('mahasiswa.nama', 'mahasiswa.nim'),
+        };
+
+        return $query->orderBy('nama')->get()->map(fn ($row) => [
+            'nim' => (string) ($row->nim ?? '-'),
+            'nama' => (string) ($row->nama ?? '-'),
+        ])->all();
+    }
 }

@@ -13,6 +13,7 @@
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "maatwebsite/excel": "^3.1.64",
+        "openspout/openspout": "^4",
         "yajra/laravel-datatables-oracle": "^12.0"
     },
     "require-dev": {

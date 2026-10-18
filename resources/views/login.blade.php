@@ -733,6 +733,24 @@
           font-variant-numeric: tabular-nums;
         }
 
+        .peserta-detail {
+          font-size: inherit;
+          line-height: inherit;
+          vertical-align: baseline;
+          text-decoration: underline dotted;
+          text-underline-offset: 3px;
+        }
+
+        #modalPesertaDetail .table td {
+          font-size: 0.8125rem;
+        }
+
+        #modalPesertaDetail .table td:first-child,
+        #modalPesertaDetail .table td:nth-child(2) {
+          white-space: nowrap;
+          font-variant-numeric: tabular-nums;
+        }
+
         /* Tab Peta Sebaran */
         .peta-head {
           display: flex;
@@ -1516,15 +1534,20 @@
                               <th scope="col" class="text-center">Jml. Ketua Kelompok</th>
                             </tr>
                           </thead>
-                          <tbody id="pesertaTbody">
+                          <tbody id="pesertaTbody" data-detail-url="{{ route('login.peserta') }}">
                             @foreach($dataPesertaList as $peserta)
                               <tr data-search="{{ mb_strtolower((string) $peserta->nama_pt) }}">
                                 <td class="text-center peserta-no">{{ $loop->iteration }}</td>
                                 <td>{{ $peserta->nama_pt }}</td>
-                                <td class="text-center">{{ number_format($peserta->jumlah_mahasiswa, 0, ',', '.') }}</td>
-                                <td class="text-center">{{ number_format($peserta->jumlah_dpl, 0, ',', '.') }}</td>
-                                <td class="text-center">{{ number_format($peserta->jumlah_pic ?? 0, 0, ',', '.') }}</td>
-                                <td class="text-center">{{ number_format($peserta->jumlah_ketua_kelompok ?? 0, 0, ',', '.') }}</td>
+                                @foreach(['mahasiswa' => $peserta->jumlah_mahasiswa, 'dpl' => $peserta->jumlah_dpl, 'pic' => $peserta->jumlah_pic ?? 0, 'ketua' => $peserta->jumlah_ketua_kelompok ?? 0] as $jenis => $jumlah)
+                                  <td class="text-center">
+                                    @if($jumlah > 0)
+                                      <button type="button" class="btn btn-link p-0 peserta-detail" data-kodept="{{ $peserta->kodept }}" data-jenis="{{ $jenis }}">{{ number_format($jumlah, 0, ',', '.') }}</button>
+                                    @else
+                                      {{ number_format($jumlah, 0, ',', '.') }}
+                                    @endif
+                                  </td>
+                                @endforeach
                               </tr>
                             @endforeach
                           </tbody>
@@ -1744,6 +1767,55 @@
     </div>
 
     <!-- / Content -->
+
+    <!-- Modal detail data peserta -->
+    <div class="modal fade" id="modalPesertaDetail" tabindex="-1" aria-labelledby="modalPesertaDetailTitle" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalPesertaDetailTitle">Detail Peserta</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+          </div>
+          <div class="modal-body">
+            <p class="peserta-detail-status peserta-empty text-center mb-0" aria-live="polite"></p>
+            <div class="peserta-detail-wrap d-none">
+              <div class="peserta-toolbar">
+                <label class="peserta-limit" for="pesertaDetailLimit">
+                  <span>Tampilkan</span>
+                  <select id="pesertaDetailLimit" class="form-select form-select-sm">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                  <span>data</span>
+                </label>
+                <div class="input-group input-group-sm peserta-search">
+                  <span class="input-group-text"><i class="ri-search-line" aria-hidden="true"></i></span>
+                  <input type="search" id="pesertaDetailSearch" class="form-control" placeholder="Cari…"
+                    aria-label="Cari data peserta" aria-controls="pesertaDetailTbody" autocomplete="off" />
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <thead>
+                    <tr></tr>
+                  </thead>
+                  <tbody id="pesertaDetailTbody"></tbody>
+                </table>
+              </div>
+              <p class="peserta-detail-noresult peserta-empty text-center d-none mb-0">Data tidak ditemukan.</p>
+              <div class="peserta-footer">
+                <span id="pesertaDetailInfo" class="peserta-info" aria-live="polite"></span>
+                <nav aria-label="Navigasi halaman detail peserta">
+                  <ul id="pesertaDetailPagination" class="pagination pagination-sm"></ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Core JS -->
     <!-- build:js assets/vendor/js/core.js -->
@@ -1980,6 +2052,27 @@ $(function(){
           return '<li class="' + cls + '"><button type="button" class="page-link" data-page="' + page + '"' + attrs + ">" + label + "</button></li>";
         };
 
+        // Jendela halaman: pertama, terakhir, aktif ±1; celah 1 halaman diisi angka
+        var paginationHtml = function (current, pages) {
+          var nums = [];
+          for (var p = 1; p <= pages; p++) {
+            if (p === 1 || p === pages || Math.abs(p - current) <= 1 ||
+                (p === 2 && current === 4) || (p === pages - 1 && current === pages - 3)) {
+              nums.push(p);
+            }
+          }
+
+          var html = pageItem('<i class="ri-arrow-left-s-line" aria-hidden="true"></i>', current - 1, { disabled: current === 1, aria: "Sebelumnya" });
+          nums.forEach(function (n, i) {
+            if (i > 0 && n - nums[i - 1] > 1) {
+              html += '<li class="page-item disabled"><span class="page-link" aria-hidden="true">…</span></li>';
+            }
+            html += pageItem(n, n, { active: n === current, aria: "Halaman " + n });
+          });
+          html += pageItem('<i class="ri-arrow-right-s-line" aria-hidden="true"></i>', current + 1, { disabled: current === pages, aria: "Berikutnya" });
+          return html;
+        };
+
         var renderPeserta = function () {
           var keyword = String($pesertaSearch.val() || "").toLowerCase().trim();
           var limit = parseInt($pesertaLimit.val(), 10) || 0;
@@ -2013,25 +2106,7 @@ $(function(){
             return;
           }
 
-          // Jendela halaman: pertama, terakhir, aktif ±1; celah 1 halaman diisi angka
-          var nums = [];
-          for (var p = 1; p <= pages; p++) {
-            if (p === 1 || p === pages || Math.abs(p - pesertaPage) <= 1 ||
-                (p === 2 && pesertaPage === 4) || (p === pages - 1 && pesertaPage === pages - 3)) {
-              nums.push(p);
-            }
-          }
-
-          var html = pageItem('<i class="ri-arrow-left-s-line" aria-hidden="true"></i>', pesertaPage - 1, { disabled: pesertaPage === 1, aria: "Sebelumnya" });
-          nums.forEach(function (n, i) {
-            if (i > 0 && n - nums[i - 1] > 1) {
-              html += '<li class="page-item disabled"><span class="page-link" aria-hidden="true">…</span></li>';
-            }
-            html += pageItem(n, n, { active: n === pesertaPage, aria: "Halaman " + n });
-          });
-          html += pageItem('<i class="ri-arrow-right-s-line" aria-hidden="true"></i>', pesertaPage + 1, { disabled: pesertaPage === pages, aria: "Berikutnya" });
-
-          $pesertaPagination.html(html).closest("nav").removeClass("d-none");
+          $pesertaPagination.html(paginationHtml(pesertaPage, pages)).closest("nav").removeClass("d-none");
         };
 
         $pesertaSearch.on("input", function () {
@@ -2056,6 +2131,161 @@ $(function(){
           renderPeserta();
           $pesertaWrap.scrollTop(0);
         });
+
+        // Detail peserta per PT: list dimuat sekali, search/limit/pagination di sisi klien
+        var $pesertaModal = $("#modalPesertaDetail");
+        var $detailWrap = $pesertaModal.find(".peserta-detail-wrap");
+        var $detailStatus = $pesertaModal.find(".peserta-detail-status");
+        var $detailHead = $pesertaModal.find("thead tr");
+        var $detailTbody = $("#pesertaDetailTbody");
+        var $detailTable = $detailTbody.closest("table");
+        var $detailNoResult = $pesertaModal.find(".peserta-detail-noresult");
+        var $detailSearch = $("#pesertaDetailSearch");
+        var $detailLimit = $("#pesertaDetailLimit");
+        var $detailInfo = $("#pesertaDetailInfo");
+        var $detailPagination = $("#pesertaDetailPagination");
+        var pesertaLabels = { mahasiswa: "Mahasiswa", dpl: "DPL", pic: "PIC", ketua: "Ketua Kelompok" };
+        var detailCollator = new Intl.Collator("id");
+        var pesertaXhr = null;
+        var detailTimer = null;
+        var detailRows = [];
+        var detailPage = 1;
+
+        var pesertaDetailStatus = function (text) {
+          $detailWrap.addClass("d-none");
+          $detailStatus.text(text).removeClass("d-none");
+        };
+
+        var renderPesertaDetail = function () {
+          var keyword = String($detailSearch.val() || "").toLowerCase().trim();
+          var limit = parseInt($detailLimit.val(), 10) || 10;
+          var total = detailRows.length;
+          var matched = keyword === "" ? detailRows : detailRows.filter(function (row) {
+            return row.search.indexOf(keyword) !== -1;
+          });
+          var count = matched.length;
+          var pages = Math.max(1, Math.ceil(count / limit));
+          detailPage = Math.min(Math.max(1, detailPage), pages);
+          var start = (detailPage - 1) * limit;
+          var end = Math.min(start + limit, count);
+
+          $detailTbody.empty().append(matched.slice(start, end).map(function (row, i) {
+            var $tr = $("<tr>").append($('<td class="text-center">').text(start + i + 1));
+            // cells[0] = NIM/NIDN/Kode PT (numeric column)
+            row.cells.forEach(function (val, j) {
+              $tr.append($("<td>").toggleClass("text-center", j === 0).text(val === "" ? "–" : val));
+            });
+            return $tr[0];
+          }));
+
+          $detailTable.toggleClass("d-none", count === 0);
+          $detailNoResult.toggleClass("d-none", count > 0);
+
+          var suffix = keyword === "" ? "" : " (difilter dari " + formatNum(total) + ")";
+          $detailInfo.text(count === 0
+            ? "Tidak ada data yang cocok" + suffix
+            : "Menampilkan " + formatNum(start + 1) + "–" + formatNum(end) + " dari " + formatNum(count) + " data" + suffix);
+
+          if (pages <= 1) {
+            $detailPagination.empty().closest("nav").addClass("d-none");
+            return;
+          }
+          $detailPagination.html(paginationHtml(detailPage, pages)).closest("nav").removeClass("d-none");
+        };
+
+        var stopPesertaDetail = function () {
+          clearTimeout(detailTimer);
+          if (pesertaXhr) {
+            pesertaXhr.abort();
+          }
+        };
+
+        $pesertaTbody.on("click", ".peserta-detail", function () {
+          var kodept = String($(this).data("kodept"));
+          var jenis = String($(this).data("jenis"));
+          var label = pesertaLabels[jenis] || "Peserta";
+          var namaPt = $(this).closest("tr").children("td").eq(1).text().trim();
+          var isPic = jenis === "pic";
+          var headers = isPic ? ["No", "Kode PT", "Nama PT", "Nama User"] : ["No", jenis === "dpl" ? "NIDN" : "NIM", "Nama"];
+          var sortIdx = isPic ? 2 : 1;
+
+          // Reset state tiap modal dibuka
+          stopPesertaDetail();
+          detailRows = [];
+          detailPage = 1;
+          $detailSearch.val("");
+          $detailLimit.val("10");
+          $detailTbody.empty();
+          $detailHead.empty().append(headers.map(function (text, i) {
+            return $('<th scope="col" class="text-center">').text(text)[0];
+          }));
+
+          $("#modalPesertaDetailTitle").text(label + " — " + namaPt);
+          pesertaDetailStatus("Memuat data…");
+          bootstrap.Modal.getOrCreateInstance($pesertaModal[0]).show();
+
+          pesertaXhr = $.getJSON($pesertaTbody.data("detail-url"), { kodept: kodept, jenis: jenis })
+            .done(function (res) {
+              var list = (res && Array.isArray(res.data)) ? res.data : [];
+              if (res && res.nama_pt) {
+                $("#modalPesertaDetailTitle").text(label + " — " + res.nama_pt);
+              }
+              if (!list.length) {
+                pesertaDetailStatus("Belum ada data " + label.toLowerCase() + ".");
+                return;
+              }
+              detailRows = list.map(function (row) {
+                row = row || {};
+                var cells = (isPic ? [row.kode_pt, row.nama_pt, row.nama_user] : [row.nim, row.nama]).map(function (val) {
+                  return val === null || val === undefined ? "" : String(val).trim();
+                });
+                return { cells: cells, search: cells.join("\n").toLowerCase() };
+              });
+              detailRows.sort(function (a, b) {
+                return detailCollator.compare(a.cells[sortIdx], b.cells[sortIdx]);
+              });
+              renderPesertaDetail();
+              $detailStatus.addClass("d-none");
+              $detailWrap.removeClass("d-none");
+            })
+            .fail(function (xhr, status) {
+              if (status === "abort") {
+                return;
+              }
+              pesertaDetailStatus(xhr.status === 429
+                ? "Terlalu banyak permintaan, coba lagi sebentar."
+                : "Gagal memuat data. Silakan coba lagi.");
+            })
+            .always(function () {
+              pesertaXhr = null;
+            });
+        });
+
+        // Handler kontrol modal di-bind sekali
+        $detailSearch.on("input", function () {
+          clearTimeout(detailTimer);
+          detailTimer = setTimeout(function () {
+            detailPage = 1;
+            renderPesertaDetail();
+          }, 200);
+        });
+
+        $detailLimit.on("change", function () {
+          detailPage = 1;
+          renderPesertaDetail();
+        });
+
+        $detailPagination.on("click", "button.page-link", function () {
+          var target = parseInt($(this).data("page"), 10);
+          if ($(this).prop("disabled") || !target || target === detailPage) {
+            return;
+          }
+          detailPage = target;
+          renderPesertaDetail();
+          $pesertaModal.find(".modal-body").scrollTop(0);
+        });
+
+        $pesertaModal.on("hide.bs.modal", stopPesertaDetail);
 
         renderPeserta();
       }

@@ -33,6 +33,18 @@ class Mahasiswa extends Model
         return $email !== null && static::visibleTo($user)->where('email', $email)->exists();
     }
 
+    public function hasAccount(): bool
+    {
+        return filled($this->email) && User::where('email', $this->email)->exists();
+    }
+
+    // Email adalah kunci relasi: terkunci bila sudah dipakai akun, pj_desa, atau dpl_mentoring
+    public function isEmailLocked(): bool
+    {
+        return $this->hasAccount()
+            || (filled($this->email) && ($this->pjdesa()->exists() || $this->dplmentoring()->exists()));
+    }
+
     public function user()
     {
         return $this->hasOne(User::class,'email','email');

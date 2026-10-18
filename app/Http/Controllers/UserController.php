@@ -25,7 +25,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -314,7 +313,11 @@ class UserController extends Controller
 
     public function export(UserFilterRequest $request)
     {
-        return Excel::download(new UserExport($request->validated()), 'users_'.date('Y-m-d_H-i-s').'.xlsx');
+        $export = new UserExport($request->validated());
+
+        return response()->streamDownload(fn () => $export->writeTo('php://output'), 'users_'.date('Y-m-d_H-i-s').'.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
     private function selectedEmails(Request $request): array

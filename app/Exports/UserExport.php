@@ -2,51 +2,98 @@
 
 namespace App\Exports;
 
-use App\Exports\Concerns\SafeValueBinder;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-use Maatwebsite\Excel\Concerns\WithHeadings;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Cell\NumericCell;
+use OpenSpout\Common\Entity\Cell\StringCell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Options;
+use OpenSpout\Writer\XLSX\Writer;
 
-use App\Models\User;
-
-class UserExport extends SafeValueBinder implements WithCustomValueBinder, FromCollection, WithHeadings
+class UserExport
 {
+    private int $rowNumber = 0;
+
     public function __construct(private array $filters = []) {}
 
-    /**
-    * @return \Illuminate\Support\Collection
-    */
-    public function collection()
+    // Filter sama dengan User::scopeManaged(), diproses per chunk agar hemat memori
+    public function query(): Builder
     {
-        $users = User::managed($this->filters)->get();
+        $kodept = $this->filters['kodept'] ?? null;
 
-        $data = $users->map(function ($data, $key) {
+        return DB::table('users as u')
+            // MAX(id) per email: cegah baris ganda bila email master tidak unik
+            ->leftJoin('mahasiswa as m', fn (JoinClause $j) => $j->on('m.email', '=', 'u.email')
+                ->where('u.role', 'mahasiswa')
+                ->whereRaw('m.id_mahasiswa = (select max(m2.id_mahasiswa) from mahasiswa m2 where m2.email = u.email)'))
+            ->leftJoin('dpl as d', fn (JoinClause $j) => $j->on('d.email', '=', 'u.email')
+                ->where('u.role', 'dpl')
+                ->whereRaw('d.id_dpl = (select max(d2.id_dpl) from dpl d2 where d2.email = u.email)'))
+            ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', DB::raw("(case u.role when 'mahasiswa' then m.kodept when 'dpl' then d.kodept else u.email end)"))
+            ->whereIn('u.role', ['mahasiswa', 'dpl', 'pt', 'kepala', 'pemda'])
+            ->when($this->filters['role'] ?? null, fn ($q, $role) => $q->where('u.role', $role))
+            ->when($kodept, fn ($q) => $q->where(fn ($q) => $q
+                ->where(fn ($q) => $q->where('u.role', 'mahasiswa')->whereIn('u.email', DB::table('mahasiswa')->select('email')->where('kodept', $kodept)))
+                ->orWhere(fn ($q) => $q->where('u.role', 'dpl')->whereIn('u.email', DB::table('dpl')->select('email')->where('kodept', $kodept)))
+                ->orWhere(fn ($q) => $q->where('u.role', 'pt')->where('u.email', $kodept))))
+            ->select([
+                'u.id',
+                'u.name',
+                'u.email',
+                'u.role',
+                DB::raw("(case u.role when 'mahasiswa' then m.nim when 'dpl' then d.nidn else sp.npsn end) as nomor_induk"),
+                'sp.nm_lemb',
+            ]);
+    }
 
-            $dataPt     = null;
-            $dataNim    = null;
+    // Streams XLSX row by row so memory stays constant
+    public function writeTo(string $path): void
+    {
+        $this->rowNumber = 0;
+        // Per-export temp folder, removed even if the export fails
+        $dir = storage_path('app/tmp/user-export-'.Str::uuid());
+        File::ensureDirectoryExists($dir, 0700);
 
-            if ($data->role === 'mahasiswa') {
-                $dataNim = $data?->mahasiswa?->nim;
-                $dataPt = $data?->mahasiswa?->sp?->nm_lemb;
-            } elseif ($data->role === 'dpl') {
-                $dataNim = $data?->dpl?->nidn;
-                $dataPt = $data?->dpl?->sp?->nm_lemb;
-            } else {
-                $dataNim = $data?->pt?->npsn;
-                $dataPt = $data?->pt?->nm_lemb;
+        try {
+            $options = new Options;
+            $options->setTempFolder($dir);
+            $writer = new Writer($options);
+            $writer->openToFile($path);
+            $writer->addRow(new Row($this->cells($this->headings()), (new Style)->setFontBold()));
+
+            foreach ($this->query()->lazyById(1000, 'u.id', 'id') as $row) {
+                $writer->addRow(new Row($this->cells($this->map($row))));
             }
 
-            return [
-                'No' => $key + 1,
-                'Nama' => $data->name,
-                'NIM/NIDN/Kode PT' => $dataNim,
-                'Email' => $data->email,
-                'Perguruan Tinggi' => $dataPt,
-                'Peran' => ucfirst($data->role),
-            ];
-        });
+            $writer->close();
+        } finally {
+            File::deleteDirectory($dir);
+        }
+    }
 
-        return $data;
+    // Force text into StringCell so user input is never written as a formula
+    private function cells(array $values): array
+    {
+        return array_map(fn ($value): Cell => is_int($value)
+            ? new NumericCell($value, null)
+            : new StringCell((string) $value, null), array_values($values));
+    }
+
+    public function map($row): array
+    {
+        return [
+            'No' => ++$this->rowNumber,
+            'Nama' => $row->name,
+            'NIM/NIDN/Kode PT' => $row->nomor_induk,
+            'Email' => $row->email,
+            'Perguruan Tinggi' => $row->nm_lemb,
+            'Peran' => ucfirst($row->role),
+        ];
     }
 
     public function headings(): array

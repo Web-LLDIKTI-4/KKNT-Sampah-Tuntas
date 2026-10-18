@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\MahasiswaRequest;
 use App\Imports\ImportMahasiswa;
+use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
+use App\Models\Satuanpendidikan;
+use App\Models\User;
 use App\Services\PersonDeletionService;
+use App\Services\PetaSebaranService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class MahasiswaController extends PersonMasterController
 {
@@ -46,5 +52,47 @@ class MahasiswaController extends PersonMasterController
     protected function deleteRecord(Model $record): void
     {
         $this->deletion->deleteMahasiswa($record);
+    }
+
+    protected function editUrl(Model $record): ?string
+    {
+        return url('mahasiswa/edit/'.$record->id_mahasiswa);
+    }
+
+    public function edit(string $id)
+    {
+        $mahasiswa = Mahasiswa::findOrFail($id);
+
+        return view('mahasiswa.edit', [
+            'data' => $mahasiswa,
+            'canEditEmail' => ! $mahasiswa->isEmailLocked(),
+            'perguruanTinggi' => Satuanpendidikan::orderBy('nm_lemb')->pluck('nm_lemb', 'npsn'),
+            'lokasiProgram' => LokasiProgram::orderBy('nama_lokasi')->pluck('nama_lokasi', 'id'),
+        ]);
+    }
+
+    // Email hanya diubah bila belum terkunci (akun, pj_desa, dpl_mentoring)
+    public function update(MahasiswaRequest $request)
+    {
+        DB::transaction(function () use ($request) {
+            // Lock row so the email lock is evaluated atomically
+            $mahasiswa = Mahasiswa::lockForUpdate()->findOrFail($request->validated('id_mahasiswa'));
+            $hasAccount = $mahasiswa->hasAccount();
+            $fields = ['nim', 'tahun_masuk', 'nama', 'phone', 'prodi', 'kodept', 'location_program'];
+            if (! $mahasiswa->isEmailLocked()) {
+                $fields[] = 'email';
+            }
+
+            $mahasiswa->update($request->safe()->only($fields));
+
+            if ($hasAccount) {
+                User::where('email', $mahasiswa->email)->where('role', 'mahasiswa')->first()?->forceFill(['name' => $mahasiswa->nama])->save();
+            }
+        });
+
+        // Data Peserta / peta sebaran dibaca dari cache
+        PetaSebaranService::flushCache();
+
+        return $this->saved('Data mahasiswa berhasil diupdate');
     }
 }

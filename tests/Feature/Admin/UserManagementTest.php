@@ -4,7 +4,6 @@ namespace Tests\Feature\Admin;
 
 use App\Models\CapaianKegiatan;
 use App\Models\Desa;
-use App\Exports\UserExport;
 use App\Models\Dpl;
 use App\Models\Dpllaporan;
 use App\Models\Dplmentoring;
@@ -26,9 +25,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Maatwebsite\Excel\Facades\Excel;
+use OpenSpout\Reader\XLSX\Reader;
 use RuntimeException;
 use Tests\TestCase;
+use ZipArchive;
 
 class UserManagementTest extends TestCase
 {
@@ -314,19 +314,40 @@ class UserManagementTest extends TestCase
     {
         $this->loginAs('admin');
         [$sp, $users] = $this->usersAcrossPt();
-        Excel::fake();
-        Excel::matchByRegex();
 
-        $this->get('user/export?kodept='.$sp->npsn)->assertOk();
-        Excel::assertDownloaded('/^users_.+\.xlsx$/', function (UserExport $export) use ($users, $sp) {
-            $rows = $export->collection();
+        $rows = $this->exportedRows('user/export?kodept='.$sp->npsn);
+        $header = array_shift($rows);
+        $this->assertSame(['No.', 'Nama', 'NIM/NIDN/Kode PT', 'Email', 'Perguruan Tinggi', 'Peran'], array_map(fn ($cell) => $cell->getValue(), $header));
+        $this->assertSame(
+            collect([$users['mhs'], $users['dpl'], $users['pt']])->pluck('email')->sort()->values()->all(),
+            collect($rows)->map(fn ($row) => $row[3]->getValue())->sort()->values()->all()
+        );
+        $this->assertSame([$sp->nm_lemb], collect($rows)->map(fn ($row) => $row[4]->getValue())->unique()->values()->all());
+        $this->assertSame([1, 2, 3], collect($rows)->map(fn ($row) => $row[0]->getValue())->all());
 
-            return $rows->pluck('Email')->sort()->values()->all() === collect([$users['mhs'], $users['dpl'], $users['pt']])->pluck('email')->sort()->values()->all()
-                && $rows->pluck('Perguruan Tinggi')->unique()->all() === [$sp->nm_lemb];
-        });
+        $this->assertCount(7, $this->exportedRows('user/export'));
+    }
 
-        $this->get('user/export')->assertOk();
-        Excel::assertDownloaded('/^users_.+\.xlsx$/', fn (UserExport $export) => $export->collection()->count() === 6);
+    public function test_export_writes_formula_like_text_as_plain_string(): void
+    {
+        $this->loginAs('admin');
+        $payload = '=HYPERLINK("http://evil.test","x")';
+        User::factory()->role('kepala')->create(['name' => $payload]);
+
+        $path = tempnam(sys_get_temp_dir(), 'users_export');
+        try {
+            file_put_contents($path, $this->get('user/export?role=kepala')->assertOk()->streamedContent());
+            $zip = new ZipArchive;
+            $zip->open($path);
+            $sheet = $zip->getFromName('xl/worksheets/sheet1.xml');
+            $zip->close();
+        } finally {
+            unlink($path);
+        }
+
+        // Reader re-wraps "=" values as formulas, so inspect the raw sheet XML instead
+        $this->assertStringContainsString('t="inlineStr"><is><t>'.htmlspecialchars($payload, ENT_QUOTES | ENT_XML1), $sheet);
+        $this->assertStringNotContainsString('<f>', $sheet);
     }
 
     public function test_index_lists_perguruan_tinggi_with_users(): void
@@ -352,6 +373,31 @@ class UserManagementTest extends TestCase
     {
         DB::table('sessions')->insert(['id' => 'sess-'.$user->id, 'user_id' => $user->id, 'payload' => 'x', 'last_activity' => time()]);
         DB::table('password_resets')->insert(['email' => $user->email, 'token' => 'hash', 'created_at' => now()]);
+    }
+
+    // Download the streamed XLSX and read every row back as cells
+    private function exportedRows(string $uri): array
+    {
+        $response = $this->get($uri)->assertOk();
+        $this->assertMatchesRegularExpression('/filename=users_.+\.xlsx$/', $response->headers->get('Content-Disposition'));
+
+        $path = tempnam(sys_get_temp_dir(), 'users_export');
+        try {
+            file_put_contents($path, $response->streamedContent());
+            $reader = new Reader;
+            $reader->open($path);
+            $rows = [];
+            foreach ($reader->getSheetIterator() as $sheet) {
+                foreach ($sheet->getRowIterator() as $row) {
+                    $rows[] = $row->getCells();
+                }
+            }
+            $reader->close();
+        } finally {
+            unlink($path);
+        }
+
+        return $rows;
     }
 
     // Users in two PTs plus one kepala (admin login excluded)
