@@ -135,7 +135,7 @@ class LoginController extends Controller
 
     private function dataPeserta(DataPesertaSummary $peserta)
     {
-        return Cache::remember('login.data_peserta.v2.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1), now()->addMinutes(10), fn () => $peserta->all());
+        return Cache::remember('login.data_peserta.v3.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1), now()->addMinutes(10), fn () => $peserta->all());
     }
 
     // Cache di-forget oleh hook model Panduan setiap ada perubahan

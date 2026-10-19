@@ -39,7 +39,10 @@ class DataPesertaSummary
             ->groupBy('mahasiswa.kodept')
             ->pluck('total', 'kodept');
 
-        $kodept = $jumlahMahasiswaPerPt->keys()->merge($jumlahDplPerPt->keys())->unique()->values();
+        // Same UNION as header jumlahPt in LoginController::statistikPublik()
+        $kodept = DB::table('mahasiswa')->whereNotNull('kodept')->select('kodept')
+            ->union(DB::table('dpl')->whereNotNull('kodept')->select('kodept'))
+            ->pluck('kodept');
         $namaPt = DB::table('ref_satuanpendidikan')->whereIn('npsn', $kodept)->pluck('nm_lemb', 'npsn');
 
         return $kodept->map(fn ($kode) => (object) [
