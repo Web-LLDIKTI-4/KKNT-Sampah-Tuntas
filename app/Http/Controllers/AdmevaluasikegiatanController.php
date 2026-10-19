@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Evaluasi\PertanyaanRequest;
 use App\Models\Evaluasikegiatan;
 use App\Models\Evaluasikegiatanjawaban;
-use App\Models\Satuanpendidikan;
 use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
@@ -14,6 +14,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class AdmevaluasikegiatanController extends Controller
 {
+    use HandlesDataTablesOrder;
     use RespondsWithJson;
 
     public function index()
@@ -30,13 +31,33 @@ class AdmevaluasikegiatanController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $data = Evaluasikegiatanjawaban::with('evaluasikegiatan')->get();
-        $namaPt = Satuanpendidikan::whereIn('npsn', $data->pluck('kodept')->filter()->unique())->pluck('nm_lemb', 'npsn');
+        $this->sanitizeDataTablesInput();
 
-        return DataTables::of($data)
+        $whitelist = ['kodept', 'nm_lemb', 'pertanyaan', 'jawaban'];
+        // npsn is unique, so the join never duplicates answers
+        $query = Evaluasikegiatanjawaban::query()
+            ->select('evaluasi_kegiatan_jawaban.*', 'sp.nm_lemb')
+            ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', 'evaluasi_kegiatan_jawaban.kodept')
+            ->with('evaluasikegiatan:id_evaluasi,pertanyaan')
+            ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q->orderBy('evaluasi_kegiatan_jawaban.id'));
+
+        return DataTables::eloquent($query)
             ->addIndexColumn()
+            ->whitelist($whitelist)
             ->addColumn('kodept', fn ($row) => $row->kodept ?? 'Tidak ada')
-            ->addColumn('nm_lemb', fn ($row) => $namaPt[$row->kodept] ?? 'Tidak ada')
+            ->addColumn('nm_lemb', fn ($row) => $row->nm_lemb ?? 'Tidak ada')
+            ->filterColumn('kodept', fn ($q, $k) => $q->where('evaluasi_kegiatan_jawaban.kodept', 'like', $this->likeContains($k)))
+            ->filterColumn('nm_lemb', fn ($q, $k) => $q->where('sp.nm_lemb', 'like', $this->likeContains($k)))
+            ->filterColumn('pertanyaan', fn ($q, $k) => $q->whereHas('evaluasikegiatan', fn ($e) => $e->where('pertanyaan', 'like', $this->likeContains($k))))
+            ->filterColumn('jawaban', fn ($q, $k) => $q->where('evaluasi_kegiatan_jawaban.jawaban', 'like', $this->likeContains($k)))
+            ->orderColumn('kodept', 'evaluasi_kegiatan_jawaban.kodept $1')
+            ->orderColumn('nm_lemb', 'sp.nm_lemb $1')
+            // id_evaluasi is the primary key, so the subquery returns at most one row
+            ->orderColumn('pertanyaan', fn ($q, $order) => $q->orderBy(
+                Evaluasikegiatan::select('pertanyaan')->whereColumn('evaluasi_kegiatan.id_evaluasi', 'evaluasi_kegiatan_jawaban.id_evaluasi'),
+                $order
+            ))
+            ->orderColumn('jawaban', 'evaluasi_kegiatan_jawaban.jawaban $1')
             ->addColumn('pertanyaan', fn ($row) => HtmlSanitizer::clean($row->evaluasikegiatan->pertanyaan ?? 'Tidak ada'))
             ->rawColumns(['pertanyaan'])
             ->make(true);

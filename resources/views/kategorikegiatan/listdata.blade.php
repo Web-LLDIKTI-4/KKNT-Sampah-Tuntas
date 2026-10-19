@@ -14,7 +14,7 @@
     </div>
 </div>
 
-<x-button.export url="{{ route('kategori-kegiatan.export') }}" />
+<x-button.export url="{{ route('kategori-kegiatan.export') }}" table="#dataTable" />
 <script type="text/javascript">
   $(function () {
     var table = $('#dataTable').DataTable({

@@ -19,7 +19,7 @@
 </div>
 <script>
     $(function(){
-        $("#resultcontent").load("{{ url('perguruantinggi/listdata') }}");
+        loadPartial('#resultcontent', "{{ url('perguruantinggi/listdata') }}");
 
         $("#form-tambah").on("submit",function(){       
         var action = $(this).attr("action");

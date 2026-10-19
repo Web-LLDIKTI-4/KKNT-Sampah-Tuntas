@@ -27,6 +27,6 @@ $(function () {
         }
         $(this).find('.modal-dialog').removeClass('modal-sm modal-lg modal-xl').addClass(@json($modalSize));
     });
-    $result.load(@json($listUrl));
+    loadPartial($result, @json($listUrl));
 });
 </script>

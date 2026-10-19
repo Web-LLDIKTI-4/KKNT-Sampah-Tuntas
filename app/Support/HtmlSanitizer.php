@@ -80,6 +80,19 @@ class HtmlSanitizer
         }
     }
 
+    // Editor HTML -> plain text for exports, keeping line breaks
+    public static function plainText(?string $html): ?string
+    {
+        if ($html === null || $html === '') {
+            return null;
+        }
+        $text = str_replace(['<br>', '<br/>', '<br />', '</p>', '</li>'], "\n", $html);
+        $text = html_entity_decode(strip_tags($text), ENT_QUOTES | ENT_HTML5);
+        $text = preg_replace('/[ \t]+/', ' ', $text);
+
+        return preg_replace("/\n{3,}/", "\n\n", trim($text));
+    }
+
     /**
      * Tag <a> aman (hanya http/https), atau string kosong bila URL tidak valid.
      */

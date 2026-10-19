@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Exports\LogBulananLengkapExport;
 use App\Exports\LogHarianLengkapExport;
-use App\Exports\LogKehadiranByMhsExport;
 use App\Exports\LogKehadiranLengkapExport;
 use App\Models\Logkegiatan;
 use App\Models\Dplmentoring;
@@ -15,23 +14,20 @@ use App\Models\Satuanpendidikan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
-use Maatwebsite\Excel\Cache\BatchCache;
-use Maatwebsite\Excel\Excel as ExcelType;
-use Maatwebsite\Excel\Facades\Excel;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Settings;
+use Tests\Concerns\ReadsXlsx;
 use Tests\TestCase;
 
 class LogKeseluruhanExportTest extends TestCase
 {
+    use ReadsXlsx;
     use RefreshDatabase;
 
     private const SEMUA = ['mhsA1@uji.test', 'mhsA2@uji.test', 'mhsB1@uji.test'];
 
     private const JENIS = [
-        'logbulanan' => ['prefix' => 'log_bulanan', 'class' => LogBulananLengkapExport::class, 'email' => 'lb.email'],
-        'logkehadiran' => ['prefix' => 'log_kehadiran', 'class' => LogKehadiranLengkapExport::class, 'email' => 'k.email'],
+        // kolom: index kolom Email di file (No. di A)
+        'logbulanan' => ['prefix' => 'log_bulanan', 'kolom' => 2],
+        'logkehadiran' => ['prefix' => 'log_kehadiran', 'kolom' => 1],
     ];
 
     private array $d = [];
@@ -58,26 +54,17 @@ class LogKeseluruhanExportTest extends TestCase
         return User::factory()->role($role)->create(['email' => $email]);
     }
 
-    // Email unik & jumlah baris yang ikut di export lewat HTTP
-    private function export(string $jenis, User $user, string $query = ''): array
+    // Email unik & jumlah baris data di file export lewat HTTP
+    private function export(string $jenis, User $user, string $query = '', string $periode = '.+'): array
     {
         $cfg = self::JENIS[$jenis];
-        Excel::fake();
-        Excel::matchByRegex();
-        $this->actingAs($user)->get('export/'.$jenis.$query)->assertOk();
+        $ws = $this->xlsxFromResponse(
+            $this->actingAs($user)->get('export/'.$jenis.$query),
+            '/filename='.$cfg['prefix'].'_'.$periode.'\.xlsx/'
+        );
+        $email = collect($this->dataColumn($ws, $cfg['kolom']));
 
-        $hasil = [];
-        Excel::assertDownloaded('/^'.$cfg['prefix'].'_.+\.xlsx$/', function ($export) use ($cfg, &$hasil) {
-            $this->assertInstanceOf($cfg['class'], $export);
-            $hasil = [
-                $export->query()->pluck($cfg['email'])->unique()->sort()->values()->all(),
-                $export->query()->count(),
-            ];
-
-            return true;
-        });
-
-        return $hasil;
+        return [$email->unique()->sort()->values()->all(), $email->count()];
     }
 
     public function test_admin_kepala_pemda_export_semua_data(): void
@@ -120,7 +107,6 @@ class LogKeseluruhanExportTest extends TestCase
 
     public function test_mahasiswa_dan_guest_ditolak(): void
     {
-        Excel::fake();
         foreach (array_keys(self::JENIS) as $jenis) {
             $this->get('export/'.$jenis)->assertRedirect(route('login'));
         }
@@ -144,13 +130,10 @@ class LogKeseluruhanExportTest extends TestCase
         $pt = $this->user('pt', $this->d['ptA']->npsn);
 
         foreach (array_keys(self::JENIS) as $jenis) {
-            $prefix = self::JENIS[$jenis]['prefix'];
-            $this->assertSame([self::SEMUA, 3], $this->export($jenis, $admin, '?bulan=2026-08'), $jenis);
-            Excel::assertDownloaded('/^'.$prefix.'_2026-08_.+\.xlsx$/');
+            $this->assertSame([self::SEMUA, 3], $this->export($jenis, $admin, '?bulan=2026-08', '2026-08_.+'), $jenis);
             $this->assertSame([['mhsA1@uji.test', 'mhsA2@uji.test'], 2], $this->export($jenis, $pt, '?bulan=2026-09'), $jenis);
             // Kosong = semua data
-            $this->assertSame([self::SEMUA, 6], $this->export($jenis, $admin, '?bulan='), $jenis);
-            Excel::assertDownloaded('/^'.$prefix.'_semua_.+\.xlsx$/');
+            $this->assertSame([self::SEMUA, 6], $this->export($jenis, $admin, '?bulan=', 'semua_.+'), $jenis);
 
             foreach (['2026-13', 'abc', "2026-08' OR 1=1"] as $bulan) {
                 $this->actingAs($admin)->get('export/'.$jenis.'?bulan='.urlencode($bulan))->assertSessionHasErrors('bulan');
@@ -160,7 +143,6 @@ class LogKeseluruhanExportTest extends TestCase
 
     public function test_throttle_3_per_menit(): void
     {
-        Excel::fake();
         foreach (array_keys(self::JENIS) as $jenis) {
             $admin = $this->user('admin', "admin.$jenis@uji.test");
             for ($i = 0; $i < 3; $i++) {
@@ -173,7 +155,6 @@ class LogKeseluruhanExportTest extends TestCase
     public function test_export_per_mahasiswa_di_luar_scope_404(): void
     {
         $this->withoutMiddleware(ThrottleRequests::class);
-        Excel::fake();
         $pt = $this->user('pt', $this->d['ptA']->npsn);
         $dpl = $this->user('dpl', 'dplA@uji.test');
 
@@ -187,7 +168,6 @@ class LogKeseluruhanExportTest extends TestCase
 
     public function test_throttle_export_per_mahasiswa(): void
     {
-        Excel::fake();
         $routes = [
             'admlogkegiatan/export/mhsA1@uji.test',
             'admlogbulanan/export/mhsA1@uji.test',
@@ -218,121 +198,143 @@ class LogKeseluruhanExportTest extends TestCase
         $mhs->update(['nama' => '=HYPERLINK("http://x","klik")', 'nim' => '+62123']);
         Kehadiran::where('email', $mhs->email)->update(['status_kehadiran' => '=1+1']);
 
-        $ws = $this->sheet(new LogKehadiranByMhsExport($mhs->email));
+        $ws = $this->perMahasiswa('admlogkehadiran', $mhs->email);
 
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('C2')->getDataType());
-        $this->assertSame('=HYPERLINK("http://x","klik")', $ws->getCell('C2')->getValue());
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('F2')->getDataType());
-        $this->assertSame('=1+1', $ws->getCell('F2')->getValue());
+        $this->assertSame(['No.', 'NIM', 'Nama Mahasiswa', 'Nama Perguruan Tinggi', 'Tanggal', 'Status Kehadiran', 'Jam Masuk', 'Jam Pulang'], $this->headerRow($ws));
+        $this->assertCellIsText($ws, 'B4', '+62123');
+        $this->assertCellIsText($ws, 'C4', '=HYPERLINK("http://x","klik")');
+        $this->assertCellIsText($ws, 'F4', '=1+1');
+        $this->assertSame($this->d['ptA']->nm_lemb, $this->cellText($ws, 'D4'));
+        $this->assertSame(['05-08-2026', '05-09-2026'], $this->dataColumn($ws, 4));
         // Hanya data mahasiswa tsb
-        $this->assertSame(3, $ws->getHighestRow());
+        $this->assertCount(2, $this->dataRows($ws));
     }
 
-    public function test_export_jalan_dengan_cache_driver_batch(): void
-    {
-        $this->assertSame('batch', config('excel.cache.driver'));
-        // Limit kecil agar sel benar-benar di-flush ke cache store saat test
-        config(['excel.cache.batch.memory_limit' => 5]);
-        Logkegiatan::factory()->count(3)->create(['email' => 'mhsA1@uji.test', 'tanggal' => '2026-09-05']);
-        $admin = $this->user('admin', 'admin@uji.test');
-
-        $ws = $this->sheet(new LogHarianLengkapExport($admin));
-        $this->assertInstanceOf(BatchCache::class, Settings::getCache());
-        $this->assertSame('Timestamp', $ws->getCell('A1')->getValue());
-        $this->assertSame(4, $ws->getHighestRow());
-        $this->assertSame('mhsA1@uji.test', $ws->getCell('B4')->getValue());
-        $this->assertSame('FFFF00', $ws->getStyle('M1')->getFill()->getStartColor()->getRGB());
-
-        $ws = $this->sheet(new LogBulananLengkapExport($admin));
-        $this->assertSame(7, $ws->getHighestRow());
-        $this->assertSame(self::SEMUA, collect($ws->rangeToArray('B2:B7'))->flatten()->unique()->sort()->values()->all());
-
-        $ws = $this->sheet(new LogKehadiranLengkapExport($admin));
-        $this->assertSame(7, $ws->getHighestRow());
-        $this->assertSame('Hadir', $ws->getCell('G7')->getValue());
-
-        $ws = $this->sheet(new LogKehadiranByMhsExport('mhsB1@uji.test'));
-        $this->assertSame(3, $ws->getHighestRow());
-
-        // Lewat HTTP (download asli, bukan fake)
-        $res = $this->actingAs($this->user('admin', 'admin2@uji.test'))->get('export/logkehadiran');
-        $res->assertOk();
-        $this->assertStringContainsString('spreadsheetml', $res->headers->get('content-type'));
-    }
-
-    private function sheet(object $export)
-    {
-        $path = tempnam(sys_get_temp_dir(), 'log').'.xlsx';
-        file_put_contents($path, Excel::raw($export, ExcelType::XLSX));
-        $ws = IOFactory::load($path)->getActiveSheet();
-        @unlink($path);
-
-        return $ws;
-    }
-
-    private function assertHeaderKuning($ws, array $header, string $kolomAkhir): void
-    {
-        $this->assertSame($header, $ws->rangeToArray('A1:'.$kolomAkhir.'1')[0]);
-        $this->assertSame('FFFF00', $ws->getStyle('A1')->getFill()->getStartColor()->getRGB());
-        $this->assertSame('FFFF00', $ws->getStyle($kolomAkhir.'1')->getFill()->getStartColor()->getRGB());
-        $this->assertTrue($ws->getStyle('A1')->getFont()->getBold());
-        $this->assertNotSame('none', $ws->getStyle($kolomAkhir.'2')->getBorders()->getBottom()->getBorderStyle());
-        $this->assertFalse($ws->getColumnDimension('B')->getAutoSize());
-    }
-
-    public function test_log_bulanan_header_kuning_isi_dan_anti_formula(): void
+    public function test_log_bulanan_per_mahasiswa_isi_dan_null_safe(): void
     {
         $mhs = $this->d['mhsA1'];
         Logbulanan::where('email', $mhs->email)->where('bulan', 9)->update(['deskripsi' => '<p>Kegiatan <b>bank sampah</b></p>', 'nilai' => 90]);
         Logbulanan::where('email', $mhs->email)->where('bulan', 8)->update(['deskripsi' => '=HYPERLINK("http://x","klik")']);
 
-        $ws = $this->sheet(new LogBulananLengkapExport($this->user('dpl', 'dplA@uji.test')));
-        $this->assertHeaderKuning($ws, ['Timestamp', 'Email Address', 'Nama Mahasiswa', 'Nomor Kontak', 'NIM', 'Nama Perguruan Tinggi', 'Bulan', 'Deskripsi', 'Nilai'], 'I');
+        $ws = $this->perMahasiswa('admlogbulanan', $mhs->email);
+        $this->assertSame(['No.', 'NIM', 'Nama Mahasiswa', 'Nama Perguruan Tinggi', 'Bulan', 'Deskripsi', 'Nilai'], $this->headerRow($ws));
+        $this->assertCount(2, $this->dataRows($ws));
+        $this->assertCellIsText($ws, 'F4', '=HYPERLINK("http://x","klik")');
+        $this->assertStringNotContainsString('<', $this->cellText($ws, 'F5'));
+        $this->assertStringContainsString('bank sampah', $this->cellText($ws, 'F5'));
+        $this->assertEquals(90, $ws->getCell('G5')->getValue());
 
-        // Urut tahun, bulan: baris 2 = Agustus, baris 3 = September
-        $this->assertSame('mhsA1@uji.test', $ws->getCell('B3')->getValue());
-        $this->assertSame($mhs->nama, $ws->getCell('C3')->getValue());
-        $this->assertSame($mhs->phone, $ws->getCell('D3')->getValue());
-        $this->assertSame($this->d['ptA']->nm_lemb, $ws->getCell('F3')->getValue());
-        $this->assertSame('September 2026', $ws->getCell('G3')->getValue());
-        $this->assertStringNotContainsString('<', (string) $ws->getCell('H3')->getValue());
-        $this->assertStringContainsString('bank sampah', (string) $ws->getCell('H3')->getValue());
-        $this->assertEquals(90, $ws->getCell('I3')->getValue());
-        $this->assertSame('Agustus 2026', $ws->getCell('G2')->getValue());
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('H2')->getDataType());
-        $this->assertStringStartsWith('=HYPERLINK', $ws->getCell('H2')->getValue());
+        // PT tidak ada di master → tetap 200, kolom PT "-"
+        $this->d['ptA']->delete();
+        foreach (['admlogbulanan', 'admlogkehadiran'] as $uri) {
+            $ws = $this->perMahasiswa($uri, $mhs->email);
+            $this->assertSame('-', $this->cellText($ws, 'D4'), $uri);
+            $this->assertSame($mhs->nama, $this->cellText($ws, 'C4'), $uri);
+        }
+        // Mahasiswa tidak ada di master → 404 (authorizeStudent), bukan 500
+        Logbulanan::factory()->create(['email' => 'yatim@uji.test', 'tahun' => 2026, 'bulan' => 9]);
+        $this->actingAs(User::where('email', 'qa.admin@uji.test')->first())->get('admlogbulanan/export/yatim@uji.test')->assertNotFound();
     }
 
-    public function test_log_kehadiran_header_kuning_isi_dan_anti_formula(): void
+    public function test_export_lengkap_write_to_dan_http(): void
+    {
+        Logkegiatan::factory()->count(3)->create(['email' => 'mhsA1@uji.test', 'tanggal' => '2026-09-05']);
+        $admin = $this->user('admin', 'admin@uji.test');
+
+        $ws = $this->xlsxFromWriter(fn ($path) => (new LogHarianLengkapExport($admin))->writeTo($path));
+        $this->assertSame('Log Aktivitas Harian Mahasiswa', $this->cellText($ws, 'A1'));
+        $this->assertSame(['No.', 'Timestamp', 'Email Address'], array_slice($this->headerRow($ws), 0, 3));
+        $this->assertCount(3, $this->dataRows($ws));
+        $this->assertSame('mhsA1@uji.test', $this->cellText($ws, 'C6'));
+        $this->assertSame('D9EAD3', $ws->getStyle('N3')->getFill()->getStartColor()->getRGB());
+
+        $ws = $this->xlsxFromWriter(fn ($path) => (new LogBulananLengkapExport($admin))->writeTo($path));
+        $this->assertCount(6, $this->dataRows($ws));
+        $this->assertSame(self::SEMUA, collect($this->dataColumn($ws, 2))->unique()->sort()->values()->all());
+
+        $ws = $this->xlsxFromWriter(fn ($path) => (new LogKehadiranLengkapExport($admin))->writeTo($path));
+        $this->assertCount(6, $this->dataRows($ws));
+        $this->assertSame('Hadir', $this->cellText($ws, 'H9'));
+
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $this->assertCount(2, $this->dataRows($this->perMahasiswa('admlogkehadiran', 'mhsB1@uji.test')));
+
+        // Lewat HTTP (download asli)
+        $ws = $this->xlsxFromResponse($this->actingAs($this->user('admin', 'admin2@uji.test'))->get('export/logkehadiran'));
+        $this->assertCount(6, $this->dataRows($ws));
+    }
+
+    // Export per mahasiswa lewat HTTP sebagai admin
+    private function perMahasiswa(string $uri, string $email)
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $admin = User::where('email', 'qa.admin@uji.test')->first() ?? $this->user('admin', 'qa.admin@uji.test');
+
+        return $this->xlsxFromResponse($this->actingAs($admin)->get("$uri/export/$email"));
+    }
+
+    private function assertHeaderStandar($ws, array $header, string $kolomAkhir): void
+    {
+        $this->assertSame($header, $this->headerRow($ws));
+        $this->assertSame('D9EAD3', $ws->getStyle('A3')->getFill()->getStartColor()->getRGB());
+        $this->assertSame('D9EAD3', $ws->getStyle($kolomAkhir.'3')->getFill()->getStartColor()->getRGB());
+        $this->assertTrue($ws->getStyle('A3')->getFont()->getBold());
+        $this->assertSame('A4', $ws->getFreezePane());
+        $this->assertNotSame('none', $ws->getStyle($kolomAkhir.'4')->getBorders()->getBottom()->getBorderStyle());
+        $this->assertFalse($ws->getColumnDimension('B')->getAutoSize());
+    }
+
+    public function test_log_bulanan_header_standar_isi_dan_anti_formula(): void
     {
         $mhs = $this->d['mhsA1'];
-        Kehadiran::where('email', $mhs->email)->where('tanggal', '2026-09-05')->update(['waktu_masuk' => '2026-09-05 07:30:00']);
+        Logbulanan::where('email', $mhs->email)->where('bulan', 9)->update(['deskripsi' => '<p>Kegiatan <b>bank sampah</b></p>', 'nilai' => 90]);
+        Logbulanan::where('email', $mhs->email)->where('bulan', 8)->update(['deskripsi' => '=HYPERLINK("http://x","klik")']);
+
+        $ws = $this->xlsxFromWriter(fn ($path) => (new LogBulananLengkapExport($this->user('dpl', 'dplA@uji.test')))->writeTo($path));
+        $this->assertHeaderStandar($ws, ['No.', 'Timestamp', 'Email Address', 'Nama Mahasiswa', 'Nomor Kontak', 'NIM', 'Nama Perguruan Tinggi', 'Bulan', 'Deskripsi', 'Nilai'], 'J');
+
+        // Urut tahun, bulan: baris 4 = Agustus, baris 5 = September
+        $this->assertSame('mhsA1@uji.test', $this->cellText($ws, 'C5'));
+        $this->assertSame($mhs->nama, $this->cellText($ws, 'D5'));
+        $this->assertSame($mhs->phone ?? '-', $this->cellText($ws, 'E5'));
+        $this->assertSame($this->d['ptA']->nm_lemb, $this->cellText($ws, 'G5'));
+        $this->assertSame('September 2026', $this->cellText($ws, 'H5'));
+        $this->assertStringNotContainsString('<', $this->cellText($ws, 'I5'));
+        $this->assertStringContainsString('bank sampah', $this->cellText($ws, 'I5'));
+        $this->assertEquals(90, $ws->getCell('J5')->getValue());
+        $this->assertSame('Agustus 2026', $this->cellText($ws, 'H4'));
+        $this->assertCellIsText($ws, 'I4', '=HYPERLINK("http://x","klik")');
+    }
+
+    public function test_log_kehadiran_header_standar_isi_dan_anti_formula(): void
+    {
+        $mhs = $this->d['mhsA1'];
+        Kehadiran::where('email', $mhs->email)->where('tanggal', '2026-09-05')->update(['waktu_masuk' => '2026-09-05 07:30:00', 'waktu_pulang' => null]);
         $mhs->update(['nama' => '=1+1']);
 
-        $ws = $this->sheet(new LogKehadiranLengkapExport($this->user('dpl', 'dplA@uji.test')));
-        $this->assertHeaderKuning($ws, ['Email Address', 'Nama Mahasiswa', 'Nomor Kontak', 'NIM', 'Nama Perguruan Tinggi', 'Tanggal', 'Status Kehadiran', 'Jam Masuk', 'Jam Pulang'], 'I');
+        $ws = $this->xlsxFromWriter(fn ($path) => (new LogKehadiranLengkapExport($this->user('dpl', 'dplA@uji.test')))->writeTo($path));
+        $this->assertHeaderStandar($ws, ['No.', 'Email Address', 'Nama Mahasiswa', 'Nomor Kontak', 'NIM', 'Nama Perguruan Tinggi', 'Tanggal', 'Status Kehadiran', 'Jam Masuk', 'Jam Pulang'], 'J');
 
-        // Urut tanggal: baris 2 = 05-08-2026, baris 3 = 05-09-2026
-        $this->assertSame('mhsA1@uji.test', $ws->getCell('A3')->getValue());
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('B3')->getDataType());
-        $this->assertSame('=1+1', $ws->getCell('B3')->getValue());
-        $this->assertSame($mhs->phone, $ws->getCell('C3')->getValue());
-        $this->assertSame('05-09-2026', $ws->getCell('F3')->getValue());
-        $this->assertSame('Hadir', $ws->getCell('G3')->getValue());
-        $this->assertSame('07:30:00', $ws->getCell('H3')->getValue());
-        $this->assertSame('-', $ws->getCell('I3')->getValue());
-        $this->assertSame('05-08-2026', $ws->getCell('F2')->getValue());
+        // Urut tanggal: baris 4 = 05-08-2026, baris 5 = 05-09-2026
+        $this->assertSame('mhsA1@uji.test', $this->cellText($ws, 'B5'));
+        $this->assertCellIsText($ws, 'C5', '=1+1');
+        $this->assertSame($mhs->phone ?? '-', $this->cellText($ws, 'D5'));
+        $this->assertSame('05-09-2026', $this->cellText($ws, 'G5'));
+        $this->assertSame('Hadir', $this->cellText($ws, 'H5'));
+        $this->assertSame('07:30:00', $this->cellText($ws, 'I5'));
+        $this->assertSame('-', $this->cellText($ws, 'J5'));
+        $this->assertSame('05-08-2026', $this->cellText($ws, 'G4'));
     }
 
     public function test_export_kehadiran_per_mahasiswa_jam_kosong_jadi_strip(): void
     {
         Kehadiran::where('email', 'mhsB1@uji.test')->update(['waktu_masuk' => '2026-09-05 07:30:00', 'waktu_pulang' => null]);
 
-        $ws = $this->sheet(new LogKehadiranByMhsExport('mhsB1@uji.test'));
+        $ws = $this->perMahasiswa('admlogkehadiran', 'mhsB1@uji.test');
 
-        foreach ([2, 3] as $baris) {
-            $this->assertSame('07:30:00', $ws->getCell("G$baris")->getValue());
-            $this->assertSame('-', $ws->getCell("H$baris")->getValue());
+        foreach ([4, 5] as $baris) {
+            $this->assertSame('07:30:00', $this->cellText($ws, "G$baris"));
+            $this->assertSame('-', $this->cellText($ws, "H$baris"));
         }
     }
 }

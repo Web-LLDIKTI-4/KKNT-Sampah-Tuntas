@@ -46,7 +46,7 @@
 </div>
 <script>
 $(function(){
-    $("#listdata").load("{{ url('dpllaporan/listdata') }}");
+    loadPartial('#listdata', "{{ url('dpllaporan/listdata') }}");
    
     $('#modalku').on('show.bs.modal', function (e) {
         $(".modal-dialog").addClass('modal-lg');

@@ -58,7 +58,7 @@
         $('#modalku').on('show.bs.modal', function () {
             $(this).find('.modal-dialog').removeClass('modal-sm modal-lg modal-xl').addClass('modal-xl');
         });
-        $("#resultcontent").load("{{ url('capaiankegiatan/listdata') }}");
+        loadPartial('#resultcontent', "{{ url('capaiankegiatan/listdata') }}");
     });
 </script>
 @stop

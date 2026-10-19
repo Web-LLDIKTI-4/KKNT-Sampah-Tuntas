@@ -13,7 +13,7 @@ $(function(){
     $('#modalku').on('show.bs.modal', function () {
         $(".modal-dialog").addClass("modal-lg");
     })
-    $("#resultcontent").load("{{ url('laptugasakhir/listdata') }}");
+    loadPartial('#resultcontent', "{{ url('laptugasakhir/listdata') }}");
 })
 </script>
 @stop 

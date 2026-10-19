@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Master\DesaprofileRequest;
 use App\Models\Desaprofile;
@@ -13,7 +14,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class DesaprofileController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     public function index()
     {
@@ -28,6 +29,7 @@ class DesaprofileController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
         return DataTables::of(Desaprofile::with('desa')->get())
             ->addIndexColumn()

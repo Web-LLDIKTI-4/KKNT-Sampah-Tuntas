@@ -14,7 +14,7 @@ $(function(){
     $('#modalku').on('show.bs.modal', function () {
         $(".modal-dialog").addClass("modal-lg");
     })
-    $("#resultcontent").load("{{ url('pttugasakhir/listdata') }}");
+    loadPartial('#resultcontent', "{{ url('pttugasakhir/listdata') }}");
 })
 </script>
 @stop 

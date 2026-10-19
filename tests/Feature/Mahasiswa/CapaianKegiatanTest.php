@@ -8,11 +8,8 @@ use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Maatwebsite\Excel\Excel as ExcelType;
-use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use App\Exports\CapaianKegiatanExport;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -226,22 +223,42 @@ class CapaianKegiatanTest extends TestCase
             ->assertOk()->assertJsonCount(0, 'data');
     }
 
+    // Mahasiswa: export PeriodeSheet dari route; nilai sel diratakan untuk dicari
+    private function exportCells(): array
+    {
+        $response = $this->get('capaiankegiatan/export')->assertOk();
+        $ws = IOFactory::load($response->baseResponse->getFile()->getPathname())->getActiveSheet();
+        $cells = [];
+        foreach ($ws->getRowIterator() as $row) {
+            foreach ($row->getCellIterator() as $cell) {
+                $cells[] = $cell;
+            }
+        }
+
+        return $cells;
+    }
+
+    private function exportValues(): array
+    {
+        return array_map(fn ($cell) => $cell->getValue(), $this->exportCells());
+    }
+
     public function test_export_anggota_sama_dengan_scope_listdata(): void
     {
-        $user = $this->loginAnggota();
-        $kelompok = CapaianKegiatan::factory()->create(['email' => 'ketua-lain@pps.test']);
+        $this->loginAnggota();
+        CapaianKegiatan::factory()->create(['email' => 'ketua-lain@pps.test', 'permasalahan' => 'Masalah Kelompok']);
         $pjLuar = Pjdesa::create(['email' => 'ketua-luar@pps.test', 'id_desa' => Desa::factory()->create()->id_desa]);
-        CapaianKegiatan::factory()->create(['email' => $pjLuar->email]);
+        CapaianKegiatan::factory()->create(['email' => $pjLuar->email, 'permasalahan' => 'Masalah Luar']);
 
-        $this->get('capaiankegiatan/export')->assertOk();
-        // Controller mengirim email user mahasiswa ke export
-        $rows = (new CapaianKegiatanExport($user->email))->collection();
-        $this->assertCount(1, $rows);
-        $this->assertSame($kelompok->email, $rows->first()['PJ Desa']);
+        $values = $this->exportValues();
+        $this->assertContains('Masalah Kelompok', $values);
+        $this->assertNotContains('Masalah Luar', $values);
 
-        // Desa tanpa ketua: file kosong
-        $lain = $this->loginAs('mahasiswa');
-        $this->assertCount(0, (new CapaianKegiatanExport($lain->email))->collection());
+        // Desa tanpa ketua: tanpa capaian
+        $this->loginAs('mahasiswa');
+        $values = $this->exportValues();
+        $this->assertNotContains('Masalah Kelompok', $values);
+        $this->assertNotContains('Masalah Luar', $values);
     }
 
     public function test_export_capaian_teks_berawalan_sama_dengan_bukan_formula(): void
@@ -251,15 +268,11 @@ class CapaianKegiatanTest extends TestCase
         CapaianKegiatan::factory()->create(['email' => $user->email,
             'permasalahan' => $formula, 'solusi' => '=1+1', 'kendala' => 'biasa']);
 
-        $path = tempnam(sys_get_temp_dir(), 'cap').'.xlsx';
-        file_put_contents($path, Excel::raw(new CapaianKegiatanExport($user->email), ExcelType::XLSX));
-        $ws = IOFactory::load($path)->getActiveSheet();
-        @unlink($path);
-
-        // E = Permasalahan, F = Solusi (tanpa kolom No)
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('E2')->getDataType());
-        $this->assertSame($formula, $ws->getCell('E2')->getValue());
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('F2')->getDataType());
-        $this->assertSame('=1+1', $ws->getCell('F2')->getValue());
+        $cells = collect($this->exportCells());
+        foreach ([$formula, '=1+1'] as $text) {
+            $cell = $cells->first(fn ($c) => $c->getValue() === $text);
+            $this->assertNotNull($cell, $text);
+            $this->assertSame(DataType::TYPE_STRING, $cell->getDataType());
+        }
     }
 }

@@ -62,9 +62,9 @@ abstract class PersonMasterController extends Controller
             ->addColumn('nm_lemb', fn ($row) => $row->nm_lemb ?? 'Belum Terdata')
             ->addColumn('location_program', fn ($row) => $row->nama_lokasi ?? 'Belum Terdata')
             // Joined columns: map search & sort to the joined tables
-            ->filterColumn('nm_lemb', fn ($q, $k) => $q->where('sp.nm_lemb', 'like', "%{$k}%"))
+            ->filterColumn('nm_lemb', fn ($q, $k) => $q->where('sp.nm_lemb', 'like', $this->likeContains($k)))
             ->orderColumn('nm_lemb', 'sp.nm_lemb $1')
-            ->filterColumn('location_program', fn ($q, $k) => $q->where('lp.nama_lokasi', 'like', "%{$k}%"))
+            ->filterColumn('location_program', fn ($q, $k) => $q->where('lp.nama_lokasi', 'like', $this->likeContains($k)))
             ->orderColumn('location_program', 'lp.nama_lokasi $1')
             ->addColumn('action', fn ($row) => ActionButtons::make(
                 urlEdit: $this->editUrl($row),

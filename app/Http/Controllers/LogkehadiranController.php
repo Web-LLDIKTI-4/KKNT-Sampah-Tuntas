@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\LogkehadiranExport;
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\IzinRequest;
 use App\Http\Requests\Mahasiswa\KehadiranRequest;
 use App\Models\Kehadiran;
 use App\Services\AttendanceService;
 use App\Support\ActionButtons;
+use App\Support\XlsxStreamer;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class LogkehadiranController extends Controller
 {
+    use HandlesDataTablesOrder;
     use RespondsWithJson;
 
     private const BADGE = [
@@ -48,8 +50,14 @@ class LogkehadiranController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
-        return DataTables::of(Kehadiran::ownedBy($request->user())->orderByDesc('tanggal')->get())
+        $data = Kehadiran::ownedBy($request->user())
+            ->without(['mahasiswa', 'dplmentoring'])
+            ->orderByDesc('tanggal')
+            ->get();
+
+        return DataTables::of($data)
             ->addIndexColumn()
             ->editColumn('status_kehadiran', fn (Kehadiran $row) => self::badge($row->status_kehadiran))
             ->editColumn('tanggal', fn (Kehadiran $row) => $row->tanggal ? date('d-m-Y', strtotime($row->tanggal)) : '-')
@@ -115,7 +123,22 @@ class LogkehadiranController extends Controller
 
     public function export(Request $request)
     {
-        return Excel::download(new LogkehadiranExport($request->user()->email), 'kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
+        $user = $request->user();
+        $time = fn ($value) => $value ? Carbon::parse($value)->format('H:i:s') : null;
+        $rows = Kehadiran::ownedBy($user)
+            ->without(['mahasiswa', 'dplmentoring'])
+            ->orderBy('tanggal')
+            ->orderBy('id_kehadiran')
+            ->lazy(1000);
+
+        return (new XlsxStreamer('Log Kehadiran Mahasiswa', [
+            XlsxStreamer::column('Tanggal', 'tanggal', 12, 'date'),
+            XlsxStreamer::column('Status Kehadiran', fn (Kehadiran $row) => ucfirst((string) $row->status_kehadiran), 18),
+            XlsxStreamer::column('Jam Masuk', fn (Kehadiran $row) => $time($row->waktu_masuk), 12),
+            XlsxStreamer::column('Jam Pulang', fn (Kehadiran $row) => $time($row->waktu_pulang), 12),
+        ]))
+            ->info(['Mahasiswa' => $user->name, 'Email' => $user->email])
+            ->download('kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx', $rows);
     }
 
     private function today(Request $request): ?Kehadiran

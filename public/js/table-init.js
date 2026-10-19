@@ -1,3 +1,4 @@
+// errMode & error.dt handled globally in datatables-global.js
 $(function () {
     $('table[data-datatable]').each(function () {
         var $table = $(this);

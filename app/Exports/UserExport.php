@@ -2,23 +2,14 @@
 
 namespace App\Exports;
 
+use App\Support\LikeKeyword;
+use App\Support\XlsxStreamer;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
-use OpenSpout\Common\Entity\Cell;
-use OpenSpout\Common\Entity\Cell\NumericCell;
-use OpenSpout\Common\Entity\Cell\StringCell;
-use OpenSpout\Common\Entity\Row;
-use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Writer\XLSX\Options;
-use OpenSpout\Writer\XLSX\Writer;
 
 class UserExport
 {
-    private int $rowNumber = 0;
-
     public function __construct(private array $filters = []) {}
 
     // Filter sama dengan User::scopeManaged(), diproses per chunk agar hemat memori
@@ -41,6 +32,7 @@ class UserExport
                 ->where(fn ($q) => $q->where('u.role', 'mahasiswa')->whereIn('u.email', DB::table('mahasiswa')->select('email')->where('kodept', $kodept)))
                 ->orWhere(fn ($q) => $q->where('u.role', 'dpl')->whereIn('u.email', DB::table('dpl')->select('email')->where('kodept', $kodept)))
                 ->orWhere(fn ($q) => $q->where('u.role', 'pt')->where('u.email', $kodept))))
+            ->when($this->filters['q'] ?? null, fn ($q, $keyword) => $this->applySearch($q, $keyword))
             ->select([
                 'u.id',
                 'u.name',
@@ -51,60 +43,51 @@ class UserExport
             ]);
     }
 
-    // Streams XLSX row by row so memory stays constant
-    public function writeTo(string $path): void
+    // Mirrors the table's smart search; keyword is pre-capped by HandlesDataTablesOrder::limitDataTablesSearch()
+    private function applySearch(Builder $query, string $keyword): void
     {
-        $this->rowNumber = 0;
-        // Per-export temp folder, removed even if the export fails
-        $dir = storage_path('app/tmp/user-export-'.Str::uuid());
-        File::ensureDirectoryExists($dir, 0700);
+        $terms = preg_split('/ +/', trim($keyword), -1, PREG_SPLIT_NO_EMPTY);
+        $idNumber = "(case u.role when 'mahasiswa' then m.nim when 'dpl' then d.nidn end)";
+        $ptName = "(case u.role when 'mahasiswa' then coalesce(nullif(sp.nm_lemb, ''), m.kodept)
+            when 'dpl' then coalesce(nullif(sp.nm_lemb, ''), d.kodept) when 'pt' then sp.nm_lemb end)";
 
-        try {
-            $options = new Options;
-            $options->setTempFolder($dir);
-            $writer = new Writer($options);
-            $writer->openToFile($path);
-            $writer->addRow(new Row($this->cells($this->headings()), (new Style)->setFontBold()));
-
-            foreach ($this->query()->lazyById(1000, 'u.id', 'id') as $row) {
-                $writer->addRow(new Row($this->cells($this->map($row))));
-            }
-
-            $writer->close();
-        } finally {
-            File::deleteDirectory($dir);
+        foreach ($terms as $term) {
+            $like = LikeKeyword::contains($term);
+            $query->where(fn ($q) => $q->where('u.email', 'like', $like)
+                ->orWhere('u.name', 'like', $like)
+                ->orWhere('u.role', 'like', $like)
+                ->orWhereRaw("{$idNumber} like ?", [$like])
+                ->orWhereRaw("{$ptName} like ?", [$like]));
         }
     }
 
-    // Force text into StringCell so user input is never written as a formula
-    private function cells(array $values): array
+    // Streams XLSX row by row so memory stays constant
+    public function writeTo(string $path): void
     {
-        return array_map(fn ($value): Cell => is_int($value)
-            ? new NumericCell($value, null)
-            : new StringCell((string) $value, null), array_values($values));
+        (new XlsxStreamer('Data Pengguna', $this->columns()))
+            ->info($this->filterInfo())
+            ->writeTo($path, $this->query()->lazyById(1000, 'u.id', 'id'));
     }
 
-    public function map($row): array
+    private function columns(): array
     {
         return [
-            'No' => ++$this->rowNumber,
-            'Nama' => $row->name,
-            'NIM/NIDN/Kode PT' => $row->nomor_induk,
-            'Email' => $row->email,
-            'Perguruan Tinggi' => $row->nm_lemb,
-            'Peran' => ucfirst($row->role),
+            XlsxStreamer::column('Nama', 'name', 30),
+            XlsxStreamer::column('NIM/NIDN/Kode PT', 'nomor_induk', 20),
+            XlsxStreamer::column('Email', 'email', 32),
+            XlsxStreamer::column('Perguruan Tinggi', 'nm_lemb', 40),
+            XlsxStreamer::column('Peran', fn ($row) => ucfirst($row->role), 12),
         ];
     }
 
-    public function headings(): array
+    private function filterInfo(): array
     {
+        $kodept = $this->filters['kodept'] ?? null;
+
         return [
-            'No.',
-            'Nama',
-            'NIM/NIDN/Kode PT',
-            'Email',
-            'Perguruan Tinggi',
-            'Peran',
+            'Peran' => ucfirst($this->filters['role'] ?? ''),
+            'Perguruan Tinggi' => $kodept ? (DB::table('ref_satuanpendidikan')->where('npsn', $kodept)->value('nm_lemb') ?? $kodept) : null,
+            'Kata kunci' => $this->filters['q'] ?? null,
         ];
     }
 }

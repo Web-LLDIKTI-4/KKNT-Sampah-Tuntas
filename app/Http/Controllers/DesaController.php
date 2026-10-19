@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Master\DesaRequest;
 use App\Models\Desa;
@@ -17,7 +18,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class DesaController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     public function index()
     {
@@ -32,6 +33,7 @@ class DesaController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
         $query = Desa::query()
             ->leftJoin('kecamatan', 'kecamatan.id_kecamatan', '=', 'desa.id_kecamatan')
@@ -42,7 +44,7 @@ class DesaController extends Controller
             // Restrict search/order to view columns; others are ambiguous after the join.
             ->whitelist(['id_desa', 'kecamatan', 'desa'])
             ->editColumn('kecamatan', fn (Desa $row) => $row->kecamatan ?? '')
-            ->filterColumn('kecamatan', fn ($query, $keyword) => $query->where('kecamatan.kecamatan', 'like', "%{$keyword}%"))
+            ->filterColumn('kecamatan', fn ($query, $keyword) => $query->where('kecamatan.kecamatan', 'like', $this->likeContains($keyword)))
             ->orderColumn('kecamatan', 'kecamatan.kecamatan $1')
             ->editColumn('latitude', fn (Desa $row) => $row->latitude !== null ? (float) $row->latitude : null)
             ->editColumn('longitude', fn (Desa $row) => $row->longitude !== null ? (float) $row->longitude : null)

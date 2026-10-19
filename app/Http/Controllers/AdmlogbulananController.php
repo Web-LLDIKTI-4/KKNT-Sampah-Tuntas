@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\LogBulananByMhsExport;
 use App\Http\Requests\Dpl\PenilaianLogbulananRequest;
 use App\Models\Dplmentoring;
 use App\Models\Logbulanan;
+use App\Models\Mahasiswa;
 use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
+use App\Support\XlsxStreamer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTableAbstract;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -54,7 +54,19 @@ class AdmlogbulananController extends StudentLogReportController
 
     protected function exportFor(string $email)
     {
-        return Excel::download(new LogBulananByMhsExport($email), 'logbulanan_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
+        $student = Mahasiswa::with('sp')->where('email', $email)->first();
+        $rows = Logbulanan::where('email', $email)->orderBy('tahun')->orderBy('bulan')->orderBy('id_logbulanan')->lazy(1000);
+
+        return (new XlsxStreamer('Log Bulanan Mahasiswa', [
+            XlsxStreamer::column('NIM', fn () => $student?->nim, 15),
+            XlsxStreamer::column('Nama Mahasiswa', fn () => $student?->nama, 30),
+            XlsxStreamer::column('Nama Perguruan Tinggi', fn () => $student?->sp?->nm_lemb, 35),
+            XlsxStreamer::column('Bulan', 'bulan', 8, 'number'),
+            XlsxStreamer::column('Deskripsi', fn (Logbulanan $row) => HtmlSanitizer::plainText($row->deskripsi), 70),
+            XlsxStreamer::column('Nilai', 'nilai', 8, 'number'),
+        ]))
+            ->info(['Mahasiswa' => $student?->nama, 'Email' => $email])
+            ->download('logbulanan_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx', $rows);
     }
 
     public function formpenilaian(Request $request, string $id)

@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\KategoriKegiatanExport;
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Master\KategoriKegiatanRequest;
 use App\Models\KategoriKegiatan;
 use App\Models\CapaianKegiatan;
 use App\Models\Logkegiatan;
 use App\Support\ActionButtons;
+use App\Support\XlsxStreamer;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
+use Yajra\DataTables\QueryDataTable;
 
 class KategoriKegiatanController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     private const FIELDS = ['nama_kategori'];
 
@@ -32,8 +33,9 @@ class KategoriKegiatanController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
-        return DataTables::of(KategoriKegiatan::query())
+        return $this->table()
             ->addIndexColumn()
             ->addColumn('action', fn (KategoriKegiatan $row) => ActionButtons::make(
                 urlEdit: url('kategori-kegiatan/edit/'.$row->id_kategori),
@@ -43,6 +45,16 @@ class KategoriKegiatanController extends Controller
             ))
             ->rawColumns(['action'])
             ->make(true);
+    }
+
+    // Shared by list and export: same search/order
+    private function table(): QueryDataTable
+    {
+        $whitelist = ['nama_kategori'];
+        $query = KategoriKegiatan::query()
+            ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q->orderBy('nama_kategori'));
+
+        return DataTables::eloquent($query)->whitelist($whitelist);
     }
 
     public function tambah()
@@ -86,8 +98,15 @@ class KategoriKegiatanController extends Controller
         return $this->deleted();
     }
 
-    public function export()
+    public function export(Request $request)
     {
-        return Excel::download(new KategoriKegiatanExport, 'kategori_kegiatan_'.date('d-m-Y_H-i-s').'.xlsx');
+        $this->sanitizeDataTablesInput();
+        $rows = $this->dataTablesExportQuery($this->table(), 'kategori_kegiatan.id_kategori')->lazy(1000);
+
+        return (new XlsxStreamer('Data Kategori Kegiatan', [
+            XlsxStreamer::column('Kategori Kegiatan', 'nama_kategori', 50),
+        ]))
+            ->info(['Kata kunci' => $request->input('search.value')])
+            ->download('kategori_kegiatan_'.date('d-m-Y_H-i-s').'.xlsx', $rows);
     }
 }

@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Admin\PanduanRequest;
 use App\Models\Panduan;
@@ -18,7 +19,7 @@ use App\Support\PanduanDownload;
 
 class PanduanController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     private const METADATA_FIELDS = ['judul', 'deskripsi', 'is_aktif'];
 
@@ -35,6 +36,7 @@ class PanduanController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
         return DataTables::of(Panduan::with('uploader:id,name'))
             ->addIndexColumn()

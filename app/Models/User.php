@@ -69,7 +69,14 @@ class User extends Authenticatable
         $kodept = $filters['kodept'] ?? null;
 
         return $query->whereIn('role', ['mahasiswa', 'dpl', 'pt', 'kepala', 'pemda'])
-            ->with(['mahasiswa:email,nim,kodept', 'mahasiswa.sp:npsn,nm_lemb', 'dpl:email,nidn,kodept', 'dpl.sp:npsn,nm_lemb', 'pt:npsn,nm_lemb'])
+            // Ascending id: belongsTo keeps the last row per email, i.e. MAX(id) like the list subqueries & export
+            ->with([
+                'mahasiswa' => fn ($q) => $q->select('email', 'nim', 'kodept')->orderBy('id_mahasiswa'),
+                'mahasiswa.sp:npsn,nm_lemb',
+                'dpl' => fn ($q) => $q->select('email', 'nidn', 'kodept')->orderBy('id_dpl'),
+                'dpl.sp:npsn,nm_lemb',
+                'pt:npsn,nm_lemb',
+            ])
             ->when($filters['role'] ?? null, fn ($q, $role) => $q->where('role', $role))
             ->when($kodept, fn ($q) => $q->where(fn ($q) => $q
                 ->where(fn ($q) => $q->where('role', 'mahasiswa')->whereIn('email', Mahasiswa::select('email')->where('kodept', $kodept)))

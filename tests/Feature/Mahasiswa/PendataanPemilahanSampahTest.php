@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Mahasiswa;
 
-use App\Exports\PendataanPemilahanSampahByMhsExport;
 use App\Models\Dplmentoring;
 use App\Models\Logkegiatan;
 use App\Models\Mahasiswa;
@@ -10,11 +9,12 @@ use App\Models\PendataanPemilahanSampah;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Maatwebsite\Excel\Facades\Excel;
+use Tests\Concerns\ReadsXlsx;
 use Tests\TestCase;
 
 class PendataanPemilahanSampahTest extends TestCase
 {
+    use ReadsXlsx;
     use RefreshDatabase;
 
     private array $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
@@ -201,18 +201,17 @@ class PendataanPemilahanSampahTest extends TestCase
         $user = $this->loginAs('mahasiswa');
         PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => '2026-05-12', 'jumlah_anggota_keluarga' => 5]);
         PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => '2026-06-12', 'jumlah_anggota_keluarga' => null]);
-        Excel::fake();
 
-        $this->get('pendataanpemilahan/export?bulan=2026-05')->assertOk();
+        $ws = $this->xlsxFromResponse($this->get('pendataanpemilahan/export?bulan=2026-05'), '/pendataan_pemilahan_.+_2026-05_.+\.xlsx/');
+        $this->assertCount(1, $this->dataRows($ws));
+        $this->assertSame('Anggota Keluarga', $this->headerRow($ws)[3]);
+        $this->assertSame('12-05-2026', $this->cellText($ws, 'B4'));
+        $this->assertEquals(5, $ws->getCell('D4')->getValue());
 
-        Excel::matchByRegex();
-        Excel::assertDownloaded('/^pendataan_pemilahan_.+_2026-05_.+\.xlsx$/', function (PendataanPemilahanSampahByMhsExport $export) {
-            return $export->collection()->count() === 1
-                && $export->headings()[3] === 'Anggota Keluarga'
-                && $export->collection()->first()[3] === 5;
-        });
-        // Data lama tanpa nilai tetap diekspor sebagai sel kosong
-        $this->assertNull((new PendataanPemilahanSampahByMhsExport($user->email, '2026-06'))->collection()->first()[3]);
+        // Data lama tanpa nilai diekspor sebagai "-"
+        $ws = $this->xlsxFromResponse($this->get('pendataanpemilahan/export?bulan=2026-06'), '/pendataan_pemilahan_.+_2026-06_.+\.xlsx/');
+        $this->assertCount(1, $this->dataRows($ws));
+        $this->assertSame('-', $this->cellText($ws, 'D4'));
     }
 
     public function test_reviewer_export_is_limited_to_students_they_can_view(): void
@@ -221,14 +220,14 @@ class PendataanPemilahanSampahTest extends TestCase
         $student = Mahasiswa::factory()->create(['email' => 'student@pps.test']);
         PendataanPemilahanSampah::factory()->create(['email' => $student->email, 'tanggal' => '2026-05-12']);
         PendataanPemilahanSampah::factory()->create(['email' => $student->email, 'tanggal' => '2026-06-12']);
-        Excel::fake();
+        PendataanPemilahanSampah::factory()->create(['email' => Mahasiswa::factory()->create()->email, 'tanggal' => '2026-05-13']);
 
-        $this->get('pendataanpemilahan/export/'.rawurlencode($student->email).'?bulan=2026-05')->assertOk();
-
-        Excel::matchByRegex();
-        Excel::assertDownloaded('/^pendataan_pemilahan_.+_2026-05_.+\.xlsx$/', function (PendataanPemilahanSampahByMhsExport $export) {
-            return $export->collection()->count() === 1;
-        });
+        $ws = $this->xlsxFromResponse(
+            $this->get('pendataanpemilahan/export/'.rawurlencode($student->email).'?bulan=2026-05'),
+            '/pendataan_pemilahan_.+_2026-05_.+\.xlsx/'
+        );
+        $this->assertCount(1, $this->dataRows($ws));
+        $this->assertSame('12-05-2026', $this->cellText($ws, 'B4'));
     }
 
     private function dtColumns(array $names): array

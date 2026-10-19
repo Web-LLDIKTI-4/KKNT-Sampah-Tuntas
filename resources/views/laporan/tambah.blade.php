@@ -88,7 +88,7 @@ $(function(){
             success:function(ret){
                 if(ret.success == true){
                     toastr.success(ret.message)
-                    $("#listdata").load("{{ url('dpllaporan/listdata') }}");
+                    loadPartial('#listdata', "{{ url('dpllaporan/listdata') }}");
                 }else{
                     $.each(ret.errors, function(key, value) {
                         $("#" + key + "_error").html(value[0]); // Menampilkan pesan error di dalam field yang sesuai

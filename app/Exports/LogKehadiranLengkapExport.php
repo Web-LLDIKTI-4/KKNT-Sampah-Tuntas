@@ -2,27 +2,18 @@
 
 namespace App\Exports;
 
-use App\Exports\Concerns\SafeValueBinder;
 use App\Models\Mahasiswa;
 use App\Models\User;
+use App\Support\XlsxStreamer;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
-use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Kehadiran seluruh mahasiswa dalam cakupan role: admin/kepala/pemda semua, pt mahasiswa PT-nya, dpl bimbingan.
  */
-class LogKehadiranLengkapExport extends SafeValueBinder implements WithCustomValueBinder, FromQuery, WithMapping, WithHeadings, WithEvents, WithStrictNullComparison, WithColumnWidths
+class LogKehadiranLengkapExport
 {
     public function __construct(private User $user, private ?string $bulan = null) {}
 
@@ -37,44 +28,36 @@ class LogKehadiranLengkapExport extends SafeValueBinder implements WithCustomVal
                 $q->whereBetween('k.tanggal', [$awal->toDateString(), $awal->copy()->endOfMonth()->toDateString()]);
             })
             ->orderBy('k.tanggal')->orderBy('m.nama')->orderBy('k.id_kehadiran')
+            // Joined PKs keep lazy() paging stable when legacy joins duplicate a row
+            ->orderBy('m.id_mahasiswa')->orderBy('sp.id_sp')
             ->select('k.email', 'k.tanggal', 'k.status_kehadiran', 'k.waktu_masuk', 'k.waktu_pulang', 'm.nama', 'm.nim', 'm.phone', 'sp.nm_lemb');
     }
 
-    public function map($row): array
+    public function download(string $filename): StreamedResponse
     {
-        return [
-            $row->email,
-            $row->nama,
-            $row->phone,
-            $row->nim,
-            $row->nm_lemb,
-            $row->tanggal ? Carbon::parse($row->tanggal)->format('d-m-Y') : null,
-            ucfirst((string) $row->status_kehadiran),
-            $row->waktu_masuk ? Carbon::parse($row->waktu_masuk)->format('H:i:s') : '-',
-            $row->waktu_pulang ? Carbon::parse($row->waktu_pulang)->format('H:i:s') : '-',
-        ];
+        return $this->streamer()->download($filename, $this->query()->lazy(1000));
     }
 
-    public function headings(): array
+    public function writeTo(string $path): void
     {
-        return ['Email Address', 'Nama Mahasiswa', 'Nomor Kontak', 'NIM', 'Nama Perguruan Tinggi', 'Tanggal', 'Status Kehadiran', 'Jam Masuk', 'Jam Pulang'];
+        $this->streamer()->writeTo($path, $this->query()->lazy(1000));
     }
 
-    public function columnWidths(): array
+    private function streamer(): XlsxStreamer
     {
-        return ['A' => 28, 'B' => 28, 'C' => 16, 'D' => 16, 'E' => 30, 'F' => 12, 'G' => 16, 'H' => 10, 'I' => 10];
-    }
+        $time = fn (?string $value) => $value ? Carbon::parse($value)->format('H:i:s') : null;
 
-    public function registerEvents(): array
-    {
-        return [AfterSheet::class => function (AfterSheet $event) {
-            $sheet = $event->sheet->getDelegate();
-            $sheet->getStyle('A1:I1')->applyFromArray([
-                'font' => ['bold' => true],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFF00']],
-            ]);
-            $sheet->getStyle('A1:I'.$sheet->getHighestRow())->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        }];
+        return (new XlsxStreamer('Log Kehadiran Mahasiswa', [
+            XlsxStreamer::column('Email Address', 'email', 28),
+            XlsxStreamer::column('Nama Mahasiswa', 'nama', 28),
+            XlsxStreamer::column('Nomor Kontak', 'phone', 16),
+            XlsxStreamer::column('NIM', 'nim', 16),
+            XlsxStreamer::column('Nama Perguruan Tinggi', 'nm_lemb', 30),
+            XlsxStreamer::column('Tanggal', 'tanggal', 12, 'date'),
+            XlsxStreamer::column('Status Kehadiran', fn ($row) => ucfirst((string) $row->status_kehadiran), 16),
+            XlsxStreamer::column('Jam Masuk', fn ($row) => $time($row->waktu_masuk), 10),
+            XlsxStreamer::column('Jam Pulang', fn ($row) => $time($row->waktu_pulang), 10),
+        ]))->info(['Bulan' => $this->bulan ? Carbon::createFromFormat('!Y-m', $this->bulan)->translatedFormat('F Y') : 'Semua']);
     }
 
     // Anti-IDOR: scope wajib di query, bukan dari input

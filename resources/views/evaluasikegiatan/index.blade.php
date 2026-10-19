@@ -21,7 +21,7 @@
 <script>
     $(function(){
         // $("#resultcontent").load("{{ url('admevaluasikegiatan/pertanyaanevaluasilistdata') }}");
-        $("#resultcontent").load("{{ url('admevaluasikegiatan/hasilevaluasi') }}");
+        loadPartial('#resultcontent', "{{ url('admevaluasikegiatan/hasilevaluasi') }}");
     })
 </script>
 @stop 

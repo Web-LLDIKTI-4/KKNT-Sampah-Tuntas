@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Concerns;
 
+use App\Support\LikeKeyword;
+use Illuminate\Contracts\Database\Query\Builder;
 use Symfony\Component\HttpFoundation\InputBag;
 use Yajra\DataTables\Facades\DataTables;
+use Yajra\DataTables\QueryDataTable;
 
 trait HandlesDataTablesOrder
 {
@@ -12,6 +15,8 @@ trait HandlesDataTablesOrder
     protected int $maxDataTablesSearchLength = 100;
 
     protected int $maxDataTablesSearchTerms = 10;
+
+    protected int $maxDataTablesLength = 100;
 
     // Call after sanitizeDataTablesInput(); pass the endpoint whitelist so orders yajra will drop don't count
     protected function hasClientOrder(array $allowed = []): bool
@@ -54,7 +59,15 @@ trait HandlesDataTablesOrder
             }
         }
         $scalar = fn ($value) => is_scalar($value) ? (string) $value : null;
-        $merge = [];
+        // Always set start/length: yajra skips paging when either is missing or length is -1
+        $start = $request->input('start');
+        $length = $request->input('length');
+        // Missing/non-numeric -> DataTables default 10; -1, 0 or oversized -> max
+        $length = is_numeric($length) ? (int) $length : 10;
+        $merge = [
+            'start' => is_numeric($start) ? max(0, (int) $start) : 0,
+            'length' => $length >= 1 && $length <= $this->maxDataTablesLength ? $length : $this->maxDataTablesLength,
+        ];
         $named = [];
 
         if ($request->has('columns')) {
@@ -123,8 +136,23 @@ trait HandlesDataTablesOrder
             $merge['order'] = $order;
         }
 
-        if ($merge) {
-            $request->merge($merge);
-        }
+        $request->merge($merge);
+    }
+
+    // Escaped "contains" pattern for filterColumn closures
+    protected function likeContains(string $keyword): string
+    {
+        return LikeKeyword::contains($keyword);
+    }
+
+    // Same filter/search/order/scope as the table, unpaged; tie-breaker keeps lazy() chunks stable
+    protected function dataTablesExportQuery(QueryDataTable $dataTable, string $tieBreaker): Builder
+    {
+        return $dataTable->skipPaging()
+            // Counts are never sent for an export; skip both count queries
+            ->setTotalRecords(0)
+            ->setFilteredRecords(0)
+            ->getFilteredQuery()
+            ->orderBy($tieBreaker);
     }
 }

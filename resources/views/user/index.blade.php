@@ -47,7 +47,11 @@ $(function(){
     $('#modalku').on('show.bs.modal', function (e) {
         $(".modal-dialog").addClass('modal-xl');
     })
-    $("#resultcontent").load("{{ url('user/listdata') }}");
+    function loadList(params) {
+        loadPartial('#resultcontent', "{{ url('user/listdata') }}", { data: params, loadingText: 'loading user...' });
+    }
+
+    loadList({});
 
     $('.user-filter').on('change', function () {
         var params = {};
@@ -55,7 +59,7 @@ $(function(){
         var kodept = $('#filter-kodept').val();
         if (role) params.role = role;
         if (kodept) params.kodept = kodept;
-        $("#resultcontent").html('loading user...').load("{{ url('user/listdata') }}?" + $.param(params));
+        loadList(params);
     });
 
     // Clear both filters, then reuse the change handler for a single reload

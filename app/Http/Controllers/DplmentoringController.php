@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Dpl\MentoringInsertRequest;
 use App\Models\Dplmentoring;
@@ -17,7 +18,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class DplmentoringController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     private const BULAN = [
         1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni',
@@ -37,6 +38,7 @@ class DplmentoringController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
         $data = Dplmentoring::ofDpl($request->user())->with(['mahasiswa.sp', 'tugasakhir'])->get();
 

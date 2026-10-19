@@ -14,7 +14,7 @@
 </div>
 <script>
     $(function(){
-        $("#resultcontent").load("{{ url('dpl/listdata') }}");
+        loadPartial('#resultcontent', "{{ url('dpl/listdata') }}");
     })
 </script>
 @stop 

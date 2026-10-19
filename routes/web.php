@@ -194,7 +194,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('kategori-kegiatan/edit/{id_kategori}', [KategoriKegiatanController::class, 'edit']);
     Route::put('kategori-kegiatan/update', [KategoriKegiatanController::class, 'update']);
     Route::put('kategori-kegiatan/destroy', [KategoriKegiatanController::class, 'destroy']);
-    Route::get('kategori-kegiatan/export', [KategoriKegiatanController::class, 'export'])->name('kategori-kegiatan.export');
+    Route::get('kategori-kegiatan/export', [KategoriKegiatanController::class, 'export'])->middleware('throttle:3,1')->name('kategori-kegiatan.export');
 
 
     //semua route dalam grup ini hanya bisa diakses oleh operator
@@ -208,7 +208,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // Modul legacy: diganti admlogkegiatan; link export lama tetap redirect
     Route::redirect('admlogharian', 'admlogkegiatan');
-    Route::get('admlogharian/export', [AdmlogharianController::class, 'export']);
+    Route::get('admlogharian/export', [AdmlogharianController::class, 'export'])->middleware('throttle:3,1');
 
     Route::get('pjdesa', [PjdesaController::class, 'index']);
     Route::get('pjdesa/listdata', [PjdesaController::class, 'listdata'])->name('pjdesa.listdata');
@@ -237,17 +237,17 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('laptugasakhir', [LaptugasakhirController::class, 'index']);
     Route::get('laptugasakhir/listdata', [LaptugasakhirController::class, 'listdata'])->name('laptugasakhir.listdata');
     Route::get('laptugasakhir/listdataserver', [LaptugasakhirController::class, 'listdataserver'])->name('laptugasakhir.listdataserver');
-    Route::get('laptugasakhir/export', [LaptugasakhirController::class, 'export']);
+    Route::get('laptugasakhir/export', [LaptugasakhirController::class, 'export'])->middleware('throttle:3,1');
 
     Route::get('admstructureform', [AdmstructureformController::class, 'index']);
     Route::get('admstructureform/listdata', [AdmstructureformController::class, 'listdata'])->name('admstructureform.listdata');
     Route::get('admstructureform/listdataserver', [AdmstructureformController::class, 'listdataserver'])->name('admstructureform.listdataserver');
-    Route::get('admstructureform/export', [AdmstructureformController::class, 'export']);
+    Route::get('admstructureform/export', [AdmstructureformController::class, 'export'])->middleware('throttle:3,1');
     
     Route::get('admfreeform', [AdmfreeformController::class, 'index']);
     Route::get('admfreeform/listdata', [AdmfreeformController::class, 'listdata'])->name('admfreeform.listdata');
     Route::get('admfreeform/listdataserver', [AdmfreeformController::class, 'listdataserver'])->name('admfreeform.listdataserver');
-    Route::get('admfreeform/export', [AdmfreeformController::class, 'export']);
+    Route::get('admfreeform/export', [AdmfreeformController::class, 'export'])->middleware('throttle:3,1');
 
     Route::get('admevaluasikegiatan/tambah', [AdmevaluasikegiatanController::class, 'tambah'])->name('admevaluasikegiatan.tambah');
     Route::put('admevaluasikegiatan/insert', [AdmevaluasikegiatanController::class, 'insert']);
@@ -355,7 +355,7 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function ()
     Route::get('lapcapaiankegiatan', [LapcapaiankegiatanController::class, 'index']);
     Route::get('lapcapaiankegiatan/listdata', [LapcapaiankegiatanController::class, 'listdata'])->name('lapcapaiankegiatan.listdata');
     Route::get('lapcapaiankegiatan/listdataserver', [LapcapaiankegiatanController::class, 'listdataserver'])->name('lapcapaiankegiatan.listdataserver');
-    Route::get('lapcapaiankegiatan/export', [LapcapaiankegiatanController::class, 'export']);
+    Route::get('lapcapaiankegiatan/export', [LapcapaiankegiatanController::class, 'export'])->middleware('throttle:3,1');
 });
 
 Route::middleware(['auth', 'role:admin,pt,kepala,pemda'])->group(function () {
@@ -377,12 +377,12 @@ Route::middleware(['auth', 'role:admin,pt,kepala,pemda,dpl,mahasiswa', 'user.gua
 });
 
 Route::middleware(['auth', 'role:admin,kepala,pemda'])->group(function () {
-    Route::get('rekapsampah/export', [RekapsampahController::class, 'export'])->name('rekapsampah.export');
+    Route::get('rekapsampah/export', [RekapsampahController::class, 'export'])->middleware('throttle:3,1')->name('rekapsampah.export');
 });
 
 // Export Capaian Program (Laporan Kegiatan dashboard): khusus admin
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('dashboard-pengurangan-sampah/export-capaian', CapaianProgramExportController::class)->name('dashboard-pengurangan-sampah.export-capaian');
+    Route::get('dashboard-pengurangan-sampah/export-capaian', CapaianProgramExportController::class)->middleware('throttle:3,1')->name('dashboard-pengurangan-sampah.export-capaian');
 });
 
 Route::middleware(['auth', 'role:dpl,pt,kepala,pemda'])->group(function () {
@@ -415,8 +415,9 @@ Route::middleware(['auth', 'role:dpl,pt,kepala,pemda'])->group(function () {
     Route::get('dpllaptugasakhir', [DpllaptugasakhirController::class, 'index']);
     Route::get('dpllaptugasakhir/listdata', [DpllaptugasakhirController::class, 'listdata'])->name('dpllaptugasakhir.listdata');
     Route::get('dpllaptugasakhir/listdataserver', [DpllaptugasakhirController::class, 'listdataserver'])->name('dpllaptugasakhir.listdataserver');
-    Route::get('dpllaptugasakhir/export', [DpllaptugasakhirController::class, 'export']);
     Route::put('dpllaptugasakhir/nilai', [DpllaptugasakhirController::class, 'nilai']);
+    // Per-role scope in BuildsTugasakhirTable (dpl: mentored, pt: own PT)
+    Route::get('dpllaptugasakhir/export', [DpllaptugasakhirController::class, 'export'])->middleware('throttle:3,1');
 });
 
 // Konversi nilai tidak untuk kepala
@@ -440,7 +441,7 @@ Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
     Route::put('logkehadiran/insert', [LogkehadiranController::class, 'insert']);
     Route::get('logkehadiran/tambahizin', [LogkehadiranController::class, 'tambahizin']);
     Route::put('logkehadiran/insertizin', [LogkehadiranController::class, 'insertizin']);
-    Route::get('logkehadiran/export', [LogkehadiranController::class, 'export']);
+    Route::get('logkehadiran/export', [LogkehadiranController::class, 'export'])->middleware('throttle:3,1');
     //semua route dalam grup ini hanya bisa diakses siswa
 
     Route::get('logkegiatan', [LogkegiatanController::class, 'index']);
@@ -462,7 +463,7 @@ Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function (
     Route::get('capaiankegiatan/edit/{id_capaian}', [CapaianKegiatanController::class, 'edit']);
     Route::put('capaiankegiatan/update', [CapaianKegiatanController::class, 'update'])->middleware('throttle:sensitive');
     Route::put('capaiankegiatan/destroy', [CapaianKegiatanController::class, 'destroy'])->middleware('throttle:sensitive');
-    Route::get('capaiankegiatan/export', [CapaianKegiatanController::class, 'export']);
+    Route::get('capaiankegiatan/export', [CapaianKegiatanController::class, 'export'])->middleware('throttle:3,1');
 
     Route::get('logbulanan', [LogbulananController::class, 'index']);
     Route::post('logbulanan/tambah', [LogbulananController::class, 'tambah'])->name('logbulanan.tambah');

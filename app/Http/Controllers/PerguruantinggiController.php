@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Requests\Admin\KodeptRequest;
 use App\Models\Satuanpendidikan;
 use App\Services\PddiktiService;
@@ -10,6 +11,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 class PerguruantinggiController extends Controller
 {
+    use HandlesDataTablesOrder;
+
     public function __construct(private PddiktiService $pddikti) {}
 
     public function index()
@@ -25,6 +28,7 @@ class PerguruantinggiController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
         return DataTables::of(Satuanpendidikan::query())
             ->addIndexColumn()

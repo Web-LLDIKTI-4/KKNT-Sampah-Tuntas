@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Dpl;
 
-use App\Exports\LogHarianByMhsExport;
 use App\Models\Dplmentoring;
 use App\Models\KategoriKegiatan;
 use App\Models\Logbulanan;
@@ -10,11 +9,12 @@ use App\Models\Logkegiatan;
 use App\Models\Mahasiswa;
 use App\Models\Tugasakhir;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Maatwebsite\Excel\Facades\Excel;
+use Tests\Concerns\ReadsXlsx;
 use Tests\TestCase;
 
 class ReportGradingTest extends TestCase
 {
+    use ReadsXlsx;
     use RefreshDatabase;
 
     private array $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
@@ -40,7 +40,6 @@ class ReportGradingTest extends TestCase
 
     public function test_dpl_cannot_read_or_export_other_students_logs_by_email(): void
     {
-        Excel::fake();
         $this->loginAs('dpl');
         $lain = Mahasiswa::factory()->create();
 
@@ -62,13 +61,13 @@ class ReportGradingTest extends TestCase
 
     public function test_student_log_detail_and_export_use_daily_log_columns(): void
     {
-        Excel::fake();
         $this->loginAs('admin');
         $mhs = Mahasiswa::factory()->create();
         $kategori = KategoriKegiatan::factory()->create(['nama_kategori' => 'Pengelolaan Sampah']);
         $log = Logkegiatan::factory()->create([
             'email' => $mhs->email,
             'tanggal' => '2026-10-01',
+            'nama_aktivitas' => 'Bersih desa',
             'deskripsi' => '<p>Membersihkan lingkungan</p>',
             'volume' => '2',
             'satuan' => 'kegiatan',
@@ -86,19 +85,16 @@ class ReportGradingTest extends TestCase
         $this->assertSame('Pengelolaan Sampah', $row['nama_kategori']);
         $this->assertSame('<a href="https://example.test/bukti" target="_blank" rel="noopener noreferrer">Lihat bukti</a>', $row['tautan']);
 
-        $this->get("admlogkegiatan/export/{$mhs->email}")->assertOk();
-        Excel::matchByRegex();
-        Excel::assertDownloaded('/^log_aktivitas_mahasiswa_.+\.xlsx$/', function (LogHarianByMhsExport $export) {
-            $this->assertSame([
-                'No', 'Tanggal', 'Kategori Kegiatan', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti',
-            ], $export->headings());
-            $this->assertSame([
-                1, '01-10-2026', 'Pengelolaan Sampah', 'Membersihkan lingkungan', '2',
-                'kegiatan', 'https://example.test/bukti',
-            ], $export->collection()->first());
-
-            return true;
-        });
+        $ws = $this->xlsxFromResponse($this->get("admlogkegiatan/export/{$mhs->email}"), '/filename=log_aktivitas_mahasiswa_.+\.xlsx/');
+        $this->assertSame([
+            'No.', 'Tanggal', 'Kategori Kegiatan', 'Nama Aktivitas', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti',
+        ], $this->headerRow($ws));
+        $rows = $this->dataRows($ws);
+        $this->assertCount(1, $rows);
+        $this->assertEquals([
+            1, '01-10-2026', 'Pengelolaan Sampah', 'Bersih desa', 'Membersihkan lingkungan', '2',
+            'kegiatan', 'https://example.test/bukti',
+        ], $rows[0]);
     }
 
     public function test_only_mentor_dpl_can_grade_log_bulanan(): void

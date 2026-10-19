@@ -26,7 +26,7 @@ $(function(){
     $('#modalku').on('show.bs.modal', function (e) {
         $(".modal-dialog").addClass('modal-lg');
     })
-    $("#resultcontent").load("{{ url('admfreeform/listdata') }}");
+    loadPartial('#resultcontent', "{{ url('admfreeform/listdata') }}");
     $("body").on("submit","#form-tambah,#form-ubah",function(e){
         e.preventDefault();     
         var action = $(this).attr("action");

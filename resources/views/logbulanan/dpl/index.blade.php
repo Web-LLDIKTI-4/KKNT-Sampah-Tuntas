@@ -17,7 +17,7 @@
         $('#modalku').on('show.bs.modal', function () {
             $(".modal-dialog").addClass("modal-lg");
         })
-        $("#resultcontent").load("{{ url('admlogbulanan/listdatagroup') }}");
+        loadPartial('#resultcontent', "{{ url('admlogbulanan/listdatagroup') }}");
         $("body").on("submit","#form-simpan",function(e){
             e.preventDefault();   
             var action = $(this).attr("action");

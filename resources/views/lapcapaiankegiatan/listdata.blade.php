@@ -20,7 +20,7 @@
     </div>
 </div>
 
-<x-button.export url="{{ url('lapcapaiankegiatan/export') }}" />
+<x-button.export url="{{ url('lapcapaiankegiatan/export') }}" table="#dataTable" />
 
 <script type="text/javascript">
   $(function () {

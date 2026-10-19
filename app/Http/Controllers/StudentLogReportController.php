@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Models\Mahasiswa;
 use App\Models\Satuanpendidikan;
@@ -16,7 +17,7 @@ use Yajra\DataTables\Facades\DataTables;
  */
 abstract class StudentLogReportController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     abstract protected function viewPrefix(): string;
 
@@ -58,6 +59,7 @@ abstract class StudentLogReportController extends Controller
     public function listdatagrouping(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
         $query = Mahasiswa::visibleTo($request->user())
             ->with('sp:npsn,nm_lemb')
@@ -73,15 +75,15 @@ abstract class StudentLogReportController extends Controller
             ->addColumn('count_log', fn ($row) => $row->count_log)
             ->orderColumn('count_log', 'count_log $1')
             // Kolom hasil addColumn dipetakan ke kolom DB agar search & sort jalan
-            ->filterColumn('nim', fn ($q, $k) => $q->where('nim', 'like', "%{$k}%"))
+            ->filterColumn('nim', fn ($q, $k) => $q->where('nim', 'like', $this->likeContains($k)))
             ->orderColumn('nim', 'nim $1')
-            ->filterColumn('nama_mahasiswa', fn ($q, $k) => $q->where('nama', 'like', "%{$k}%"))
+            ->filterColumn('nama_mahasiswa', fn ($q, $k) => $q->where('nama', 'like', $this->likeContains($k)))
             ->orderColumn('nama_mahasiswa', 'nama $1')
-            ->filterColumn('email', fn ($q, $k) => $q->where('email', 'like', "%{$k}%"))
+            ->filterColumn('email', fn ($q, $k) => $q->where('email', 'like', $this->likeContains($k)))
             ->orderColumn('email', 'email $1')
-            ->filterColumn('nm_lemb', fn ($q, $k) => $q->whereHas('sp', fn ($sp) => $sp->where('nm_lemb', 'like', "%{$k}%")))
+            ->filterColumn('nm_lemb', fn ($q, $k) => $q->whereHas('sp', fn ($sp) => $sp->where('nm_lemb', 'like', $this->likeContains($k))))
             ->orderColumn('nm_lemb', fn ($q, $order) => $q->orderBy(
-                Satuanpendidikan::select('nm_lemb')->whereColumn('npsn', 'mahasiswa.kodept')->limit(1),
+                Satuanpendidikan::select('nm_lemb')->whereColumn('npsn', 'mahasiswa.kodept')->orderBy('id_sp')->limit(1),
                 $order
             ));
 
@@ -103,6 +105,7 @@ abstract class StudentLogReportController extends Controller
     {
         abort_unless($request->ajax(), 404);
         $this->authorizeStudent($request, $email);
+        $this->sanitizeDataTablesInput();
 
         return $this->detailTable($email)->make(true);
     }
@@ -126,7 +129,7 @@ abstract class StudentLogReportController extends Controller
     // Search tanggal format d-m-Y (tampilan) → Y-m-d (DB)
     protected function filterTanggal($query, string $keyword, string $column = 'tanggal'): void
     {
-        $query->where($column, 'like', '%'.implode('-', array_reverse(explode('-', trim($keyword)))).'%');
+        $query->where($column, 'like', $this->likeContains(implode('-', array_reverse(explode('-', trim($keyword))))));
     }
 
     protected function authorizeStudent(Request $request, ?string $email): void

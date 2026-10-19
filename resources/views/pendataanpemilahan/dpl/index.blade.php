@@ -11,7 +11,7 @@
 </div>
 <script>
     $(function () {
-        $('#resultcontent').load("{{ route('pendataanpemilahan.listdatagroup') }}");
+        loadPartial('#resultcontent', "{{ route('pendataanpemilahan.listdatagroup') }}");
     });
 </script>
 @stop

@@ -22,7 +22,7 @@
         $('#modalku').on('show.bs.modal', function (e) {
             $(".modal-dialog").addClass('modal-lg');
         })
-        $("#resultcontent").load("{{ url('ptpeserta/listdata') }}");
+        loadPartial('#resultcontent', "{{ url('ptpeserta/listdata') }}");
     })
 </script>
 @stop 

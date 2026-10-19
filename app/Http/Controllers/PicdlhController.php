@@ -36,13 +36,6 @@ class PicdlhController extends Controller
         $canManage = $this->canManage();
         $whitelist = ['kecamatan', 'nama', 'kontak', 'keterangan'];
 
-        // Cap page size at 100; yajra skips paging when length is -1 or start/length is missing
-        $length = (int) $request->input('length', 10);
-        $request->merge([
-            'start' => max(0, (int) $request->input('start', 0)),
-            'length' => $length >= 1 && $length <= 100 ? $length : 100,
-        ]);
-
         $query = Picdlh::query()
             ->leftJoin('kecamatan', 'kecamatan.id_kecamatan', '=', 'pic_dlh.id_kecamatan')
             ->select('pic_dlh.id_pic_dlh', 'kecamatan.kecamatan as kecamatan', 'pic_dlh.nama', 'pic_dlh.kontak', 'pic_dlh.keterangan')
@@ -62,10 +55,10 @@ class PicdlhController extends Controller
             ->whitelist($whitelist)
             ->editColumn('kecamatan', fn (Picdlh $row) => $row->kecamatan ?? '')
             ->editColumn('keterangan', fn (Picdlh $row) => Picdlh::KETERANGAN[$row->keterangan] ?? $row->keterangan)
-            ->filterColumn('kecamatan', fn ($query, $keyword) => $query->where('kecamatan.kecamatan', 'like', "%{$keyword}%"))
-            ->filterColumn('nama', fn ($query, $keyword) => $query->where('pic_dlh.nama', 'like', "%{$keyword}%"))
-            ->filterColumn('kontak', fn ($query, $keyword) => $query->where('pic_dlh.kontak', 'like', "%{$keyword}%"))
-            ->filterColumn('keterangan', fn ($query, $keyword) => $query->where('pic_dlh.keterangan', 'like', "%{$keyword}%"))
+            ->filterColumn('kecamatan', fn ($query, $keyword) => $query->where('kecamatan.kecamatan', 'like', $this->likeContains($keyword)))
+            ->filterColumn('nama', fn ($query, $keyword) => $query->where('pic_dlh.nama', 'like', $this->likeContains($keyword)))
+            ->filterColumn('kontak', fn ($query, $keyword) => $query->where('pic_dlh.kontak', 'like', $this->likeContains($keyword)))
+            ->filterColumn('keterangan', fn ($query, $keyword) => $query->where('pic_dlh.keterangan', 'like', $this->likeContains($keyword)))
             ->orderColumn('kecamatan', 'kecamatan.kecamatan $1')
             ->orderColumn('nama', 'pic_dlh.nama $1')
             ->orderColumn('kontak', 'pic_dlh.kontak $1')

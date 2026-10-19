@@ -26,7 +26,7 @@ $(function(){
     $('#modalku').on('show.bs.modal', function () {
         $(".modal-dialog").addClass("modal-lg");
     })
-    $("#resultcontent").load("{{ url('lapcapaiankegiatan/listdata') }}");
+    loadPartial('#resultcontent', "{{ url('lapcapaiankegiatan/listdata') }}");
 })
 </script>
 @stop 

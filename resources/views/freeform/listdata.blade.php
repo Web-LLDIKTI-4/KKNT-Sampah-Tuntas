@@ -20,7 +20,7 @@
     </div>
 </div>
 
-<x-button.export url="{{ url('admfreeform/export') }}" />
+<x-button.export url="{{ url('admfreeform/export') }}" table="#dataTable" />
 
 <script type="text/javascript">
   $(function () {

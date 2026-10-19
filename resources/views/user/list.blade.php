@@ -26,4 +26,15 @@
 </x-table>
 </div>
 
-<x-button.export url="{{ route('user.export', $filters) }}" />
+<x-button.export id="btn-export-user" url="{{ route('user.export', $filters) }}" />
+<script>
+// Append current DataTable search keyword as `q` (instance may be recreated on filter change)
+$('#btn-export-user').on('click', function () {
+    var $table = $('#dataTable-user');
+    var keyword = $.fn.DataTable.isDataTable($table) ? String($table.DataTable().search() || '').trim().slice(0, 100) : '';
+    var url = new URL(this.href, window.location.origin);
+    url.searchParams.delete('q');
+    if (keyword) url.searchParams.set('q', keyword);
+    this.href = url.toString();
+});
+</script>

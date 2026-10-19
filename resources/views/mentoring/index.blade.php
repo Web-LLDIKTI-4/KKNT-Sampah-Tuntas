@@ -18,7 +18,7 @@ $(function(){
     $('#modalku').on('show.bs.modal', function (e) {
         $(".modal-dialog").addClass('modal-xl');
     })
-    $("#resultcontent").load("{{ url('dplmentoring/listdata') }}");
+    loadPartial('#resultcontent', "{{ url('dplmentoring/listdata') }}");
 
 })
 </script>

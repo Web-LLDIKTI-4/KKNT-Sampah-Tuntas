@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\LogHarianRequest;
 use App\Http\Requests\Mahasiswa\LogkegiatanRequest;
@@ -16,6 +17,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class LogkegiatanController extends Controller
 {
+    use HandlesDataTablesOrder;
     use RespondsWithJson;
 
     public function index(Request $request)
@@ -33,6 +35,7 @@ class LogkegiatanController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
         $data = Logkegiatan::ownedBy($request->user())
             ->whereNotNull('deskripsi')

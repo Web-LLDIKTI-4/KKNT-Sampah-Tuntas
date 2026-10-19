@@ -1,6 +1,7 @@
 <?php  
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Session;
@@ -9,6 +10,8 @@ use App\Models\Mahasiswa;
 
 class PttugasakhirController extends Controller
 {    
+    use HandlesDataTablesOrder;
+
     public function index()
     {  
         return view('laptugasakhir.pt.index');
@@ -20,6 +23,7 @@ class PttugasakhirController extends Controller
     public function listdataserver(Request $request)
     {
         if ($request->ajax()) {
+            $this->sanitizeDataTablesInput();
             $query = Mahasiswa::visibleTo(Auth::user())
                 ->with('tugasakhir')
                 ->orderBy('created_at', 'desc');

@@ -24,7 +24,7 @@
         $('#modalku').on('show.bs.modal', function () {
             $('.modal-dialog').addClass('modal-lg');
         });
-        $('#resultcontent').load("{{ url('pendataanpemilahan/listdata') }}");
+        loadPartial('#resultcontent', "{{ url('pendataanpemilahan/listdata') }}");
     });
 </script>
 @stop

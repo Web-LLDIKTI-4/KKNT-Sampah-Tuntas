@@ -162,7 +162,7 @@
             success:function(ret){
                 if(ret.success == true){
                     toastr.success(ret.message)	
-                    $("#listdata").load("{{ url('logbulanan/listdata') }}");		
+                    loadPartial('#listdata', "{{ url('logbulanan/listdata') }}");		
 			
                 }else{
                     $.each(ret.errors, function(key, value) {

@@ -11,7 +11,7 @@
 </div>
 <script>
     $(function(){
-        $("#resultcontent").load("{{ route('admlaporandpl.listdatagroup') }}");
+        loadPartial('#resultcontent', "{{ route('admlaporandpl.listdatagroup') }}");
     })
 </script>
 @stop 

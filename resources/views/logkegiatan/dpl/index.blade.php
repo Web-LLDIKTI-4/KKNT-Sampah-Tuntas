@@ -14,7 +14,7 @@
 </div>
 <script>
     $(function(){
-        $("#resultcontent").load("{{ url('admlogkegiatan/listdatagroup') }}");
+        loadPartial('#resultcontent', "{{ url('admlogkegiatan/listdatagroup') }}");
     })
 </script>
 @stop

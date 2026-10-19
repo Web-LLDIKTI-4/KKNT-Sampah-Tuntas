@@ -19,7 +19,7 @@
             </x-slot:thead>
         </x-datatable>
 
-        <x-button.export url="{{ url('capaiankegiatan/export') }}" />
+        <x-button.export url="{{ url('capaiankegiatan/export') }}" table="#dataTable" />
     </div>
 </div>
 <script type="text/javascript">

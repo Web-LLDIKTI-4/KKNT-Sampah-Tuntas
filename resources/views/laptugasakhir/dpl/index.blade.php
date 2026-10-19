@@ -13,7 +13,7 @@ $(function(){
     $('#modalku').on('show.bs.modal', function () {
         $(".modal-dialog").addClass("modal-lg");
     })
-    $("#resultcontent").load("{{ url('dpllaptugasakhir/listdata') }}");
+    loadPartial('#resultcontent', "{{ url('dpllaptugasakhir/listdata') }}");
     $("body").on("change","[id^=form-nilai-]",function(e){
         e.preventDefault();     
         var action = $(this).attr("action");

@@ -2,99 +2,39 @@
 
 namespace App\Exports;
 
+use App\Models\Dpl;
 use App\Models\Dpllaporan;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
+use App\Support\HtmlSanitizer;
+use App\Support\XlsxStreamer;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class LogbulanandplExport implements FromCollection, WithHeadings
+class LogbulanandplExport
 {
-    protected $email;
-    public function __construct(String $email)
+    private const MONTHS = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni',
+        7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+    ];
+
+    public function __construct(private string $email) {}
+
+    public function download(string $filename): StreamedResponse
     {
-        $this->email = $email;
-    }
+        // Every row belongs to the same DPL: load it once
+        $dpl = Dpl::with('sp:npsn,nm_lemb')->where('email', $this->email)->first();
+        $rows = Dpllaporan::where('email', $this->email)
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id_laporan')
+            ->lazy(1000);
 
-    function bulanToNama($bulan)
-    {
-        $namaBulan = [
-            1 => 'Januari',
-            2 => 'Februari',
-            3 => 'Maret',
-            4 => 'April',
-            5 => 'Mei',
-            6 => 'Juni',
-            7 => 'Juli',
-            8 => 'Agustus',
-            9 => 'September',
-            10 => 'Oktober',
-            11 => 'November',
-            12 => 'Desember'
-        ];
-
-        return $namaBulan[$bulan] ?? '';
-    }
-    /**
-    * @return \Illuminate\Support\Collection
-    */
-    public function collection()
-    {
-        // Ambil data log bulanan
-        $logbulanan = Dpllaporan::where('email', $this->email)->orderBy('created_at', 'desc')->get();
-
-        // Lakukan relasi yang diperlukan dan tambahkan judul kolom
-        $data = $logbulanan->map(function ($item, $key) {
-            $nama_lemb = $item->dpl ? $item->dpl->sp->nm_lemb : null;
-            $nama = $item->dpl ? $item->dpl->nama : null;
-            $nidn = $item->dpl ? $item->dpl->nidn : null;
-
-            $deskripsi = $item->deskripsi ?? '-';
-            if ($deskripsi !== '-') {
-                $deskripsi = str_replace(
-                    ['<br>', '<br/>', '<br />', '</p>', '</li>'],
-                    "\n",
-                    $deskripsi
-                );
-
-                $deskripsi = strip_tags($deskripsi);
-                $deskripsi = html_entity_decode($deskripsi, ENT_QUOTES | ENT_HTML5);
-
-                // Rapikan spasi tanpa menghapus newline
-                $deskripsi = preg_replace('/[ \t]+/', ' ', $deskripsi);
-
-                // Hilangkan baris kosong berlebih
-                $deskripsi = preg_replace("/\n{3,}/", "\n\n", trim($deskripsi));
-            }
-
-            return [
-                'No' => $key + 1, 
-                'Nama DPL' => $nama, 
-                'NIDN' => $nidn, 
-                'Perguruan Tinggi' => $nama_lemb, 
-                'Tahun' => $item->tahun,
-                'Bulan' => $this->bulanToNama($item->bulan),
-                'Deskripsi' => $deskripsi,
-                // Tambahkan kolom lain sesuai kebutuhan
-            ];
-        });
-
-        return $data;
-    }
-
-    /**
-     * @return array
-     */
-    public function headings(): array
-    {
-        // Tentukan judul kolom
-        return [
-            'No',
-            'Nama DPL',
-            'NIDN',
-            'Perguruan Tinggi',
-            'Tahun',
-            'Bulan',
-            'Deskripsi',
-            // Tambahkan judul kolom lain sesuai kebutuhan
-        ];
+        return (new XlsxStreamer('Laporan Bulanan DPL', [
+            XlsxStreamer::column('Nama DPL', fn () => $dpl?->nama, 30),
+            XlsxStreamer::column('NIDN', fn () => $dpl?->nidn, 15),
+            XlsxStreamer::column('Perguruan Tinggi', fn () => $dpl?->sp?->nm_lemb, 35),
+            XlsxStreamer::column('Tahun', 'tahun', 8),
+            XlsxStreamer::column('Bulan', fn (Dpllaporan $row) => self::MONTHS[(int) $row->bulan] ?? null, 12),
+            XlsxStreamer::column('Deskripsi', fn (Dpllaporan $row) => HtmlSanitizer::plainText($row->deskripsi), 70),
+        ]))
+            ->info(['DPL' => $dpl?->nama, 'Email' => $this->email])
+            ->download($filename, $rows);
     }
 }

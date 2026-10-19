@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Mahasiswa;
 
-use App\Exports\CapaianKegiatanExport;
 use App\Exports\Sheets\CapaianKegiatanPeriodeSheet;
 use App\Exports\Sheets\RekapLldiktiSheet;
 use App\Models\Desa;
@@ -97,7 +96,7 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
         $semua = collect($ws->toArray())->flatten()->filter()->all();
 
         // Tabel sampah: judul(1) header(2) Sept(3) Agu(4) — periode di kolom Bulan, terbaru dulu
-        $this->assertSame('Data Sampah', $ws->getCell('A1')->getValue());
+        $this->assertSame('Data Sampah', (string) $ws->getCell('A1')->getValue());
         $this->assertSame(RekapLldiktiSheet::HEADER, $ws->rangeToArray('A2:L2')[0]);
         $this->assertSame('September 2026', $ws->getCell('A3')->getValue());
         $this->assertSame($desa->desa, $ws->getCell('C3')->getValue());
@@ -249,34 +248,41 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
         $this->assertSame($sedikit, $hitung());
     }
 
-    public function test_pt_dan_role_lapcapaian_tetap_capaiankegiatan_export_dengan_styling(): void
+    // Export non-mahasiswa: file stream XlsxStreamer (bukan Excel::download)
+    private function streamed(string $url): Worksheet
+    {
+        $response = $this->get($url)->assertOk();
+        $this->assertMatchesRegularExpression('/filename=capaian_kegiatan_.+\.xlsx$/', $response->headers->get('Content-Disposition'));
+        $path = tempnam(sys_get_temp_dir(), 'capkeg').'.xlsx';
+        file_put_contents($path, $response->streamedContent());
+        $ws = IOFactory::load($path)->getActiveSheet();
+        @unlink($path);
+
+        return $ws;
+    }
+
+    public function test_pt_dan_role_lapcapaian_export_gaya_standar(): void
     {
         $this->capaian('ketua@pps.test', '2026-09-01');
 
+        $headings = ['No.', 'Bulan', 'Lokasi Kegiatan', 'PJ Desa', 'Desa', 'Permasalahan', 'Solusi', 'Kebutuhan Dukungan', 'Tindak Lanjut', 'Tautan'];
         $this->loginAs('pt');
-        $this->exportDari('capaiankegiatan/export', CapaianKegiatanExport::class);
+        $ws = $this->streamed('capaiankegiatan/export');
+        $this->assertSame('Laporan Capaian Kegiatan', (string) $ws->getCell('A1')->getValue());
+        $this->assertSame($headings, $ws->rangeToArray('A3:J3')[0]);
 
         foreach (['admin', 'dpl', 'pt', 'kepala', 'pemda'] as $role) {
             $this->loginAs($role);
-            $this->exportDari('lapcapaiankegiatan/export', CapaianKegiatanExport::class);
+            $this->assertSame($headings, $this->streamed('lapcapaiankegiatan/export')->rangeToArray('A3:J3')[0]);
         }
 
         $this->loginAs('admin');
-        $export = new CapaianKegiatanExport();
-        $ws = $this->render($export);
-
-        // Tanpa kolom No/Kategori: A–I, kolom J tidak ikut di-style
-        $this->assertSame($export->headings(), $ws->rangeToArray('A1:I1')[0]);
-        $this->assertNotContains('No', $export->headings());
-        $this->assertNotContains('Kategori Kegiatan', $export->headings());
-        $this->assertSame('ketua@pps.test', $ws->getCell('C2')->getValue());
-        $this->assertSame('FFFF00', $ws->getStyle('I1')->getFill()->getStartColor()->getRGB());
-        $this->assertSame('none', $ws->getStyle('J1')->getFill()->getFillType());
-        $this->assertTrue($ws->getStyle('A1')->getFont()->getBold());
-        $this->assertSame('A2', $ws->getFreezePane());
-        $this->assertSame('thin', $ws->getStyle('I2')->getBorders()->getBottom()->getBorderStyle());
-        $this->assertSame('none', $ws->getStyle('J2')->getBorders()->getBottom()->getBorderStyle());
-        $this->assertSame(14.0, (float) $ws->getColumnDimension('A')->getWidth());
+        $ws = $this->streamed('lapcapaiankegiatan/export');
+        $this->assertSame('ketua@pps.test', (string) $ws->getCell('D4')->getValue());
+        $this->assertSame('D9EAD3', $ws->getStyle('J3')->getFill()->getStartColor()->getRGB());
+        $this->assertTrue($ws->getStyle('A3')->getFont()->getBold());
+        $this->assertSame('A4', $ws->getFreezePane());
+        $this->assertSame('thin', $ws->getStyle('J4')->getBorders()->getBottom()->getBorderStyle());
     }
 
     public function test_capaiankegiatan_export_urut_bulan_terbaru(): void
@@ -285,8 +291,8 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
         $this->capaian('baru@pps.test', '2026-09-01');
         $this->loginAs('admin');
 
-        $rows = (new CapaianKegiatanExport())->collection();
-        $this->assertSame(['baru@pps.test', 'lama@pps.test'], $rows->pluck('PJ Desa')->all());
+        $ws = $this->streamed('lapcapaiankegiatan/export');
+        $this->assertSame(['baru@pps.test', 'lama@pps.test'], [(string) $ws->getCell('D4')->getValue(), (string) $ws->getCell('D5')->getValue()]);
     }
 
     public function test_akses_export_ditolak_untuk_guest_dan_role_lain(): void

@@ -12,14 +12,12 @@ use App\Models\Satuanpendidikan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
-use Maatwebsite\Excel\Excel as ExcelType;
-use Maatwebsite\Excel\Facades\Excel;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use Tests\Concerns\ReadsXlsx;
 use Tests\TestCase;
 
 class LogHarianExportTest extends TestCase
 {
+    use ReadsXlsx;
     use RefreshDatabase;
 
     private array $d = [];
@@ -39,20 +37,20 @@ class LogHarianExportTest extends TestCase
         Dplmentoring::create(['email_mahasiswa' => 'mhsA1@uji.test', 'email_dpl' => 'dplA@uji.test']);
     }
 
+    // Pemilik baris diambil dari deskripsi "Kegiatan <key>" (mode mahasiswa tidak punya kolom email)
     private function emailDiExport(User $user, ?string $query = ''): array
     {
-        Excel::fake();
-        Excel::matchByRegex();
-        $this->actingAs($user)->get('logharian/export'.$query)->assertOk();
+        $ws = $this->xlsxFromResponse($this->actingAs($user)->get('logharian/export'.$query), '/filename=log_aktivitas_.+\.xlsx/');
+        $kolom = array_search('Deskripsi Kegiatan', $this->headerRow($ws), true);
 
-        $emails = [];
-        Excel::assertDownloaded('/^log_aktivitas_.+\.xlsx$/', function (LogHarianLengkapExport $export) use (&$emails) {
-            $emails = $export->query()->pluck('l.email')->unique()->sort()->values()->all();
+        return collect($this->dataColumn($ws, $kolom))
+            ->map(fn ($deskripsi) => str_replace('Kegiatan ', '', $deskripsi).'@uji.test')
+            ->unique()->sort()->values()->all();
+    }
 
-            return true;
-        });
-
-        return $emails;
+    private function sheet(LogHarianLengkapExport $export)
+    {
+        return $this->xlsxFromWriter(fn ($path) => $export->writeTo($path));
     }
 
     private function user(string $role, string $email): User
@@ -81,7 +79,6 @@ class LogHarianExportTest extends TestCase
     public function test_throttle_3_per_menit_dan_route_lama_dihapus(): void
     {
         $admin = $this->user('admin', 'admin@uji.test');
-        Excel::fake();
         for ($i = 0; $i < 3; $i++) {
             $this->actingAs($admin)->get('logharian/export?bulan=2026-09')->assertOk();
         }
@@ -127,10 +124,9 @@ class LogHarianExportTest extends TestCase
         Logkegiatan::factory()->create(['email' => 'mhsA2@uji.test', 'tanggal' => '2026-08-31']);
         $admin = $this->user('admin', 'admin@uji.test');
 
-        Excel::fake();
-        $this->actingAs($admin)->get('logharian/export?bulan=2026-08')->assertOk();
-        Excel::matchByRegex();
-        Excel::assertDownloaded('/^log_aktivitas_2026-08_.+\.xlsx$/', fn (LogHarianLengkapExport $e) => $e->query()->count() === 1);
+        $ws = $this->xlsxFromResponse($this->actingAs($admin)->get('logharian/export?bulan=2026-08'), '/filename=log_aktivitas_2026-08_.+\.xlsx/');
+        $this->assertCount(1, $this->dataRows($ws));
+        $this->assertSame('mhsA2@uji.test', $this->cellText($ws, 'C4'));
 
         foreach (['2026-13', 'abc', "2026-08' OR 1=1"] as $bulan) {
             $this->actingAs($admin)->get('logharian/export?bulan='.urlencode($bulan))->assertSessionHasErrors('bulan');
@@ -142,39 +138,29 @@ class LogHarianExportTest extends TestCase
         $this->get('logharian/export')->assertRedirect(route('login'));
     }
 
-    public function test_kolom_header_kuning_log_harian_dan_anti_formula(): void
+    public function test_kolom_header_standar_log_harian_dan_anti_formula(): void
     {
         $mhs = $this->d['mhsA1'];
         Logkegiatan::where('email', $mhs->email)->update(['deskripsi' => '=HYPERLINK("http://x","klik")']);
 
-        $sheet = function (User $user) {
-            $path = tempnam(sys_get_temp_dir(), 'log').'.xlsx';
-            file_put_contents($path, Excel::raw(new LogHarianLengkapExport($user), ExcelType::XLSX));
-            $ws = IOFactory::load($path)->getActiveSheet();
-            @unlink($path);
-
-            return $ws;
-        };
-
-        $ws = $sheet($this->user('dpl', 'dplA@uji.test'));
+        $ws = $this->sheet(new LogHarianLengkapExport($this->user('dpl', 'dplA@uji.test')));
         $this->assertSame([
-            'Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak', 'Tanggal',
-            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'Kategori Kegiatan',
+            'No.', 'Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak', 'Tanggal',
+            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', 'Kategori Kegiatan', 'Nama Aktivitas',
             'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti',
-        ], $ws->rangeToArray('A1:M1')[0]);
-        $this->assertSame('FFFF00', $ws->getStyle('M1')->getFill()->getStartColor()->getRGB());
-        $this->assertTrue($ws->getStyle('A1')->getFont()->getBold());
-        $this->assertNotSame('none', $ws->getStyle('M2')->getBorders()->getBottom()->getBorderStyle());
-        $this->assertSame('mhsA1@uji.test', $ws->getCell('B2')->getValue());
-        $this->assertSame($mhs->nama, $ws->getCell('C2')->getValue());
-        $this->assertSame('05/09/2026', $ws->getCell('E2')->getValue());
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('J2')->getDataType());
-        $this->assertStringStartsWith('=HYPERLINK', $ws->getCell('J2')->getValue());
+        ], $this->headerRow($ws));
+        $this->assertSame('O', $ws->getHighestColumn());
+        $this->assertSame('D9EAD3', $ws->getStyle('O3')->getFill()->getStartColor()->getRGB());
+        $this->assertTrue($ws->getStyle('A3')->getFont()->getBold());
+        $this->assertNotSame('none', $ws->getStyle('O4')->getBorders()->getBottom()->getBorderStyle());
+        $this->assertSame('mhsA1@uji.test', $this->cellText($ws, 'C4'));
+        $this->assertSame($mhs->nama, $this->cellText($ws, 'D4'));
+        $this->assertSame('05-09-2026', $this->cellText($ws, 'F4'));
+        $this->assertCellIsText($ws, 'L4', '=HYPERLINK("http://x","klik")');
 
-        $this->assertSame($mhs->phone, $ws->getCell('D2')->getValue());
-        $this->assertSame(16, (int) $ws->getColumnDimension('D')->getWidth());
+        $this->assertSame($mhs->phone ?? '-', $this->cellText($ws, 'E4'));
+        $this->assertSame(16, (int) $ws->getColumnDimension('E')->getWidth());
         $this->assertFalse($ws->getColumnDimension('B')->getAutoSize());
-
     }
 
     public function test_email_dan_kontak_mahasiswa_tampil_untuk_role_selain_mahasiswa(): void
@@ -184,11 +170,11 @@ class LogHarianExportTest extends TestCase
             'pt' => $this->d['ptA']->npsn, 'dpl' => 'dplA@uji.test'];
 
         foreach ($users as $role => $email) {
-            $export = new LogHarianLengkapExport($this->user($role, $email), '2026-09');
-            $r = $export->map($export->query()->where('l.email', $mhs->email)->first());
-            $this->assertSame($mhs->email, $r[1], $role);
-            $this->assertSame($mhs->phone, $r[3], $role);
-            $this->assertSame($mhs->nama, $r[2], $role);
+            $ws = $this->sheet(new LogHarianLengkapExport($this->user($role, $email), '2026-09'));
+            $r = collect($this->dataRows($ws))->firstWhere(2, $mhs->email);
+            $this->assertNotNull($r, $role);
+            $this->assertSame($mhs->phone ?? '-', $r[4], $role);
+            $this->assertSame($mhs->nama, $r[3], $role);
         }
     }
 
@@ -197,32 +183,28 @@ class LogHarianExportTest extends TestCase
         $mhs = $this->d['mhsA1'];
         Logkegiatan::where('email', $mhs->email)->update(['deskripsi' => '=HYPERLINK("http://x","klik")']);
 
-        $export = new LogHarianLengkapExport($this->user('mahasiswa', $mhs->email));
-        $header = ['No', 'Tanggal', 'Kategori Kegiatan', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
-        $this->assertSame($header, $export->headings());
-        $r = $export->map($export->query()->first());
-        $this->assertCount(7, $r);
-        $this->assertSame(1, $r[0]);
-        $this->assertSame('05/09/2026', $r[1]);
-        $this->assertNotContains($mhs->email, $r);
-        $this->assertNotContains($mhs->phone, $r);
-        $this->assertNotContains($mhs->nama, $r);
+        $ws = $this->sheet(new LogHarianLengkapExport($this->user('mahasiswa', $mhs->email)));
+        $header = ['No.', 'Tanggal', 'Kategori Kegiatan', 'Nama Aktivitas', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
+        $this->assertSame('H', $ws->getHighestColumn());
+        $this->assertSame($header, $this->headerRow($ws));
+        $rows = $this->dataRows($ws);
+        $this->assertCount(1, $rows);
+        $this->assertEquals(1, $rows[0][0]);
+        $this->assertSame('05-09-2026', $rows[0][1]);
+        $this->assertNotContains($mhs->email, $rows[0]);
+        $this->assertNotContains($mhs->nama, $rows[0]);
+        if ($mhs->phone) {
+            $this->assertNotContains($mhs->phone, $rows[0]);
+        }
+        $this->assertSame('D9EAD3', $ws->getStyle('H3')->getFill()->getStartColor()->getRGB());
+        $this->assertSame('none', $ws->getStyle('I3')->getFill()->getFillType());
+        $this->assertCellIsText($ws, 'E4', '=HYPERLINK("http://x","klik")');
+        $this->assertSame(45, (int) $ws->getColumnDimension('E')->getWidth());
 
-        $path = tempnam(sys_get_temp_dir(), 'log').'.xlsx';
-        file_put_contents($path, Excel::raw($export, ExcelType::XLSX));
-        $ws = IOFactory::load($path)->getActiveSheet();
-        @unlink($path);
-        $this->assertSame('G', $ws->getHighestColumn());
-        $this->assertSame($header, $ws->rangeToArray('A1:G1')[0]);
-        $this->assertSame('FFFF00', $ws->getStyle('G1')->getFill()->getStartColor()->getRGB());
-        $this->assertSame('none', $ws->getStyle('H1')->getFill()->getFillType());
-        $this->assertSame(DataType::TYPE_STRING, $ws->getCell('D2')->getDataType());
-        $this->assertSame(45, (int) $ws->getColumnDimension('D')->getWidth());
-
-        $admin = new LogHarianLengkapExport($this->user('admin', 'admin@uji.test'));
-        $this->assertCount(13, $admin->headings());
-        $this->assertSame(['Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak'], array_slice($admin->headings(), 0, 4));
-        $this->assertCount(13, $admin->map($admin->query()->first()));
+        $ws = $this->sheet(new LogHarianLengkapExport($this->user('admin', 'admin@uji.test')));
+        $this->assertCount(15, $this->headerRow($ws));
+        $this->assertSame(['Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak'], array_slice($this->headerRow($ws), 1, 4));
+        $this->assertCount(15, $this->dataRows($ws)[0]);
     }
 
     public function test_tombol_export_ada_di_halaman_log_harian(): void

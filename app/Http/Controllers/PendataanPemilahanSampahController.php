@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\PendataanPemilahanSampahByMhsExport;
 use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Mahasiswa\PemilahanExportRequest;
 use App\Http\Requests\Mahasiswa\PendataanPemilahanSampahRequest;
 use App\Models\Mahasiswa;
 use App\Models\PendataanPemilahanSampah;
 use App\Support\ActionButtons;
+use App\Support\XlsxStreamer;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Yajra\DataTables\DataTableAbstract;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -60,6 +60,7 @@ class PendataanPemilahanSampahController extends StudentLogReportController
         }
 
         abort_unless($request->ajax() && $request->user()->role === 'mahasiswa', 404);
+        $this->sanitizeDataTablesInput();
 
         $data = PendataanPemilahanSampah::ownedBy($request->user())
             ->unless($this->userSorts(), fn ($q) => $q->orderByDesc('tanggal'));
@@ -112,7 +113,7 @@ class PendataanPemilahanSampahController extends StudentLogReportController
         return $this->download($email, null);
     }
 
-    public function export(Request $request, ?string $email = null): BinaryFileResponse
+    public function export(Request $request, ?string $email = null): StreamedResponse
     {
         if ($email === null) {
             abort_unless($request->user()->role === 'mahasiswa', 404);
@@ -121,20 +122,38 @@ class PendataanPemilahanSampahController extends StudentLogReportController
             abort_unless($request->user()->role !== 'mahasiswa' && Mahasiswa::canBeViewedBy($request->user(), $email), 404);
         }
 
-        $validated = $request->validate([
-            'bulan' => ['nullable', 'regex:/^(19|20)\d{2}-(0[1-9]|1[0-2])$/'],
-        ]);
-        $bulan = $validated['bulan'] ?? null;
-
-        return $this->download($email, $bulan);
+        // Resolved after the access check so unauthorized emails stay 404 (signature must match the base)
+        return $this->download($email, app(PemilahanExportRequest::class)->validated('bulan'));
     }
 
-    private function download(string $email, ?string $bulan): BinaryFileResponse
+    // Same query as the detail table (student's own list uses the same rows), optional month filter
+    private function download(string $email, ?string $bulan): StreamedResponse
     {
-        return Excel::download(
-            new PendataanPemilahanSampahByMhsExport($email, $bulan),
-            'pendataan_pemilahan_'.$email.'_'.($bulan ?? 'semua').'_'.date('Y-m-d_H-i-s').'.xlsx'
-        );
+        $this->sanitizeDataTablesInput();
+        $rows = $this->dataTablesExportQuery($this->detailTable($email), 'pendataan_pemilahan_sampah.id_pendataan')
+            ->when($bulan, fn ($query, $bulan) => $query->whereYear('tanggal', substr($bulan, 0, 4))
+                ->whereMonth('tanggal', substr($bulan, 5, 2)))
+            ->lazy(1000);
+
+        return (new XlsxStreamer('Pendataan Pemilahan Sampah', [
+            XlsxStreamer::column('Tanggal', 'tanggal', 12, 'date'),
+            XlsxStreamer::column('Nama Kepala Keluarga', 'nama_kepala_keluarga', 28),
+            XlsxStreamer::column('Anggota Keluarga', 'jumlah_anggota_keluarga', 12),
+            XlsxStreamer::column('Alamat Rumah', 'alamat_rumah', 40),
+            XlsxStreamer::column('RT', 'rt', 6),
+            XlsxStreamer::column('RW', 'rw', 6),
+            XlsxStreamer::column('Memilah', fn (PendataanPemilahanSampah $row) => $row->memilah ? 'Ya' : 'Tidak', 10),
+            XlsxStreamer::column('Organik (kg)', fn (PendataanPemilahanSampah $row) => (float) $row->organik_kg, 12),
+            XlsxStreamer::column('Anorganik (kg)', fn (PendataanPemilahanSampah $row) => (float) $row->anorganik_kg, 12),
+            XlsxStreamer::column('Residu (kg)', fn (PendataanPemilahanSampah $row) => (float) $row->residu_kg, 12),
+        ]))
+            ->info([
+                'Mahasiswa' => Mahasiswa::where('email', $email)->value('nama'),
+                'Email' => $email,
+                'Bulan' => $bulan ?? 'Semua',
+                'Kata kunci' => request('search.value'),
+            ])
+            ->download('pendataan_pemilahan_'.$email.'_'.($bulan ?? 'semua').'_'.date('Y-m-d_H-i-s').'.xlsx', $rows);
     }
 
     public function tambah()

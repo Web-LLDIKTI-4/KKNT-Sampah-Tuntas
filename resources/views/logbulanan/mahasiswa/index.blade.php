@@ -56,7 +56,7 @@
 </div>
 <script>
 $(function(){
-    $("#listdata").load("{{ url('logbulanan/listdata') }}");
+    loadPartial('#listdata', "{{ url('logbulanan/listdata') }}");
 
     $('#modalku').on('show.bs.modal', function (e) {
         $(".modal-dialog").addClass('modal-lg');

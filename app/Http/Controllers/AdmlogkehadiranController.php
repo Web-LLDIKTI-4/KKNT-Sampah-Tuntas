@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\LogKehadiranByMhsExport;
 use App\Models\Kehadiran;
+use App\Models\Mahasiswa;
 use App\Support\ActionButtons;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Support\XlsxStreamer;
+use Carbon\Carbon;
 use Yajra\DataTables\DataTableAbstract;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -47,6 +48,20 @@ class AdmlogkehadiranController extends StudentLogReportController
 
     protected function exportFor(string $email)
     {
-        return Excel::download(new LogKehadiranByMhsExport($email), 'kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx');
+        $student = Mahasiswa::with('sp')->where('email', $email)->first();
+        $time = fn ($value) => $value ? Carbon::parse($value)->format('H:i:s') : null;
+        $rows = Kehadiran::where('email', $email)->without(['mahasiswa', 'dplmentoring'])->orderBy('tanggal')->orderBy('id_kehadiran')->lazy(1000);
+
+        return (new XlsxStreamer('Log Kehadiran Mahasiswa', [
+            XlsxStreamer::column('NIM', fn () => $student?->nim, 15),
+            XlsxStreamer::column('Nama Mahasiswa', fn () => $student?->nama, 30),
+            XlsxStreamer::column('Nama Perguruan Tinggi', fn () => $student?->sp?->nm_lemb, 35),
+            XlsxStreamer::column('Tanggal', 'tanggal', 12, 'date'),
+            XlsxStreamer::column('Status Kehadiran', fn (Kehadiran $row) => ucfirst((string) $row->status_kehadiran), 18),
+            XlsxStreamer::column('Jam Masuk', fn (Kehadiran $row) => $time($row->waktu_masuk), 12),
+            XlsxStreamer::column('Jam Pulang', fn (Kehadiran $row) => $time($row->waktu_pulang), 12),
+        ]))
+            ->info(['Mahasiswa' => $student?->nama, 'Email' => $email])
+            ->download('kehadiran_mahasiswa_'.date('Y-m-d_H-i-s').'.xlsx', $rows);
     }
 }

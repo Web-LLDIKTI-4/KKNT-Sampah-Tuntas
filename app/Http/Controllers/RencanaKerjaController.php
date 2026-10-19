@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Yajra\DataTables\Facades\DataTables;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Pt\RencanaKerjaRequest;
 use App\Models\RencanaKerja;
@@ -20,7 +21,7 @@ use App\Support\FileSize;
 
 class RencanaKerjaController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     private const METADATA_FIELDS = ['judul', 'tahun', 'keterangan'];
 
@@ -46,6 +47,7 @@ class RencanaKerjaController extends Controller
     {
         abort_unless($request->ajax(), 404);
         Gate::authorize('viewAny', RencanaKerja::class);
+        $this->sanitizeDataTablesInput();
 
         $user = $request->user();
         $query = RencanaKerja::visibleTo($user)

@@ -21,7 +21,7 @@
     </div>
 </div>
 
-<x-button.export url="{{ url('admstructureform/export') }}" />
+<x-button.export url="{{ url('admstructureform/export') }}" table="#dataTable" />
 
 <script type="text/javascript">
   $(function () {

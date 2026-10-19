@@ -11,7 +11,7 @@
 </div>
 <script>
     $(function(){
-        $("#resultcontent").load("{{ url('logkehadiran/listdata') }}");
+        loadPartial('#resultcontent', "{{ url('logkehadiran/listdata') }}");
     })
 </script>
 @stop 

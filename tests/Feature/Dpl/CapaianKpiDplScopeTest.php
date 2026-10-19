@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Dpl;
 
-use App\Exports\CapaianKegiatanExport;
 use App\Models\CapaianKegiatan;
 use App\Models\Desa;
 use App\Models\Dplmentoring;
@@ -10,9 +9,10 @@ use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
 use App\Models\User;
+use App\Support\XlsxStreamer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
-use Maatwebsite\Excel\Facades\Excel;
+use OpenSpout\Reader\XLSX\Reader;
 use Tests\TestCase;
 
 class CapaianKpiDplScopeTest extends TestCase
@@ -42,6 +42,30 @@ class CapaianKpiDplScopeTest extends TestCase
             ->assertOk();
     }
 
+    // Kolom "PJ Desa" (email ketua) dari file export; baris judul/info/header dilewati
+    private function exportEmails(): array
+    {
+        $path = tempnam(sys_get_temp_dir(), 'capaian');
+        try {
+            file_put_contents($path, $this->get('lapcapaiankegiatan/export')->assertOk()->streamedContent());
+            $reader = new Reader;
+            $reader->open($path);
+            $emails = [];
+            foreach ($reader->getSheetIterator() as $sheet) {
+                foreach ($sheet->getRowIterator() as $i => $row) {
+                    if ($i > XlsxStreamer::HEADER_ROW) {
+                        $emails[] = $row->getCells()[3]->getValue();
+                    }
+                }
+            }
+            $reader->close();
+        } finally {
+            unlink($path);
+        }
+
+        return $emails;
+    }
+
     public function test_dpl_listdata_only_shows_capaian_of_own_mentees(): void
     {
         $dplA = $this->loginAs('dpl');
@@ -68,10 +92,7 @@ class CapaianKpiDplScopeTest extends TestCase
         $this->ketua('Ketua B', $dplB);
         $this->ketua('Ketua Tanpa DPL');
 
-        $this->assertSame([$mhsA->email], (new CapaianKegiatanExport())->collection()->pluck('PJ Desa')->all());
-
-        Excel::fake();
-        $this->get('lapcapaiankegiatan/export')->assertOk();
+        $this->assertSame([$mhsA->email], $this->exportEmails());
     }
 
     public function test_dpl_without_mentees_sees_nothing(): void
@@ -80,7 +101,7 @@ class CapaianKpiDplScopeTest extends TestCase
         $this->ketua('Ketua Lain', User::factory()->role('dpl')->create());
 
         $this->listdata()->assertJsonPath('recordsTotal', 0);
-        $this->assertCount(0, (new CapaianKegiatanExport())->collection());
+        $this->assertSame([], $this->exportEmails());
     }
 
     // Perilaku saat ini: DPL yang hanya membimbing anggota (bukan ketua) tidak melihat capaian kelompoknya
@@ -103,7 +124,7 @@ class CapaianKpiDplScopeTest extends TestCase
         $this->assertSame(1, CapaianKegiatan::visibleToMahasiswa($anggota->email)->count());
 
         $this->listdata()->assertJsonPath('recordsTotal', 0);
-        $this->assertCount(0, (new CapaianKegiatanExport())->collection());
+        $this->assertSame([], $this->exportEmails());
     }
 
     public function test_mahasiswa_cannot_access_lapcapaian_listdata(): void

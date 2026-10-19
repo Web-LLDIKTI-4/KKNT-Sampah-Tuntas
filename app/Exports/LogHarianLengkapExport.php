@@ -2,34 +2,22 @@
 
 namespace App\Exports;
 
-use App\Exports\Concerns\SafeValueBinder;
 use App\Models\Mahasiswa;
 use App\Models\User;
+use App\Support\XlsxStreamer;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
-use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Log harian lengkap, di-scope per role: admin/kepala/pemda semua, pt mahasiswa PT-nya,
  * dpl mahasiswa bimbingan, mahasiswa datanya sendiri.
  */
-class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueBinder, FromQuery, WithMapping, WithHeadings, WithEvents, WithStrictNullComparison, WithColumnWidths
+class LogHarianLengkapExport
 {
     // Mahasiswa: kolom identitas & lokasi disembunyikan, sama dengan tabel Log Harian
     private bool $modeMahasiswa;
-
-    // Nomor urut baris; aman untuk chunking FromQuery karena map() dipanggil berurutan
-    private int $no = 0;
 
     public function __construct(private User $user, private ?string $bulan = null)
     {
@@ -58,69 +46,53 @@ class LogHarianLengkapExport extends SafeValueBinder implements WithCustomValueB
                 $q->whereBetween('l.tanggal', [$awal->toDateString(), $awal->copy()->endOfMonth()->toDateString()]);
             })
             ->orderBy('l.tanggal')->orderBy('l.created_at')->orderBy('l.id_log')
+            // Joined PKs keep lazy() paging stable when legacy joins duplicate a log row
+            ->orderBy('m.id_mahasiswa')->orderBy('ml.id_lokasi')
             ->select('l.*', 'm.nama', 'm.phone', 'lp.nama_lokasi', 'kc.kecamatan', 'd.desa', 'k.nama_kategori');
     }
 
-    public function map($row): array
+    public function download(string $filename): StreamedResponse
     {
-        $tanggal = Carbon::parse($row->tanggal)->format('d/m/Y');
-        $kegiatan = [$row->nama_kategori, $row->nama_aktivitas, strip_tags((string) $row->deskripsi), $row->volume, $row->satuan, $row->tautan];
+        return $this->streamer()->download($filename, $this->query()->lazy(1000));
+    }
+
+    public function writeTo(string $path): void
+    {
+        $this->streamer()->writeTo($path, $this->query()->lazy(1000));
+    }
+
+    private function streamer(): XlsxStreamer
+    {
+        return (new XlsxStreamer('Log Aktivitas Harian Mahasiswa', $this->columns()))
+            ->info(['Bulan' => $this->bulan ? Carbon::createFromFormat('!Y-m', $this->bulan)->translatedFormat('F Y') : 'Semua']);
+    }
+
+    private function columns(): array
+    {
+        $kegiatan = [
+            XlsxStreamer::column('Kategori Kegiatan', 'nama_kategori', 24),
+            XlsxStreamer::column('Nama Aktivitas', 'nama_aktivitas', 30),
+            XlsxStreamer::column('Deskripsi Kegiatan', fn ($row) => strip_tags((string) $row->deskripsi), 45),
+            XlsxStreamer::column('Volume/Kuantitas Output', 'volume', 14, 'number'),
+            XlsxStreamer::column('Satuan', 'satuan', 18),
+            XlsxStreamer::column('Tautan Bukti', 'tautan', 35),
+        ];
 
         if ($this->modeMahasiswa) {
-            return [++$this->no, $tanggal, ...$kegiatan];
+            return [XlsxStreamer::column('Tanggal', 'tanggal', 12, 'date'), ...$kegiatan];
         }
 
         return [
-            $row->created_at ? Carbon::parse($row->created_at)->format('d/m/Y H:i:s') : null,
-            $row->email,
-            $row->nama,
-            $row->phone,
-            $tanggal,
-            $row->nama_lokasi,
-            $row->kecamatan,
-            $row->desa,
+            XlsxStreamer::column('Timestamp', fn ($row) => $row->created_at ? Carbon::parse($row->created_at)->format('d-m-Y H:i:s') : null, 20),
+            XlsxStreamer::column('Email Address', 'email', 28),
+            XlsxStreamer::column('Nama Mahasiswa Penginput Data', 'nama', 28),
+            XlsxStreamer::column('Nomor Kontak', 'phone', 16),
+            XlsxStreamer::column('Tanggal', 'tanggal', 12, 'date'),
+            XlsxStreamer::column('Kabupaten/Kota', 'nama_lokasi', 20),
+            XlsxStreamer::column('Nama Kecamatan', 'kecamatan', 20),
+            XlsxStreamer::column('Nama Kelurahan/Desa', 'desa', 22),
             ...$kegiatan,
         ];
-    }
-
-    public function headings(): array
-    {
-        $kegiatan = ['Kategori Kegiatan', 'Nama Aktivitas', 'Deskripsi Kegiatan', 'Volume/Kuantitas Output', 'Satuan', 'Tautan Bukti'];
-
-        if ($this->modeMahasiswa) {
-            return ['No', 'Tanggal', ...$kegiatan];
-        }
-
-        return [
-            'Timestamp', 'Email Address', 'Nama Mahasiswa Penginput Data', 'Nomor Kontak', 'Tanggal',
-            'Kabupaten/Kota', 'Nama Kecamatan', 'Nama Kelurahan/Desa', ...$kegiatan,
-        ];
-    }
-
-    // Lebar manual: ShouldAutoSize menghitung tiap sel (boros memori)
-    public function columnWidths(): array
-    {
-        if ($this->modeMahasiswa) {
-            return ['A' => 6, 'B' => 12, 'C' => 24, 'D' => 30, 'E' => 45, 'F' => 14, 'G' => 18, 'H' => 35];
-        }
-
-        return [
-            'A' => 20, 'B' => 28, 'C' => 28, 'D' => 16, 'E' => 12, 'F' => 20, 'G' => 20, 'H' => 22,
-            'I' => 24, 'J' => 30, 'K' => 45, 'L' => 14, 'M' => 18, 'N' => 35,
-        ];
-    }
-
-    public function registerEvents(): array
-    {
-        return [AfterSheet::class => function (AfterSheet $event) {
-            $sheet = $event->sheet->getDelegate();
-            $akhir = $this->modeMahasiswa ? 'H' : 'N';
-            $sheet->getStyle("A1:{$akhir}1")->applyFromArray([
-                'font' => ['bold' => true],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFF00']],
-            ]);
-            $sheet->getStyle("A1:{$akhir}".$sheet->getHighestRow())->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        }];
     }
 
     // Anti-IDOR: scope wajib di query, bukan dari input

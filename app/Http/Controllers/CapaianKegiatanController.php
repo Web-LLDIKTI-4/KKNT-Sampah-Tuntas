@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\CapaianKegiatanExport;
 use App\Exports\Sheets\CapaianKegiatanPeriodeSheet;
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\CapaianKegiatanRequest;
 use App\Models\Desa;
@@ -21,7 +21,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class CapaianKegiatanController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     private const FIELDS = ['status_capaian', 'tautan', 'permasalahan', 'solusi', 'kendala'];
 
@@ -48,6 +48,7 @@ class CapaianKegiatanController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
+        $this->sanitizeDataTablesInput();
         $isKetua = $this->isKetua($request->user());
         $data = CapaianKegiatan::visibleToMahasiswa($request->user()->email)
             ->with(['pjdesa.desa.kecamatan', 'pjdesa.mahasiswa.user.locationProgram'])
@@ -145,8 +146,9 @@ class CapaianKegiatanController extends Controller
         $user = $request->user();
         $file = 'capaian_kegiatan_'.date('Y-m-d_H-i-s').'.xlsx';
 
+        // Non-mahasiswa (pt): same export & scope as lapcapaiankegiatan
         if ($user->role !== 'mahasiswa') {
-            return Excel::download(new CapaianKegiatanExport(), $file);
+            return app(LapcapaiankegiatanController::class)->export($request);
         }
 
         // Mahasiswa: blok per periode (data sampah desa + capaian kegiatan); tanpa desa → sampah kosong

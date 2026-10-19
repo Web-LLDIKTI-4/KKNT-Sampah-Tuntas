@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Dpl\NilaiRequest;
 use App\Models\Dplmentoring;
@@ -17,7 +18,7 @@ use Yajra\DataTables\Facades\DataTables;
  */
 abstract class NilaiMahasiswaController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     /** @return class-string<Model> */
     abstract protected function model(): string;
@@ -47,6 +48,7 @@ abstract class NilaiMahasiswaController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
         $key = $this->keyName();
         $query = $this->visibleTo($request)->with('mahasiswa.sp')->orderByDesc('created_at');

@@ -14,7 +14,7 @@ $(function(){
     $('#modalku').on('show.bs.modal', function (e) {
         $(".modal-dialog").addClass('modal-lg');
     })
-    $("#resultcontent").load("{{ url('admstructureform/listdata') }}");
+    loadPartial('#resultcontent', "{{ url('admstructureform/listdata') }}");
     $("body").on("submit","#form-tambah,#form-ubah",function(e){
         e.preventDefault();     
         var action = $(this).attr("action");

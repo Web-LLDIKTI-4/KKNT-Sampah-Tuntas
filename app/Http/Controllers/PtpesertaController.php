@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Models\Mahasiswa;
 use App\Models\Satuanpendidikan;
 use Illuminate\Http\Request;
@@ -9,6 +10,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 class PtpesertaController extends Controller
 {
+    use HandlesDataTablesOrder;
+
     public function index()
     {
         return view('ptpeserta.index');
@@ -22,6 +25,7 @@ class PtpesertaController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
         $data = Mahasiswa::groupBy('kodept')->selectRaw('kodept, count(*) as jumlah_mhs')->get();
         $nama = Satuanpendidikan::whereIn('npsn', $data->pluck('kodept')->filter())->pluck('nm_lemb', 'npsn');

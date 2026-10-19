@@ -163,6 +163,7 @@ class DataTablesEndpointSweepTest extends TestCase
         $gagal = [];
         $skip = [];
         $jumlah = 0;
+        $maksBaris = [];
         foreach (self::endpoints() as $ep) {
             try {
                 $route = $ep['type'] === 'route' ? Route::getRoutes()->getByName($ep['target']) : Route::getRoutes()->match(request()->create($ep['target']));
@@ -191,6 +192,9 @@ class DataTablesEndpointSweepTest extends TestCase
                 }
             }
             $variasi['search "'.self::SEARCH.'"'] = ['search' => ['value' => self::SEARCH, 'regex' => 'false']];
+            // "Semua" / length besar tetap di-cap 100 baris per request
+            $variasi['length -1'] = ['length' => -1];
+            $variasi['length 1000'] = ['length' => 1000];
 
             $roles = isset(self::VIEW_ROLES[$ep['view']]) ? array_intersect($this->roles($route), self::VIEW_ROLES[$ep['view']]) : $this->roles($route);
             foreach ($roles as $role) {
@@ -203,6 +207,13 @@ class DataTablesEndpointSweepTest extends TestCase
                     $jumlah++;
                     $res = $this->getJson('/'.$uri.'?'.$this->query($ep['columns'], $extra), ['X-Requested-With' => 'XMLHttpRequest']);
                     $error = $res->status() === 200 ? $res->json('error') : null;
+                    if ($res->status() === 200 && $error === null && isset($extra['length'])) {
+                        $baris = count($res->json('data') ?? []);
+                        $maksBaris[$route->uri()] = max($maksBaris[$route->uri()] ?? 0, $baris);
+                        if ($baris > 100) {
+                            $gagal["{$route->uri()} | $label | lebih dari 100 baris"][] = "$role:$baris";
+                        }
+                    }
                     if ($res->status() !== 200 || $error !== null) {
                         $pesan = $error ?? ($res->json('message') ?? '');
                         preg_match('/SQLSTATE\[[^\]]+\]:[^(]+/', (string) $pesan, $sql);
@@ -213,7 +224,7 @@ class DataTablesEndpointSweepTest extends TestCase
         }
 
         $laporan = collect($gagal)->map(fn ($roles, $k) => $k.' | '.implode(',', array_unique($roles)))->values()->all();
-        fwrite(STDERR, "\nSWEEP: $jumlah request, ".count($laporan)." kasus gagal\n".implode("\n", $laporan)."\nSKIP:\n".implode("\n", $skip)."\n");
+        fwrite(STDERR, "\nSWEEP: $jumlah request, ".count($laporan)." kasus gagal, maks baris length=-1/1000: ".(max($maksBaris ?: [0]))."\n".implode("\n", $laporan)."\nSKIP:\n".implode("\n", $skip)."\n");
 
         $this->assertSame([], $laporan, "Endpoint DataTables gagal:\n".implode("\n", $laporan));
     }

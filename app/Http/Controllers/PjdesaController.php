@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Models\CapaianKegiatan;
 use App\Models\Pjdesa;
@@ -13,7 +14,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class PjdesaController extends Controller
 {
-    use RespondsWithJson;
+    use HandlesDataTablesOrder, RespondsWithJson;
 
     public function index()
     {
@@ -28,21 +29,43 @@ class PjdesaController extends Controller
     public function listdataserver(Request $request)
     {
         abort_unless($request->ajax(), 404);
+        $this->sanitizeDataTablesInput();
 
-        $data = Pjdesa::with(['desa.kecamatan', 'mahasiswa.sp'])->get();
-        // Current-year capaian count per email, single grouped query
-        $capaian = CapaianKegiatan::whereYear('bulan', now()->year)
-            ->whereIn('email', $data->pluck('email')->filter()->unique())
-            ->groupBy('email')
-            ->pluck(DB::raw('count(*)'), 'email');
+        $whitelist = ['kecamatan', 'desa', 'pjdesa', 'instansi'];
+        // mahasiswa.email is not unique: subquery (deterministic) instead of join to avoid duplicate rows
+        $mahasiswaCol = fn (string $col) => "(SELECT {$col} FROM mahasiswa m LEFT JOIN ref_satuanpendidikan sp ON sp.npsn = m.kodept"
+            .' WHERE m.email = pj_desa.email ORDER BY m.id_mahasiswa DESC LIMIT 1)';
 
-        return DataTables::of($data)
+        // desa/kecamatan joined on PK (no duplicates); capaian = current-year count per row
+        $query = Pjdesa::query()
+            ->leftJoin('desa', 'desa.id_desa', '=', 'pj_desa.id_desa')
+            ->leftJoin('kecamatan', 'kecamatan.id_kecamatan', '=', 'desa.id_kecamatan')
+            ->select('pj_desa.id_pjdesa', 'pj_desa.email', 'desa.desa as nama_desa', 'kecamatan.kecamatan as nama_kecamatan')
+            ->selectSub(CapaianKegiatan::selectRaw('count(*)')
+                ->whereColumn('capaian_kegiatan.email', 'pj_desa.email')
+                ->whereYear('bulan', now()->year), 'capaian_count')
+            ->with('mahasiswa.sp')
+            ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q
+                ->orderBy('kecamatan.kecamatan')
+                ->orderBy('desa.desa')
+                ->orderBy('pj_desa.id_pjdesa'));
+
+        return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->addColumn('kecamatan', fn (Pjdesa $row) => $row->desa->kecamatan->kecamatan ?? '')
-            ->addColumn('desa', fn (Pjdesa $row) => $row->desa->desa ?? '')
+            ->whitelist($whitelist)
+            ->addColumn('kecamatan', fn (Pjdesa $row) => $row->nama_kecamatan ?? '')
+            ->addColumn('desa', fn (Pjdesa $row) => $row->nama_desa ?? '')
             ->addColumn('pjdesa', fn (Pjdesa $row) => $row->mahasiswa->nama ?? 'Data tidak tersedia')
             ->addColumn('instansi', fn (Pjdesa $row) => $row->mahasiswa->sp->nm_lemb ?? 'Data tidak tersedia')
-            ->addColumn('capaian_kpi', fn (Pjdesa $row) => (int) ($capaian[$row->email] ?? 0))
+            ->addColumn('capaian_kpi', fn (Pjdesa $row) => (int) $row->capaian_count)
+            ->filterColumn('kecamatan', fn ($q, $k) => $q->where('kecamatan.kecamatan', 'like', $this->likeContains($k)))
+            ->filterColumn('desa', fn ($q, $k) => $q->where('desa.desa', 'like', $this->likeContains($k)))
+            ->filterColumn('pjdesa', fn ($q, $k) => $q->whereHas('mahasiswa', fn ($m) => $m->where('nama', 'like', $this->likeContains($k))))
+            ->filterColumn('instansi', fn ($q, $k) => $q->whereHas('mahasiswa.sp', fn ($sp) => $sp->where('nm_lemb', 'like', $this->likeContains($k))))
+            ->orderColumn('kecamatan', 'kecamatan.kecamatan $1')
+            ->orderColumn('desa', 'desa.desa $1')
+            ->orderColumn('pjdesa', $mahasiswaCol('m.nama').' $1')
+            ->orderColumn('instansi', $mahasiswaCol('sp.nm_lemb').' $1')
             ->addColumn('action', fn (Pjdesa $row) => ActionButtons::make(
                 urlDelete: url('pjdesa/destroy'),
                 idField: 'id_pjdesa',

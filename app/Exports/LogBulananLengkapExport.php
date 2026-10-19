@@ -2,28 +2,19 @@
 
 namespace App\Exports;
 
-use App\Exports\Concerns\SafeValueBinder;
 use App\Models\Mahasiswa;
 use App\Models\User;
+use App\Support\HtmlSanitizer;
+use App\Support\XlsxStreamer;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
-use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Log bulanan seluruh mahasiswa dalam cakupan role: admin/kepala/pemda semua, pt mahasiswa PT-nya, dpl bimbingan.
  */
-class LogBulananLengkapExport extends SafeValueBinder implements WithCustomValueBinder, FromQuery, WithMapping, WithHeadings, WithEvents, WithStrictNullComparison, WithColumnWidths
+class LogBulananLengkapExport
 {
     public function __construct(private User $user, private ?string $bulan = null) {}
 
@@ -38,59 +29,34 @@ class LogBulananLengkapExport extends SafeValueBinder implements WithCustomValue
                 $q->where('lb.tahun', (int) $tahun)->where('lb.bulan', (int) $bln);
             })
             ->orderBy('lb.tahun')->orderBy('lb.bulan')->orderBy('m.nama')->orderBy('lb.id_logbulanan')
+            // Joined PKs keep lazy() paging stable when legacy joins duplicate a row
+            ->orderBy('m.id_mahasiswa')->orderBy('sp.id_sp')
             ->select('lb.*', 'm.nama', 'm.nim', 'm.phone', 'sp.nm_lemb');
     }
 
-    public function map($row): array
+    public function download(string $filename): StreamedResponse
     {
-        return [
-            $row->created_at ? Carbon::parse($row->created_at)->format('d/m/Y H:i:s') : null,
-            $row->email,
-            $row->nama,
-            $row->phone,
-            $row->nim,
-            $row->nm_lemb,
-            $row->tahun && $row->bulan ? Carbon::create((int) $row->tahun, (int) $row->bulan)->translatedFormat('F Y') : $row->bulan,
-            $this->bersihkan($row->deskripsi),
-            $row->nilai,
-        ];
+        return $this->streamer()->download($filename, $this->query()->lazy(1000));
     }
 
-    public function headings(): array
+    public function writeTo(string $path): void
     {
-        return ['Timestamp', 'Email Address', 'Nama Mahasiswa', 'Nomor Kontak', 'NIM', 'Nama Perguruan Tinggi', 'Bulan', 'Deskripsi', 'Nilai'];
+        $this->streamer()->writeTo($path, $this->query()->lazy(1000));
     }
 
-    public function columnWidths(): array
+    private function streamer(): XlsxStreamer
     {
-        return ['A' => 20, 'B' => 28, 'C' => 28, 'D' => 16, 'E' => 16, 'F' => 30, 'G' => 16, 'H' => 70, 'I' => 8];
-    }
-
-    public function registerEvents(): array
-    {
-        return [AfterSheet::class => function (AfterSheet $event) {
-            $sheet = $event->sheet->getDelegate();
-            $akhir = $sheet->getHighestRow();
-            $sheet->getStyle('A1:I1')->applyFromArray([
-                'font' => ['bold' => true],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFF00']],
-            ]);
-            $sheet->getStyle("A1:I$akhir")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-            $sheet->getStyle("H2:H$akhir")->getAlignment()->setWrapText(true)->setVertical(Alignment::VERTICAL_TOP);
-        }];
-    }
-
-    // HTML deskripsi → teks biasa (sama dengan LogBulananByMhsExport)
-    private function bersihkan(?string $deskripsi): string
-    {
-        if ($deskripsi === null || $deskripsi === '') {
-            return '-';
-        }
-        $teks = str_replace(['<br>', '<br/>', '<br />', '</p>', '</li>'], "\n", $deskripsi);
-        $teks = html_entity_decode(strip_tags($teks), ENT_QUOTES | ENT_HTML5);
-        $teks = preg_replace('/[ \t]+/', ' ', $teks);
-
-        return preg_replace("/\n{3,}/", "\n\n", trim($teks));
+        return (new XlsxStreamer('Log Bulanan Mahasiswa', [
+            XlsxStreamer::column('Timestamp', fn ($row) => $row->created_at ? Carbon::parse($row->created_at)->format('d-m-Y H:i:s') : null, 20),
+            XlsxStreamer::column('Email Address', 'email', 28),
+            XlsxStreamer::column('Nama Mahasiswa', 'nama', 28),
+            XlsxStreamer::column('Nomor Kontak', 'phone', 16),
+            XlsxStreamer::column('NIM', 'nim', 16),
+            XlsxStreamer::column('Nama Perguruan Tinggi', 'nm_lemb', 30),
+            XlsxStreamer::column('Bulan', fn ($row) => $row->tahun && $row->bulan ? Carbon::create((int) $row->tahun, (int) $row->bulan)->translatedFormat('F Y') : $row->bulan, 16),
+            XlsxStreamer::column('Deskripsi', fn ($row) => HtmlSanitizer::plainText($row->deskripsi), 70),
+            XlsxStreamer::column('Nilai', 'nilai', 8, 'number'),
+        ]))->info(['Bulan' => $this->bulan ? Carbon::createFromFormat('!Y-m', $this->bulan)->translatedFormat('F Y') : 'Semua']);
     }
 
     // Anti-IDOR: scope wajib di query, bukan dari input

@@ -16,6 +16,6 @@ $(function(){
     $('#modalku').on('show.bs.modal', function (e) {
         $(".modal-dialog").addClass('modal-lg');
     })
-    $("#resultcontent").load("{{ url('dplfreeform/listdata') }}");})
+    loadPartial('#resultcontent', "{{ url('dplfreeform/listdata') }}");})
 </script>
 @stop 

@@ -42,11 +42,11 @@ class PicpjController extends Controller
             ->editColumn('nm_lemb', fn ($row) => $row->nm_lemb ?: $row->name)
             // No. Kontak comes only from users.phone
             ->editColumn('no_tel', fn ($row) => $row->no_tel ?: '-')
-            ->filterColumn('kodept', fn ($query, $keyword) => $query->where('users.email', 'like', "%{$keyword}%"))
+            ->filterColumn('kodept', fn ($query, $keyword) => $query->where('users.email', 'like', $this->likeContains($keyword)))
             ->filterColumn('nm_lemb', fn ($query, $keyword) => $query->where(fn ($q) => $q
-                ->where('sp.nm_lemb', 'like', "%{$keyword}%")
-                ->orWhere('users.name', 'like', "%{$keyword}%")))
-            ->filterColumn('no_tel', fn ($query, $keyword) => $query->where('users.phone', 'like', "%{$keyword}%"))
+                ->where('sp.nm_lemb', 'like', $this->likeContains($keyword))
+                ->orWhere('users.name', 'like', $this->likeContains($keyword))))
+            ->filterColumn('no_tel', fn ($query, $keyword) => $query->where('users.phone', 'like', $this->likeContains($keyword)))
             ->orderColumn('kodept', 'users.email $1')
             ->orderColumn('nm_lemb', 'COALESCE(sp.nm_lemb, users.name) $1')
             ->orderColumn('no_tel', 'users.phone $1')

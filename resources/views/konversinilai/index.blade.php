@@ -20,6 +20,6 @@ $(function(){
     $('#modalku').on('show.bs.modal', function (e) {
         $(".modal-dialog").addClass('modal-lg');
     })
-    $("#resultcontent").load("{{ url('dplkonversinilai/listdata') }}");})
+    loadPartial('#resultcontent', "{{ url('dplkonversinilai/listdata') }}");})
 </script>
 @stop 

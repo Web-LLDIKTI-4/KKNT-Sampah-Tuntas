@@ -19,7 +19,7 @@
         $('#modalku').on('show.bs.modal', function (e) {
             $(".modal-dialog").addClass('modal-lg');
         })
-        $("#resultcontent").load("{{ url('logkegiatan/listdata') }}");
+        loadPartial('#resultcontent', "{{ url('logkegiatan/listdata') }}");
     })
 </script>
 @stop 

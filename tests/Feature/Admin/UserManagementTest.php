@@ -21,6 +21,7 @@ use App\Models\RencanaKerja;
 use App\Models\Satuanpendidikan;
 use App\Models\Tugasakhir;
 use App\Models\User;
+use App\Support\XlsxStreamer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -37,8 +38,9 @@ class UserManagementTest extends TestCase
     public function test_admin_bulk_creates_accounts_with_correct_roles(): void
     {
         $this->loginAs('admin');
-        $mhs = Mahasiswa::factory()->create();
-        $dpl = Dpl::factory()->create();
+        $sp = Satuanpendidikan::factory()->create();
+        $mhs = Mahasiswa::factory()->create(['kodept' => $sp->npsn]);
+        $dpl = Dpl::factory()->create(['kodept' => $sp->npsn]);
 
         $this->put('user/insert', ['createuser' => [$mhs->email]])->assertJson(['success' => '1 user berhasil dibuat']);
         $this->put('user/insertuser', ['createuser' => [$dpl->email]])->assertJson(['success' => '1 user berhasil dibuat']);
@@ -388,8 +390,14 @@ class UserManagementTest extends TestCase
             $reader->open($path);
             $rows = [];
             foreach ($reader->getSheetIterator() as $sheet) {
-                foreach ($sheet->getRowIterator() as $row) {
-                    $rows[] = $row->getCells();
+                foreach ($sheet->getRowIterator() as $i => $row) {
+                    if ($i === 1) {
+                        $this->assertSame('Data Pengguna', $row->getCells()[0]->getValue());
+                    }
+                    // Title and info rows sit above the header
+                    if ($i >= XlsxStreamer::HEADER_ROW) {
+                        $rows[] = $row->getCells();
+                    }
                 }
             }
             $reader->close();
