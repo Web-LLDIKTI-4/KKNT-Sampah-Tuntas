@@ -42,10 +42,7 @@ class RekapPenguranganSampahService
             ->get()->keyBy('location_program');
         $mahasiswa = $perLokasi->map(fn ($r) => $r->jumlah);
 
-        $wilayahQuery = fn () => $this->mahasiswaQuery($filter)
-            ->join('mahasiswa_lokasi as ml', 'ml.id_mahasiswa', '=', 'm.id_mahasiswa')
-            ->leftJoin('desa as d', 'd.id_desa', '=', 'ml.id_desa');
-        $wilayah = $wilayahQuery()
+        $wilayah = $this->wilayahQuery($filter)
             ->groupBy('m.location_program')
             ->selectRaw('m.location_program, COUNT(DISTINCT d.id_kecamatan) as kecamatan, COUNT(DISTINCT ml.id_desa) as kelurahan')
             ->get()->keyBy('location_program');
@@ -76,22 +73,47 @@ class RekapPenguranganSampahService
             'kelompok' => (int) ($kelompok[$id] ?? 0),
         ])->sortBy('lokasi')->values();
 
-        $belumLokasi = $this->mahasiswaQuery($filter)
-            ->whereNotExists(fn ($s) => $s->from('mahasiswa_lokasi as ml')->whereColumn('ml.id_mahasiswa', 'm.id_mahasiswa'))
-            ->count();
+        $total = $this->registeredTotals($filter);
 
         return [
             'rows' => $rows,
-            'belum_lokasi' => $belumLokasi,
-            'total' => [
-                'pt' => $this->mahasiswaQuery($filter)->distinct()->count('m.kodept'),
-                'kecamatan' => $wilayahQuery()->whereNotNull('d.id_kecamatan')->distinct()->count('d.id_kecamatan'),
-                'kelurahan' => $wilayahQuery()->whereNotNull('ml.id_desa')->distinct()->count('ml.id_desa'),
-                'mahasiswa' => $rows->sum('mahasiswa') + $belumLokasi,
-                'dpl' => $rows->sum('dpl'),
-                'kelompok' => $rows->sum('kelompok'),
-            ],
+            // Residual so rows + belum = total registered
+            'belum_lokasi' => max(0, $total['mahasiswa'] - $rows->sum('mahasiswa')),
+            'belum_lokasi_dpl' => max(0, $total['dpl'] - $rows->sum('dpl')),
+            'total' => $total + ['kelompok' => $rows->sum('kelompok')],
         ];
+    }
+
+    /**
+     * Total terdaftar (sama dengan halaman login): PT, mahasiswa, DPL, kecamatan, kelurahan.
+     * Kecamatan/kelurahan master tidak terkait PT/lokasi, jadi saat difilter pakai penempatan.
+     */
+    public function registeredTotals(array $filter = []): array
+    {
+        $scope = fn (Builder $q) => $q
+            ->when($filter['lokasi'] ?? null, fn (Builder $q, $v) => $q->where('location_program', $v))
+            ->when($filter['kodept'] ?? null, fn (Builder $q, $v) => $q->where('kodept', $v));
+        $filtered = ($filter['lokasi'] ?? null) || ($filter['kodept'] ?? null);
+
+        return [
+            'pt' => $scope(DB::table('mahasiswa')->whereNotNull('kodept')->select('kodept'))
+                ->union($scope(DB::table('dpl')->whereNotNull('kodept')->select('kodept')))->count(),
+            'kecamatan' => $filtered
+                ? $this->wilayahQuery($filter)->whereNotNull('d.id_kecamatan')->distinct()->count('d.id_kecamatan')
+                : DB::table('kecamatan')->count(),
+            'kelurahan' => $filtered
+                ? $this->wilayahQuery($filter)->whereNotNull('ml.id_desa')->distinct()->count('ml.id_desa')
+                : DB::table('desa')->count(),
+            'mahasiswa' => $scope(DB::table('mahasiswa'))->count(),
+            'dpl' => $scope(DB::table('dpl'))->count(),
+        ];
+    }
+
+    private function wilayahQuery(array $filter): Builder
+    {
+        return $this->mahasiswaQuery($filter)
+            ->join('mahasiswa_lokasi as ml', 'ml.id_mahasiswa', '=', 'm.id_mahasiswa')
+            ->leftJoin('desa as d', 'd.id_desa', '=', 'ml.id_desa');
     }
 
     private function kelompokQuery(array $filter): Builder

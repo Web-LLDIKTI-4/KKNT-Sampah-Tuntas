@@ -6,10 +6,6 @@ use App\Http\Requests\Auth\LaporanPublikRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\PesertaDetailRequest;
 use App\Http\Requests\Auth\PetaSebaranRequest;
-use App\Models\Desa;
-use App\Models\Dpl;
-use App\Models\Kecamatan;
-use App\Models\Mahasiswa;
 use App\Models\PenguranganSampah;
 use App\Models\LokasiProgram;
 use App\Models\Panduan;
@@ -17,20 +13,21 @@ use App\Services\DataPesertaSummary;
 use App\Services\PenguranganSampahService;
 use App\Services\LokasiProgramSummary;
 use App\Services\PetaSebaranService;
+use App\Services\RekapPenguranganSampahService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
 {
-    public function index(LokasiProgramSummary $summary, PenguranganSampahService $sampah, DataPesertaSummary $peserta)
+    public function index(LokasiProgramSummary $summary, PenguranganSampahService $sampah, DataPesertaSummary $peserta, RekapPenguranganSampahService $rekap)
     {
         return view('login', [
             'lokasiProgramList' => $summary->all(),
             'dataPesertaList' => $this->dataPeserta($peserta),
             'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]),
             'panduanList' => $this->getPanduanPublik(),
-        ] + $this->statistikPublik());
+        ] + $this->statistikPublik($rekap));
     }
 
     // Laporan berjenjang kecamatan -> kelurahan -> kelompok sesuai pilihan bulan/kecamatan/kelurahan
@@ -120,16 +117,16 @@ class LoginController extends Controller
 
     // Hanya kolom aman untuk publik; file_path & uploader tidak boleh sampai ke HTML.
     // Same definitions as admin dashboard; uncached so header stays in sync
-    private function statistikPublik(): array
+    private function statistikPublik(RekapPenguranganSampahService $rekap): array
     {
+        $total = $rekap->registeredTotals();
+
         return [
-            'jumlahMahasiswa' => Mahasiswa::count(),
-            'jumlahDpl' => Dpl::count(),
-            // PT from mahasiswa + dpl, same as DataPesertaSummary table
-            'jumlahPt' => Mahasiswa::whereNotNull('kodept')->select('kodept')
-                ->union(Dpl::whereNotNull('kodept')->select('kodept'))->count(),
-            'jumlahKecamatan' => Kecamatan::count(),
-            'jumlahKelurahan' => Desa::count(),
+            'jumlahMahasiswa' => $total['mahasiswa'],
+            'jumlahDpl' => $total['dpl'],
+            'jumlahPt' => $total['pt'],
+            'jumlahKecamatan' => $total['kecamatan'],
+            'jumlahKelurahan' => $total['kelurahan'],
         ];
     }
 

@@ -31,11 +31,11 @@
                             @forelse ($lokasi['rows'] as $row)
                                 <tr>
                                     <td>{{ $row['lokasi'] }}</td>
+                                    <td class="text-center">{{ $num($row['kecamatan']) }}</td>
+                                    <td class="text-center">{{ $num($row['kelurahan']) }}</td>
                                     @if ($perPt)
                                         <td class="text-center">{{ $num($row['pt']) }}</td>
                                     @endif
-                                    <td class="text-center">{{ $num($row['kecamatan']) }}</td>
-                                    <td class="text-center">{{ $num($row['kelurahan']) }}</td>
                                     <td class="text-center">{{ $num($row['mahasiswa']) }}</td>
                                     <td class="text-center">{{ $num($row['dpl']) }}</td>
                                     <td class="text-center">{{ $num($row['kelompok']) }}</td>
@@ -51,18 +51,18 @@
                                 <td class="text-center">-</td>
                                 <td class="text-center">-</td>
                                 <td class="text-center">{{ $num($lokasi['belum_lokasi']) }}</td>
-                                <td class="text-center">-</td>
+                                <td class="text-center">{{ $num($lokasi['belum_lokasi_dpl']) }}</td>
                                 <td class="text-center">-</td>
                             </tr>
                         </tbody>
                         <tfoot>
                             <tr class="fw-medium">
                                 <td>Total</td>
+                                <td class="text-center">{{ $num($lokasi['total']['kecamatan']) }}</td>
+                                <td class="text-center">{{ $num($lokasi['total']['kelurahan']) }}</td>
                                 @if ($perPt)
                                     <td class="text-center">{{ $num($lokasi['total']['pt']) }}</td>
                                 @endif
-                                <td class="text-center">{{ $num($lokasi['total']['kecamatan']) }}</td>
-                                <td class="text-center">{{ $num($lokasi['total']['kelurahan']) }}</td>
                                 <td class="text-center">{{ $num($lokasi['total']['mahasiswa']) }}</td>
                                 <td class="text-center">{{ $num($lokasi['total']['dpl']) }}</td>
                                 <td class="text-center">{{ $num($lokasi['total']['kelompok']) }}</td>
@@ -70,6 +70,7 @@
                         </tfoot>
                     </table>
                 </div>
+                <small class="d-block mt-2 text-muted">Total = seluruh data terdaftar (sama dengan halaman login); baris per lokasi hanya menghitung data yang sudah ditempatkan. Total {{ $perPt ? 'PT/' : '' }}kecamatan/desa dihitung unik, jadi tidak sama dengan jumlah baris.</small>
             </div>
         </div>
     </div>

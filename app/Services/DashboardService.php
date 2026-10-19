@@ -73,7 +73,6 @@ class DashboardService
     {
         return [
             'jumlahlaporandpl' => Dpllaporan::count(),
-            'jumlahmahasiswa' => Mahasiswa::count(),
             'jumlahlogbulanan' => $this->distinctPairs('logkegiatan_bulanan', 'bulan'),
             'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', null, 'deskripsi'),
             'penguranganSampahHome' => $this->penguranganSampahHome([], true),
@@ -93,7 +92,6 @@ class DashboardService
     {
         return [
             'jumlahlaporandpl' => Dpllaporan::count(),
-            'jumlahmahasiswa' => Mahasiswa::count(),
             'jumlahlogbulanan' => $this->distinctPairs('logkegiatan_bulanan', 'bulan'),
             'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', null, 'deskripsi'),
             'jumlahdplmentoring' => Dplmentoring::count(),
@@ -107,11 +105,13 @@ class DashboardService
 
     private function common(): array
     {
+        // Same registered totals as login header & lokasi table total
+        $total = $this->rekap->registeredTotals();
+
         return [
-            'jumlahdpl' => Dpl::count(),
-            // PT from mahasiswa + dpl, same as login header
-            'jumlahpt' => Mahasiswa::whereNotNull('kodept')->select('kodept')
-                ->union(Dpl::whereNotNull('kodept')->select('kodept'))->count(),
+            'jumlahmahasiswa' => $total['mahasiswa'],
+            'jumlahdpl' => $total['dpl'],
+            'jumlahpt' => $total['pt'],
             'saran' => collect(),
         ];
     }
