@@ -22,6 +22,9 @@ class PenguranganSampahService
     // Memo penempatanData() per kodept
     private array $penempatanData = [];
 
+    // Memo dukungan REGEXP_REPLACE di server DB
+    private ?bool $regexpReplace = null;
+
     public function desaKetua(string $email): ?string
     {
         $pj = Pjdesa::with('mahasiswa')->where('email', $email)->first();
@@ -410,13 +413,51 @@ class PenguranganSampahService
             // Daftar PT hasil pilihan klaster; daftar kosong = tidak ada data
             ->when(array_key_exists('kodept_in', $filter), fn (Builder $q) => $q->whereIn('lm.kodept', $filter['kodept_in']))
             ->selectRaw("p.email, lm.kodept, lm.location_program, ml.id_desa, p.tanggal, DATE_FORMAT(p.tanggal, '%Y-%m-01') as bulan, p.memilah, p.organik_kg, p.anorganik_kg, p.residu_kg")
-            ->selectRaw("CONCAT_WS('|', ml.id_desa, p.nama_kepala_keluarga, p.alamat_rumah, p.rt, p.rw) as rumah");
+            ->selectRaw("CONCAT_WS('|', ml.id_desa, DATE_FORMAT(p.tanggal, '%Y-%m'), {$this->keyPart('p.nama_kepala_keluarga')}, {$this->keyPart('p.alamat_rumah')}, {$this->keyPart('p.rt', true)}, {$this->keyPart('p.rw', true)}) as rumah");
 
         return DB::query()->fromSub($log, 's')
             ->join('desa as d', 'd.id_desa', '=', 's.id_desa')
             ->leftJoin('kecamatan as kc', 'kc.id_kecamatan', '=', 'd.id_kecamatan')
             ->when($filter['id_kecamatan'] ?? null, fn (Builder $q, $v) => $q->where('d.id_kecamatan', $v))
             ->when($filter['id_desa'] ?? null, fn (Builder $q, $v) => $q->where('s.id_desa', $v));
+    }
+
+    // Normalisasi komponen kunci rumah: teks = lowercase alfanumerik saja; numeric = tanpa titik/spasi & leading zero ("01" -> "1", "0" tetap "0")
+    private function keyPart(string $column, bool $numeric = false): string
+    {
+        if ($numeric) {
+            $text = "LOWER(REPLACE(REPLACE({$column}, '.', ''), ' ', ''))";
+
+            return "CASE WHEN {$text} = '' THEN '' ELSE COALESCE(NULLIF(TRIM(LEADING '0' FROM {$text}), ''), '0') END";
+        }
+
+        if ($this->supportsRegexpReplace()) {
+            return "REGEXP_REPLACE(LOWER({$column}), '[^a-z0-9]', '')";
+        }
+
+        // Fallback DB tanpa REGEXP_REPLACE: buang spasi & tanda baca umum
+        $text = "LOWER({$column})";
+        foreach (["' '", "'.'", "','", "'-'", "'/'", "''''", "'\"'", "'('", "')'", "':'", "';'", "'#'", "'_'", "'&'", 'CHAR(9)'] as $char) {
+            $text = "REPLACE({$text}, {$char}, '')";
+        }
+
+        return $text;
+    }
+
+    // REGEXP_REPLACE tersedia di MySQL >= 8.0.4 dan MariaDB >= 10.0.5
+    private function supportsRegexpReplace(): bool
+    {
+        return $this->regexpReplace ??= (function (): bool {
+            if (! in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+                return false;
+            }
+            $raw = preg_replace('/^5\.5\.5-/', '', (string) DB::connection()->getPdo()->getAttribute(\PDO::ATTR_SERVER_VERSION));
+            if (! preg_match('/\d+\.\d+\.\d+/', $raw, $m)) {
+                return false;
+            }
+
+            return version_compare($m[0], stripos($raw, 'mariadb') !== false ? '10.0.5' : '8.0.4', '>=');
+        })();
     }
 
     private function withJumlah(Builder $query): Builder

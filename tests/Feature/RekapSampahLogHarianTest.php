@@ -80,6 +80,196 @@ class RekapSampahLogHarianTest extends TestCase
         $this->assertSame($r->persen_penurunan, $r->persen_pengurangan);
     }
 
+    public function test_kunci_rumah_abaikan_variasi_tulisan_dan_berat_tetap_dijumlah(): void
+    {
+        $desa = Desa::factory()->create();
+        [$a, $b] = [$this->mahasiswaDi($desa), $this->mahasiswaDi($desa)];
+
+        $this->log($a, ['nama_kepala_keluarga' => 'Bpk. Budi', 'alamat_rumah' => 'Jl. Melati 1', 'rt' => '01', 'rw' => '002',
+            'organik_kg' => 1.25, 'anorganik_kg' => 0.5, 'residu_kg' => 1]);
+        $this->log($b, ['nama_kepala_keluarga' => 'bpk budi ', 'alamat_rumah' => ' JL MELATI  1', 'rt' => '1', 'rw' => '2',
+            'organik_kg' => 2, 'anorganik_kg' => 1.5, 'residu_kg' => 0.5]);
+
+        $r = $this->barisDesa($this->rekap(), self::BULAN, $desa->id_desa);
+
+        $this->assertSame(1, $r->jml_rumah);
+        $this->assertSame(1, $r->jml_rumah_memilah);
+        $this->assertEquals(3.25, $r->organik);
+        $this->assertEquals(2.0, $r->anorganik);
+        $this->assertEquals(1.5, $r->residu);
+    }
+
+    public function test_kunci_rumah_rt_rw_nol_dinormalisasi(): void
+    {
+        $desa = Desa::factory()->create();
+        $mhs = $this->mahasiswaDi($desa);
+
+        // "00" = "0" = "000"
+        $this->log($mhs, ['rt' => '00', 'rw' => '000']);
+        $this->log($mhs, ['rt' => '0', 'rw' => '0']);
+        $this->log($mhs, ['rt' => '000', 'rw' => '00']);
+
+        $this->assertSame(1, $this->barisDesa($this->rekap(), self::BULAN, $desa->id_desa)->jml_rumah);
+    }
+
+    public function test_rumah_sama_beda_bulan_terhitung_per_bulan(): void
+    {
+        $desa = Desa::factory()->create();
+        [$a, $b] = [$this->mahasiswaDi($desa), $this->mahasiswaDi($desa)];
+
+        $this->log($a, ['nama_kepala_keluarga' => 'Bpk. Budi', 'rt' => '01']);
+        $this->log($b, ['nama_kepala_keluarga' => 'bpk budi', 'rt' => '1']);
+        $this->log($a, ['nama_kepala_keluarga' => 'Bpk. Budi', 'rt' => '01', 'tanggal' => '2026-10-03']);
+        $this->log($b, ['nama_kepala_keluarga' => 'BPK BUDI', 'rt' => '001', 'tanggal' => '2026-10-20']);
+
+        $rekap = $this->rekap();
+
+        foreach ([self::BULAN, '2026-10'] as $bulan) {
+            $r = $this->barisDesa($rekap, $bulan, $desa->id_desa);
+            $this->assertSame(1, $r->jml_rumah, "bulan $bulan");
+            $this->assertSame(1, $r->jml_rumah_memilah, "bulan $bulan");
+            $this->assertEquals(2.0, $r->organik, "bulan $bulan");
+        }
+    }
+
+    public function test_nama_sama_alamat_rt_rw_atau_desa_beda_dihitung_rumah_berbeda(): void
+    {
+        $desa = Desa::factory()->create();
+        $desaLain = Desa::factory()->create();
+        $mhs = $this->mahasiswaDi($desa);
+
+        $this->log($mhs);
+        $this->log($mhs, ['alamat_rumah' => 'Jl. Mawar 1']);
+        $this->log($mhs, ['rt' => '003']);
+        $this->log($mhs, ['rw' => '005']);
+        // RT 10 tidak boleh jadi RT 1 (hanya leading zero yang dibuang)
+        $this->log($mhs, ['rt' => '010']);
+        $this->log($this->mahasiswaDi($desaLain));
+
+        $rekap = $this->rekap();
+
+        $this->assertSame(5, $this->barisDesa($rekap, self::BULAN, $desa->id_desa)->jml_rumah);
+        $this->assertSame(1, $this->barisDesa($rekap, self::BULAN, $desaLain->id_desa)->jml_rumah);
+        $this->assertSame(6, app(PenguranganSampahService::class)->total(['bulan' => self::BULAN])->jml_rumah);
+    }
+
+    public function test_rumah_memilah_memakai_kunci_ternormalisasi(): void
+    {
+        $desa = Desa::factory()->create();
+        [$a, $b] = [$this->mahasiswaDi($desa), $this->mahasiswaDi($desa)];
+
+        // Rumah Budi memilah, ditulis beda oleh 2 mahasiswa → 1 rumah memilah
+        $this->log($a, ['nama_kepala_keluarga' => 'Bpk. Budi', 'rt' => '01', 'memilah' => true]);
+        $this->log($b, ['nama_kepala_keluarga' => 'bpk budi ', 'rt' => '1', 'memilah' => true]);
+        // Rumah Siti: sekali tidak memilah, sekali memilah (variasi tulisan) → tetap 1 rumah memilah
+        $this->log($a, ['nama_kepala_keluarga' => 'Ibu Siti', 'rw' => '02', 'memilah' => false]);
+        $this->log($b, ['nama_kepala_keluarga' => 'ibu. siti', 'rw' => '2', 'memilah' => true]);
+        // Rumah Joko tidak memilah
+        $this->log($a, ['nama_kepala_keluarga' => 'Joko', 'memilah' => false]);
+
+        $r = $this->barisDesa($this->rekap(), self::BULAN, $desa->id_desa);
+
+        $this->assertSame(3, $r->jml_rumah);
+        $this->assertSame(2, $r->jml_rumah_memilah);
+        $this->assertEqualsWithDelta(66.67, $r->persen_ketaatan, 0.01);
+
+        $total = app(PenguranganSampahService::class)->total(['bulan' => self::BULAN]);
+        $this->assertSame(3, $total->jml_rumah);
+        $this->assertSame(2, $total->jml_rumah_memilah);
+    }
+
+    public function test_total_semua_bulan_menjumlah_rumah_unik_per_bulan(): void
+    {
+        $desa = Desa::factory()->create();
+        [$a, $b] = [$this->mahasiswaDi($desa), $this->mahasiswaDi($desa)];
+
+        // Rumah sama: 2x di September, 1x di Oktober
+        $this->log($a, ['organik_kg' => 1, 'anorganik_kg' => 2, 'residu_kg' => 3]);
+        $this->log($b, ['tanggal' => self::BULAN.'-20', 'organik_kg' => 1, 'anorganik_kg' => 2, 'residu_kg' => 3]);
+        $this->log($a, ['tanggal' => '2026-10-05', 'memilah' => false, 'organik_kg' => 1, 'anorganik_kg' => 2, 'residu_kg' => 3]);
+
+        $sampah = app(PenguranganSampahService::class);
+        $this->assertSame(1, $sampah->total(['bulan' => self::BULAN])->jml_rumah);
+
+        $total = $sampah->total(['bulan' => null]);
+        $this->assertSame(2, $total->jml_rumah);
+        $this->assertSame(1, $total->jml_rumah_memilah);
+        $this->assertEquals(50.0, $total->persen_ketaatan);
+        $this->assertEquals(3.0, $total->organik);
+        $this->assertEquals(6.0, $total->anorganik);
+        $this->assertEquals(9.0, $total->residu);
+
+        // Jalur controller "semua"
+        Cache::flush();
+        $this->loginAs('admin');
+        $this->assertSame(2, $this->get('rekapsampah?bulan=semua')->assertOk()->viewData('total')->jml_rumah);
+    }
+
+    public function test_kunci_rumah_buang_semua_non_alfanumerik(): void
+    {
+        $desa = Desa::factory()->create();
+        $mhs = $this->mahasiswaDi($desa);
+
+        $this->log($mhs, ['nama_kepala_keluarga' => 'Budi S.', 'alamat_rumah' => 'Jl. Merdeka 1', 'organik_kg' => 1]);
+        $this->log($mhs, ['nama_kepala_keluarga' => 'budi s', 'alamat_rumah' => 'JL MERDEKA, 1', 'organik_kg' => 2]);
+        $this->log($mhs, ['nama_kepala_keluarga' => 'BUDI-S', 'alamat_rumah' => 'jl-merdeka/1', 'organik_kg' => 3]);
+        $this->log($mhs, ['nama_kepala_keluarga' => "Budi\tS;", 'alamat_rumah' => '(Jl. Merdeka) #1', 'organik_kg' => 4]);
+
+        $r = $this->barisDesa($this->rekap(), self::BULAN, $desa->id_desa);
+        $this->assertSame(1, $r->jml_rumah);
+        $this->assertEquals(10.0, $r->organik);
+        $this->assertSame(1, app(PenguranganSampahService::class)->total(['bulan' => null])->jml_rumah);
+
+        // Fallback DB tanpa REGEXP_REPLACE memberi hasil sama
+        $fallback = app(PenguranganSampahService::class);
+        (new \ReflectionProperty($fallback, 'regexpReplace'))->setValue($fallback, false);
+        $this->assertSame(1, $fallback->total(['bulan' => null])->jml_rumah);
+    }
+
+    public function test_kunci_rumah_rt_leading_zero_sama_rt_beda_terpisah(): void
+    {
+        $desa = Desa::factory()->create();
+        $mhs = $this->mahasiswaDi($desa);
+
+        $this->log($mhs, ['rt' => '01', 'rw' => '02']);
+        $this->log($mhs, ['rt' => '1', 'rw' => '2']);
+        $this->log($mhs, ['rt' => '2', 'rw' => '2']);
+        $this->log($mhs, ['rt' => '1', 'rw' => '3']);
+
+        $this->assertSame(3, $this->barisDesa($this->rekap(), self::BULAN, $desa->id_desa)->jml_rumah);
+        $this->assertSame(3, app(PenguranganSampahService::class)->total(['bulan' => null])->jml_rumah);
+    }
+
+    public function test_simpan_log_harian_rumah_identik_dua_kali_tidak_diblok(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $payload = [
+            'tanggal' => now()->toDateString(),
+            'nama_kepala_keluarga' => 'Budi S.',
+            'jumlah_anggota_keluarga' => 4,
+            'alamat_rumah' => 'Jl. Merdeka 1',
+            'rt' => '01',
+            'rw' => '02',
+            'memilah' => '1',
+            'organik_kg' => 1,
+            'anorganik_kg' => 1,
+            'residu_kg' => 1,
+            'ada_kegiatan_lain' => '0',
+        ];
+
+        $this->put('logkegiatan/insert', $payload)->assertJson(['success' => true]);
+        $this->put('logkegiatan/insert', $payload)->assertJson(['success' => true])->assertJsonMissingPath('errors');
+
+        $this->assertSame(2, PendataanPemilahanSampah::where('email', $user->email)
+            ->where('nama_kepala_keluarga', 'Budi S.')->where('alamat_rumah', 'Jl. Merdeka 1')->count());
+    }
+
+    public function test_simpan_log_harian_ditolak_tanpa_login(): void
+    {
+        $this->put('logkegiatan/insert', ['nama_kepala_keluarga' => 'Budi'])->assertRedirect();
+        $this->assertDatabaseCount('pendataan_pemilahan_sampah', 0);
+    }
+
     public function test_pembagian_nol_menghasilkan_null_dan_tampil_strip(): void
     {
         $desa = Desa::factory()->create(['desa' => 'Desa Nol']);
