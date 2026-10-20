@@ -36,12 +36,16 @@ class XlsxStreamer
 
     private ?array $total = null;
 
+    private bool $numbered = true;
+
+    private ?Style $percentStyle = null;
+
     /**
      * @param  array<int, array{label: string, value: Closure|string, width?: float, format?: ?string}>  $columns
      */
     public function __construct(private string $title, private array $columns) {}
 
-    // format: null (auto), 'date' (d-m-Y), 'datetime' (d-m-Y H:i), 'number'
+    // format: null (auto), 'date' (d-m-Y), 'datetime' (d-m-Y H:i), 'number', 'percent' (0–100 → 0.00%)
     public static function column(string $label, Closure|string $value, float $width = 20, ?string $format = null): array
     {
         return ['label' => $label, 'value' => $value, 'width' => $width, 'format' => $format];
@@ -53,6 +57,20 @@ class XlsxStreamer
         $this->info = array_filter($info, fn ($value) => $value !== null && $value !== '');
 
         return $this;
+    }
+
+    // false = no "No." column (default true)
+    public function numbered(bool $numbered): static
+    {
+        $this->numbered = $numbered;
+
+        return $this;
+    }
+
+    // Bold row yielded among data rows (group title/subtotal); same layout as total()
+    public static function summary(string $label, array $values = []): XlsxSummaryRow
+    {
+        return new XlsxSummaryRow($label, $values);
     }
 
     // Bold summary row after the data; $values keyed by column value key, label spans the leading columns
@@ -72,7 +90,8 @@ class XlsxStreamer
 
     public function writeTo(string $path, iterable $rows): void
     {
-        $count = count($this->columns) + 1;
+        $offset = $this->numbered ? 1 : 0;
+        $count = count($this->columns) + $offset;
         // Per-export temp folder, removed even if the export fails
         $dir = storage_path('app/tmp/xlsx-'.Str::uuid());
         File::ensureDirectoryExists($dir, 0700);
@@ -80,9 +99,11 @@ class XlsxStreamer
         try {
             $options = new Options;
             $options->setTempFolder($dir);
-            $options->setColumnWidth(6, 1);
+            if ($this->numbered) {
+                $options->setColumnWidth(6, 1);
+            }
             foreach (array_values($this->columns) as $i => $column) {
-                $options->setColumnWidth($column['width'] ?? 20, $i + 2);
+                $options->setColumnWidth($column['width'] ?? 20, $i + 1 + $offset);
             }
             $options->mergeCells(0, 1, $count - 1, 1);
             $options->mergeCells(0, 2, $count - 1, 2);
@@ -100,8 +121,15 @@ class XlsxStreamer
             $rowStyle = $this->bodyStyle();
             $numberStyle = (new Style)->setCellAlignment(CellAlignment::CENTER);
             $number = 0;
+            $written = 0;
             foreach ($rows as $row) {
-                $cells = [new NumericCell(++$number, $numberStyle)];
+                $written++;
+                if ($row instanceof XlsxSummaryRow) {
+                    $writer->addRow($this->totalRow($options, self::HEADER_ROW + $written, $row->label, $row->values));
+
+                    continue;
+                }
+                $cells = $this->numbered ? [new NumericCell(++$number, $numberStyle)] : [];
                 foreach ($this->columns as $column) {
                     $value = $column['value'] instanceof Closure ? ($column['value'])($row) : data_get($row, $column['value']);
                     $cells[] = $this->cell($value, $column['format'] ?? null);
@@ -110,7 +138,7 @@ class XlsxStreamer
             }
 
             if ($this->total !== null) {
-                $writer->addRow($this->totalRow($options, self::HEADER_ROW + $number + 1));
+                $writer->addRow($this->totalRow($options, self::HEADER_ROW + $written + 1, $this->total['label'], $this->total['values']));
             }
 
             $writer->close();
@@ -121,29 +149,31 @@ class XlsxStreamer
 
     private function headerCells(): array
     {
-        $labels = array_merge(['No.'], array_column($this->columns, 'label'));
+        $labels = array_merge($this->numbered ? ['No.'] : [], array_column($this->columns, 'label'));
 
         return array_map(fn ($label) => new StringCell((string) $label, null), $labels);
     }
 
-    private function totalRow(Options $options, int $rowIndex): Row
+    private function totalRow(Options $options, int $rowIndex, string $label, array $values): Row
     {
-        $cells = [new StringCell($this->total['label'], null)];
+        $cells = $this->numbered ? [new StringCell($label, null)] : [];
         $span = 0;
         foreach (array_values($this->columns) as $i => $column) {
             $key = is_string($column['value']) ? $column['value'] : null;
-            if ($key !== null && array_key_exists($key, $this->total['values'])) {
-                $cells[] = $this->cell($this->total['values'][$key], $column['format'] ?? null);
+            if ($key !== null && array_key_exists($key, $values)) {
+                $cells[] = $this->cell($values[$key], $column['format'] ?? null);
             } else {
-                $cells[] = new StringCell('', null);
+                // Without No. column the label takes the first column
+                $cells[] = new StringCell(! $this->numbered && $i === 0 ? $label : '', null);
                 if ($span === $i) {
                     $span++;
                 }
             }
         }
         // Merge label over No. and leading non-total columns (merge rows are 1-based)
-        if ($span > 0) {
-            $options->mergeCells(0, $rowIndex, $span, $rowIndex);
+        $last = $this->numbered ? $span : $span - 1;
+        if ($last > 0) {
+            $options->mergeCells(0, $rowIndex, $last, $rowIndex);
         }
 
         return new Row($cells, $this->headerStyle());
@@ -168,6 +198,10 @@ class XlsxStreamer
 
         if ($value instanceof DateTimeInterface || $format === 'date' || $format === 'datetime') {
             return new StringCell($this->formatDate($value, $format === 'date' ? 'd-m-Y' : 'd-m-Y H:i'), null);
+        }
+
+        if ($format === 'percent' && is_numeric($value)) {
+            return new NumericCell(($value + 0) / 100, $this->percentStyle ??= (new Style)->setFormat('0.00%'));
         }
 
         if (is_int($value) || is_float($value)) {

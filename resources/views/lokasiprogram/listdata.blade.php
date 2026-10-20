@@ -7,6 +7,7 @@
                     <th>Id</th>
                     <th>Gambar</th>
                     <th>Nama Lokasi</th>
+                    <th>Koefisien Timbulan Sampah</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
@@ -33,6 +34,10 @@
             {data: 'id', name: 'id', visible:false},
             {data: 'gambar', name: 'gambar', orderable: false, searchable: false},
             {data: 'nama_lokasi', name: 'nama_lokasi'},
+            {data: 'koefisien_timbulan_sampah', name: 'koefisien_timbulan_sampah', className: 'text-end', searchable: false, render: function (data) {
+                var num = parseFloat(data);
+                return isNaN(num) ? '-' : num.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 4});
+            }},
             {data: 'action', name: 'action', orderable: false, searchable: false},
         ],
         columnDefs: [

@@ -107,9 +107,158 @@ class PenguranganSampahService
 
     public function total(array $filter): object
     {
-        return $this->isiPersen($this->withJumlah($this->query($filter))
+        $berjiwa = 's.jiwa > 0 AND lp.koefisien_timbulan_sampah > 0';
+        $row = $this->isiPersen($this->withJumlah($this->query($filter))
+            ->leftJoin('lokasi_program as lp', 'lp.id', '=', 's.location_program')
             ->selectRaw('COUNT(*) as jml_data, COUNT(DISTINCT s.id_desa) as jml_desa')
+            ->selectRaw('COALESCE(SUM(s.jiwa), 0) as total_jiwa')
+            ->selectRaw("SUM(CASE WHEN {$berjiwa} THEN ".self::dihasilkanSql('s').' END) as dihasilkan_berjiwa')
+            ->selectRaw("SUM(CASE WHEN {$berjiwa} THEN s.jiwa * lp.koefisien_timbulan_sampah END) as potensi_timbulan")
             ->first());
+
+        // Penurunan lintas lokasi: 1 - ΣN(berjiwa & berkoefisien) / Σ(koef × jiwa)
+        $row->jml_jiwa = (int) $row->total_jiwa;
+        $row->persen_penurunan_timbulan = self::penurunanTimbulan((float) $row->dihasilkan_berjiwa, (float) $row->potensi_timbulan);
+
+        return $row;
+    }
+
+    /**
+     * Data Sampah: 1 baris per log + flag rumah (jml_rumah = 1 hanya di log pertama kunci rumah,
+     * jml_rumah_memilah = 1 di baris yang sama bila rumah itu memilah di bulan tsb), dihitung dalam set terfilter.
+     * Urut: lokasi program → bulan terbaru → tanggal → kecamatan → desa → id (stabil untuk paging/lazy).
+     */
+    public function dataSampahQuery(array $filter): Builder
+    {
+        $urut = "CONCAT(s.tanggal, '|', COALESCE(s.created_at, ''), '|', s.id_pendataan)";
+        // Tanpa window function: log pertama = MIN(sort key) per kunci rumah
+        $rumah = $this->query($filter)
+            ->groupBy('s.rumah')
+            ->selectRaw("s.rumah, MIN({$urut}) as pertama, MAX(s.memilah) as memilah");
+
+        return $this->query($filter)
+            ->joinSub($rumah, 'r', 'r.rumah', '=', 's.rumah')
+            ->leftJoin('lokasi_program as lp', 'lp.id', '=', 's.location_program')
+            ->selectRaw('s.id_pendataan, s.location_program as lokasi_id, lp.nama_lokasi, lp.koefisien_timbulan_sampah as koefisien')
+            ->selectRaw('s.bulan, FLOOR((DAY(s.tanggal) - 1) / 7) + 1 as minggu, s.tanggal, kc.kecamatan, d.desa')
+            ->selectRaw('s.nama_kepala_keluarga, s.alamat_rumah, s.jiwa, s.organik_kg, s.anorganik_kg, s.residu_kg')
+            ->selectRaw("CASE WHEN r.pertama = {$urut} THEN 1 ELSE 0 END as is_pertama")
+            ->selectRaw("CASE WHEN r.pertama = {$urut} AND r.memilah = 1 THEN 1 ELSE 0 END as is_memilah")
+            ->orderByRaw('lp.nama_lokasi IS NULL')->orderBy('lp.nama_lokasi')->orderBy('s.location_program')
+            ->orderByDesc('s.bulan')->orderBy('s.tanggal')->orderBy('kc.kecamatan')->orderBy('d.desa')->orderBy('s.id_pendataan');
+    }
+
+    /**
+     * Subtotal Data Sampah (Σ baris dataSampahQuery): lokasi → bulan (terbaru dulu) → minggu (hanya $mingguan).
+     */
+    public function dataSampahSubtotal(array $filter, bool $mingguan): Collection
+    {
+        $rows = DB::query()->fromSub($this->dataSampahQuery($filter)->reorder(), 'x')
+            ->groupBy('x.lokasi_id', 'x.nama_lokasi', 'x.koefisien', 'x.bulan', 'x.minggu')
+            ->selectRaw('x.lokasi_id, x.nama_lokasi, x.koefisien, x.bulan, x.minggu')
+            ->selectRaw('SUM(x.is_pertama) as jml_rumah, SUM(x.is_memilah) as jml_rumah_memilah')
+            ->selectRaw('COALESCE(SUM(x.organik_kg), 0) as organik, COALESCE(SUM(x.anorganik_kg), 0) as anorganik, COALESCE(SUM(x.residu_kg), 0) as residu')
+            ->selectRaw('COALESCE(SUM(x.jiwa), 0) as jiwa')
+            ->selectRaw('COALESCE(SUM(CASE WHEN x.jiwa > 0 THEN '.self::dihasilkanSql('x').' END), 0) as dihasilkan_berjiwa')
+            ->orderByRaw('x.nama_lokasi IS NULL')->orderBy('x.nama_lokasi')->orderBy('x.lokasi_id')
+            ->orderByDesc('x.bulan')->orderBy('x.minggu')
+            ->get();
+
+        return $rows->groupBy(fn ($r) => (string) $r->lokasi_id)->map(function (Collection $perLokasi) use ($mingguan) {
+            $first = $perLokasi->first();
+            $koef = $first->koefisien === null ? null : (float) $first->koefisien;
+
+            return (object) [
+                'id' => $first->lokasi_id,
+                'nama' => $first->nama_lokasi ?? 'Tanpa Lokasi Program',
+                'koefisien' => $koef,
+                'total' => $this->angkaSubtotal($perLokasi, $koef),
+                'bulan' => $perLokasi->groupBy('bulan')->map(fn (Collection $perBulan, $bulan) => (object) [
+                    'bulan' => substr($bulan, 0, 7),
+                    'nama_bulan' => Carbon::parse($bulan)->translatedFormat('F Y'),
+                    'subtotal' => $this->angkaSubtotal($perBulan, $koef),
+                    'minggu' => $mingguan ? $perBulan->map(fn ($r) => (object) [
+                        'minggu' => (int) $r->minggu,
+                        'label' => self::labelMinggu((int) $r->minggu, $bulan),
+                        'subtotal' => $this->angkaSubtotal(collect([$r]), $koef),
+                    ])->values() : collect(),
+                ])->values(),
+            ];
+        })->values();
+    }
+
+    // Kolom hitung satu baris log (H, M, N, O, P); null = tampil "-"
+    public static function barisLog(object $r, ?float $koef): array
+    {
+        $rumah = (int) $r->is_pertama;
+        $memilah = (int) $r->is_memilah;
+        $organik = round((float) $r->organik_kg, 2);
+        $anorganik = round((float) $r->anorganik_kg, 2);
+        $residu = round((float) $r->residu_kg, 2);
+        $terkelola = round($organik + $anorganik, 2);
+        $dihasilkan = round($terkelola + $residu, 2);
+        $jiwa = $r->jiwa === null ? null : (int) $r->jiwa;
+
+        return [
+            'jml_rumah' => $rumah,
+            'jml_rumah_memilah' => $memilah,
+            'persen_ketaatan' => PenguranganSampah::persen($memilah, $rumah),
+            'organik' => $organik,
+            'anorganik' => $anorganik,
+            'residu' => $residu,
+            'jml_jiwa' => $jiwa,
+            'total_terkelola' => $terkelola,
+            'total_dihasilkan' => $dihasilkan,
+            'persen_pengelolaan' => PenguranganSampah::persen($terkelola, $dihasilkan),
+            'persen_penurunan_timbulan' => self::penurunanTimbulan($dihasilkan, (float) $koef * (int) $jiwa),
+        ];
+    }
+
+    // Minggu per 7 tanggal: 1 (1–7) … 5 (29–akhir bulan)
+    public static function labelMinggu(int $minggu, string $bulan): string
+    {
+        $akhir = min($minggu * 7, Carbon::parse($bulan)->daysInMonth);
+
+        return 'Minggu '.$minggu.' ('.(($minggu - 1) * 7 + 1).'–'.$akhir.')';
+    }
+
+    // Total sampah dihasilkan (N = organik + anorganik + residu) satu baris log pada alias tabel
+    private static function dihasilkanSql(string $alias): string
+    {
+        return "COALESCE({$alias}.organik_kg, 0) + COALESCE({$alias}.anorganik_kg, 0) + COALESCE({$alias}.residu_kg, 0)";
+    }
+
+    // (1 - dihasilkan / (koef × jiwa)) × 100; null bila potensi 0 (koef/jiwa kosong). Negatif apa adanya
+    private static function penurunanTimbulan(float $dihasilkan, float $potensi): ?float
+    {
+        return $potensi > 0 ? round((1 - $dihasilkan / $potensi) * 100, 2) : null;
+    }
+
+    // Angka subtotal dari baris agregat dataSampahSubtotal(); persen dihitung ulang dari jumlah
+    private function angkaSubtotal(Collection $rows, ?float $koef): object
+    {
+        $rumah = (int) $rows->sum('jml_rumah');
+        $memilah = (int) $rows->sum('jml_rumah_memilah');
+        $organik = round((float) $rows->sum('organik'), 2);
+        $anorganik = round((float) $rows->sum('anorganik'), 2);
+        $residu = round((float) $rows->sum('residu'), 2);
+        $terkelola = round($organik + $anorganik, 2);
+        $dihasilkan = round($terkelola + $residu, 2);
+        $jiwa = (int) $rows->sum('jiwa');
+
+        return (object) [
+            'jml_rumah' => $rumah,
+            'jml_rumah_memilah' => $memilah,
+            'persen_ketaatan' => PenguranganSampah::persen($memilah, $rumah),
+            'organik' => $organik,
+            'anorganik' => $anorganik,
+            'residu' => $residu,
+            'jml_jiwa' => $jiwa,
+            'total_terkelola' => $terkelola,
+            'total_dihasilkan' => $dihasilkan,
+            'persen_pengelolaan' => PenguranganSampah::persen($terkelola, $dihasilkan),
+            'persen_penurunan_timbulan' => self::penurunanTimbulan((float) $rows->sum('dihasilkan_berjiwa'), (float) $koef * $jiwa),
+        ];
     }
 
     public function bulanTerakhir(?string $kodept = null, ?int $tahun = null): ?string
@@ -390,7 +539,7 @@ class PenguranganSampahService
             ];
         })->sortBy('nama_pt')->values();
     }
-    // Satu baris per log: bulan (Y-m-01), kelurahan mahasiswa, kunci rumah
+    // Satu baris per log: bulan (Y-m-01), kelurahan mahasiswa, kunci rumah (kelurahan|bulan|alamat)
     private function query(array $filter): Builder
     {
         $lokasiTerakhir = DB::table('mahasiswa_lokasi')
@@ -413,7 +562,9 @@ class PenguranganSampahService
             // Daftar PT hasil pilihan klaster; daftar kosong = tidak ada data
             ->when(array_key_exists('kodept_in', $filter), fn (Builder $q) => $q->whereIn('lm.kodept', $filter['kodept_in']))
             ->selectRaw("p.email, lm.kodept, lm.location_program, ml.id_desa, p.tanggal, DATE_FORMAT(p.tanggal, '%Y-%m-01') as bulan, p.memilah, p.organik_kg, p.anorganik_kg, p.residu_kg")
-            ->selectRaw("CONCAT_WS('|', ml.id_desa, DATE_FORMAT(p.tanggal, '%Y-%m'), {$this->keyPart('p.nama_kepala_keluarga')}, {$this->keyPart('p.alamat_rumah')}, {$this->keyPart('p.rt', true)}, {$this->keyPart('p.rw', true)}) as rumah");
+            ->selectRaw('p.id_pendataan, p.created_at, p.nama_kepala_keluarga, p.alamat_rumah, p.jumlah_anggota_keluarga as jiwa')
+            // MD5: kunci pendek agar join/distinct kunci rumah tidak membandingkan string panjang
+            ->selectRaw("MD5(CONCAT_WS('|', ml.id_desa, DATE_FORMAT(p.tanggal, '%Y-%m'), {$this->keyPart('p.alamat_rumah')})) as rumah");
 
         return DB::query()->fromSub($log, 's')
             ->join('desa as d', 'd.id_desa', '=', 's.id_desa')
@@ -422,15 +573,9 @@ class PenguranganSampahService
             ->when($filter['id_desa'] ?? null, fn (Builder $q, $v) => $q->where('s.id_desa', $v));
     }
 
-    // Normalisasi komponen kunci rumah: teks = lowercase alfanumerik saja; numeric = tanpa titik/spasi & leading zero ("01" -> "1", "0" tetap "0")
-    private function keyPart(string $column, bool $numeric = false): string
+    // Normalisasi alamat untuk kunci rumah: lowercase alfanumerik saja
+    private function keyPart(string $column): string
     {
-        if ($numeric) {
-            $text = "LOWER(REPLACE(REPLACE({$column}, '.', ''), ' ', ''))";
-
-            return "CASE WHEN {$text} = '' THEN '' ELSE COALESCE(NULLIF(TRIM(LEADING '0' FROM {$text}), ''), '0') END";
-        }
-
         if ($this->supportsRegexpReplace()) {
             return "REGEXP_REPLACE(LOWER({$column}), '[^a-z0-9]', '')";
         }

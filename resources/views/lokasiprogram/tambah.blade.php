@@ -5,6 +5,11 @@
         <input type="text" name="nama_lokasi" class="form-control form-control-sm" required maxlength="255">
         <label>Nama Lokasi</label>
     </div>
+    <div class="form-group form-floating form-floating-outline mb-6">
+        <input type="number" name="koefisien_timbulan_sampah" class="form-control form-control-sm" step="0.0001" min="0" max="9999.9999">
+        <label>Koefisien Timbulan Sampah <small class="text-muted">(opsional)</small></label>
+        <span id="koefisien_timbulan_sampah_error" class="text-danger"></span>
+    </div>
     <div class="form-group mb-6">
         <label class="form-label">Gambar Lokasi <small class="text-muted">(opsional, maks. 5MB)</small></label>
         <input type="file" name="gambar" class="form-control" accept="image/jpg,image/jpeg,image/png,image/webp">

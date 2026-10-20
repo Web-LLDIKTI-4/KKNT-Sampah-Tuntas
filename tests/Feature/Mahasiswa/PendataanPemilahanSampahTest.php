@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Tests\Concerns\ReadsXlsx;
+use App\Services\LogHarianService;
 use Tests\TestCase;
 
 class PendataanPemilahanSampahTest extends TestCase
@@ -27,7 +28,7 @@ class PendataanPemilahanSampahTest extends TestCase
             'jumlah_anggota_keluarga' => 4,
             'alamat_rumah' => 'Jl. Melati No. 5',
             'rt' => '003',
-            'rw' => '07',
+            'rw' => '007',
             'memilah' => '1',
             'organik_kg' => 2.5,
             'anorganik_kg' => 1.25,
@@ -298,5 +299,103 @@ class PendataanPemilahanSampahTest extends TestCase
         $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $row->id_pendataan, 'rt' => '999']))->assertRedirect();
         $this->put('pendataanpemilahan/destroy', ['id_pendataan' => $row->id_pendataan])->assertRedirect();
         $this->assertDatabaseHas('pendataan_pemilahan_sampah', ['id_pendataan' => $row->id_pendataan, 'rt' => $row->rt]);
+    }
+
+    public function test_rt_rw_must_be_exactly_three_digits_on_update(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $data = PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => today()->toDateString(), 'rt' => '003', 'rw' => '007']);
+
+        foreach (['1', '12', '0001', 'ab1', '01a'] as $invalid) {
+            $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $data->id_pendataan, 'rt' => $invalid, 'rw' => $invalid]))
+                ->assertJsonValidationErrors([
+                    'rt' => 'RT harus 3 digit angka, contoh 001.',
+                    'rw' => 'RW harus 3 digit angka, contoh 012.',
+                ], 'errors');
+        }
+        $this->assertSame('003', $data->fresh()->rt);
+
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $data->id_pendataan, 'rt' => '001', 'rw' => '012']))
+            ->assertJson(['success' => true]);
+        $this->assertSame('001', $data->fresh()->rt);
+        $this->assertSame('012', $data->fresh()->rw);
+    }
+
+    public function test_edit_to_date_already_filled_by_own_record_is_allowed(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $own = PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => today()->subDay()->toDateString()]);
+        PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => today()->subDays(2)->toDateString()]);
+
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $own->id_pendataan, 'tanggal' => today()->subDay()->toDateString(), 'nama_kepala_keluarga' => 'Diperbarui']))
+            ->assertJson(['success' => true]);
+        $this->assertSame('Diperbarui', $own->fresh()->nama_kepala_keluarga);
+
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $own->id_pendataan, 'tanggal' => today()->subDays(2)->toDateString()]))
+            ->assertJson(['success' => true])->assertJsonMissingPath('errors');
+        $this->assertSame(2, PendataanPemilahanSampah::where('email', $user->email)->whereDate('tanggal', today()->subDays(2))->count());
+    }
+
+    public function test_edit_with_datetime_date_is_normalized_to_date(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $own = PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => today()->subDay()->toDateString()]);
+        PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => today()->subDays(2)->toDateString()]);
+
+        $this->put('pendataanpemilahan/update', $this->payload([
+            'id_pendataan' => $own->id_pendataan,
+            'tanggal' => today()->subDays(2)->toDateString().' 10:30:00',
+        ]))->assertJson(['success' => true]);
+        $this->assertSame(today()->subDays(2)->toDateString(), substr((string) $own->fresh()->tanggal, 0, 10));
+        $this->assertSame(2, PendataanPemilahanSampah::where('email', $user->email)->whereDate('tanggal', today()->subDays(2))->count());
+    }
+
+    public function test_cannot_edit_other_students_record_even_to_free_date(): void
+    {
+        $this->loginAs('mahasiswa');
+        $other = PendataanPemilahanSampah::factory()->create(['email' => 'lain@pps.test', 'tanggal' => today()->subDay()->toDateString()]);
+
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $other->id_pendataan, 'tanggal' => today()->subDays(5)->toDateString()]))
+            ->assertNotFound();
+        $this->assertDatabaseHas('pendataan_pemilahan_sampah', ['id_pendataan' => $other->id_pendataan, 'tanggal' => today()->subDay()->toDateString()]);
+    }
+
+    public function test_update_with_array_id_pendataan_returns_validation_error_not_500(): void
+    {
+        $this->loginAs('mahasiswa');
+
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => [(string) Str::uuid()]]))
+            ->assertOk()->assertJsonValidationErrors(['id_pendataan'], 'errors');
+    }
+
+    public function test_weight_max_is_inclusive_on_update(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $data = PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => today()->toDateString(), 'organik_kg' => 1]);
+        $max = LogHarianService::MAX_BERAT_KG;
+
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $data->id_pendataan, 'organik_kg' => $max, 'anorganik_kg' => $max, 'residu_kg' => $max]))
+            ->assertJson(['success' => true]);
+        $this->assertEquals($max, $data->fresh()->organik_kg);
+
+        foreach (['organik_kg', 'anorganik_kg', 'residu_kg'] as $field) {
+            $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $data->id_pendataan, $field => '1000.01']))
+                ->assertJsonValidationErrors([$field => 'Berat maksimal '.$max.' kg.'], 'errors');
+        }
+        $this->assertEquals($max, $data->fresh()->residu_kg);
+    }
+
+    public function test_update_is_throttled_at_30_per_minute(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $data = PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => today()->toDateString()]);
+
+        for ($i = 1; $i <= 30; $i++) {
+            $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $data->id_pendataan, 'nama_kepala_keluarga' => 'KK '.$i]))
+                ->assertOk();
+        }
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $data->id_pendataan, 'nama_kepala_keluarga' => 'KK 31']))
+            ->assertStatus(429);
+        $this->assertSame('KK 30', $data->fresh()->nama_kepala_keluarga);
     }
 }

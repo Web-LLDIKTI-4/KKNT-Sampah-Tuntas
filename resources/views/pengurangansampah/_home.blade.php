@@ -91,8 +91,8 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-1">Data Sampah per Perguruan Tinggi</h5>
-                <p class="mb-0 card-subtitle">Data bulanan tiap kelurahan beserta total per kecamatan; pilih bulan, kecamatan{{ $perPt ? ', atau perguruan tinggi' : '' }}</p>
+                <h5 class="mb-1">Data Sampah</h5>
+                <p class="mb-0 card-subtitle">Detail per log pendataan dengan subtotal per lokasi program dan bulan; pilih bulan, kecamatan, lokasi program{{ $perPt ? ', atau perguruan tinggi' : '' }}</p>
             </div>
             <div class="card-body">
                 <div data-filter-host="{{ route('rekapsampah') }}"></div>

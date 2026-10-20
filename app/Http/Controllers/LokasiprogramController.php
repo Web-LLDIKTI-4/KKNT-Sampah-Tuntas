@@ -6,9 +6,11 @@ use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Master\LokasiProgramRequest;
 use App\Models\LokasiProgram;
+use App\Models\PenguranganSampah;
 use App\Models\User;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -53,12 +55,13 @@ class LokasiprogramController extends Controller
 
     public function insert(LokasiProgramRequest $request)
     {
-        $data = $request->safe()->only('nama_lokasi');
+        $data = $request->safe()->only('nama_lokasi', 'koefisien_timbulan_sampah');
         if ($request->hasFile('gambar')) {
             $data['gambar'] = $request->file('gambar')->store('lokasi', 'public');
         }
 
         LokasiProgram::create($data);
+        Cache::forget(RekapsampahController::LOKASI_LIST_CACHE_KEY);
 
         return $this->saved();
     }
@@ -71,7 +74,7 @@ class LokasiprogramController extends Controller
     public function update(LokasiProgramRequest $request)
     {
         $lokasi = LokasiProgram::findOrFail($request->validated('id'));
-        $data = $request->safe()->only('nama_lokasi');
+        $data = $request->safe()->only('nama_lokasi', 'koefisien_timbulan_sampah');
 
         if ($request->hasFile('gambar')) {
             if ($lokasi->gambar) {
@@ -81,6 +84,11 @@ class LokasiprogramController extends Controller
         }
 
         $lokasi->update($data);
+        // Subtotal Data Sampah memuat nama & koefisien lokasi
+        if ($lokasi->wasChanged(['nama_lokasi', 'koefisien_timbulan_sampah'])) {
+            PenguranganSampah::forgetPublicCache();
+            Cache::forget(RekapsampahController::LOKASI_LIST_CACHE_KEY);
+        }
 
         return $this->saved();
     }
@@ -97,6 +105,7 @@ class LokasiprogramController extends Controller
         }
 
         $lokasi->delete();
+        Cache::forget(RekapsampahController::LOKASI_LIST_CACHE_KEY);
 
         return $this->deleted();
     }

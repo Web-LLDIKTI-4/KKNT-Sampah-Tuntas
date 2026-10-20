@@ -20,6 +20,7 @@ class RekapSampahRequest extends FormRequest
             'kecamatan' => ['nullable', 'string', 'max:36', 'exists:kecamatan,id_kecamatan'],
             'kodept' => ['nullable', 'string', 'max:10', 'exists:ref_satuanpendidikan,npsn'],
             'klaster' => ['nullable', Rule::in(array_keys(PenguranganSampah::KLASTER))],
+            'lokasi' => ['nullable', 'uuid', 'exists:lokasi_program,id'],
         ];
     }
 }

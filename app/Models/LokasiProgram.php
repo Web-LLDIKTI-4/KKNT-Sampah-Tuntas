@@ -15,7 +15,15 @@ class LokasiProgram extends Model
     protected $fillable = [
         'gambar',
         'nama_lokasi',
+        'koefisien_timbulan_sampah',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'koefisien_timbulan_sampah' => 'float',
+        ];
+    }
 
     protected static function booted(): void
     {

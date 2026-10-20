@@ -1,4 +1,4 @@
-{{-- Rekap pendataan pemilahan sampah format LLDIKTI; filter dimuat ulang lewat public/js/drilldown.js --}}
+{{-- Data Sampah (detail per log + subtotal per Lokasi Program); filter dimuat ulang lewat public/js/drilldown.js --}}
 @php
     use App\Models\PenguranganSampah;
     use Illuminate\Support\Carbon;
@@ -26,6 +26,17 @@
             @endforeach
         </select>
     </div>
+    @if ($lokasiList->isNotEmpty())
+        <div class="col-md-3">
+            <label class="form-label small mb-1">Lokasi Program</label>
+            <select name="lokasi" class="form-select form-select-sm">
+                <option value="">Semua Lokasi Program</option>
+                @foreach ($lokasiList as $item)
+                    <option value="{{ $item->id }}" @selected(($filter['lokasi'] ?? null) === $item->id)>{{ $item->nama_lokasi }}</option>
+                @endforeach
+            </select>
+        </div>
+    @endif
     @unless ($isPt)
         <div class="col-md-3">
             <label class="form-label small mb-1">Perguruan Tinggi</label>
@@ -46,7 +57,7 @@
             </select>
         </div>
         <div class="col-md-auto">
-            <a href="{{ route('rekapsampah.export', array_filter(['bulan' => $pilihanBulan, 'kecamatan' => $filter['id_kecamatan'], 'kodept' => $filter['kodept'], 'klaster' => $filter['klaster']])) }}"
+            <a href="{{ route('rekapsampah.export', array_filter(['bulan' => $pilihanBulan, 'kecamatan' => $filter['id_kecamatan'], 'kodept' => $filter['kodept'], 'klaster' => $filter['klaster'], 'lokasi' => $filter['lokasi'] ?? null])) }}"
                class="btn btn-sm btn-success btn-filter w-100" title="Export sesuai filter & klaster"><i class="ri-file-excel-2-line" aria-hidden="true"></i> Export</a>
         </div>
     @endunless
@@ -83,8 +94,12 @@
 
 <div class="d-flex flex-wrap gap-5 mb-4">
     <div>
-        <div class="small text-muted">Persentase Penurunan Sampah</div>
+        <div class="small text-muted">Persentase Pengelolaan Sampah</div>
         <x-status-pengurangan :persen="$total->persen_penurunan" class="fs-6" />
+    </div>
+    <div>
+        <div class="small text-muted">Penurunan Timbulan Sampah</div>
+        <div class="fw-medium">{{ $persen($total->persen_penurunan_timbulan) }}</div>
     </div>
     <div>
         <div class="small text-muted">Ketaatan Pemilahan</div>
@@ -104,4 +119,4 @@
     </div>
 </div>
 
-@include('rekapsampah._lldikti', ['rekap' => $rekap])
+@include('rekapsampah._data_sampah')

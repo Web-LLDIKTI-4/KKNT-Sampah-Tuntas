@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Exports\Sheets\RekapLldiktiSheet;
 use App\Models\Desa;
 use App\Models\Dpl;
 use App\Models\LokasiProgram;
@@ -178,13 +177,12 @@ class PenguranganSampahDashboardTest extends TestCase
     public function test_admin_and_kepala_can_export_rekap_sampah_but_pt_cannot(): void
     {
         foreach (['admin', 'kepala'] as $role) {
-            // Fake baru per role: nama file berbasis detik, 2 download beda detik = regex cocok 2 file
-            Excel::fake();
-            Excel::matchByRegex();
             $this->loginAs($role);
             $this->get('dashboard-pengurangan-sampah')->assertOk()->assertSee('id="pengurangan-sampah-export"', false);
-            $this->get('rekapsampah/export?klaster=merah')->assertOk();
-            Excel::assertDownloaded('/^rekap_sampah_merah_.+\.xlsx$/', fn (RekapLldiktiSheet $sheet) => $sheet->title() === 'Rekap Sampah');
+            // Export kini DataSampahExport (stream XlsxStreamer)
+            $res = $this->get('rekapsampah/export?klaster=merah')->assertOk();
+            $this->assertStringContainsString('spreadsheetml', (string) $res->headers->get('content-type'));
+            $this->assertMatchesRegularExpression('/data_sampah_merah_.+\.xlsx/', (string) $res->headers->get('content-disposition'));
         }
 
         $this->loginAs('pt', ['email' => $this->pt1->npsn]);

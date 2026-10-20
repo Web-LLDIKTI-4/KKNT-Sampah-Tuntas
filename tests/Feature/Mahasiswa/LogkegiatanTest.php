@@ -8,6 +8,7 @@ use App\Models\PendataanPemilahanSampah;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use App\Models\Kehadiran;
+use App\Services\LogHarianService;
 use Tests\TestCase;
 
 class LogkegiatanTest extends TestCase
@@ -30,7 +31,7 @@ class LogkegiatanTest extends TestCase
             'jumlah_anggota_keluarga' => 4,
             'alamat_rumah' => 'Jl. Melati No. 5',
             'rt' => '003',
-            'rw' => '07',
+            'rw' => '007',
             'memilah' => '1',
             'organik_kg' => 2.5,
             'anorganik_kg' => 1.25,
@@ -116,7 +117,7 @@ class LogkegiatanTest extends TestCase
         $this->assertSame('Kegiatan diperbarui', $own->fresh()->deskripsi);
 
         $this->get('logkegiatan/edit/'.$other->id_log)->assertNotFound();
-        $this->put('logkegiatan/update', $this->payload(['id_log' => $other->id_log]))->assertNotFound();
+        $this->put('logkegiatan/update', $this->payload(['id_log' => $other->id_log, 'tanggal' => now()->subDay()->toDateString()]))->assertNotFound();
         $this->put('logkegiatan/destroy', ['id_log' => $other->id_log])->assertNotFound();
         $this->put('logkegiatan/destroy', ['id_log' => $own->id_log])->assertJson(['success' => true]);
     }
@@ -207,5 +208,192 @@ class LogkegiatanTest extends TestCase
         $html = $this->get('logkegiatan')->assertOk()->getContent();
         $this->assertSame(1, preg_match('/<a[^>]*id="btnTambahLog"[^>]*>/', $html, $m));
         $this->assertStringContainsString('aria-disabled="true"', $m[0]);
+    }
+
+    public function test_rt_rw_must_be_exactly_three_digits_on_daily_log_insert(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+
+        foreach (['1', '12', '0001', 'ab1', '01a'] as $i => $invalid) {
+            $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0', 'rt' => $invalid, 'rw' => $invalid]))
+                ->assertJsonValidationErrors([
+                    'rt' => 'RT harus 3 digit angka, contoh 001.',
+                    'rw' => 'RW harus 3 digit angka, contoh 012.',
+                ], 'errors');
+        }
+        $this->assertDatabaseCount('pendataan_pemilahan_sampah', 0);
+
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0', 'rt' => '001', 'rw' => '012']))
+            ->assertJson(['success' => true]);
+        $this->assertDatabaseHas('pendataan_pemilahan_sampah', ['email' => $user->email, 'rt' => '001', 'rw' => '012']);
+    }
+
+    public function test_multiple_daily_logs_on_same_date_are_all_saved(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0']))->assertJson(['success' => true]);
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0', 'nama_kepala_keluarga' => 'Rumah Lain']))
+            ->assertJson(['success' => true])->assertJsonMissingPath('errors');
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '1', 'deskripsi' => '<p>Kegiatan lain</p>']))
+            ->assertJson(['success' => true])->assertJsonMissingPath('errors');
+
+        $this->assertSame(3, PendataanPemilahanSampah::where('email', $user->email)->whereDate('tanggal', today())->count());
+        $this->assertSame(1, Logkegiatan::where('email', $user->email)->whereDate('tanggal', today())->count());
+    }
+
+    public function test_second_daily_log_with_other_activity_on_same_date_is_saved(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+
+        $this->put('logkegiatan/insert', $this->payload())->assertJson(['success' => true]);
+        $this->put('logkegiatan/insert', $this->payload(['deskripsi' => '<p>Kegiatan lain</p>']))->assertJson(['success' => true]);
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0']))->assertJson(['success' => true]);
+
+        $this->assertSame(3, PendataanPemilahanSampah::where('email', $user->email)->count());
+        $this->assertSame(2, Logkegiatan::where('email', $user->email)->count());
+    }
+
+    public function test_existing_activity_log_does_not_block_daily_log_on_same_date(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        Logkegiatan::factory()->create(['email' => $user->email, 'tanggal' => today()->toDateString()]);
+
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0']))->assertJson(['success' => true]);
+        $this->assertSame(1, PendataanPemilahanSampah::where('email', $user->email)->count());
+    }
+
+    public function test_daily_log_on_different_date_or_by_other_student_is_allowed(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        PendataanPemilahanSampah::factory()->create(['email' => 'lain@pps.test', 'tanggal' => today()->toDateString()]);
+        Logkegiatan::factory()->create(['email' => 'lain@pps.test', 'tanggal' => today()->toDateString()]);
+
+        $this->put('logkegiatan/insert', $this->payload())->assertJson(['success' => true]);
+        $this->put('logkegiatan/insert', $this->payload(['tanggal' => today()->subDay()->toDateString(), 'deskripsi' => '<p>Kemarin</p>']))
+            ->assertJson(['success' => true]);
+        $this->put('logkegiatan/insert', $this->payload(['tanggal' => today()->subDays(2)->toDateString(), 'ada_kegiatan_lain' => '0']))
+            ->assertJson(['success' => true]);
+
+        $this->assertSame(3, PendataanPemilahanSampah::where('email', $user->email)->count());
+        $this->assertSame(2, Logkegiatan::where('email', $user->email)->count());
+    }
+
+    public function test_datetime_formatted_date_is_normalized_and_saved_on_same_date(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $yesterday = today()->subDay();
+        $this->put('logkegiatan/insert', $this->payload(['tanggal' => $yesterday->toDateString()]))->assertJson(['success' => true]);
+
+        foreach ([' 10:30:00', 'T10:30:00', ' 00:00:01'] as $suffix) {
+            $this->putJson('logkegiatan/insert', $this->payload([
+                'tanggal' => $yesterday->toDateString().$suffix,
+                'deskripsi' => '<p>Lain'.$suffix.'</p>',
+            ]), $this->ajax)->assertOk()->assertJson(['success' => true]);
+        }
+
+        $this->assertSame(4, PendataanPemilahanSampah::where('email', $user->email)->whereDate('tanggal', $yesterday)->count());
+        $this->assertSame(4, Logkegiatan::where('email', $user->email)->whereDate('tanggal', $yesterday)->count());
+        $this->assertSame([$yesterday->toDateString()], Logkegiatan::where('email', $user->email)->pluck('tanggal')
+            ->map(fn ($t) => substr((string) $t, 0, 10))->unique()->values()->all());
+    }
+
+    public function test_datetime_date_still_cannot_bypass_unique_description_per_day(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $yesterday = today()->subDay()->toDateString();
+        $this->put('logkegiatan/insert', $this->payload(['tanggal' => $yesterday]))->assertJson(['success' => true]);
+
+        $this->put('logkegiatan/insert', $this->payload(['tanggal' => $yesterday.' 10:30:00']))
+            ->assertJsonValidationErrors(['deskripsi'], 'errors');
+        $this->assertSame(1, Logkegiatan::where('email', $user->email)->count());
+    }
+
+    public function test_edit_own_activity_log_to_already_filled_date_is_allowed(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $own = Logkegiatan::factory()->create(['email' => $user->email, 'tanggal' => today()->subDay()->toDateString()]);
+        $filled = Logkegiatan::factory()->create(['email' => $user->email, 'tanggal' => today()->subDays(2)->toDateString()]);
+
+        $this->put('logkegiatan/update', $this->payload(['id_log' => $own->id_log, 'tanggal' => $own->tanggal, 'deskripsi' => '<p>Diperbarui</p>']))
+            ->assertJson(['success' => true]);
+        $this->assertSame('<p>Diperbarui</p>', $own->fresh()->deskripsi);
+
+        $this->put('logkegiatan/update', $this->payload(['id_log' => $own->id_log, 'tanggal' => $filled->tanggal.' 10:30:00', 'deskripsi' => '<p>Pindah</p>']))
+            ->assertJson(['success' => true])->assertJsonMissingPath('errors');
+        $this->assertSame(2, Logkegiatan::where('email', $user->email)->whereDate('tanggal', $filled->tanggal)->count());
+    }
+
+    public function test_update_with_array_id_log_returns_validation_error_not_500(): void
+    {
+        $this->loginAs('mahasiswa');
+
+        $this->put('logkegiatan/update', $this->payload(['id_log' => [(string) Str::uuid()]]))
+            ->assertOk()->assertJsonValidationErrors(['id_log'], 'errors');
+    }
+
+    public function test_daily_log_limit_per_day_counts_created_at_per_user(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $max = LogHarianService::MAX_LOG_PER_DAY;
+        $limitMsg = 'Batas input log harian hari ini sudah tercapai (maksimal '.$max.' log per hari).';
+
+        // Dibuat kemarin tidak dihitung; tanggal mundur yang dibuat hari ini tetap dihitung
+        PendataanPemilahanSampah::factory()->count(5)->create(['email' => $user->email, 'created_at' => now()->subDay()]);
+        PendataanPemilahanSampah::factory()->count($max - 1)->create(['email' => $user->email, 'tanggal' => today()->subDays(3)->toDateString()]);
+
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0', 'tanggal' => today()->subDays(2)->toDateString()]))
+            ->assertJson(['success' => true]);
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0']))
+            ->assertJsonValidationErrors(['tanggal' => $limitMsg], 'errors');
+        $this->put('logkegiatan/insert', $this->payload(['deskripsi' => '<p>Ke-22</p>']))
+            ->assertJsonValidationErrors(['tanggal' => $limitMsg], 'errors');
+        $this->assertSame($max, PendataanPemilahanSampah::where('email', $user->email)->where('created_at', '>=', today())->count());
+        $this->assertDatabaseCount('logkegiatan', 0);
+
+        // Besok counter reset
+        $this->travel(1)->days();
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0']))->assertJson(['success' => true]);
+    }
+
+    public function test_daily_log_limit_of_other_student_does_not_affect_user(): void
+    {
+        PendataanPemilahanSampah::factory()->count(LogHarianService::MAX_LOG_PER_DAY + 1)->create(['email' => 'lain@pps.test']);
+        $user = $this->loginAs('mahasiswa');
+
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0']))->assertJson(['success' => true]);
+        $this->assertSame(1, PendataanPemilahanSampah::where('email', $user->email)->count());
+    }
+
+    public function test_daily_log_weight_max_is_inclusive_on_insert(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $max = LogHarianService::MAX_BERAT_KG;
+
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0', 'organik_kg' => $max, 'anorganik_kg' => $max, 'residu_kg' => $max]))
+            ->assertJson(['success' => true]);
+        $this->assertDatabaseHas('pendataan_pemilahan_sampah', ['email' => $user->email, 'organik_kg' => $max, 'anorganik_kg' => $max, 'residu_kg' => $max]);
+
+        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0', 'organik_kg' => '1000.01', 'anorganik_kg' => '1000.01', 'residu_kg' => '1000.01']))
+            ->assertJsonValidationErrors([
+                'organik_kg' => 'Berat maksimal '.$max.' kg.',
+                'anorganik_kg' => 'Berat maksimal '.$max.' kg.',
+                'residu_kg' => 'Berat maksimal '.$max.' kg.',
+            ], 'errors');
+        $this->assertSame(1, PendataanPemilahanSampah::where('email', $user->email)->count());
+    }
+
+    public function test_daily_log_update_is_throttled_at_30_per_minute(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+        $own = Logkegiatan::factory()->create(['email' => $user->email, 'tanggal' => today()->subDay()->toDateString()]);
+
+        for ($i = 1; $i <= 30; $i++) {
+            $this->put('logkegiatan/update', $this->payload(['id_log' => $own->id_log, 'tanggal' => $own->tanggal, 'deskripsi' => '<p>Ubah '.$i.'</p>']))
+                ->assertOk();
+        }
+        $this->put('logkegiatan/update', $this->payload(['id_log' => $own->id_log, 'tanggal' => $own->tanggal, 'deskripsi' => '<p>Ubah 31</p>']))
+            ->assertStatus(429);
+        $this->assertSame('<p>Ubah 30</p>', $own->fresh()->deskripsi);
     }
 }

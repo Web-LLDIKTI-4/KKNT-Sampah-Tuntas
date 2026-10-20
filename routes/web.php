@@ -362,6 +362,7 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function ()
 Route::middleware(['auth', 'role:admin,pt,kepala,pemda'])->group(function () {
     Route::get('dashboard-pengurangan-sampah', [PenguranganSampahDashboardController::class, 'index'])->name('dashboard-pengurangan-sampah');
     Route::get('rekapsampah', [RekapsampahController::class, 'index'])->name('rekapsampah');
+    Route::get('rekapsampah/listdataserver', [RekapsampahController::class, 'listdataserver'])->name('rekapsampah.listdataserver');
 });
 
 // Rencana Kerja PT: pt kelola miliknya, admin edit/hapus semua, role lain lihat; aksi dijaga RencanaKerjaPolicy
@@ -451,7 +452,7 @@ Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
     Route::get('logkegiatan/tambah', [LogkegiatanController::class, 'tambah']);
     Route::put('logkegiatan/insert', [LogkegiatanController::class, 'insert'])->middleware('throttle:30,1');
     Route::get('logkegiatan/edit/{id_log}', [LogkegiatanController::class, 'edit']);
-    Route::put('logkegiatan/update', [LogkegiatanController::class, 'update']);
+    Route::put('logkegiatan/update', [LogkegiatanController::class, 'update'])->middleware('throttle:30,1');
     Route::put('logkegiatan/destroy', [LogkegiatanController::class, 'destroy']);
 });
 
@@ -501,7 +502,7 @@ Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
     // Route::get('pendataanpemilahan/tambah', [PendataanPemilahanSampahController::class, 'tambah']);
     // Route::put('pendataanpemilahan/insert', [PendataanPemilahanSampahController::class, 'insert']);
     Route::get('pendataanpemilahan/edit/{id_pendataan}', [PendataanPemilahanSampahController::class, 'edit']);
-    Route::put('pendataanpemilahan/update', [PendataanPemilahanSampahController::class, 'update']);
+    Route::put('pendataanpemilahan/update', [PendataanPemilahanSampahController::class, 'update'])->middleware('throttle:30,1');
     Route::put('pendataanpemilahan/destroy', [PendataanPemilahanSampahController::class, 'destroy']);
     Route::get('pendataanpemilahan/export', [PendataanPemilahanSampahController::class, 'export'])->middleware('throttle:3,1')->name('pendataanpemilahan.export');
 });

@@ -5,6 +5,7 @@ namespace App\Http\Requests\Mahasiswa;
 use App\Http\Requests\AjaxFormRequest;
 use App\Models\Kehadiran;
 use App\Services\AttendanceService;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class LogkegiatanRequest extends AjaxFormRequest
@@ -14,6 +15,8 @@ class LogkegiatanRequest extends AjaxFormRequest
     ];
 
     protected array $htmlFields = ['deskripsi'];
+
+    protected array $dateFields = ['tanggal'];
 
     public function rules(): array
     {
@@ -25,7 +28,7 @@ class LogkegiatanRequest extends AjaxFormRequest
                 Rule::unique('logkegiatan', 'deskripsi')
                     ->where('email', $this->user()->email)
                     ->where('tanggal', $this->input('tanggal'))
-                    ->ignore($this->isUpdate() ? $this->input('id_log') : null, 'id_log'),
+                    ->ignore($this->ignoredId(), 'id_log'),
             ],
             'volume' => ['required', 'numeric', 'min:0', 'max:1000000'],
             'satuan' => ['required', 'string', 'max:255'],
@@ -33,6 +36,14 @@ class LogkegiatanRequest extends AjaxFormRequest
             'nama_aktivitas' => ['required', 'string', 'max:255'],
             'tautan' => ['nullable', 'url:http,https', 'max:255'],
         ];
+    }
+
+    // Id untuk ignore() hanya bila UUID valid; array/non-UUID tidak di-ignore (cegah TypeError 500)
+    private function ignoredId(): ?string
+    {
+        $id = $this->input('id_log');
+
+        return $this->isUpdate() && Str::isUuid($id) ? $id : null;
     }
 
     // Tolak log baru bila hari ini berstatus izin/sakit/cuti/kuliah/libur

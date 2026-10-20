@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Mahasiswa;
 
+use App\Models\PendataanPemilahanSampah;
+use App\Services\LogHarianService;
 use Illuminate\Support\Arr;
 
 /**
@@ -21,6 +23,19 @@ class LogHarianRequest extends LogkegiatanRequest
         return PendataanPemilahanSampahRequest::dataRules()
             + ['ada_kegiatan_lain' => ['required', 'boolean']]
             + $logRules;
+    }
+
+    // Status kehadiran (parent) + batas input log harian per hari
+    public function after(): array
+    {
+        return [...parent::after(), function ($validator) {
+            $count = PendataanPemilahanSampah::where('email', $this->user()->email)
+                ->where('created_at', '>=', today())
+                ->count();
+            if ($count >= LogHarianService::MAX_LOG_PER_DAY) {
+                $validator->errors()->add('tanggal', 'Batas input log harian hari ini sudah tercapai (maksimal '.LogHarianService::MAX_LOG_PER_DAY.' log per hari).');
+            }
+        }];
     }
 
     public function messages(): array

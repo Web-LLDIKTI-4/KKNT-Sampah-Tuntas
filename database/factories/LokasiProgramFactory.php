@@ -15,6 +15,7 @@ class LokasiProgramFactory extends Factory
         return [
             'nama_lokasi' => 'Kota '.fake()->unique()->city(),
             'gambar' => null,
+            'koefisien_timbulan_sampah' => null,
         ];
     }
 }
