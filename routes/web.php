@@ -106,6 +106,7 @@ Route::middleware('guest')->group(function () {
     Route::get('login/peta/filter', [LoginController::class, 'petaFilter'])->middleware('throttle:peta')->name('login.peta.filter');
     // Generate xlsx lebih berat: throttle lebih ketat
     Route::get('login/laporan/export', [CapaianProgramExportController::class, 'publik'])->middleware('throttle:10,1')->name('login.laporan.export');
+    Route::get('login/data-peserta/export', [LoginController::class, 'dataPesertaExport'])->middleware('throttle:10,1')->name('login.data-peserta.export');
 });
 
 Route::get('login/peserta', [LoginController::class, 'peserta'])->middleware('throttle:peta')->name('login.peserta');

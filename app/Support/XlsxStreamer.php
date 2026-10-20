@@ -34,6 +34,8 @@ class XlsxStreamer
 
     private array $info = [];
 
+    private ?array $total = null;
+
     /**
      * @param  array<int, array{label: string, value: Closure|string, width?: float, format?: ?string}>  $columns
      */
@@ -49,6 +51,14 @@ class XlsxStreamer
     public function info(array $info): static
     {
         $this->info = array_filter($info, fn ($value) => $value !== null && $value !== '');
+
+        return $this;
+    }
+
+    // Bold summary row after the data; $values keyed by column value key, label spans the leading columns
+    public function total(array $values, string $label = 'Total'): static
+    {
+        $this->total = ['label' => $label, 'values' => $values];
 
         return $this;
     }
@@ -99,6 +109,10 @@ class XlsxStreamer
                 $writer->addRow(new Row($cells, $rowStyle));
             }
 
+            if ($this->total !== null) {
+                $writer->addRow($this->totalRow($options, self::HEADER_ROW + $number + 1));
+            }
+
             $writer->close();
         } finally {
             File::deleteDirectory($dir);
@@ -110,6 +124,29 @@ class XlsxStreamer
         $labels = array_merge(['No.'], array_column($this->columns, 'label'));
 
         return array_map(fn ($label) => new StringCell((string) $label, null), $labels);
+    }
+
+    private function totalRow(Options $options, int $rowIndex): Row
+    {
+        $cells = [new StringCell($this->total['label'], null)];
+        $span = 0;
+        foreach (array_values($this->columns) as $i => $column) {
+            $key = is_string($column['value']) ? $column['value'] : null;
+            if ($key !== null && array_key_exists($key, $this->total['values'])) {
+                $cells[] = $this->cell($this->total['values'][$key], $column['format'] ?? null);
+            } else {
+                $cells[] = new StringCell('', null);
+                if ($span === $i) {
+                    $span++;
+                }
+            }
+        }
+        // Merge label over No. and leading non-total columns (merge rows are 1-based)
+        if ($span > 0) {
+            $options->mergeCells(0, $rowIndex, $span, $rowIndex);
+        }
+
+        return new Row($cells, $this->headerStyle());
     }
 
     private function infoLine(): string

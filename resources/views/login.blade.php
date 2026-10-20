@@ -679,6 +679,36 @@
           font-variant-numeric: tabular-nums;
         }
 
+        /* Header sort: button tanpa gaya, ikon redup sampai aktif */
+        .peserta-sort {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+          padding: 0;
+          border: 0;
+          background: none;
+          color: inherit;
+          font: inherit;
+          white-space: nowrap;
+          cursor: pointer;
+        }
+
+        .peserta-sort i {
+          font-size: 0.875em;
+          opacity: 0.4;
+        }
+
+        .peserta-sort:hover i,
+        th[aria-sort] .peserta-sort i {
+          opacity: 1;
+        }
+
+        .peserta-sort:focus-visible {
+          outline: 2px solid var(--bs-primary);
+          outline-offset: 2px;
+          border-radius: 2px;
+        }
+
         .peserta-empty {
           color: var(--bs-secondary-color);
         }
@@ -716,6 +746,7 @@
 
         .peserta-search {
           flex: 0 1 18rem;
+          margin-left: auto; /* search + export rata kanan */
         }
 
         .peserta-info {
@@ -1266,6 +1297,7 @@
 
           .peserta-search {
             flex-basis: auto;
+            margin-left: 0;
           }
 
           .peserta-info {
@@ -1521,23 +1553,24 @@
                           <input type="search" id="pesertaSearch" class="form-control" placeholder="Cari perguruan tinggi / kode PT…"
                             aria-label="Cari perguruan tinggi" aria-controls="pesertaTbody" autocomplete="off" />
                         </div>
+                        <x-button.export :url="route('login.data-peserta.export')" label="Export Excel" class="btn-sm" />
                       </div>
                       <div class="table-responsive peserta-table-wrap">
                         <table class="table table-sm table-hover align-middle peserta-table">
                           <thead>
                             <tr>
                               <th scope="col" class="text-center">No</th>
-                              <th scope="col" class="text-center">Kode PT</th>
-                              <th scope="col" class="text-center">Nama PTS</th>
-                              <th scope="col" class="text-center">Jml. Mahasiswa</th>
-                              <th scope="col" class="text-center">Jml. DPL</th>
-                              <th scope="col" class="text-center">Jml. PIC</th>
-                              <th scope="col" class="text-center">Jml. Ketua Kelompok</th>
+                              @foreach(['kodept' => 'Kode PT', 'nama' => 'Nama PTS', 'mahasiswa' => 'Jml. Mahasiswa', 'dpl' => 'Jml. DPL', 'pic' => 'Jml. PIC', 'ketua' => 'Jml. Ketua Kelompok'] as $sortKey => $sortLabel)
+                                <th scope="col" class="text-center"><button type="button" class="peserta-sort" data-sort="{{ $sortKey }}" data-sort-type="{{ in_array($sortKey, ['kodept', 'nama']) ? 'text' : 'num' }}">{{ $sortLabel }}<i class="ri-arrow-up-down-line" aria-hidden="true"></i></button></th>
+                              @endforeach
                             </tr>
                           </thead>
                           <tbody id="pesertaTbody" data-detail-url="{{ route('login.peserta') }}">
                             @foreach($dataPesertaList as $peserta)
-                              <tr data-search="{{ mb_strtolower($peserta->kodept.' '.$peserta->nama_pt) }}">
+                              <tr data-search="{{ mb_strtolower($peserta->kodept.' '.$peserta->nama_pt) }}"
+                                data-sort-kodept="{{ $peserta->kodept }}" data-sort-nama="{{ $peserta->nama_pt }}"
+                                data-sort-mahasiswa="{{ (int) $peserta->jumlah_mahasiswa }}" data-sort-dpl="{{ (int) $peserta->jumlah_dpl }}"
+                                data-sort-pic="{{ (int) ($peserta->jumlah_pic ?? 0) }}" data-sort-ketua="{{ (int) ($peserta->jumlah_ketua_kelompok ?? 0) }}">
                                 <td class="text-center peserta-no">{{ $loop->iteration }}</td>
                                 <td class="text-center">{{ $peserta->kodept }}</td>
                                 <td>{{ $peserta->nama_pt }}</td>
@@ -2122,6 +2155,38 @@ $(function(){
         $pesertaLimit.on("change", function () {
           pesertaPage = 1;
           renderPeserta();
+        });
+
+        // Sort header: asc -> desc, dari urutan asli agar nilai sama tetap stabil
+        var pesertaOrig = $pesertaRows.get();
+        var pesertaSort = { key: null, dir: 1 };
+        var $pesertaSortBtns = $pesertaTbody.closest("table").find(".peserta-sort");
+
+        $pesertaSortBtns.on("click", function () {
+          var key = String($(this).data("sort"));
+          var isNum = $(this).data("sort-type") === "num";
+          var attr = "data-sort-" + key;
+          pesertaSort.dir = pesertaSort.key === key ? -pesertaSort.dir : 1;
+          pesertaSort.key = key;
+
+          var dir = pesertaSort.dir;
+          var sorted = pesertaOrig.slice().sort(function (a, b) {
+            var x = a.getAttribute(attr) || "";
+            var y = b.getAttribute(attr) || "";
+            return dir * (isNum ? (Number(x) || 0) - (Number(y) || 0) : x.localeCompare(y, "id", { numeric: true, sensitivity: "base" }));
+          });
+
+          $pesertaSortBtns.each(function () {
+            var active = String($(this).data("sort")) === key;
+            $(this).closest("th").attr("aria-sort", active ? (dir === 1 ? "ascending" : "descending") : null);
+            $(this).children("i").attr("class", active ? (dir === 1 ? "ri-arrow-up-line" : "ri-arrow-down-line") : "ri-arrow-up-down-line");
+          });
+
+          $pesertaTbody.append(sorted);
+          $pesertaRows = $(sorted);
+          pesertaPage = 1;
+          renderPeserta();
+          $pesertaWrap.scrollTop(0);
         });
 
         $pesertaPagination.on("click", "button.page-link", function () {

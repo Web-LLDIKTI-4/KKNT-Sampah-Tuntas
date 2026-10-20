@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\DataPesertaExport;
 use App\Http\Requests\Auth\LaporanPublikRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\PesertaDetailRequest;
@@ -63,6 +64,12 @@ class LoginController extends Controller
             'jenis' => $jenis,
             'data' => $peserta->members($kodept, $jenis),
         ]));
+    }
+
+    // Same cached list as the table on /login, so no re-query
+    public function dataPesertaExport(DataPesertaSummary $peserta)
+    {
+        return (new DataPesertaExport($this->dataPeserta($peserta)))->download('data_peserta_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 
     public function petaFilter(PetaSebaranService $peta)
