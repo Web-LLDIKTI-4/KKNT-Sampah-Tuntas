@@ -1281,11 +1281,11 @@
             padding: 0.2rem 0.45rem;
           }
 
-          .peserta-table td:nth-child(2) {
+          .peserta-table td:nth-child(3) {
             min-width: 10rem;
           }
 
-          /* 6 columns: tighten cells so numeric columns stay compact */
+          /* 7 columns: tighten cells so numeric columns stay compact */
           .peserta-table {
             font-size: 0.75rem;
           }
@@ -1518,7 +1518,7 @@
                         </label>
                         <div class="input-group input-group-sm peserta-search">
                           <span class="input-group-text"><i class="ri-search-line" aria-hidden="true"></i></span>
-                          <input type="search" id="pesertaSearch" class="form-control" placeholder="Cari perguruan tinggi…"
+                          <input type="search" id="pesertaSearch" class="form-control" placeholder="Cari perguruan tinggi / kode PT…"
                             aria-label="Cari perguruan tinggi" aria-controls="pesertaTbody" autocomplete="off" />
                         </div>
                       </div>
@@ -1527,6 +1527,7 @@
                           <thead>
                             <tr>
                               <th scope="col" class="text-center">No</th>
+                              <th scope="col" class="text-center">Kode PT</th>
                               <th scope="col" class="text-center">Nama PTS</th>
                               <th scope="col" class="text-center">Jml. Mahasiswa</th>
                               <th scope="col" class="text-center">Jml. DPL</th>
@@ -1536,8 +1537,9 @@
                           </thead>
                           <tbody id="pesertaTbody" data-detail-url="{{ route('login.peserta') }}">
                             @foreach($dataPesertaList as $peserta)
-                              <tr data-search="{{ mb_strtolower((string) $peserta->nama_pt) }}">
+                              <tr data-search="{{ mb_strtolower($peserta->kodept.' '.$peserta->nama_pt) }}">
                                 <td class="text-center peserta-no">{{ $loop->iteration }}</td>
+                                <td class="text-center">{{ $peserta->kodept }}</td>
                                 <td>{{ $peserta->nama_pt }}</td>
                                 @foreach(['mahasiswa' => $peserta->jumlah_mahasiswa, 'dpl' => $peserta->jumlah_dpl, 'pic' => $peserta->jumlah_pic ?? 0, 'ketua' => $peserta->jumlah_ketua_kelompok ?? 0] as $jenis => $jumlah)
                                   <td class="text-center">
@@ -1554,7 +1556,7 @@
                           {{-- Static totals over all data --}}
                           <tfoot class="fw-semibold border-top">
                             <tr>
-                              <th colspan="2" class="text-center">Total</th>
+                              <th colspan="3" class="text-center">Total</th>
                               <th class="text-center">{{ number_format($dataPesertaList->sum('jumlah_mahasiswa'), 0, ',', '.') }}</th>
                               <th class="text-center">{{ number_format($dataPesertaList->sum('jumlah_dpl'), 0, ',', '.') }}</th>
                               <th class="text-center">{{ number_format($dataPesertaList->sum('jumlah_pic'), 0, ',', '.') }}</th>
