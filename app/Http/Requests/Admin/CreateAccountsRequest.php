@@ -38,7 +38,7 @@ class CreateAccountsRequest extends AjaxFormRequest
     {
         return [
             'createuser' => ['required', 'array', 'max:1000'],
-            'createuser.*' => ['required', 'string', 'email', 'max:255'],
+            'createuser.*' => ['required', 'string', 'max:255'], // No email format check (user decision); uniqueness via dedupe + after()
         ];
     }
 
@@ -47,7 +47,6 @@ class CreateAccountsRequest extends AjaxFormRequest
         return [
             'createuser.required' => 'user harus dipilih',
             'createuser.max' => 'Maksimal 1000 user per proses.',
-            'createuser.*.email' => 'Format email tidak valid.',
         ];
     }
 
