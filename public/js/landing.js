@@ -431,7 +431,7 @@
           return $('<th scope="col" class="text-center">').text(text)[0];
         }));
 
-        $("#modalPesertaDetailTitle").text(label + " — " + namaPt);
+        $("#modalPesertaDetailTitle").text(label + " - " + namaPt);
         pesertaDetailStatus("Memuat data…");
         bootstrap.Modal.getOrCreateInstance($pesertaModal[0]).show();
 
@@ -439,7 +439,7 @@
           .done(function (res) {
             var list = (res && Array.isArray(res.data)) ? res.data : [];
             if (res && res.nama_pt) {
-              $("#modalPesertaDetailTitle").text(label + " — " + res.nama_pt);
+              $("#modalPesertaDetailTitle").text(label + " - " + res.nama_pt);
             }
             if (!list.length) {
               pesertaDetailStatus("Belum ada data " + label.toLowerCase() + ".");
