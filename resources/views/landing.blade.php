@@ -112,8 +112,7 @@
                         <p class="lp-eyebrow"><i class="ri-recycle-line" aria-hidden="true"></i> Program GRADASI · LLDIKTI Wilayah IV</p>
                         <h1 class="lp-hero-title" id="heroTitle">KKN Tematik <span>Sampah Tuntas</span></h1>
                         <p class="lp-hero-lead">
-                            Mahasiswa, dosen, dan pemerintah daerah bergerak bersama menuju <strong>Zero to TPA</strong> —
-                            memilah, mengolah, dan mengurangi sampah langsung dari kelurahan/desa.
+                            Mahasiswa, dosen, dan pemerintah daerah bergerak bersama menuju <strong>Zero to TPA</strong>.
                         </p>
                         <div class="lp-hero-actions">
                             <a href="#capaian" class="btn btn-lg lp-btn-light">
