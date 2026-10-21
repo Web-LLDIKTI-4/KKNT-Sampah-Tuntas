@@ -20,7 +20,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>KKN Tematik Sampah Tuntas | LLDIKTI Wilayah IV</title>
-    <meta name="description" content="Program GRADASI: KKN Tematik Sampah Tuntas LLDIKTI Wilayah IV — capaian pengurangan sampah, lokasi program, data peserta, dan peta sebaran mahasiswa." />
+    <meta name="description" content="Program GRADASI: KKN Tematik Sampah Tuntas LLDIKTI Wilayah IV capaian pengurangan sampah, lokasi program, data peserta, dan peta sebaran mahasiswa." />
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/images/icon.png') }}" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,7 +42,7 @@
     {{-- Navbar --}}
     <header class="lp-nav" id="lpNav">
         <div class="container-xxl lp-nav-inner">
-            <a class="lp-brand" href="#beranda" aria-label="KKN Tematik Sampah Tuntas — ke atas">
+            <a class="lp-brand" href="#beranda" aria-label="KKN Tematik Sampah Tuntas ke atas">
                 <img src="{{ asset('assets/images/gradasi.png') }}" alt="" width="44" height="34" />
                 <span class="lp-brand-text">
                     <strong>Sampah Tuntas</strong>
@@ -128,7 +128,7 @@
                     <div class="col-lg-7">
                         <figure class="lp-hero-figure mb-0">
                             <img src="{{ asset('assets/images/sampah.png') }}" width="1920" height="1080" fetchpriority="high"
-                                alt="Infografis Program GRADASI Episode 1 — Sampah Tuntas: kolaborasi menuju Zero to TPA di Wilayah IV" />
+                                alt="Infografis Program GRADASI Episode 1 - Sampah Tuntas: kolaborasi menuju Zero to TPA di Wilayah IV" />
                         </figure>
                     </div>
                 </div>

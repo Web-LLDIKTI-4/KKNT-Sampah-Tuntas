@@ -43,9 +43,9 @@ class CapaianProgramSheet implements FromArray, WithTitle, WithEvents, WithStric
 
     public function array(): array
     {
-        $judul = 'Capaian Program — '.($this->data['bulan'] ? Carbon::parse($this->data['bulan'].'-01')->translatedFormat('F Y') : 'Semua Bulan');
+        $judul = 'Capaian Program - '.($this->data['bulan'] ? Carbon::parse($this->data['bulan'].'-01')->translatedFormat('F Y') : 'Semua Bulan');
         if ($this->data['klaster']) {
-            $judul .= ' — Klaster '.PenguranganSampah::KLASTER[$this->data['klaster']]['label'];
+            $judul .= ' - Klaster '.PenguranganSampah::KLASTER[$this->data['klaster']]['label'];
         }
         $rows = [[$judul, null, null], ['Nama', 'Persentase Pengurangan Sampah (%)', 'Klaster']];
 
