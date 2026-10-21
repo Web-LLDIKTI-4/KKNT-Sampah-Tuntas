@@ -10,9 +10,10 @@
     $isDefault = ! $params['kecamatan'] && ! $params['desa'] && ! $params['klaster'];
     $persenTotal = $total_keseluruhan->persen_pengurangan ?? null;
     $klasterTotal = PenguranganSampah::klaster($persenTotal, true);
-    // Export Excel menggantikan PNG: guest (login) & admin (dashboard); kepala, pemda & pt tetap PNG
+    // Export Excel menggantikan PNG: landing publik ($publik) & admin (dashboard); kepala, pemda & pt tetap PNG
     $exportRoute = match (true) {
-        auth()->guest() => 'login.laporan.export',
+        $publik ?? false => 'login.laporan.export',
+        auth()->guest() => null,
         auth()->user()->role === 'admin' => 'dashboard-pengurangan-sampah.export-capaian',
         default => null,
     };
@@ -120,14 +121,16 @@
             <table class="table table-sm table-bordered mb-0">
                 <colgroup>
                     <col style="width: 8%">
-                    <col style="width: 52%">
-                    <col style="width: 25%">
+                    <col style="width: 40%">
+                    <col style="width: 15%">
+                    <col style="width: 22%">
                     <col style="width: 15%">
                 </colgroup>
                 <thead>
                     <tr>
                         <th class="text-center">No</th>
                         <th class="text-center">Kelurahan/Desa</th>
+                        <th class="text-center">Base Line (%)</th>
                         <th class="text-center">Persentase Pengurangan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                     </tr>
@@ -139,11 +142,12 @@
                             <td @class(['fw-bold' => $kel->id_desa === $params['desa']])>
                                 <a href="#" data-drill='@json(['desa' => $kel->id_desa])'>{{ $kel->desa }}</a>
                             </td>
+                            <td class="text-center text-nowrap">{{ $persen($kel->baseline ?? null) }}</td>
                             <td class="text-center">{{ $persen($kel->persen) }}</td>
                             <td class="text-center">@if ($k = $klasterOf($kel->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kelurahan/desa pada klaster ini' : 'Belum ada kelurahan/desa' }}</td></tr>
+                        <tr><td colspan="5" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kelurahan/desa pada klaster ini' : 'Belum ada kelurahan/desa' }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

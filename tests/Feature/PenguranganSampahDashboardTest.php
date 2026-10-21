@@ -234,10 +234,10 @@ class PenguranganSampahDashboardTest extends TestCase
         $this->actingAs($kepala->fresh())->put('user/insertuserkepala', [])->assertForbidden();
     }
 
-    public function test_login_page_shows_laporan_kegiatan(): void
+    public function test_landing_page_shows_laporan_kegiatan(): void
     {
         $this->isiPendataan();
-        $this->get(route('login'))
+        $this->get(route('landing'))
             ->assertOk()
             ->assertSee('Capaian Program')
             ->assertSee('Persentase Pengurangan Sampah (%)')

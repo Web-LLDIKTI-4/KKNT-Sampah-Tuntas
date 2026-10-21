@@ -15,26 +15,45 @@ use App\Services\PenguranganSampahService;
 use App\Services\LokasiProgramSummary;
 use App\Services\PetaSebaranService;
 use App\Services\RekapPenguranganSampahService;
+use App\Services\SebaranPtSummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
 {
-    public function index(LokasiProgramSummary $summary, PenguranganSampahService $sampah, DataPesertaSummary $peserta, RekapPenguranganSampahService $rekap)
+    // Landing publik: tamu & user login (user login dapat tombol "Ke Dashboard" di view)
+    public function landing(LokasiProgramSummary $summary, PenguranganSampahService $sampah, DataPesertaSummary $peserta, RekapPenguranganSampahService $rekap, SebaranPtSummary $sebaran)
     {
-        return view('login', [
+        return view('landing', [
             'lokasiProgramList' => $summary->all(),
             'dataPesertaList' => $this->dataPeserta($peserta),
-            'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]),
+            'sebaranPtList' => $sebaran->cached(),
+            'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]) + ['publik' => true],
             'panduanList' => $this->getPanduanPublik(),
         ] + $this->statistikPublik($rekap));
+    }
+
+    // Form login saja; ?lokasi= hanya dipakai bila cocok dengan master (tidak di-echo mentah)
+    public function index(Request $request)
+    {
+        $lokasiProgramList = LokasiProgram::orderBy('nama_lokasi')->get(['id', 'nama_lokasi']);
+        $query = $request->query('lokasi');
+        // Non-string (lokasi[]=x) diabaikan
+        $query = is_string($query) ? mb_strtolower(trim($query)) : '';
+        $selectedLokasi = $query === '' ? null
+            : $lokasiProgramList->first(fn ($l) => mb_strtolower($l->nama_lokasi) === $query)?->nama_lokasi;
+
+        return view('login', [
+            'lokasiProgramList' => $lokasiProgramList,
+            'selectedLokasi' => $selectedLokasi,
+        ]);
     }
 
     // Laporan berjenjang kecamatan -> kelurahan -> kelompok sesuai pilihan bulan/kecamatan/kelurahan
     public function laporan(LaporanPublikRequest $request, PenguranganSampahService $sampah)
     {
-        return view('laporan._capaian_publik', $this->laporanData($sampah, $request->filter()));
+        return view('laporan._capaian_publik', $this->laporanData($sampah, $request->filter()) + ['publik' => true]);
     }
 
     // Peta sebaran mahasiswa per desa (publik, tanpa data pribadi, angka kecil disamarkan)
@@ -154,9 +173,10 @@ class LoginController extends Controller
     // Halaman publik: di-cache per kombinasi filter agar query berat tidak jalan di setiap kunjungan
     private function laporanData(PenguranganSampahService $sampah, array $filter): array
     {
-        $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0');
+        // Versi peta ikut: berubah saat master desa (mis. baseline) disimpan
+        $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0').'.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1);
 
-        return Cache::remember('login.capaian.v3.'.$versi.'.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter));
+        return Cache::remember('login.capaian.v4.'.$versi.'.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter));
     }
 
     /**

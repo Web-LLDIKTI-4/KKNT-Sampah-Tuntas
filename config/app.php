@@ -88,7 +88,7 @@ return [
     'seed_password' => env('SEED_DEFAULT_PASSWORD'),
 
     // Kosong = admin@kknt.test (non-production); wajib diisi di production
-    'seed_admin_email' => env('SEED_ADMIN_EMAIL') ?: null,
+    'seed_admin_email' => env('SEED_ADMIN_EMAIL') ?: '@test.com',
 
     /*
     |--------------------------------------------------------------------------

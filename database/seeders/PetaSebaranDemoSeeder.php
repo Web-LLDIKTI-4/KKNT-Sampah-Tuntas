@@ -70,10 +70,10 @@ class PetaSebaranDemoSeeder extends Seeder
         ],
     ];
 
-    // Sampah terkelola per rumah per bulan (organik + anorganik = 2 kg); residu diturunkan dari persen
-    protected const ORGANIK_KG = 1.2;
+    // Total sampah per log = koef (kg/jiwa/hari) × jiwa × 60–95%; terkelola = p% dari total, organik 60% terkelola
+    protected const KOEFISIEN_KG = 0.36;
 
-    protected const ANORGANIK_KG = 0.8;
+    protected const PORSI_ORGANIK = 0.6;
 
     public function run(): void
     {
@@ -330,25 +330,27 @@ class PetaSebaranDemoSeeder extends Seeder
                 if ($persen === null || ! $emailTahunIni) {
                     continue;
                 }
-                // residu = terkelola x (100/p - 1) -> persen pengurangan desa = p
-                $residu = round((self::ORGANIK_KG + self::ANORGANIK_KG) * (100 / $persen - 1), 2);
                 $jumlahRumah = 3 + ($desaIndex % 3);
                 $bulanDesa = $hanyaBulanLama ? [$bulanSampah[0]] : $bulanSampah;
                 foreach ($bulanDesa as $bulan) {
                     for ($r = 1; $r <= $jumlahRumah; $r++) {
+                        $jiwa = mt_rand(1, 8);
+                        $total = self::KOEFISIEN_KG * $jiwa * mt_rand(60, 95) / 100;
+                        $organik = round($total * $persen / 100 * self::PORSI_ORGANIK, 2);
+                        $anorganik = round($total * $persen / 100 - $organik, 2);
                         $pendataanRows[] = [
                             'id_pendataan' => (string) Str::uuid(),
                             'email' => $emailTahunIni[($r - 1) % count($emailTahunIni)],
                             'tanggal' => sprintf('%d-%02d-%02d', $tahun, $bulan, 10 + $r),
                             'nama_kepala_keluarga' => 'KK Demo '.$r,
-                            'jumlah_anggota_keluarga' => mt_rand(1, 8),
+                            'jumlah_anggota_keluarga' => $jiwa,
                             'alamat_rumah' => 'Jl. Demo No. '.$r.', '.$namaDesa,
                             'rt' => '001',
                             'rw' => '001',
                             'memilah' => $r % 4 !== 0,
-                            'organik_kg' => self::ORGANIK_KG,
-                            'anorganik_kg' => self::ANORGANIK_KG,
-                            'residu_kg' => $residu,
+                            'organik_kg' => $organik,
+                            'anorganik_kg' => $anorganik,
+                            'residu_kg' => round($total - $organik - $anorganik, 2),
                             'created_at' => $now,
                             'updated_at' => $now,
                         ];

@@ -486,9 +486,9 @@ class CapaianPublikTest extends TestCase
     {
         // Guest: Export Excel (bila route publik sudah ada) menggantikan PNG
         $aksi = Route::has('login.laporan.export') ? route('login.laporan.export') : 'data-png-download';
-        $this->get('login')->assertOk()
+        $this->get('/')->assertOk()
             ->assertSee($aksi, false)->assertDontSee('data-drill-reset', false)
-            ->assertSee('Program GRADASI : KKN Tematik')->assertSee('Capaian Program')->assertSee('Dokumen');
+            ->assertSee('Program GRADASI')->assertSee('Capaian Program')->assertSee('Dokumen');
         $this->get('login/laporan?bulan='.$this->bulan)->assertOk()->assertSee($aksi, false);
         $this->get('login/laporan?klaster=kuning')->assertOk()->assertSee('data-drill-reset', false)->assertDontSee($aksi, false);
         $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan)->assertOk()->assertSee('data-drill-reset', false);

@@ -41,7 +41,7 @@ class DataPesertaSortTest extends TestCase
 
     private function pesertaTable(): DOMXPath
     {
-        $html = $this->get(route('login'))->assertOk()->getContent();
+        $html = $this->get(route('landing'))->assertOk()->getContent();
         $dom = new DOMDocument();
         libxml_use_internal_errors(true);
         $dom->loadHTML('<?xml encoding="UTF-8">'.$html);
@@ -134,7 +134,7 @@ class DataPesertaSortTest extends TestCase
 
     public function test_nama_sort_attribute_is_html_escaped_in_source(): void
     {
-        $html = $this->get(route('login'))->assertOk()->getContent();
+        $html = $this->get(route('landing'))->assertOk()->getContent();
 
         $this->assertStringContainsString('data-sort-nama="Universitas &quot;Alfa&quot; &amp; &lt;Co&gt;"', $html);
     }

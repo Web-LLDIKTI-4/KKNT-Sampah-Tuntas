@@ -149,6 +149,11 @@
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja
                                         </a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pelaksanaankkn') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Daftar Pelaksanaan KKN Perguruan Tinggi
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                             <div class="col-12 col-lg">
@@ -396,6 +401,13 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja
                                     </a>
                                 </li>
+                                @if (Auth::user()->isPemantau())
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pelaksanaankkn') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Daftar Pelaksanaan KKN Perguruan Tinggi
+                                        </a>
+                                    </li>
+                                @endif
                                 @unless (Auth::user()->role === 'pemda')
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">

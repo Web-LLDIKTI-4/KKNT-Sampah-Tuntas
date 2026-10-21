@@ -41,6 +41,10 @@
             : 0;
     @endphp
 
+    @if ($userRole === 'pt')
+        @include('pelaksanaankkn._dashboard_form')
+    @endif
+
     <div class="row g-6">
     <!-- Organic Sessions Chart-->
     <div class="col-lg-4 col-md-6 order-1 order-lg-0">

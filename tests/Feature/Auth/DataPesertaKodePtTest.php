@@ -32,7 +32,7 @@ class DataPesertaKodePtTest extends TestCase
 
     private function pesertaTable(): DOMXPath
     {
-        $html = $this->get(route('login'))->assertOk()->getContent();
+        $html = $this->get(route('landing'))->assertOk()->getContent();
         $dom = new DOMDocument();
         libxml_use_internal_errors(true);
         $dom->loadHTML('<?xml encoding="UTF-8">'.$html);

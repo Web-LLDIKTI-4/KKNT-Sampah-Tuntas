@@ -303,7 +303,7 @@ class PetaSebaranTest extends TestCase
         $this->getJson(route('login.peta'))->assertOk()->assertJsonPath('desa', []);
     }
 
-    public function test_login_page_renders_public_statistics(): void
+    public function test_landing_page_renders_public_statistics(): void
     {
         $kec = Kecamatan::factory()->create();
         Desa::factory()->count(3)->create(['id_kecamatan' => $kec->id_kecamatan]);
@@ -311,21 +311,23 @@ class PetaSebaranTest extends TestCase
         Mahasiswa::factory()->create(['kodept' => '042002']);
         Dpl::factory()->count(2)->create();
 
-        $this->get(route('login'))->assertOk()->assertSeeInOrder([
-            'data-target="3">3</span> Mahasiswa</b>', 'data-target="2">2</span> DPL</b>', 'data-target="2">2</span> Perguruan Tinggi.</b>',
-            'data-target="1">1</span> Kecamatan dan', 'data-target="3">3</span> Kelurahan/Desa',
+        $this->get(route('landing'))->assertOk()->assertSeeInOrder([
+            'data-target="3">3</span>', 'Mahasiswa</span>', 'data-target="2">2</span>', 'DPL</span>',
+            'data-target="2">2</span>', 'Perguruan Tinggi</span>', 'data-target="1">1</span>', 'Kecamatan</span>',
+            'data-target="3">3</span>', 'Kelurahan/Desa</span>',
         ], false);
 
         // Cache flushed on change, no TTL wait
         Mahasiswa::factory()->create(['kodept' => '043003']);
         Dpl::factory()->create(['kodept' => '044004']); // PT with DPL only still counts
-        $this->get(route('login'))->assertSeeInOrder([
-            'data-target="4">4</span> Mahasiswa</b>', 'data-target="4">4</span> Perguruan Tinggi.</b>',
+        $this->get(route('landing'))->assertSeeInOrder([
+            'data-target="4">4</span>', 'Mahasiswa</span>', 'data-target="3">3</span>', 'DPL</span>',
+            'data-target="4">4</span>', 'Perguruan Tinggi</span>',
         ], false);
 
         // Top 5 desa diurutkan berdasarkan persen pengurangan sampah
-        $this->get(route('login'))
-            ->assertSee('Top 5 Desa · Pengurangan Sampah Tertinggi')
+        $this->get(route('landing'))
+            ->assertSee('Top 5 · Pengurangan Sampah Tertinggi')
             ->assertDontSee('Top 5 Desa Terbanyak');
     }
 
@@ -364,12 +366,12 @@ class PetaSebaranTest extends TestCase
             ->assertJsonPath('summary.total_label', '0');
     }
 
-    public function test_authenticated_user_is_redirected_from_guest_endpoint(): void
+    public function test_authenticated_user_can_access_public_peta_endpoints(): void
     {
         $this->loginAs('admin');
 
-        $this->get(route('login.peta'))->assertRedirect();
-        $this->get(route('login.peta.filter'))->assertRedirect();
+        $this->getJson(route('login.peta'))->assertOk()->assertJsonStructure(['desa', 'mode', 'summary']);
+        $this->getJson(route('login.peta.filter'))->assertOk();
     }
 
     public function test_admin_can_save_and_clear_coordinates(): void

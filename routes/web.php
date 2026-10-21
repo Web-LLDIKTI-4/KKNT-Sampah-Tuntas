@@ -44,6 +44,7 @@ use App\Http\Controllers\DplfreeformController;
 use App\Http\Controllers\KecamatanController;
 use App\Http\Controllers\PanduanController;
 use App\Http\Controllers\PanduanPublikController;
+use App\Http\Controllers\PelaksanaanKknController;
 use App\Http\Controllers\RencanaKerjaController;
 use App\Http\Controllers\DesaController;
 use App\Http\Controllers\PjdesaController;
@@ -73,9 +74,7 @@ use App\Http\Controllers\PicpjController;
 
 use App\Http\Controllers\SaranController;
 
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+Route::get('/', [LoginController::class, 'landing'])->middleware('throttle:peta')->name('landing');
 
 // Redirect 301 URL lama (sebelum rename) ke URL baru; sub-path & query string ikut
 foreach ([
@@ -101,13 +100,15 @@ Route::middleware('guest')->group(function () {
     Route::get('login', [LoginController::class, 'index'])->name('login');
     Route::put('login', [LoginController::class, 'proseslogin'])->middleware('throttle:30,1');
     Route::get('login/token', [LoginController::class, 'token'])->middleware('throttle:30,1')->name('login.token');
-    Route::get('login/laporan', [LoginController::class, 'laporan'])->middleware('throttle:30,1')->name('login.laporan');
-    Route::get('login/peta', [LoginController::class, 'peta'])->middleware('throttle:peta')->name('login.peta');
-    Route::get('login/peta/filter', [LoginController::class, 'petaFilter'])->middleware('throttle:peta')->name('login.peta.filter');
-    // Generate xlsx lebih berat: throttle lebih ketat
-    Route::get('login/laporan/export', [CapaianProgramExportController::class, 'publik'])->middleware('throttle:10,1')->name('login.laporan.export');
-    Route::get('login/data-peserta/export', [LoginController::class, 'dataPesertaExport'])->middleware('throttle:10,1')->name('login.data-peserta.export');
 });
+
+// Data publik landing: terbuka untuk tamu & user login
+Route::get('login/laporan', [LoginController::class, 'laporan'])->middleware('throttle:30,1')->name('login.laporan');
+Route::get('login/peta', [LoginController::class, 'peta'])->middleware('throttle:peta')->name('login.peta');
+Route::get('login/peta/filter', [LoginController::class, 'petaFilter'])->middleware('throttle:peta')->name('login.peta.filter');
+// Generate xlsx lebih berat: throttle lebih ketat
+Route::get('login/laporan/export', [CapaianProgramExportController::class, 'publik'])->middleware('throttle:10,1')->name('login.laporan.export');
+Route::get('login/data-peserta/export', [LoginController::class, 'dataPesertaExport'])->middleware('throttle:10,1')->name('login.data-peserta.export');
 
 Route::get('login/peserta', [LoginController::class, 'peserta'])->middleware('throttle:peta')->name('login.peserta');
 
@@ -376,6 +377,19 @@ Route::middleware(['auth', 'role:admin,pt,kepala,pemda,dpl,mahasiswa', 'user.gua
     Route::put('rencanakerja/update', [RencanaKerjaController::class, 'update'])->middleware('throttle:sensitive')->name('rencanakerja.update');
     Route::put('rencanakerja/destroy', [RencanaKerjaController::class, 'destroy'])->middleware('throttle:sensitive')->name('rencanakerja.destroy');
     Route::get('rencanakerja/view/{id_rencana_kerja}', [RencanaKerjaController::class, 'view'])->whereUuid('id_rencana_kerja')->name('rencanakerja.view');
+});
+
+// Pelaksanaan KKN: PT kelola miliknya (dicari dari email login, tanpa id dari klien); aksi dijaga PelaksanaanKknPolicy
+Route::middleware(['auth', 'role:pt'])->group(function () {
+    Route::put('pelaksanaankkn/simpan', [PelaksanaanKknController::class, 'simpan'])->middleware('throttle:sensitive')->name('pelaksanaankkn.simpan');
+    Route::put('pelaksanaankkn/destroy', [PelaksanaanKknController::class, 'destroy'])->middleware('throttle:sensitive')->name('pelaksanaankkn.destroy');
+});
+
+// Daftar pelaksanaan KKN semua PT: read-only
+Route::middleware(['auth', 'role:admin,kepala,pemda'])->group(function () {
+    Route::get('pelaksanaankkn', [PelaksanaanKknController::class, 'index'])->name('pelaksanaankkn');
+    Route::get('pelaksanaankkn/listdata', [PelaksanaanKknController::class, 'listdata'])->name('pelaksanaankkn.listdata');
+    Route::get('pelaksanaankkn/listdataserver', [PelaksanaanKknController::class, 'listdataserver'])->middleware('throttle:60,1')->name('pelaksanaankkn.listdataserver');
 });
 
 Route::middleware(['auth', 'role:admin,kepala,pemda'])->group(function () {

@@ -20,6 +20,7 @@ class DesaRequest extends AjaxFormRequest
             ],
             'latitude' => ['nullable', 'required_with:longitude', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'required_with:latitude', 'numeric', 'between:-180,180'],
+            'baseline' => ['nullable', 'numeric', 'between:0,100', 'decimal:0,2'],
         ];
     }
 
@@ -36,6 +37,9 @@ class DesaRequest extends AjaxFormRequest
             'longitude.required_with' => 'Longitude harus diisi jika latitude diisi.',
             'longitude.numeric' => 'Longitude harus berupa angka.',
             'longitude.between' => 'Longitude harus di antara -180 dan 180.',
+            'baseline.numeric' => 'Base Line harus berupa angka.',
+            'baseline.between' => 'Base Line harus di antara 0 dan 100.',
+            'baseline.decimal' => 'Base Line maksimal 2 angka desimal.',
         ];
     }
 }

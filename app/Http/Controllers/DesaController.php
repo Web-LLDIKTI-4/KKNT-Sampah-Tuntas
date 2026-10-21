@@ -48,6 +48,7 @@ class DesaController extends Controller
             ->orderColumn('kecamatan', 'kecamatan.kecamatan $1')
             ->editColumn('latitude', fn (Desa $row) => $row->latitude !== null ? (float) $row->latitude : null)
             ->editColumn('longitude', fn (Desa $row) => $row->longitude !== null ? (float) $row->longitude : null)
+            ->editColumn('baseline', fn (Desa $row) => $row->baseline !== null ? number_format((float) $row->baseline, 2, ',', '.').' %' : '-')
             ->addColumn('action', fn (Desa $row) => ActionButtons::make(
                 urlEdit: url('desa/edit/'.$row->id_desa),
                 urlDelete: url('desa/destroy'),
@@ -65,7 +66,7 @@ class DesaController extends Controller
 
     public function insert(DesaRequest $request)
     {
-        Desa::create($request->safe()->only('id_kecamatan', 'desa', 'latitude', 'longitude'));
+        Desa::create($request->safe()->only('id_kecamatan', 'desa', 'latitude', 'longitude', 'baseline'));
 
         return $this->saved();
     }
@@ -81,7 +82,7 @@ class DesaController extends Controller
     public function update(DesaRequest $request)
     {
         Desa::findOrFail($request->validated('id_desa'))
-            ->update($request->safe()->only('id_kecamatan', 'desa', 'latitude', 'longitude'));
+            ->update($request->safe()->only('id_kecamatan', 'desa', 'latitude', 'longitude', 'baseline'));
 
         return $this->saved();
     }

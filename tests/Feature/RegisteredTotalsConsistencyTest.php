@@ -64,7 +64,7 @@ class RegisteredTotalsConsistencyTest extends TestCase
             'kelurahan' => Desa::count(),
         ];
 
-        $this->get(route('login'))->assertOk()
+        $this->get(route('landing'))->assertOk()
             ->assertViewHas('jumlahPt', $expected['pt'])
             ->assertViewHas('jumlahMahasiswa', $expected['mahasiswa'])
             ->assertViewHas('jumlahDpl', $expected['dpl'])

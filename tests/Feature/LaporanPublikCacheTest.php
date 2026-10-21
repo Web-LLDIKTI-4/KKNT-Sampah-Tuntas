@@ -51,7 +51,7 @@ class LaporanPublikCacheTest extends TestCase
         $lama = $this->wilayahDanSampah('Lama', $bulanLama);
 
         // Cache terisi: halaman awal + bulanList
-        $this->get('/login')->assertOk()->assertSee('Kec Lama');
+        $this->get('/')->assertOk()->assertSee('Kec Lama');
         $this->get('/login/laporan?bulan='.$bulanLama.'&kecamatan='.$lama->id_kecamatan)->assertOk();
 
         // Seed ulang: tabel dikosongkan tanpa event (seperti migrate:fresh), data baru dibuat lewat model
@@ -60,7 +60,7 @@ class LaporanPublikCacheTest extends TestCase
         }
         $baru = $this->wilayahDanSampah('Baru', $bulanBaru);
 
-        $this->get('/login')->assertOk()->assertSee('Kec Baru')->assertDontSee('Kec Lama');
+        $this->get('/')->assertOk()->assertSee('Kec Baru')->assertDontSee('Kec Lama');
         $this->get('/login/laporan?bulan='.$bulanBaru.'&kecamatan='.$baru->id_kecamatan)->assertOk();
     }
 

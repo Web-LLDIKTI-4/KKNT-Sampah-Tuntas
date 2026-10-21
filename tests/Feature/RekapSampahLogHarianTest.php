@@ -506,9 +506,9 @@ class RekapSampahLogHarianTest extends TestCase
         $ketua = $this->mahasiswaDi($desa, $pt->npsn);
         Pjdesa::create(['email' => $ketua->email, 'id_desa' => $desa->id_desa]);
 
-        $this->get('login')->assertOk()->assertDontSee('30,00%');
+        $this->get('/')->assertOk()->assertDontSee('30,00%');
         $this->log($ketua, ['tanggal' => now()->format('Y-m').'-01', 'organik_kg' => 30, 'anorganik_kg' => 0, 'residu_kg' => 70]);
-        $this->get('login')->assertOk()->assertSee('Kec Publik')->assertSee('30,00%');
+        $this->get('/')->assertOk()->assertSee('Kec Publik')->assertSee('30,00%');
     }
 
     public function test_helper_persen_klaster_capaian(): void

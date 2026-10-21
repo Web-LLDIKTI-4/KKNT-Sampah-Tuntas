@@ -312,6 +312,7 @@ class PenguranganSampahService
                 ->map(fn ($r) => (object) [
                     'id_desa' => $r->id_desa,
                     'desa' => $r->desa,
+                    'baseline' => $r->baseline !== null ? (float) $r->baseline : null,
                     'persen' => $persenDesa[$r->id_desa]->persen_pengurangan ?? null,
                 ])->values()
             : collect();
@@ -467,8 +468,8 @@ class PenguranganSampahService
     {
         return $this->penempatanData[(string) $kodept] ??= $this->query(['kodept' => $kodept])
             ->whereNotNull('kc.id_kecamatan')
-            ->groupBy('s.location_program', 's.id_desa', 's.kodept', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan')
-            ->select('s.location_program', 's.id_desa', 'd.desa', 'd.id_kecamatan', 'kc.kecamatan', 's.kodept')
+            ->groupBy('s.location_program', 's.id_desa', 's.kodept', 'd.desa', 'd.baseline', 'd.id_kecamatan', 'kc.kecamatan')
+            ->select('s.location_program', 's.id_desa', 'd.desa', 'd.baseline', 'd.id_kecamatan', 'kc.kecamatan', 's.kodept')
             ->get();
     }
 

@@ -51,7 +51,7 @@ class DataPesertaExportTest extends TestCase
 
     private function loginPage(): DOMXPath
     {
-        $html = $this->get(route('login'))->assertOk()->getContent();
+        $html = $this->get(route('landing'))->assertOk()->getContent();
         $dom = new DOMDocument();
         libxml_use_internal_errors(true);
         $dom->loadHTML('<?xml encoding="UTF-8">'.$html);
@@ -174,13 +174,12 @@ class DataPesertaExportTest extends TestCase
         }
     }
 
-    public function test_authenticated_user_redirected_like_laporan_export(): void
+    public function test_authenticated_user_can_download_like_laporan_export(): void
     {
         $this->actingAs(User::factory()->role('pt')->create());
 
-        $expected = $this->get(route('login.laporan.export'))->assertRedirect()->headers->get('Location');
-        $this->get(route('login.data-peserta.export'))->assertRedirect($expected);
-        $this->assertSame(route('home'), $expected);
+        $this->get(route('login.laporan.export'))->assertOk();
+        $this->assertMatchesRegularExpression(self::FILENAME, (string) $this->get(route('login.data-peserta.export'))->assertOk()->headers->get('content-disposition'));
     }
 
     public function test_eleventh_request_in_a_minute_is_throttled(): void

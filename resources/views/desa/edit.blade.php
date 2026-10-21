@@ -16,6 +16,16 @@
         <input type="text" name="desa" class="form-control form-control-sm" required maxlength="200" value="{{$data->desa}}">
         <label>Nama Kelurahan/Desa</label>
     </div>
+    <div class="form-group mb-6">
+        <div class="input-group input-group-merge">
+            <div class="form-floating form-floating-outline">
+                <input type="number" name="baseline" id="baseline-ubah" class="form-control form-control-sm" step="0.01" min="0" max="100" inputmode="decimal" placeholder="0,00" value="{{ $data->baseline }}">
+                <label for="baseline-ubah">Base Line (%)</label>
+            </div>
+            <span class="input-group-text">%</span>
+        </div>
+        <div class="form-text">Opsional, 0–100 dengan maksimal 2 angka desimal.</div>
+    </div>
     <div class="row g-4 mb-2">
         <div class="col-12 col-sm-6">
             <div class="form-group form-floating form-floating-outline">

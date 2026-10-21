@@ -7,6 +7,7 @@
                     <th>Id desa</th>
                     <th>Nama Kecamatan</th>
                     <th>Nama Kelurahan/Desa</th>
+                    <th class="text-end text-nowrap">Base Line (%)</th>
                     <th width="1">Peta</th>
                     <th width="1">Aksi</th>
                 </tr>
@@ -97,6 +98,13 @@
             {data: 'id_desa', name: 'id_desa', visible:false},
             {data: 'kecamatan', name: 'kecamatan'},
             {data: 'desa', name: 'desa'},
+            {
+                data: 'baseline', name: 'baseline', className: 'text-end text-nowrap', searchable: false,
+                // Server sends formatted text ("12,50 %" / "-"); escape before display
+                render: function (data, type) {
+                    return type === 'display' ? $('<span>').text(data == null || data === '' ? '-' : String(data)).html() : data;
+                }
+            },
             {
                 data: null, orderable: false, searchable: false,
                 render: function (data, type, full) {

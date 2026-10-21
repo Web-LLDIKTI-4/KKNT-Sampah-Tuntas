@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\LokasiProgram;
 use App\Models\PendataanPemilahanSampah;
 use Database\Seeders\Concerns\SeedsDummyData;
 use Illuminate\Database\Seeder;
@@ -23,14 +24,19 @@ class PendataanPemilahanSeeder extends Seeder
     // [rasio terkelola / total, peluang rumah memilah %] per klaster
     private const PROFIL = [[0.35, 70], [0.15, 45], [0.05, 20]];
 
+    // kg/jiwa/hari bila lokasi program belum punya koefisien timbulan
+    private const KOEFISIEN_DEFAULT = 0.36;
+
     public function run(): void
     {
         $profilPt = $this->perguruanTinggi()->mapWithKeys(fn ($pt, $i) => [$pt->npsn => self::PROFIL[$i % count(self::PROFIL)]]);
         $mahasiswa = $this->mahasiswaKelompok();
+        $koefLokasi = LokasiProgram::pluck('koefisien_timbulan_sampah', 'id');
         $this->seedRandom();
 
         foreach ($mahasiswa->values() as $m => $mhs) {
             [$rasio, $peluangMemilah] = $profilPt[$mhs->kodept] ?? self::PROFIL[0];
+            $koef = (float) ($koefLokasi[$mhs->location_program] ?? 0) ?: self::KOEFISIEN_DEFAULT;
 
             foreach (range(1, self::RUMAH_PER_MAHASISWA) as $r) {
                 // Identitas rumah sama tiap bulan agar dihitung 1 rumah di rekap
@@ -43,7 +49,7 @@ class PendataanPemilahanSeeder extends Seeder
                 ];
 
                 foreach ([2, 1, 0] as $offset) {
-                    $this->catat($mhs->email, $rumah, $this->tanggal($offset, $m + $r), $rasio, $peluangMemilah);
+                    $this->catat($mhs->email, $rumah, $this->tanggal($offset, $m + $r), $rasio, $peluangMemilah, $koef);
                 }
             }
         }
@@ -61,11 +67,14 @@ class PendataanPemilahanSeeder extends Seeder
         return $awal->addDays($hari)->toDateString();
     }
 
-    private function catat(string $email, array $rumah, string $tanggal, float $rasio, int $peluangMemilah): void
+    private function catat(string $email, array $rumah, string $tanggal, float $rasio, int $peluangMemilah, float $koef): void
     {
-        $organik = mt_rand(50, 200) / 100;
-        $anorganik = mt_rand(20, 100) / 100;
-        $residu = round(($organik + $anorganik) * (1 - $rasio) / $rasio * mt_rand(90, 110) / 100, 2);
+        // 1 log = sampah 1 hari: total 60–95% potensi (koef × jiwa) -> penurunan timbulan 5–40%
+        $total = $koef * $rumah['jumlah_anggota_keluarga'] * mt_rand(60, 95) / 100;
+        $terkelola = $total * $rasio * mt_rand(90, 110) / 100;
+        $organik = round($terkelola * mt_rand(55, 75) / 100, 2);
+        $anorganik = round($terkelola - $organik, 2);
+        $residu = round($total - $organik - $anorganik, 2);
 
         $data = PendataanPemilahanSampah::factory()->raw($rumah + [
             'email' => $email,
@@ -76,7 +85,7 @@ class PendataanPemilahanSeeder extends Seeder
             'residu_kg' => $residu,
         ]);
 
-        PendataanPemilahanSampah::firstOrCreate(
+        PendataanPemilahanSampah::updateOrCreate(
             ['email' => $email, 'alamat_rumah' => $rumah['alamat_rumah'], 'tanggal' => $tanggal],
             $data,
         );

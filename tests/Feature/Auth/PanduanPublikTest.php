@@ -34,15 +34,15 @@ class PanduanPublikTest extends TestCase
         ]);
     }
 
-    public function test_login_page_lists_only_active_panduan_without_internal_data(): void
+    public function test_landing_page_lists_only_active_panduan_without_internal_data(): void
     {
         $aktif = $this->createPanduan(['judul' => 'Panduan Aktif <script>x</script>']);
         $nonaktif = $this->createPanduan(['judul' => 'Panduan Draf Rahasia', 'is_aktif' => false]);
 
-        $this->get('login')
+        $this->get('/')
             ->assertOk()
-            ->assertSee('id="tabPanduan"', false)
-            ->assertSee('id="panePanduan"', false)
+            ->assertSee('id="dokumen"', false)
+            ->assertSee('id="panduan"', false)
             ->assertSee('Panduan Aktif &lt;script&gt;', false)
             ->assertDontSee('<script>x</script>', false)
             ->assertSee(route('panduan.unduh', $aktif->id_panduan), false)
@@ -52,9 +52,9 @@ class PanduanPublikTest extends TestCase
             ->assertDontSee(route('panduan.download', $aktif->id_panduan), false);
     }
 
-    public function test_login_page_shows_empty_state_when_no_panduan(): void
+    public function test_landing_page_shows_empty_state_when_no_panduan(): void
     {
-        $this->get('login')->assertOk()->assertSee('id="tabPanduan"', false)->assertSee('Belum ada dokumen yang tersedia.');
+        $this->get('/')->assertOk()->assertSee('id="dokumen"', false)->assertSee('Belum ada dokumen yang tersedia.');
     }
 
     public function test_guest_can_download_active_panduan(): void
@@ -114,10 +114,10 @@ class PanduanPublikTest extends TestCase
         $this->get($url)->assertStatus(429);
     }
 
-    public function test_deactivating_panduan_clears_login_cache(): void
+    public function test_deactivating_panduan_clears_landing_cache(): void
     {
         $panduan = $this->createPanduan(['judul' => 'Panduan Sementara']);
-        $this->get('login')->assertSee('Panduan Sementara');
+        $this->get('/')->assertSee('Panduan Sementara');
 
         $this->loginAs('admin');
         $this->put('panduan/update', [
@@ -127,16 +127,16 @@ class PanduanPublikTest extends TestCase
         ])->assertJson(['success' => true]);
         auth()->logout();
 
-        $this->get('login')->assertDontSee('Panduan Sementara');
+        $this->get('/')->assertDontSee('Panduan Sementara');
     }
 
-    public function test_seeded_login_page_shows_only_active_rows(): void
+    public function test_seeded_landing_page_shows_only_active_rows(): void
     {
         Cache::put(Panduan::PUBLIC_CACHE_KEY, collect(), now()->addMinutes(10));
         $this->seed(PanduanSeeder::class);
         $this->assertNull(Cache::get(Panduan::PUBLIC_CACHE_KEY), 'Seeder wajib menghapus cache login');
 
-        $html = $this->get('login')->assertOk()->getContent();
+        $html = $this->get('/')->assertOk()->getContent();
 
         $this->assertSame(Panduan::where('is_aktif', true)->count(), substr_count($html, 'class="panduan-item"'));
     }

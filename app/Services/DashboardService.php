@@ -11,6 +11,7 @@ use App\Models\Logbulanan;
 use App\Models\Logkegiatan;
 use App\Models\Mahasiswa;
 use App\Models\Nilaikonversi;
+use App\Models\PelaksanaanKkn;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -65,6 +66,8 @@ class DashboardService
             'jumlahlogkegiatan' => $this->distinctPairs('logkegiatan', 'tanggal', $emails, 'deskripsi'),
             'jumlahdpl' => Dpl::where('kodept', $user->email)->count(),
             'penguranganSampahHome' => $this->penguranganSampahHome(['kodept' => $user->email], false),
+            'pelaksanaanKkn' => PelaksanaanKkn::where('kodept', $user->email)->first(),
+            'bisaIsiPelaksanaan' => $user->can('upsert', PelaksanaanKkn::class),
         ] + $this->common();
     }
 
