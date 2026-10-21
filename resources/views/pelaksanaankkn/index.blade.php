@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Daftar Pelaksanaan KKN Perguruan Tinggi')
+@section('title','Waktu Pelaksanan KKN PTS')
 @section('container')
 <x-crud-index :list-url="route('pelaksanaankkn.listdata')" />
 @stop

@@ -18,10 +18,10 @@ class DataPesertaExport
         return (new XlsxStreamer('Data Peserta', [
             XlsxStreamer::column('Kode PT', 'kodept', 12),
             XlsxStreamer::column('Nama PTS', 'nama_pt', 45),
-            XlsxStreamer::column('Jml. Mahasiswa', 'jumlah_mahasiswa', 15),
-            XlsxStreamer::column('Jml. DPL', 'jumlah_dpl', 12),
-            XlsxStreamer::column('Jml. PIC', 'jumlah_pic', 12),
-            XlsxStreamer::column('Jml. Ketua Kelompok', 'jumlah_ketua_kelompok', 18),
+            XlsxStreamer::column('Mahasiswa', 'jumlah_mahasiswa', 15),
+            XlsxStreamer::column('DPL', 'jumlah_dpl', 12),
+            XlsxStreamer::column('PIC', 'jumlah_pic', 12),
+            XlsxStreamer::column('Ketua Kelompok', 'jumlah_ketua_kelompok', 18),
         ]))
             ->total(array_combine(self::COUNTS, array_map(fn ($key) => (int) $this->rows->sum($key), self::COUNTS)))
             ->download($filename, $this->rows);

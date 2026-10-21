@@ -297,7 +297,7 @@
 
         <p class="text-center small mb-4">
           <span class="text-muted">Belum punya akun? Kontak </span>
-          <a href="https://wa.me/6282244121226?text=Halo%20saya%20ingin%20bertanya" target="_blank" rel="noopener noreferrer" class="fw-semibold">LLDIKTI Wilayah IV</a>
+          <a href="https://wa.me/{{ preg_replace('/\D/', '', config('helpdesk.whatsapp.0')) }}?text=Halo%20saya%20ingin%20bertanya" target="_blank" rel="noopener noreferrer" class="fw-semibold">LLDIKTI Wilayah IV</a>
         </p>
 
         <div class="auth-social">

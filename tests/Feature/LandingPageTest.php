@@ -57,7 +57,7 @@ class LandingPageTest extends TestCase
     private function assertBaselineBeforePersen($response): void
     {
         $response->assertOk()
-            ->assertSeeInOrder(['Kelurahan/Desa</th>', 'Base Line (%)</th>', 'Persentase Pengurangan Sampah (%)</th>', 'Klaster</th>'], false)
+            ->assertSeeInOrder(['Kelurahan/Desa</th>', 'BaseLine (%)</th>', 'Pengurangan Sampah (%)</th>', 'Klaster</th>'], false)
             ->assertSeeInOrder(['Desa Berbaseline</a>', '12,50%</td>', '20,00%</td>'], false)
             ->assertSeeInOrder(['Desa Tanpa Baseline</a>', '-</td>', '20,00%</td>'], false);
     }

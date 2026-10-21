@@ -26,7 +26,7 @@
         ajax: "{{ route('panduan.listdataserver') }}",
         language: {
             search: "",
-            searchPlaceholder: "Cari judul atau nama file...",
+            searchPlaceholder: "Cari dokumen atau materi panduan...",
             zeroRecords: "Belum ada panduan. Klik \"Tambah Panduan\" untuk mengunggah.",
             infoEmpty: "Tidak ada data yang ditemukan",
         },

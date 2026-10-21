@@ -5,7 +5,7 @@
                 <tr>
                     <th width="1">No</th>
                     <th>Kode PT</th>
-                    <th>Nama PT</th>
+                    <th>Nama PTS</th>
                     <th>Lokasi Program</th>
                     <th>Tanggal Mulai</th>
                     <th>Tanggal Selesai</th>

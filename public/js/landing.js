@@ -856,7 +856,7 @@
         note += ". " + summary.desa_tersamar + " kelurahan/desa dengan <3 mahasiswa disamarkan.";
       }
 
-      $("#petaSubtitle").text("Persebaran di " + (summary.jumlah_desa == null ? 0 : summary.jumlah_desa) + " kelurahan/desa, " + (summary.jumlah_kecamatan == null ? 0 : summary.jumlah_kecamatan) + " kecamatan");
+      $("#petaSubtitle").text("Jelajahi sebaran mahasiswa KKN Tematik Sampah Tuntas di 73 desa/kelurahan pada 32 kecamatan. Pantau lokasi penugasan, jumlah mahasiswa, dan capaian pengurangan sampah di setiap wilayah.");
       $("#petaSummaryBadge").text(tahun ? "Tahun " + tahun : "Semua Tahun");
       $("#petaTotal").text(summary.total_label == null ? "0" : summary.total_label);
       $("#petaSummaryNote").text(note);

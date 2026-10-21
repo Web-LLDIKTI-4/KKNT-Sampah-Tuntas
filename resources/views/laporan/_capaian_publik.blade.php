@@ -59,7 +59,7 @@
 
     <div data-png-target>
         <div class="mb-3">
-            <div class="small text-muted">Capaian Keseluruhan 5 Kota/Kabupaten{{ $namaBulan ? ' ('.$namaBulan.')' : '' }}</div>
+            <div class="small text-muted">Capaian Pengurangan Sampah Seluruh Wilayah</div>
             @if ($persenTotal === null)
                 <span class="text-muted small">Belum ada data</span>
             @else
@@ -86,7 +86,7 @@
                     <tr>
                         <th class="text-center">No</th>
                         <th class="text-center">Kecamatan</th>
-                        <th class="text-center">Persentase Pengurangan Sampah (%)</th>
+                        <th class="text-center">Pengurangan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                     </tr>
                 </thead>
@@ -130,8 +130,8 @@
                     <tr>
                         <th class="text-center">No</th>
                         <th class="text-center">Kelurahan/Desa</th>
-                        <th class="text-center">Base Line (%)</th>
-                        <th class="text-center">Persentase Pengurangan Sampah (%)</th>
+                        <th class="text-center">BaseLine (%)</th>
+                        <th class="text-center">Pengurangan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                     </tr>
                 </thead>
@@ -163,9 +163,9 @@
                         <th class="text-center" width="1">No</th>
                         <th class="text-center">PTS</th>
                         <th class="text-center">Lokasi</th>
-                        <th class="text-center">JML. MHS</th>
-                        <th class="text-center">JML. DPL</th>
-                        <th class="text-center">Persentase Pengurangan Sampah (%)</th>
+                        <th class="text-center">Mahasiswa</th>
+                        <th class="text-center">DPL</th>
+                        <th class="text-center">Pengurangan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                         <th class="text-center">Detail</th>
                     </tr>

@@ -13,6 +13,10 @@
   max-height: min(560px, 75vh);
 }
 
+.scroll-box-md {
+  max-height: min(360px, 60vh);
+}
+
 .scroll-box > table > thead {
   position: sticky;
   top: 0;

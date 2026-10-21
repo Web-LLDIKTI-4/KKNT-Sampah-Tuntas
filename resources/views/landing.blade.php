@@ -11,7 +11,16 @@
         ['value' => $jumlahKecamatan ?? 0, 'label' => 'Kecamatan', 'icon' => 'ri-map-2-line'],
         ['value' => $jumlahKelurahan ?? 0, 'label' => 'Kelurahan/Desa', 'icon' => 'ri-home-8-line'],
     ];
-    $navItems = ['beranda' => 'Beranda', 'lokasi' => 'Lokasi', 'capaian' => 'Capaian', 'peserta' => 'Peserta', 'sebaran' => 'Sebaran PT', 'peta' => 'Peta Sebaran', 'dokumen' => 'Dokumen'];
+    // Label nav = judul section (satu sumber, dipakai juga di <h1>/<h2>)
+    $navItems = [
+        'beranda' => 'KKN Tematik Sampah Tuntas',
+        'lokasi' => 'Lokasi Pelaksanaan KKN Tematik Sampah Tuntas',
+        'capaian' => 'Capaian Pengurangan Sampah',
+        'peserta' => 'Perguruan Tinggi Peserta',
+        'sebaran' => 'Sebaran Perguruan Tinggi pada Wilayah Pelaksanaan Program',
+        'peta' => 'Jejak Aksi Mahasiswa di Setiap Wilayah',
+        'dokumen' => 'Panduan dan Dokumen Program',
+    ];
 @endphp
 <!doctype html>
 <html lang="id" class="light-style layout-wide" dir="ltr" data-theme="theme-default" data-assets-path="{{ asset('assets') }}/" data-style="light">
@@ -50,12 +59,6 @@
                 </span>
             </a>
 
-            <nav class="lp-menu d-none d-lg-flex" aria-label="Navigasi halaman">
-                @foreach ($navItems as $id => $label)
-                    <a href="#{{ $id }}" class="lp-menu-link" data-spy="{{ $id }}">{{ $label }}</a>
-                @endforeach
-            </nav>
-
             <div class="lp-nav-actions">
                 @auth
                     <a href="{{ route('home') }}" class="btn btn-primary lp-cta d-none d-sm-inline-flex">
@@ -66,7 +69,7 @@
                         <i class="ri-login-box-line me-1" aria-hidden="true"></i> Masuk
                     </a>
                 @endauth
-                <button type="button" class="btn lp-burger d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#lpOffcanvas"
+                <button type="button" class="btn lp-burger" data-bs-toggle="offcanvas" data-bs-target="#lpOffcanvas"
                     aria-controls="lpOffcanvas" aria-label="Buka menu">
                     <i class="ri-menu-3-line" aria-hidden="true"></i>
                 </button>
@@ -96,7 +99,7 @@
                 @else
                     <a href="{{ route('login') }}" class="btn btn-primary w-100"><i class="ri-login-box-line me-1" aria-hidden="true"></i> Masuk</a>
                     <p class="small text-muted mt-3 mb-0">Belum punya akun?
-                        <a href="https://wa.me/6282244121226?text=Halo%20saya%20ingin%20bertanya" target="_blank" rel="noopener noreferrer">Hubungi LLDIKTI Wilayah IV</a>
+                        <a href="https://wa.me/{{ preg_replace('/\D/', '', config('helpdesk.whatsapp.0')) }}?text=Halo%20saya%20ingin%20bertanya" target="_blank" rel="noopener noreferrer">Hubungi LLDIKTI Wilayah IV</a>
                     </p>
                 @endauth
             </div>
@@ -112,7 +115,8 @@
                         <p class="lp-eyebrow"><i class="ri-recycle-line" aria-hidden="true"></i> Program GRADASI · LLDIKTI Wilayah IV</p>
                         <h1 class="lp-hero-title" id="heroTitle">KKN Tematik <span>Sampah Tuntas</span></h1>
                         <p class="lp-hero-lead">
-                            Mahasiswa, dosen, dan pemerintah daerah bergerak bersama menuju <strong>Zero to TPA</strong>.
+                            Ribuan Mahasiswa. Ratusan Kampus. Satu Gerakan Besar. <br />
+                            Sampah Tuntas, <strong>Zero to TPA</strong>!
                         </p>
                         <div class="lp-hero-actions">
                             <a href="#capaian" class="btn btn-lg lp-btn-light">
@@ -145,14 +149,14 @@
             </div>
         </section>
 
-        {{-- Lokasi program --}}
+        {{-- SEBARAN LOKASI PROGRAM --}}
         <section class="lp-section" id="lokasi" tabindex="-1" aria-labelledby="lokasiTitle">
             <div class="container-xxl">
                 <div class="lp-head">
                     <div>
-                        <p class="lp-kicker">Lokasi Program</p>
-                        <h2 class="lp-title" id="lokasiTitle">Wilayah lokus kegiatan</h2>
-                        <p class="lp-lead">DPL dan mahasiswa: pilih lokasi kegiatan untuk langsung masuk ke dashboard lokasi tersebut.</p>
+                        <p class="lp-kicker">SEBARAN LOKASI PROGRAM</p>
+                        <h2 class="lp-title" id="lokasiTitle">{{ $navItems['lokasi'] }}</h2>
+                        <p class="lp-lead">Keterlibatan Perguruan Tinggi, Mahasiswa, dan DPL di setiap lokasi program.</p>
                     </div>
                     @if ($lokasiProgramList->count() > 4)
                         <div class="input-group input-group-merge lp-search">
@@ -187,7 +191,7 @@
                                             <span class="lokasi-stat-label">PTS</span>
                                         </span>
                                     </span>
-                                    <span class="lokasi-item-cta">Masuk ke lokasi ini <i class="ri-arrow-right-line" aria-hidden="true"></i></span>
+                                    <span class="lokasi-item-cta">Masuk Dashboard Ini <i class="ri-arrow-right-line" aria-hidden="true"></i></span>
                                 </a>
                             </li>
                         @endforeach
@@ -199,15 +203,14 @@
             </div>
         </section>
 
-        {{-- Capaian program --}}
+        {{-- KINERJA PROGRAM KEGIATAN --}}
         <section class="lp-section lp-section-alt" id="capaian" tabindex="-1" aria-labelledby="capaianTitle">
             <div class="container-xxl">
                 <div class="lp-head">
                     <div>
-                        <p class="lp-kicker">Capaian Program</p>
-                        <h2 class="lp-title" id="capaianTitle">Persentase pengurangan sampah</h2>
-                        <p class="lp-lead">Per kota/kabupaten dengan sebaran kecamatan dan kelurahan/desa lokus KKN.
-                            Klik nama kecamatan atau kelurahan untuk melihat capaian, kinerja perguruan tinggi, dan permasalahan di lapangan.</p>
+                        <p class="lp-kicker">KINERJA PROGRAM KEGIATAN</p>
+                        <h2 class="lp-title" id="capaianTitle">{{ $navItems['capaian'] }}</h2>
+                        <p class="lp-lead">Pantau capaian pengurangan sampah pada setiap wilayah pelaksanaan KKN Tematik Sampah Tuntas, mulai dari tingkat kabupaten/kota hingga kecamatan dan kelurahan/desa. Telusuri kontribusi perguruan tinggi serta identifikasi tantangan pelaksanaan di lapangan.</p>
                     </div>
                 </div>
                 <div class="card lp-card">
@@ -224,14 +227,14 @@
             </div>
         </section>
 
-        {{-- Data peserta --}}
+        {{-- PARTISIPASI PERGURUAN TINGGI --}}
         <section class="lp-section" id="peserta" tabindex="-1" aria-labelledby="pesertaTitle">
             <div class="container-xxl">
                 <div class="lp-head">
                     <div>
-                        <p class="lp-kicker">Data Peserta</p>
-                        <h2 class="lp-title" id="pesertaTitle">Perguruan tinggi yang terlibat</h2>
-                        <p class="lp-lead">Jumlah mahasiswa, DPL, PIC, dan ketua kelompok per perguruan tinggi. Klik angka untuk melihat daftarnya.</p>
+                        <p class="lp-kicker">PARTISIPASI PERGURUAN TINGGI</p>
+                        <h2 class="lp-title" id="pesertaTitle">{{ $navItems['peserta'] }}</h2>
+                        <p class="lp-lead">Jelajahi keterlibatan perguruan tinggi melalui data mahasiswa, dosen pembimbing lapangan, penanggung jawab perguruan tinggi, dan ketua kelompok. Klik jumlah peserta untuk melihat informasi lebih lanjut.</p>
                     </div>
                 </div>
                 <div class="card lp-card">
@@ -253,14 +256,14 @@
                                     <input type="search" id="pesertaSearch" class="form-control" placeholder="Cari perguruan tinggi / kode PT…"
                                         aria-label="Cari perguruan tinggi" aria-controls="pesertaTbody" autocomplete="off" />
                                 </div>
-                                <x-button.export :url="route('login.data-peserta.export')" label="Export Excel" class="btn-sm" />
+                                <x-button.export :url="route('login.data-peserta.export')" label="Unduh Data Excel" class="btn-sm" />
                             </div>
                             <div class="table-responsive peserta-table-wrap">
                                 <table class="table table-sm table-hover align-middle peserta-table">
                                     <thead>
                                         <tr>
                                             <th scope="col" class="text-center">No</th>
-                                            @foreach (['kodept' => 'Kode PT', 'nama' => 'Nama PTS', 'mahasiswa' => 'Jml. Mahasiswa', 'dpl' => 'Jml. DPL', 'pic' => 'Jml. PIC', 'ketua' => 'Jml. Ketua Kelompok'] as $sortKey => $sortLabel)
+                                            @foreach (['kodept' => 'Kode PT', 'nama' => 'Nama PTS', 'mahasiswa' => 'Mahasiswa', 'dpl' => 'DPL', 'pic' => 'PIC PTS', 'ketua' => 'Ketua Kelompok'] as $sortKey => $sortLabel)
                                                 <th scope="col" class="text-center"><button type="button" class="peserta-sort" data-sort="{{ $sortKey }}" data-sort-type="{{ in_array($sortKey, ['kodept', 'nama']) ? 'text' : 'num' }}">{{ $sortLabel }}<i class="ri-arrow-up-down-line" aria-hidden="true"></i></button></th>
                                             @endforeach
                                         </tr>
@@ -312,14 +315,14 @@
             </div>
         </section>
 
-        {{-- Sebaran PT: satu baris per pasangan PT-lokasi --}}
+        {{-- SEBARAN PERGURUAN TINGGI: satu baris per pasangan PT-lokasi --}}
         <section class="lp-section lp-section-alt" id="sebaran" tabindex="-1" aria-labelledby="sebaranTitle">
             <div class="container-xxl">
                 <div class="lp-head">
                     <div>
-                        <p class="lp-kicker">Sebaran PT</p>
-                        <h2 class="lp-title" id="sebaranTitle">Perguruan tinggi di setiap lokasi program</h2>
-                        <p class="lp-lead">Lokasi program tempat mahasiswa dan DPL tiap perguruan tinggi bertugas.</p>
+                        <p class="lp-kicker">SEBARAN PERGURUAN TINGGI</p>
+                        <h2 class="lp-title" id="sebaranTitle">{{ $navItems['sebaran'] }}</h2>
+                        <p class="lp-lead">Telusuri sebaran penugasan perguruan tinggi, mahasiswa, dan dosen pembimbing lapangan pada setiap wilayah pelaksanaan KKN Tematik Sampah Tuntas.</p>
                     </div>
                 </div>
                 <div class="card lp-card">
@@ -379,13 +382,13 @@
             </div>
         </section>
 
-        {{-- Peta sebaran (Leaflet dimuat saat section terlihat) --}}
+        {{-- PETA SEBARAN (Leaflet dimuat saat section terlihat) --}}
         <section class="lp-section" id="peta" tabindex="-1" aria-labelledby="petaTitle">
             <div class="container-xxl">
                 <div class="lp-head">
                     <div>
-                        <p class="lp-kicker">Peta Sebaran</p>
-                        <h2 class="lp-title" id="petaTitle">Di mana mahasiswa bergerak</h2>
+                        <p class="lp-kicker">PETA SEBARAN</p>
+                        <h2 class="lp-title" id="petaTitle">{{ $navItems['peta'] }}</h2>
                         <p id="petaSubtitle" class="lp-lead">Memuat data…</p>
                     </div>
                     <div class="peta-filters" role="group" aria-label="Filter peta">
@@ -419,7 +422,7 @@
                                     </div>
 
                                     <div>
-                                        <label for="petaSorot" class="form-label fw-semibold mb-1">Sorot Kelurahan/Desa di Peta</label>
+                                        <label for="petaSorot" class="form-label fw-semibold mb-1">Temukan Lokasi KKN</label>
                                         <select id="petaSorot" class="form-select form-select-sm">
                                             <option value="">-- Pilih Kelurahan/Desa untuk Fokus Peta --</option>
                                         </select>
@@ -427,8 +430,8 @@
 
                                     <div class="peta-top">
                                         <div class="peta-top-head">
-                                            <span><i class="ri-trophy-line text-warning me-1" aria-hidden="true"></i>Top 5 · Pengurangan Sampah Tertinggi</span>
-                                            <small class="peta-muted fw-normal">Klik untuk sorot</small>
+                                            <span><i class="ri-trophy-line text-warning me-1" aria-hidden="true"></i>5 Wilayah dengan Capaian Pengurangan Sampah Tertinggi</span>
+                                            <small class="peta-muted fw-normal">Pilih wilayah untuk melihat lokasinya pada peta</small>
                                         </div>
                                         <ol id="petaTop" class="peta-top-list list-unstyled mb-0"></ol>
                                         <p id="petaTopEmpty" class="peta-muted mb-0 d-none">Belum ada data untuk filter ini.</p>
@@ -459,15 +462,15 @@
             </div>
         </section>
 
-        {{-- Dokumen --}}
+        {{-- DOKUMEN --}}
         <section class="lp-section lp-section-alt" id="dokumen" tabindex="-1" aria-labelledby="dokumenTitle">
             <span id="panduan" class="lp-anchor" aria-hidden="true"></span>
             <div class="container-xxl">
                 <div class="lp-head">
                     <div>
-                        <p class="lp-kicker">Dokumen</p>
-                        <h2 class="lp-title" id="dokumenTitle">Panduan &amp; berkas program</h2>
-                        <p class="lp-lead">Dokumen KKN Tematik Sampah Tuntas yang bisa diunduh.</p>
+                        <p class="lp-kicker">DOKUMEN</p>
+                        <h2 class="lp-title" id="dokumenTitle">{{ $navItems['dokumen'] }}</h2>
+                        <p class="lp-lead">Akses panduan, materi pembekalan, dokumen resmi, dan informasi teknis sebagai referensi pelaksanaan KKN Tematik Sampah Tuntas.</p>
                     </div>
                 </div>
                 @include('panduan._publik', ['panduanList' => $panduanList])
@@ -487,13 +490,19 @@
                     <p class="mb-0">Program GRADASI: KKN Tematik Sampah Tuntas LLDIKTI Wilayah IV.</p>
                 </div>
                 <div>
-                    <p class="lp-footer-head">Butuh akun?</p>
-                    <a class="lp-footer-wa" href="https://wa.me/6282244121226?text=Halo%20saya%20ingin%20bertanya" target="_blank" rel="noopener noreferrer">
-                        <i class="ri-whatsapp-line" aria-hidden="true"></i> Hubungi LLDIKTI Wilayah IV
-                    </a>
+                    <p class="lp-footer-head">Ada Kendala Pada Aplikasi ?</p>
+                    <ul class="lp-footer-wa-list" aria-label="Help Desk WhatsApp">
+                        @foreach (config('helpdesk.whatsapp', []) as $wa)
+                            <li>
+                                <a class="lp-footer-wa" href="https://wa.me/{{ preg_replace('/\D/', '', $wa) }}" target="_blank" rel="noopener noreferrer" title="WhatsApp {{ $wa }}">
+                                    <i class="ri-whatsapp-line" aria-hidden="true"></i> Hubungi Help Desk {{ $loop->iteration }}
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
                 </div>
                 <div>
-                    <p class="lp-footer-head">Ikuti kami</p>
+                    <p class="lp-footer-head">Media Sosial Resmi LLDIKTI Wilayah IV</p>
                     <div class="lp-social">
                         <a href="https://www.facebook.com/lldiktiwilayah4/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="ri-facebook-fill" aria-hidden="true"></i></a>
                         <a href="https://x.com/lldiktiwilayah4" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)"><i class="ri-twitter-x-line" aria-hidden="true"></i></a>

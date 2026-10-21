@@ -151,7 +151,7 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pelaksanaankkn') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Daftar Pelaksanaan KKN Perguruan Tinggi
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Waktu Pelaksanan KKN PTS
                                         </a>
                                     </li>
                                 </ul>
@@ -404,7 +404,7 @@
                                 @if (Auth::user()->isPemantau())
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pelaksanaankkn') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Daftar Pelaksanaan KKN Perguruan Tinggi
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Waktu Pelaksanan KKN PTS
                                         </a>
                                     </li>
                                 @endif

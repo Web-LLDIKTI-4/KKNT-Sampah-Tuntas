@@ -99,7 +99,7 @@ class DataPesertaSortTest extends TestCase
             iterator_to_array($this->pesertaTable()->query('//table[contains(@class,"peserta-table")]/thead/tr/th'))
         );
 
-        $this->assertSame(['No', 'Kode PT', 'Nama PTS', 'Jml. Mahasiswa', 'Jml. DPL', 'Jml. PIC', 'Jml. Ketua Kelompok'], $headers);
+        $this->assertSame(['No', 'Kode PT', 'Nama PTS', 'Mahasiswa', 'DPL', 'PIC', 'Ketua Kelompok'], $headers);
     }
 
     public function test_each_row_has_sort_attributes_matching_peserta_data(): void

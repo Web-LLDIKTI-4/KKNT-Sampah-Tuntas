@@ -240,7 +240,7 @@ class PenguranganSampahDashboardTest extends TestCase
         $this->get(route('landing'))
             ->assertOk()
             ->assertSee('Capaian Program')
-            ->assertSee('Persentase Pengurangan Sampah (%)')
+            ->assertSee('Pengurangan Sampah (%)')
             ->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 3
                 && $l['kecamatan']->first()->nama_lokasi === $this->lokasi->nama_lokasi);
     }

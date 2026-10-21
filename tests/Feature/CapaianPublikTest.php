@@ -153,7 +153,7 @@ class CapaianPublikTest extends TestCase
 
         $res = $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa)->assertOk()
             ->assertSee('Pelaksana (PTS) di Kelurahan/Desa Desa Satu')
-            ->assertSee('JML. MHS')->assertSee('JML. DPL')
+            ->assertSee('<th class="text-center">Mahasiswa</th>', false)->assertSee('<th class="text-center">DPL</th>', false)
             ->assertSee('Ketua Univ Hijau')->assertSee('ri-eye-line', false)
             ->assertSee('25,00%')
             // Revisi-5/6: no. kontak ketua boleh tampil, email tidak
@@ -245,7 +245,7 @@ class CapaianPublikTest extends TestCase
         $sheet = new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan]));
         $rows = $sheet->array();
         // Lokasi (urut nama) -> kecamatan -> kelurahan; 1 baris kosong hanya antar lokasi; persen pecahan, klaster strict
-        $this->assertSame(['Nama', 'Persentase Pengurangan Sampah (%)', 'Klaster'], $rows[1]);
+        $this->assertSame(['Nama', 'Pengurangan Sampah (%)', 'Klaster'], $rows[1]);
         $this->assertSame([
             ['Kabupaten Beta', 0.05, 'Merah'], ['Kec Beta', 0.05, 'Merah'], ['Desa Dua', 0.05, 'Merah'], [null, null, null],
             ['Kota Alfa', 0.2, 'Kuning'], ['Kec Alfa', 0.2, 'Kuning'],
@@ -488,7 +488,7 @@ class CapaianPublikTest extends TestCase
         $aksi = Route::has('login.laporan.export') ? route('login.laporan.export') : 'data-png-download';
         $this->get('/')->assertOk()
             ->assertSee($aksi, false)->assertDontSee('data-drill-reset', false)
-            ->assertSee('Program GRADASI')->assertSee('Capaian Program')->assertSee('Dokumen');
+            ->assertSee('Program GRADASI')->assertSee('Capaian Pengurangan Sampah')->assertSee('Dokumen');
         $this->get('login/laporan?bulan='.$this->bulan)->assertOk()->assertSee($aksi, false);
         $this->get('login/laporan?klaster=kuning')->assertOk()->assertSee('data-drill-reset', false)->assertDontSee($aksi, false);
         $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan)->assertOk()->assertSee('data-drill-reset', false);

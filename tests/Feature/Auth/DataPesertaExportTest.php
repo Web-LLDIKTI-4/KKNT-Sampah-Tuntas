@@ -21,7 +21,7 @@ class DataPesertaExportTest extends TestCase
 
     private const FILENAME = '/filename="?data_peserta_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.xlsx"?/';
 
-    private const HEADER = ['No.', 'Kode PT', 'Nama PTS', 'Jml. Mahasiswa', 'Jml. DPL', 'Jml. PIC', 'Jml. Ketua Kelompok'];
+    private const HEADER = ['No.', 'Kode PT', 'Nama PTS', 'Mahasiswa', 'DPL', 'PIC', 'Ketua Kelompok'];
 
     private Satuanpendidikan $pt;
 
