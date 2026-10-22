@@ -257,6 +257,14 @@ body.lp {
     position: relative;
 }
 
+.lp-hero-logos {
+    display: block;
+    width: 100%;
+    max-width: 520px;
+    height: auto;
+    margin-bottom: 0.75rem;
+}
+
 .lp-eyebrow {
     display: inline-flex;
     align-items: center;
@@ -1146,65 +1154,89 @@ th[aria-sort] .peserta-sort i {
     background: var(--lp-hero-a);
     color: rgba(255, 255, 255, 0.75);
     font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 .lp-footer-grid {
     display: grid;
-    gap: 1.75rem;
+    gap: 2rem;
+}
+
+.lp-footer-col {
+    min-width: 0;
 }
 
 .lp-footer-logos {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .lp-footer-logos img {
-    height: 48px;
-    width: auto;
-    padding: 4px;
-    border-radius: 10px;
-    background: #fff;
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    height: auto;
 }
 
-.lp-footer-logos .lp-footer-lldikti {
-    height: 48px;
-    max-width: 180px;
-    object-fit: contain;
-}
-
-.lp-footer-head {
-    margin-bottom: 0.6rem;
+/* One heading style for every column (overrides partial's mb-* utilities) */
+.lp-footer .footer-title {
+    margin: 0 0 1rem !important;
     color: #fff;
+    font-size: 0.8rem;
     font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.35rem;
+    text-transform: uppercase;
+}
+
+.lp-footer-col .list-unstyled {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.lp-footer-col .list-unstyled > li {
+    display: flex;
+    margin: 0 !important;
+}
+
+/* Icon fixed width so wrapped text aligns under text, not icon */
+.lp-footer-col .list-unstyled > li > a.footer-link,
+.lp-footer-col .list-unstyled > li > a.lp-footer-wa {
+    display: inline-flex !important;
+    align-items: flex-start !important;
+}
+
+.lp-footer-col .list-unstyled i {
+    flex: 0 0 1.25rem;
+    width: 1.25rem;
+    margin-right: 0.5rem;
+    color: var(--lp-accent);
+    font-size: 1rem;
+    line-height: 1.35rem;
+    text-align: center;
+}
+
+.lp-footer-col .list-unstyled .gap-2 {
+    gap: 0 !important;
+}
+
+.lp-footer .footer-text {
+    color: inherit;
+}
+
+.lp-footer .footer-link {
+    color: rgba(255, 255, 255, 0.75);
+    overflow-wrap: break-word;
+    transition: color 0.15s ease;
+}
+
+.lp-footer a.footer-link:hover,
+.lp-footer a.footer-link:focus-visible {
+    color: #fff;
 }
 
 .lp-footer-wa {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--lp-accent);
     font-weight: 600;
-}
-
-.lp-footer-wa:hover {
-    color: #fff;
-}
-
-.lp-footer-wa-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.lp-footer-wa-list .lp-footer-wa {
-    min-height: 2rem;
-    white-space: nowrap;
 }
 
 .lp-social {
@@ -1225,15 +1257,21 @@ th[aria-sort] .peserta-sort i {
     transition: background-color 0.15s ease;
 }
 
-.lp-social a:hover {
+.lp-social a:hover,
+.lp-social a:focus-visible {
     background: var(--lp-primary);
 }
 
 .lp-footer-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
     margin-top: 2rem;
     padding-top: 1.25rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
     font-size: 0.8rem;
+    text-align: center;
 }
 
 /* CTA melayang (HP saja) */
@@ -1361,8 +1399,19 @@ th[aria-sort] .peserta-sort i {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .lp-footer {
+        padding-top: 3rem;
+    }
+
     .lp-footer-grid {
-        grid-template-columns: 2fr 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2.25rem 2.5rem;
+    }
+
+    .lp-footer-copy {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
     }
 }
 
@@ -1420,6 +1469,11 @@ th[aria-sort] .peserta-sort i {
     .lokasi-grid {
         grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     }
+
+    .lp-footer-grid {
+        grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
+        gap: 2.5rem;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1427,6 +1481,8 @@ th[aria-sort] .peserta-sort i {
     .lokasi-item-img img,
     .lokasi-item-cta i,
     .lp-nav,
+    .lp-footer .footer-link,
+    .lp-social a,
     .peta-sebaran,
     .peta-top-item,
     .peta-dot {

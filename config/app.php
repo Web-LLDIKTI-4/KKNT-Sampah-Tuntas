@@ -129,4 +129,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    // Kunci akses mahasiswa/DPL sampai PT mengisi pelaksanaan KKN (kill-switch: PELAKSANAAN_LOCK=false)
+    'pelaksanaan_lock' => (bool) env('PELAKSANAAN_LOCK', true),
+
 ];

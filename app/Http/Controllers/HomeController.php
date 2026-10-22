@@ -19,6 +19,10 @@ class HomeController extends Controller
             return redirect(url('home/'.rawurlencode(mb_strtolower($lokasiSession))));
         }
 
+        if ($user->isLockedByPelaksanaan()) {
+            return view('pelaksanaankkn.terkunci');
+        }
+
         return match ($user->role) {
             'mahasiswa' => view('index-user', $dashboard->forMahasiswa($user)),
             'dpl' => Dpl::where('email', $user->email)->exists()

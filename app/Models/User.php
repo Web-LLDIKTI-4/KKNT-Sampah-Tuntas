@@ -12,6 +12,12 @@ class User extends Authenticatable
 {
     use HasFactory, HasUuids, Notifiable;
 
+    // Role yang dikunci sampai PT-nya mengisi pelaksanaan KKN
+    public const PELAKSANAAN_LOCK_ROLES = ['mahasiswa', 'dpl'];
+
+    // Memo per instance (per request) untuk isLockedByPelaksanaan()
+    protected ?bool $lockedByPelaksanaan = null;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -88,5 +94,22 @@ class User extends Authenticatable
     public function isPemantau(): bool
     {
         return in_array($this->role, ['kepala', 'pemda'], true);
+    }
+
+    // Mahasiswa/DPL terkunci bila PT-nya belum mengisi pelaksanaan KKN
+    public function isLockedByPelaksanaan(): bool
+    {
+        if (! config('app.pelaksanaan_lock') || ! in_array($this->role, self::PELAKSANAAN_LOCK_ROLES, true)) {
+            return false;
+        }
+
+        if ($this->lockedByPelaksanaan !== null) {
+            return $this->lockedByPelaksanaan;
+        }
+
+        $kodept = $this->role === 'mahasiswa' ? $this->mahasiswa?->kodept : $this->dpl?->kodept;
+
+        return $this->lockedByPelaksanaan = blank($kodept)
+            || ! PelaksanaanKkn::where('kodept', $kodept)->exists();
     }
 }

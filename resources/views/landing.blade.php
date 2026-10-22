@@ -112,6 +112,8 @@
             <div class="container-xxl">
                 <div class="row g-5 align-items-center">
                     <div class="col-lg-5">
+                        <img class="lp-hero-logos" src="{{ asset('assets/images/Logos-1200.png') }}" width="1200" height="211"
+                            alt="Logo Pemprov Jawa Barat, pemerintah kabupaten/kota mitra, LLDIKTI Wilayah IV, dan Diktisaintek Berdampak" />
                         <p class="lp-eyebrow"><i class="ri-recycle-line" aria-hidden="true"></i> Program GRADASI · LLDIKTI Wilayah IV</p>
                         <h1 class="lp-hero-title" id="heroTitle">KKN Tematik <span>Sampah Tuntas</span></h1>
                         <p class="lp-hero-lead">
@@ -481,37 +483,36 @@
     <footer class="lp-footer">
         <div class="container-xxl">
             <div class="lp-footer-grid">
-                <div class="lp-footer-brand">
+                <div class="lp-footer-brand lp-footer-col">
                     <div class="lp-footer-logos">
-                        <img src="{{ asset('assets/images/logo-kkn-berdampak.jpeg') }}" alt="KKN Tematik Berdampak" width="56" height="54" loading="lazy" />
-                        <img src="{{ asset('assets/images/gradasi.png') }}" alt="Gradasi 4" width="70" height="54" loading="lazy" />
-                        <img src="{{ asset('assets/images/lldikti4_logo.png') }}" alt="LLDIKTI Wilayah IV" class="lp-footer-lldikti" loading="lazy" />
+                        <img src="{{ asset('assets/images/Logos-1200.png') }}" width="1200" height="211" loading="lazy"
+                            alt="Logo Pemprov Jawa Barat, pemerintah kabupaten/kota mitra, LLDIKTI Wilayah IV, dan Diktisaintek Berdampak" />
                     </div>
-                    <p class="mb-0">Program GRADASI: KKN Tematik Sampah Tuntas LLDIKTI Wilayah IV.</p>
+                    <p class="mb-0">KKN Tematik merupakan implementasi Program GRADASI LLDIKTI Wilayah IV yang memberikan pengalaman belajar berbasis pengabdian melalui kolaborasi perguruan tinggi, pemerintah daerah, dunia usaha, dan masyarakat untuk mewujudkan pembangunan berkelanjutan.</p>
                 </div>
-                <div>
-                    <p class="lp-footer-head">Ada Kendala Pada Aplikasi ?</p>
-                    <ul class="lp-footer-wa-list" aria-label="Help Desk WhatsApp">
+                <div class="lp-footer-col">
+                    <h6 class="footer-title">Ada Kendala Pada Aplikasi ?</h6>
+                    <ul class="list-unstyled mb-0" aria-label="Help Desk WhatsApp">
                         @foreach (config('helpdesk.whatsapp', []) as $wa)
                             <li>
-                                <a class="lp-footer-wa" href="https://wa.me/{{ preg_replace('/\D/', '', $wa) }}" target="_blank" rel="noopener noreferrer" title="WhatsApp {{ $wa }}">
-                                    <i class="ri-whatsapp-line" aria-hidden="true"></i> Hubungi Help Desk {{ $loop->iteration }}
+                                <a class="footer-link lp-footer-wa" href="https://wa.me/{{ preg_replace('/\D/', '', $wa) }}" target="_blank" rel="noopener noreferrer" title="WhatsApp {{ $wa }}">
+                                    <i class="ri-whatsapp-line" aria-hidden="true"></i><span>Hubungi Help Desk {{ $loop->iteration }}</span>
                                 </a>
                             </li>
                         @endforeach
                     </ul>
                 </div>
-                <div>
-                    <p class="lp-footer-head">Media Sosial Resmi LLDIKTI Wilayah IV</p>
-                    <div class="lp-social">
-                        <a href="https://www.facebook.com/lldiktiwilayah4/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="ri-facebook-fill" aria-hidden="true"></i></a>
-                        <a href="https://x.com/lldiktiwilayah4" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)"><i class="ri-twitter-x-line" aria-hidden="true"></i></a>
-                        <a href="https://www.youtube.com/c/LLDIKTIWILAYAH4" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="ri-youtube-fill" aria-hidden="true"></i></a>
-                        <a href="https://www.instagram.com/lldiktiwilayah4" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="ri-instagram-fill" aria-hidden="true"></i></a>
-                    </div>
+                @include('layouts.footer-info', ['cols' => ['lp-footer-col', 'lp-footer-col']])
+            </div>
+            <div class="lp-footer-copy">
+                <p class="mb-0">&copy; {{ date('Y') }}, LLDIKTI Wilayah IV</p>
+                <div class="lp-social">
+                    <a href="https://www.facebook.com/lldiktiwilayah4/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="ri-facebook-fill" aria-hidden="true"></i></a>
+                    <a href="https://x.com/lldiktiwilayah4" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)"><i class="ri-twitter-x-line" aria-hidden="true"></i></a>
+                    <a href="https://www.youtube.com/c/LLDIKTIWILAYAH4" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="ri-youtube-fill" aria-hidden="true"></i></a>
+                    <a href="https://www.instagram.com/lldiktiwilayah4" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="ri-instagram-fill" aria-hidden="true"></i></a>
                 </div>
             </div>
-            <p class="lp-footer-copy mb-0">&copy; {{ date('Y') }} LLDIKTI Wilayah IV</p>
         </div>
     </footer>
 

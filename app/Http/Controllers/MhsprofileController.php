@@ -45,7 +45,10 @@ class MhsprofileController extends Controller
             return $this->notFound();
         }
 
-        $mahasiswa->update($request->safe()->only('nama', 'nim', 'kodept', 'prodi', 'phone', 'tahun_masuk'));
+        $data = $request->safe()->only('nama', 'nim', 'kodept', 'prodi', 'phone', 'tahun_masuk');
+        // Campus is locked once set; only an empty kodept can be filled from input
+        $data['kodept'] = $mahasiswa->kodept ?: ($data['kodept'] ?? null);
+        $mahasiswa->update($data);
 
         return $this->saved('Profile berhasil disimpan');
     }

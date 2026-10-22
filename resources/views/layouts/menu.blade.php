@@ -40,6 +40,7 @@
         <li class="nav-item">
             <a class="nav-link fw-medium" aria-current="page" href="{{ url('/home') }}">Beranda</a>
         </li>
+            @unless (Auth::user()->isLockedByPelaksanaan())
             @if(in_array(Auth::user()->role, ['admin']))
                 <li class="nav-item mega-dropdown">
                     <a
@@ -584,6 +585,7 @@
                     </div>
                 </li>
             @endif
+            @endunless
         </ul>
     </div>
     <div class="landing-menu-overlay d-lg-none"></div>

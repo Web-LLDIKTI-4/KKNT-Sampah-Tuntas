@@ -206,7 +206,7 @@
                             <div class="row">
                                 <div class="col-12">
                                     <div class="form-group form-floating form-floating-outline mb-6">
-                                    <select class="form-control" id="select2" name="kodept" data-toggle="select">
+                                    <select class="form-control" id="select2" name="kodept" data-toggle="select" @if($mahasiswa->kodept) disabled @endif>
                                         @if($sp)
                                             @foreach($sp as $row)
                                                 <option value="{{$row->npsn}}" @if($mahasiswa->kodept == $row->npsn) selected @endif>{{$row->nm_lemb}}</option>
@@ -214,6 +214,9 @@
                                         @endif
                                     </select>
                                     <label class="form-control-label">Perguruan Tinggi</label>
+                                    @if($mahasiswa->kodept)
+                                        <small class="text-muted">Perguruan tinggi tidak dapat diubah. Hubungi admin/PT bila perlu perubahan.</small>
+                                    @endif
                                     </div>
                                 </div>
                             </div>
@@ -388,6 +391,7 @@
                 <x-page-header icon="ri-links-line" title="Menu Cepat" subtitle="Akses cepat ke aktifitas KKN." />
                 <div class="card">
                     <div class="list-group list-group-flush">
+                    @unless (Auth::user()->isLockedByPelaksanaan())
                     <div class="list-group-item">
                         <div class="d-flex align-items-center mb-2">
                             <div class="avatar flex-shrink-0 me-3">
@@ -421,6 +425,7 @@
                             </div>
                         </div>
                     </div>
+                    @endunless
                     <div class="list-group-item">
                         <div class="d-flex align-items-center mb-2">
                             <div class="avatar flex-shrink-0 me-3">

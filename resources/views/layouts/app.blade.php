@@ -139,45 +139,7 @@
               <span class="text-warning"></span>
               </p>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-6">
-              <h6 class="footer-title mb-4 mb-lg-6">Link Terkait</h6>
-              <ul class="list-unstyled mb-0">
-                <li class="mb-4">
-                  <a href="https://lldikti4.kemdiktisaintek.go.id" target="_blank" class="footer-link">Laman LLDIKTI Wilayah IV</a>
-                </li>
-                <li class="mb-4">
-                  <a href="https://pddikti.kemdiktisaintek.go.id" target="_blank" class="footer-link">PDDIKTI</a>
-                </li>
-                <li class="mb-4">
-                  <a href="https://jurnal.lldikti4.or.id" target="_blank" class="footer-link">Jurnal LLDIKTI Wilayah IV</a>
-                </li>
-                <!--
-                <li class="mb-4">
-                  <a href="https://mbkm.lldikti4.id" target="_blank" class="footer-link">MBKM LLDIKTI IV 2023</a>
-                </li>
-                <li class="mb-4">
-                  <a href="https://pusatinformasi.kampusmerdeka.kemdikbud.go.id" target="_blank" class="footer-link">Pusat Informasi Kampus Merdeka</a>
-                </li>
-                <li class="mb-4">
-                  <a href="https://kampusmerdeka.kemdikbud.go.id/" target="_blank" class="footer-link">Kampus Merdeka</a>
-                </li>
--->
-              </ul>
-            </div>
-            <div class="col">
-              <h6 class="footer-title mb-4 mb-lg-6">Kontak Kami</h6>
-              <ul class="list-unstyled mb-0">
-                <li class="mb-4">
-                  <span class="footer-link">Jalan Penghulu H. Hasan Mustofa No. 38 Bandung 40124</span>
-                </li>
-                <li class="mb-4">
-                  <a href="mailto:informasi@lldikti4.id" class="footer-link">informasi@lldikti4.id</a>
-                </li>
-                <li class="mb-4">
-                  <span class="footer-link">Telepon: +022 7275630, +022 7274377</span>
-                </li>
-              </ul>
-            </div>
+            @include('layouts.footer-info')
             
           </div>
         </div>
