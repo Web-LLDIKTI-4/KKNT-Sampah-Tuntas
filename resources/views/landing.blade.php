@@ -71,7 +71,7 @@
                         <i class="ri-login-box-line me-1" aria-hidden="true"></i> Masuk
                     </a>
                 @endauth
-                <button type="button" class="btn lp-burger" data-bs-toggle="offcanvas" data-bs-target="#lpOffcanvas"
+                <button type="button" class="btn lp-burger"
                     aria-controls="lpOffcanvas" aria-label="Buka menu">
                     <i class="ri-menu-3-line" aria-hidden="true"></i>
                 </button>

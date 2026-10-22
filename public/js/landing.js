@@ -59,7 +59,7 @@
           el.style.removeProperty("--reveal-delay");
         }, DURATION + delay + 80);
       });
-    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    }, { threshold: 0.1 });
     document.documentElement.classList.add("js-reveal");
     items.forEach(function (el) { io.observe(el); });
   })();
@@ -101,14 +101,25 @@
       if (history.replaceState) history.replaceState(null, "", "#" + id);
     }
 
-    // Offcanvas: data-bs-scroll keeps body unlocked, so scroll starts together with the close animation
+    // Offcanvas: toggled manually so Bootstrap's focus-restore (which scrolls the sticky burger into view) never runs
     if (offcanvasEl) {
+      var offcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+      var burger = document.querySelector(".lp-burger");
+      var pendingId = null;
+      if (burger) burger.addEventListener("click", function () { offcanvas.toggle(burger); });
       $(offcanvasEl).on("click", "a[href^='#']", function (e) {
         var id = this.getAttribute("href").slice(1);
         if (!document.getElementById(id)) return;
         e.preventDefault();
-        bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl).hide();
-        goTo(id);
+        pendingId = id;
+        offcanvas.hide();
+      });
+      // Scroll only after the close animation, once the body scroll lock is released
+      offcanvasEl.addEventListener("hidden.bs.offcanvas", function () {
+        var id = pendingId;
+        pendingId = null;
+        if (id) goTo(id);
+        else if (burger) burger.focus({ preventScroll: true });
       });
     }
 
