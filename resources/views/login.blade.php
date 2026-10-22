@@ -296,8 +296,8 @@
         </form>
 
         <p class="text-center small mb-4">
-          <span class="text-muted">Belum punya akun? Kontak </span>
-          <a href="https://wa.me/{{ preg_replace('/\D/', '', config('helpdesk.whatsapp.0')) }}?text=Halo%20saya%20ingin%20bertanya" target="_blank" rel="noopener noreferrer" class="fw-semibold">LLDIKTI Wilayah IV</a>
+          <span class="text-muted">Membutuhkan kinformasi atau kendala pada aplikasi, kontak</span>
+          <a href="https://drive.google.com/file/d/1qBTNBqoouJ_8rD18whvf_lf4czwHsj8C/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="fw-semibold">help desk</a>
         </p>
 
         <div class="auth-social">
