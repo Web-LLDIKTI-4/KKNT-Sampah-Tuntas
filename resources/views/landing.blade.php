@@ -488,7 +488,7 @@
                         <img src="{{ asset('assets/images/Logos-1200.png') }}" width="1200" height="211" loading="lazy"
                             alt="Logo Pemprov Jawa Barat, pemerintah kabupaten/kota mitra, LLDIKTI Wilayah IV, dan Diktisaintek Berdampak" />
                     </div>
-                    <p class="mb-0">KKN Tematik merupakan implementasi Program GRADASI LLDIKTI Wilayah IV yang memberikan pengalaman belajar berbasis pengabdian melalui kolaborasi perguruan tinggi, pemerintah daerah, dunia usaha, dan masyarakat untuk mewujudkan pembangunan berkelanjutan.</p>
+                    <p class="mb-0">Program GRADASI LLDIKTI WIlayah IV <br/> Kolaborasi Perguruan Tinggi dan Pemerintah Daerah dalam Social Engineering Pengelolaan Sampah di Metropolitan Bandung Raya melalui KKN Tematik Sampah Tuntas</p>
                 </div>
                 <div class="lp-footer-col">
                     <h6 class="footer-title">Ada Kendala Pada Aplikasi ?</h6>

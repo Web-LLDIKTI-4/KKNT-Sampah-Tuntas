@@ -35,9 +35,11 @@
     <div class="card col">
         <div class="card-body">
             <div class="d-flex flex-column flex-md-row gap-3">
+                {{-- Disabled sementara: tombol Pengajuan Izin
                 <x-button variant="secondary" :modal="url('logkehadiran/tambahizin')" icon="ri-add-line" title="Lapor Status Kehadiran" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, \App\Services\AttendanceService::BLOCKING_STATUSES) || $kehadiran && $kehadiran->waktu_masuk">
                     Pengajuan Izin
                 </x-button>
+                --}}
 
                 <x-button id="btnTambahLog" variant="dark" style="background-color: black; color: white;" :modal="url('logkegiatan/tambah')" icon="ri-add-line" title="Tambah Log Harian" :disabled="$kehadiran && in_array($kehadiran->status_kehadiran, \App\Services\AttendanceService::BLOCKING_STATUSES)">
                     Tambah Log Harian

@@ -41,10 +41,10 @@
 
     <!-- Vendors CSS -->
     <link rel="stylesheet" href="../../assets/vendor/libs/nouislider/nouislider.css" />
-    <link rel="stylesheet" href="../../assets/vendor/libs/swiper/swiper.css" />    
+    <link rel="stylesheet" href="../../assets/vendor/libs/swiper/swiper.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
-    <link rel="stylesheet" href="../../assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />  
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.css" />  
+    <link rel="stylesheet" href="../../assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.css" />
 
     <!-- Page CSS -->
     <link rel="stylesheet" href="../../assets/vendor/css/pages/page-profile.css" />
@@ -135,12 +135,14 @@
                 </span>
               </a>
               <p class="footer-text footer-logo-description mb-6">
-                KKN Tematik merupakan implementasi Program GRADASI LLDIKTI Wilayah IV yang memberikan pengalaman belajar berbasis pengabdian melalui kolaborasi perguruan tinggi, pemerintah daerah, dunia usaha, dan masyarakat untuk mewujudkan pembangunan berkelanjutan.
+                Program GRADASI LLDIKTI WIlayah IV <br />
+Kolaborasi Perguruan Tinggi dan Pemerintah Daerah dalam Social Engineering Pengelolaan Sampah di Metropolitan Bandung Raya melalui KKN Tematik Sampah Tuntas
+                {{-- KKN Tematik merupakan implementasi Program GRADASI LLDIKTI Wilayah IV yang memberikan pengalaman belajar berbasis pengabdian melalui kolaborasi perguruan tinggi, pemerintah daerah, dunia usaha, dan masyarakat untuk mewujudkan pembangunan berkelanjutan. --}}
               <span class="text-warning"></span>
               </p>
             </div>
             @include('layouts.footer-info')
-            
+
           </div>
         </div>
       </div>
@@ -170,8 +172,8 @@
 
     <!-- Vendors JS -->
     <script src="../../assets/vendor/libs/nouislider/nouislider.js"></script>
-    <script src="../../assets/vendor/libs/swiper/swiper.js"></script>    
-    <script src="../../assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>    
+    <script src="../../assets/vendor/libs/swiper/swiper.js"></script>
+    <script src="../../assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
     <script src="../../assets/vendor/libs/toastr/toastr.js"></script>
     <script src="../../assets/vendor/libs/select2/select2.js"></script>
 
@@ -190,7 +192,7 @@
   </body>
 </html>
 
-<script type="text/javascript">  
+<script type="text/javascript">
 	$(function(){
 		$('body').on("click","a.modalButton,button.modalButton",function(){
 			var src = $(this).attr('data-src');
@@ -202,7 +204,7 @@
 				return false;
 			}
 			$(".modal-title").text(title);
-			//$('.modal').modal();        
+			//$('.modal').modal();
 			$('#modalisi').html('Loading, mohon tunggu...');
 			$('#modalisi').load(src, function(response, status){
 				if(status === 'error'){
