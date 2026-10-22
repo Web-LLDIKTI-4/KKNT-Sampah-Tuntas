@@ -729,6 +729,11 @@ th[aria-sort] .peserta-sort i {
     min-width: 10rem;
 }
 
+.sebaran-table td:nth-child(5),
+.sebaran-table td:nth-child(6) {
+    min-width: 8rem;
+}
+
 #modalPesertaDetail .table td {
     font-size: 0.8125rem;
 }

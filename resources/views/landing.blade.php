@@ -345,7 +345,7 @@
                                 </label>
                                 <div class="input-group input-group-sm peserta-search">
                                     <span class="input-group-text"><i class="ri-search-line" aria-hidden="true"></i></span>
-                                    <input type="search" id="sebaranSearch" class="form-control" placeholder="Cari PT / kode PT / lokasi…"
+                                    <input type="search" id="sebaranSearch" class="form-control" placeholder="Cari PT / kode PT / lokasi / kecamatan / desa…"
                                         aria-label="Cari perguruan tinggi atau lokasi" aria-controls="sebaranTbody" autocomplete="off" />
                                 </div>
                             </div>
@@ -357,15 +357,19 @@
                                             <th scope="col" class="text-center">Kode PT</th>
                                             <th scope="col">Nama PTS</th>
                                             <th scope="col">Lokasi Program</th>
+                                            <th scope="col">Kecamatan</th>
+                                            <th scope="col">Kelurahan/Desa</th>
                                         </tr>
                                     </thead>
                                     <tbody id="sebaranTbody">
                                         @foreach ($sebaranPtList as $sebaran)
-                                            <tr data-search="{{ mb_strtolower($sebaran->kodept.' '.$sebaran->nama_pt.' '.$sebaran->nama_lokasi) }}">
+                                            <tr data-search="{{ mb_strtolower($sebaran->kodept.' '.$sebaran->nama_pt.' '.$sebaran->nama_lokasi.' '.$sebaran->nama_kecamatan.' '.$sebaran->nama_desa) }}">
                                                 <td class="text-center peserta-no">{{ $loop->iteration }}</td>
                                                 <td class="text-center">{{ $sebaran->kodept }}</td>
                                                 <td>{{ $sebaran->nama_pt }}</td>
                                                 <td>{{ $sebaran->nama_lokasi }}</td>
+                                                <td>{{ $sebaran->nama_kecamatan ?? '-' }}</td>
+                                                <td>{{ $sebaran->nama_desa ?? '-' }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>

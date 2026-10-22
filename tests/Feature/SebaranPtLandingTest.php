@@ -6,9 +6,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
+use App\Models\Desa;
 use App\Models\Dpl;
+use App\Models\Kecamatan;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
+use App\Models\Mahasiswa_lokasi;
 use App\Models\Satuanpendidikan;
 use App\Services\PetaSebaranService;
 use App\Services\SebaranPtSummary;
@@ -128,5 +131,106 @@ class SebaranPtLandingTest extends TestCase
         foreach ($m[1] as $class) {
             $this->assertSame('peserta-detail', $class);
         }
+    }
+
+    private function placed(string $kodept, LokasiProgram $lokasi, Desa $desa, ?int $tahun = null): Mahasiswa
+    {
+        $mhs = Mahasiswa::factory()->create(['kodept' => $kodept, 'location_program' => $lokasi->id]);
+        Mahasiswa_lokasi::create(['tahun' => $tahun ?? (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $desa->id_desa]);
+
+        return $mhs;
+    }
+
+    private function desa(string $kecamatan, string $desa): Desa
+    {
+        $kec = Kecamatan::firstWhere('kecamatan', $kecamatan) ?? Kecamatan::factory()->create(['kecamatan' => $kecamatan]);
+
+        return Desa::factory()->create(['id_kecamatan' => $kec->id_kecamatan, 'desa' => $desa]);
+    }
+
+    private function rows(): array
+    {
+        return app(SebaranPtSummary::class)->all()
+            ->map(fn ($r) => [$r->kodept, $r->nama_lokasi, $r->nama_kecamatan, $r->nama_desa])->all();
+    }
+
+    public function test_pt_in_two_desa_same_lokasi_gives_two_rows_with_kecamatan_desa(): void
+    {
+        $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Bandung']);
+        $pt = Satuanpendidikan::factory()->create(['nm_lemb' => 'Universitas Alfa']);
+        $this->placed($pt->npsn, $lokasi, $this->desa('Kec Coblong', 'Desa Dago'));
+        $this->placed($pt->npsn, $lokasi, $this->desa('Kec Sukajadi', 'Desa Pasteur'));
+        // Same desa twice must not duplicate
+        $this->placed($pt->npsn, $lokasi, Desa::firstWhere('desa', 'Desa Dago'));
+
+        $this->assertSame([
+            [$pt->npsn, 'Kota Bandung', 'Kec Coblong', 'Desa Dago'],
+            [$pt->npsn, 'Kota Bandung', 'Kec Sukajadi', 'Desa Pasteur'],
+        ], $this->rows());
+    }
+
+    public function test_uses_latest_mahasiswa_lokasi_tahun(): void
+    {
+        $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Bandung']);
+        $pt = Satuanpendidikan::factory()->create();
+        $mhs = $this->placed($pt->npsn, $lokasi, $this->desa('Kec Lama', 'Desa Lama'), 2024);
+        Mahasiswa_lokasi::create(['tahun' => 2025, 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $this->desa('Kec Baru', 'Desa Baru')->id_desa]);
+
+        $this->assertSame([[$pt->npsn, 'Kota Bandung', 'Kec Baru', 'Desa Baru']], $this->rows());
+    }
+
+    public function test_dpl_only_pair_has_null_kecamatan_desa_and_renders_dash(): void
+    {
+        $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Bandung']);
+        $pt = Satuanpendidikan::factory()->create(['nm_lemb' => 'Universitas Beta']);
+        Dpl::factory()->count(2)->create(['kodept' => $pt->npsn, 'location_program' => $lokasi->id]);
+
+        $this->assertSame([[$pt->npsn, 'Kota Bandung', null, null]], $this->rows());
+
+        $this->get('/')->assertOk()
+            ->assertSeeInOrder(['<td>Universitas Beta</td>', '<td>Kota Bandung</td>', '<td>-</td>', '<td>-</td>'], false);
+    }
+
+    public function test_pair_with_desa_and_unplaced_mahasiswa_has_no_null_row(): void
+    {
+        $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Bandung']);
+        $pt = Satuanpendidikan::factory()->create();
+        $this->placed($pt->npsn, $lokasi, $this->desa('Kec Coblong', 'Desa Dago'));
+        Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'location_program' => $lokasi->id]);
+        Dpl::factory()->create(['kodept' => $pt->npsn, 'location_program' => $lokasi->id]);
+
+        $this->assertSame([[$pt->npsn, 'Kota Bandung', 'Kec Coblong', 'Desa Dago']], $this->rows());
+    }
+
+    public function test_lokasi_per_pt_has_no_duplicate_lokasi(): void
+    {
+        $bandung = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Bandung']);
+        $cimahi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Cimahi']);
+        $pt = Satuanpendidikan::factory()->create();
+        $this->placed($pt->npsn, $bandung, $this->desa('Kec Coblong', 'Desa Dago'));
+        $this->placed($pt->npsn, $bandung, $this->desa('Kec Sukajadi', 'Desa Pasteur'));
+        $this->placed($pt->npsn, $cimahi, $this->desa('Kec Cimahi', 'Desa Cibabat'));
+
+        $this->assertCount(3, app(SebaranPtSummary::class)->all());
+        $this->assertSame(['Kota Bandung', 'Kota Cimahi'], app(SebaranPtSummary::class)->lokasiPerPt()[$pt->npsn]);
+    }
+
+    public function test_landing_shows_kecamatan_desa_columns_search_and_escapes(): void
+    {
+        $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Bandung']);
+        $pt = Satuanpendidikan::factory()->create(['nm_lemb' => 'Universitas Alfa']);
+        $this->placed($pt->npsn, $lokasi, $this->desa('Kec Coblong', 'Desa Dago'));
+        $this->placed($pt->npsn, $lokasi, $this->desa('Kec <b>X</b>', '<script>alert(3)</script>'));
+
+        $response = $this->get('/')->assertOk()
+            ->assertSeeInOrder(['Lokasi Program</th>', 'Kecamatan</th>', 'Kelurahan/Desa</th>'], false)
+            ->assertSeeInOrder(['<td>Kota Bandung</td>', '<td>Kec Coblong</td>', '<td>Desa Dago</td>'], false)
+            ->assertSee('data-search="'.mb_strtolower($pt->npsn.' Universitas Alfa Kota Bandung Kec Coblong Desa Dago').'"', false)
+            ->assertDontSee('<script>alert(3)</script>', false)
+            ->assertDontSee('Kec <b>X</b>', false)
+            ->assertSee('<td>&lt;script&gt;alert(3)&lt;/script&gt;</td>', false)
+            ->assertSee('<td>Kec &lt;b&gt;X&lt;/b&gt;</td>', false);
+
+        $this->assertStringContainsString('&lt;script&gt;alert(3)&lt;/script&gt;"', $response->getContent());
     }
 }

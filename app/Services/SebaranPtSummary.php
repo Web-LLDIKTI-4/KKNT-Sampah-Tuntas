@@ -11,34 +11,56 @@ class SebaranPtSummary
     // Ikut versi peta: flush data mahasiswa/dpl ikut menyegarkan cache ini
     public function cached(): Collection
     {
-        return Cache::remember('login.sebaran_pt.v1.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1), now()->addMinutes(10), fn () => $this->all());
+        return Cache::remember('login.sebaran_pt.v2.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1), now()->addMinutes(10), fn () => $this->all());
     }
 
     /**
-     * Pasangan PT–lokasi program aktual (dari mahasiswa + dpl), satu baris per pasangan.
+     * PT–lokasi program–kecamatan–desa aktual (desa dari lokasi terakhir mahasiswa, DPL tanpa desa).
      *
-     * @return Collection<int, object{kodept: string, nama_pt: string, nama_lokasi: string}>
+     * @return Collection<int, object{kodept: string, nama_pt: string, nama_lokasi: string, nama_kecamatan: ?string, nama_desa: ?string}>
      */
     public function all(): Collection
     {
-        // Same UNION as jumlah_pt in LokasiProgramSummary::all()
-        $pasangan = DB::table('mahasiswa')
-            ->whereNotNull('location_program')->whereNotNull('kodept')
-            ->select('location_program', 'kodept')
-            ->union(DB::table('dpl')->whereNotNull('location_program')->whereNotNull('kodept')->select('location_program', 'kodept'));
+        // Latest location per mahasiswa, same as PenguranganSampahService::logQuery()
+        $lokasiTerakhir = DB::table('mahasiswa_lokasi')
+            ->whereNotNull('id_desa')
+            ->groupBy('id_mahasiswa')
+            ->selectRaw('id_mahasiswa, MAX(tahun) as tahun');
+
+        // Same UNION as jumlah_pt in LokasiProgramSummary::all(), plus desa for mahasiswa
+        $pasangan = DB::table('mahasiswa as m')
+            ->leftJoinSub($lokasiTerakhir, 'lt', 'lt.id_mahasiswa', '=', 'm.id_mahasiswa')
+            ->leftJoin('mahasiswa_lokasi as ml', fn ($j) => $j->on('ml.id_mahasiswa', '=', 'lt.id_mahasiswa')->on('ml.tahun', '=', 'lt.tahun'))
+            ->leftJoin('desa as md', 'md.id_desa', '=', 'ml.id_desa')
+            ->whereNotNull('m.location_program')->whereNotNull('m.kodept')
+            ->select('m.location_program', 'm.kodept', 'md.id_desa')
+            ->union(DB::table('dpl')->whereNotNull('location_program')->whereNotNull('kodept')->select('location_program', 'kodept', DB::raw('NULL as id_desa')));
 
         return DB::query()->fromSub($pasangan, 'pasangan')
             ->join('lokasi_program', 'lokasi_program.id', '=', 'pasangan.location_program')
             ->leftJoin('ref_satuanpendidikan', 'ref_satuanpendidikan.npsn', '=', 'pasangan.kodept')
-            ->get(['pasangan.kodept', 'ref_satuanpendidikan.nm_lemb', 'lokasi_program.nama_lokasi'])
+            ->leftJoin('desa as d', 'd.id_desa', '=', 'pasangan.id_desa')
+            ->leftJoin('kecamatan as k', 'k.id_kecamatan', '=', 'd.id_kecamatan')
+            ->get(['pasangan.kodept', 'pasangan.location_program', 'pasangan.id_desa', 'ref_satuanpendidikan.nm_lemb', 'lokasi_program.nama_lokasi', 'k.kecamatan', 'd.desa'])
+            // Null-desa row only when the pair has no desa at all
+            ->groupBy(fn ($row) => $row->kodept.'|'.$row->location_program)
+            ->flatMap(function (Collection $rows) {
+                $withDesa = $rows->whereNotNull('id_desa');
+
+                return $withDesa->isNotEmpty() ? $withDesa : $rows->take(1);
+            })
             ->map(fn ($row) => (object) [
                 'kodept' => (string) $row->kodept,
                 'nama_pt' => (string) ($row->nm_lemb ?? $row->kodept),
                 'nama_lokasi' => (string) $row->nama_lokasi,
+                'nama_kecamatan' => $row->kecamatan,
+                'nama_desa' => $row->desa,
             ])
             ->sortBy([
                 fn ($a, $b) => strnatcasecmp($a->nama_pt, $b->nama_pt),
                 fn ($a, $b) => strnatcasecmp($a->nama_lokasi, $b->nama_lokasi),
+                fn ($a, $b) => strnatcasecmp($a->nama_kecamatan ?? '', $b->nama_kecamatan ?? ''),
+                fn ($a, $b) => strnatcasecmp($a->nama_desa ?? '', $b->nama_desa ?? ''),
             ])
             ->values();
     }
@@ -52,7 +74,7 @@ class SebaranPtSummary
     {
         return $this->cached()
             ->groupBy('kodept')
-            ->map(fn (Collection $rows) => $rows->pluck('nama_lokasi')->all())
+            ->map(fn (Collection $rows) => $rows->pluck('nama_lokasi')->unique()->values()->all())
             ->all();
     }
 }
