@@ -296,7 +296,7 @@
         </form>
 
         <p class="text-center small mb-4">
-          <span class="text-muted">Membutuhkan kinformasi atau kendala pada aplikasi, kontak</span>
+          <span class="text-muted">Membutuhkan informasi atau kendala pada aplikasi, kontak</span>
           <a href="https://drive.google.com/file/d/1qBTNBqoouJ_8rD18whvf_lf4czwHsj8C/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="fw-semibold">help desk</a>
         </p>
 
