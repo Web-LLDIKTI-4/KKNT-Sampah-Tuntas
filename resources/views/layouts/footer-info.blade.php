@@ -1,8 +1,11 @@
 {{-- Shared footer columns (dashboard + landing): LLDIKTI sites + contact --}}
 @php($cols = $cols ?? ['col-lg-3 col-md-6 col-sm-6', 'col'])
 <div class="{{ $cols[0] }}">
-  <h6 class="footer-title mb-4 mb-lg-6">Laman LLDIKTI Wilayah IV</h6>
+  <h6 class="footer-title mb-4 mb-lg-6">Link Terkait</h6>
   <ul class="list-unstyled mb-0">
+    <li class="mb-4">
+      <a href="https://lldikti4.kemdiktisaintek.go.id/" target="_blank" rel="noopener noreferrer" class="footer-link d-inline-flex align-items-center gap-2"><i class="ri-external-link-line" aria-hidden="true"></i>Laman LLDIKTI Wilayah IV</a>
+    </li>
     <li class="mb-4">
       <a href="https://gradasi.lldikti4.id/" target="_blank" rel="noopener noreferrer" class="footer-link d-inline-flex align-items-center gap-2"><i class="ri-external-link-line" aria-hidden="true"></i>GRADASI</a>
     </li>
