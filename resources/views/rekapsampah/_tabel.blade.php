@@ -2,7 +2,6 @@
 @php
     use App\Models\PenguranganSampah;
     use Illuminate\Support\Carbon;
-    $berat = fn ($v) => PenguranganSampah::formatAngka($v, 2);
     $persen = fn ($v) => PenguranganSampah::formatPersen($v === null ? null : (float) $v);
     $namaBulan = fn ($b) => Carbon::parse($b)->translatedFormat('F Y');
     $pilihanBulan = $filter['bulan'] ?? 'semua';
@@ -91,32 +90,5 @@
         @endforeach
     </div>
 @endunless
-
-<div class="d-flex flex-wrap gap-5 mb-4">
-    <div>
-        <div class="small text-muted">Persentase Pengelolaan Sampah</div>
-        <x-status-pengurangan :persen="$total->persen_penurunan" class="fs-6" />
-    </div>
-    <div>
-        <div class="small text-muted">Penurunan Timbulan Sampah</div>
-        <div class="fw-medium">{{ $persen($total->persen_penurunan_timbulan) }}</div>
-    </div>
-    <div>
-        <div class="small text-muted">Ketaatan Pemilahan</div>
-        <div class="fw-medium">{{ $persen($total->persen_ketaatan) }}</div>
-    </div>
-    <div>
-        <div class="small text-muted">Total Sampah Dihasilkan</div>
-        <div class="fw-medium">{{ $berat($total->total_dihasilkan) }} kg</div>
-    </div>
-    <div>
-        <div class="small text-muted">Total Sampah Terkelola</div>
-        <div class="fw-medium">{{ $berat($total->total_terkelola) }} kg</div>
-    </div>
-    <div>
-        <div class="small text-muted">Residu</div>
-        <div class="fw-medium">{{ $berat($total->residu) }} kg</div>
-    </div>
-</div>
 
 @include('rekapsampah._data_sampah')

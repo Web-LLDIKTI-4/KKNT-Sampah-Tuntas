@@ -118,7 +118,6 @@ class RekapsampahController extends Controller
             return [
                 'filter' => $filter,
                 'klasterPt' => $klasterPt,
-                'total' => $sampah->total($filter),
                 'subtotal' => $sampah->dataSampahSubtotal($filter, $mingguan),
                 'mingguan' => $mingguan,
                 'bulanList' => $sampah->bulanList($isPt ? $filter['kodept'] : null),
