@@ -242,7 +242,9 @@ class RekapSampahLogHarianTest extends TestCase
         // Jalur controller "semua"
         Cache::flush();
         $this->loginAs('admin');
-        $this->assertSame(2, $this->get('rekapsampah?bulan=semua')->assertOk()->viewData('total')->jml_rumah);
+        // Kartu ringkasan sudah dihapus → controller tidak lagi mengirim "total"; subtotal "semua" tetap mencakup 2 bulan
+        $res = $this->get('rekapsampah?bulan=semua')->assertOk()->assertViewMissing('total');
+        $this->assertSame(['2026-10', self::BULAN], $res->viewData('subtotal')->first()->bulan->pluck('bulan')->all());
     }
 
     public function test_kunci_rumah_buang_semua_non_alfanumerik(): void

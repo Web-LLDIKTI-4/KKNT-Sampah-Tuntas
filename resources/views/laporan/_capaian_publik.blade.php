@@ -8,8 +8,6 @@
     $persen = fn ($p) => PenguranganSampah::formatPersen($p === null ? null : (float) $p);
     $namaBulan = $params['bulan'] ? Carbon::parse($params['bulan'].'-01')->translatedFormat('F Y') : null;
     $isDefault = ! $params['kecamatan'] && ! $params['desa'] && ! $params['klaster'];
-    $persenTotal = $total_keseluruhan->persen_pengurangan ?? null;
-    $klasterTotal = PenguranganSampah::klaster($persenTotal, true);
     // Export Excel menggantikan PNG: landing publik ($publik) & admin (dashboard); kepala, pemda & pt tetap PNG
     $exportRoute = match (true) {
         $publik ?? false => 'login.laporan.export',
@@ -58,15 +56,6 @@
     </div>
 
     <div data-png-target>
-        <div class="mb-3">
-            <div class="small text-muted">Capaian Pengurangan Sampah Seluruh Wilayah</div>
-            @if ($persenTotal === null)
-                <span class="text-muted small">Belum ada data</span>
-            @else
-                <span class="badge rounded-pill fs-6 {{ PenguranganSampah::KLASTER[$klasterTotal]['badge'] }}">{{ $persen($persenTotal) }}</span>
-            @endif
-        </div>
-
         <p class="small text-muted mb-3">
             <span class="badge bg-success">Hijau</span> &gt; 20%;
             <span class="badge bg-warning">Kuning</span> 10% s.d. &le; 20%;

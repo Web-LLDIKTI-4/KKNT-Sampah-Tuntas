@@ -98,7 +98,8 @@ class PenguranganSampahDashboardTest extends TestCase
 
         $this->get('dashboard-pengurangan-sampah?kodept='.$this->pt1->npsn, ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertViewIs('laporan._capaian_publik')
-            ->assertSee('Capaian Pengurangan Sampah Seluruh Wilayah')->assertDontSee('Ringkasan');
+            ->assertDontSee('Capaian Pengurangan Sampah Seluruh Wilayah')->assertDontSee('Ringkasan')
+            ->assertSeeInOrder(['Kecamatan</th>', 'Pengurangan Sampah (%)</th>', 'Klaster</th>'], false);
         $this->get('dashboard-pengurangan-sampah')->assertOk()->assertViewIs('pengurangansampah.index')->assertSee('Ringkasan');
     }
 
