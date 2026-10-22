@@ -44,6 +44,8 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/leaflet/leaflet.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/laporan.css') }}?v={{ filemtime(public_path('css/laporan.css')) }}" />
     <link rel="stylesheet" href="{{ asset('css/landing.css') }}?v={{ filemtime(public_path('css/landing.css')) }}" />
+    {{-- Hero entrance only; skipped for reduced motion --}}
+    <script>if (!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) document.documentElement.classList.add('js-motion');</script>
 </head>
 <body class="lp">
     <a class="lp-skip" href="#main">Lewati ke konten</a>
@@ -154,7 +156,7 @@
         {{-- SEBARAN LOKASI PROGRAM --}}
         <section class="lp-section" id="lokasi" tabindex="-1" aria-labelledby="lokasiTitle">
             <div class="container-xxl">
-                <div class="lp-head">
+                <div class="lp-head" data-reveal>
                     <div>
                         <p class="lp-kicker">SEBARAN LOKASI PROGRAM</p>
                         <h2 class="lp-title" id="lokasiTitle">{{ $navItems['lokasi'] }}</h2>
@@ -169,7 +171,7 @@
                 </div>
 
                 @if ($lokasiProgramList->count())
-                    <ul class="lokasi-grid list-unstyled mb-0" id="lokasiGrid">
+                    <ul class="lokasi-grid list-unstyled mb-0" id="lokasiGrid" data-reveal-children>
                         @foreach ($lokasiProgramList as $lokasi)
                             <li class="lokasi-item" data-lokasi="{{ mb_strtolower($lokasi->nama_lokasi) }}">
                                 <a href="{{ route('login', ['lokasi' => $lokasi->nama_lokasi]) }}" class="lokasi-link"
@@ -208,14 +210,14 @@
         {{-- KINERJA PROGRAM KEGIATAN --}}
         <section class="lp-section lp-section-alt" id="capaian" tabindex="-1" aria-labelledby="capaianTitle">
             <div class="container-xxl">
-                <div class="lp-head">
+                <div class="lp-head" data-reveal>
                     <div>
                         <p class="lp-kicker">KINERJA PROGRAM KEGIATAN</p>
                         <h2 class="lp-title" id="capaianTitle">{{ $navItems['capaian'] }}</h2>
                         <p class="lp-lead">Pantau capaian pengurangan sampah pada setiap wilayah pelaksanaan KKN Tematik Sampah Tuntas, mulai dari tingkat kabupaten/kota hingga kecamatan dan kelurahan/desa. Telusuri kontribusi perguruan tinggi serta identifikasi tantangan pelaksanaan di lapangan.</p>
                     </div>
                 </div>
-                <div class="card lp-card">
+                <div class="card lp-card" data-reveal>
                     <div class="card-body">
                         @isset($laporan)
                             <div data-drilldown="{{ route('login.laporan') }}" aria-live="polite">
@@ -232,14 +234,14 @@
         {{-- PARTISIPASI PERGURUAN TINGGI --}}
         <section class="lp-section" id="peserta" tabindex="-1" aria-labelledby="pesertaTitle">
             <div class="container-xxl">
-                <div class="lp-head">
+                <div class="lp-head" data-reveal>
                     <div>
                         <p class="lp-kicker">PARTISIPASI PERGURUAN TINGGI</p>
                         <h2 class="lp-title" id="pesertaTitle">{{ $navItems['peserta'] }}</h2>
                         <p class="lp-lead">Jelajahi keterlibatan perguruan tinggi melalui data mahasiswa, dosen pembimbing lapangan, penanggung jawab perguruan tinggi, dan ketua kelompok. Klik jumlah peserta untuk melihat informasi lebih lanjut.</p>
                     </div>
                 </div>
-                <div class="card lp-card">
+                <div class="card lp-card" data-reveal>
                     <div class="card-body">
                         @if (count($dataPesertaList))
                             <div class="peserta-toolbar">
@@ -320,14 +322,14 @@
         {{-- SEBARAN PERGURUAN TINGGI: satu baris per pasangan PT-lokasi --}}
         <section class="lp-section lp-section-alt" id="sebaran" tabindex="-1" aria-labelledby="sebaranTitle">
             <div class="container-xxl">
-                <div class="lp-head">
+                <div class="lp-head" data-reveal>
                     <div>
                         <p class="lp-kicker">SEBARAN PERGURUAN TINGGI</p>
                         <h2 class="lp-title" id="sebaranTitle">{{ $navItems['sebaran'] }}</h2>
                         <p class="lp-lead">Telusuri sebaran penugasan perguruan tinggi, mahasiswa, dan dosen pembimbing lapangan pada setiap wilayah pelaksanaan KKN Tematik Sampah Tuntas.</p>
                     </div>
                 </div>
-                <div class="card lp-card">
+                <div class="card lp-card" data-reveal>
                     <div class="card-body">
                         @if (count($sebaranPtList))
                             <div class="peserta-toolbar">
@@ -387,7 +389,7 @@
         {{-- PETA SEBARAN (Leaflet dimuat saat section terlihat) --}}
         <section class="lp-section" id="peta" tabindex="-1" aria-labelledby="petaTitle">
             <div class="container-xxl">
-                <div class="lp-head">
+                <div class="lp-head" data-reveal>
                     <div>
                         <p class="lp-kicker">PETA SEBARAN</p>
                         <h2 class="lp-title" id="petaTitle">{{ $navItems['peta'] }}</h2>
@@ -402,7 +404,7 @@
                     </div>
                 </div>
 
-                <div class="card lp-card">
+                <div class="card lp-card" data-reveal="fade">
                     <div class="card-body">
                         <div class="row g-4">
                             <div class="col-lg-8">
@@ -468,21 +470,23 @@
         <section class="lp-section lp-section-alt" id="dokumen" tabindex="-1" aria-labelledby="dokumenTitle">
             <span id="panduan" class="lp-anchor" aria-hidden="true"></span>
             <div class="container-xxl">
-                <div class="lp-head">
+                <div class="lp-head" data-reveal>
                     <div>
                         <p class="lp-kicker">DOKUMEN</p>
                         <h2 class="lp-title" id="dokumenTitle">{{ $navItems['dokumen'] }}</h2>
                         <p class="lp-lead">Akses panduan, materi pembekalan, dokumen resmi, dan informasi teknis sebagai referensi pelaksanaan KKN Tematik Sampah Tuntas.</p>
                     </div>
                 </div>
-                @include('panduan._publik', ['panduanList' => $panduanList])
+                <div data-reveal>
+                    @include('panduan._publik', ['panduanList' => $panduanList])
+                </div>
             </div>
         </section>
     </main>
 
     <footer class="lp-footer">
         <div class="container-xxl">
-            <div class="lp-footer-grid">
+            <div class="lp-footer-grid" data-reveal-children>
                 <div class="lp-footer-brand lp-footer-col">
                     <div class="lp-footer-logos">
                         <img src="{{ asset('assets/images/Logos-1200.png') }}" width="1200" height="211" loading="lazy"
@@ -491,20 +495,18 @@
                     <p class="mb-0">Program GRADASI LLDIKTI WIlayah IV <br/> Kolaborasi Perguruan Tinggi dan Pemerintah Daerah dalam Social Engineering Pengelolaan Sampah di Metropolitan Bandung Raya melalui KKN Tematik Sampah Tuntas</p>
                 </div>
                 <div class="lp-footer-col">
-                    <h6 class="footer-title">Ada Kendala Pada Aplikasi ?</h6>
-                    <ul class="list-unstyled mb-0" aria-label="Help Desk WhatsApp">
-                        @foreach (config('helpdesk.whatsapp', []) as $wa)
-                            <li>
-                                <a class="footer-link lp-footer-wa" href="https://wa.me/{{ preg_replace('/\D/', '', $wa) }}" target="_blank" rel="noopener noreferrer" title="WhatsApp {{ $wa }}">
-                                    <i class="ri-whatsapp-line" aria-hidden="true"></i><span>Hubungi Help Desk {{ $loop->iteration }}</span>
-                                </a>
-                            </li>
-                        @endforeach
+                    <h6 class="footer-title">INFORMASI ATAU ADA KENDALA?</h6>
+                    <ul class="list-unstyled mb-0" aria-label="Help Desk">
+                        <li>
+                            <a class="footer-link lp-footer-wa" href="https://drive.google.com/file/d/1qBTNBqoouJ_8rD18whvf_lf4czwHsj8C/view?usp=sharing" target="_blank" rel="noopener noreferrer" title="Help Desk">
+                                <i class="ri-whatsapp-line" aria-hidden="true"></i><span>Hubungi Help Desk</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 @include('layouts.footer-info', ['cols' => ['lp-footer-col', 'lp-footer-col']])
             </div>
-            <div class="lp-footer-copy">
+            <div class="lp-footer-copy" data-reveal>
                 <p class="mb-0">&copy; {{ date('Y') }}, LLDIKTI Wilayah IV</p>
                 <div class="lp-social">
                     <a href="https://www.facebook.com/lldiktiwilayah4/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="ri-facebook-fill" aria-hidden="true"></i></a>
