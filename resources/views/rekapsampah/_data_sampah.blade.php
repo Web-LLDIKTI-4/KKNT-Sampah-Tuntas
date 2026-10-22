@@ -178,6 +178,6 @@
         }
     });
     // Body tabel di-scroll dalam kotak (header sticky); search & pagination tetap di luar
-    $('#{{ $tableId }}').wrap('<div class="scroll-box scroll-box-md"></div>');
+    $('#{{ $tableId }}').wrap('<div class="scroll-box scroll-box-lg"></div>');
   });
 </script>
