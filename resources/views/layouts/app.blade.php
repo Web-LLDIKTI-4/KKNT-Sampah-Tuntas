@@ -135,8 +135,8 @@
                 </span>
               </a>
               <p class="footer-text footer-logo-description mb-6">
-                Program GRADASI LLDIKTI WIlayah IV <br />
-Kolaborasi Perguruan Tinggi dan Pemerintah Daerah dalam Social Engineering Pengelolaan Sampah di Metropolitan Bandung Raya melalui KKN Tematik Sampah Tuntas
+                Program GRADASI: KKN Tematik Sampah Tuntas LLDIKTI WIlayah IV. <br />
+                Kolaborasi Perguruan Tinggi dan Pemerintah Daerah dalam Social Engineering Pengelolaan Sampah di Metropolitan Bandung Raya melalui KKN Tematik Sampah Tuntas
                 {{-- KKN Tematik merupakan implementasi Program GRADASI LLDIKTI Wilayah IV yang memberikan pengalaman belajar berbasis pengabdian melalui kolaborasi perguruan tinggi, pemerintah daerah, dunia usaha, dan masyarakat untuk mewujudkan pembangunan berkelanjutan. --}}
               <span class="text-warning"></span>
               </p>

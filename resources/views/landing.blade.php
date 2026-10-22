@@ -492,7 +492,7 @@
                         <img src="{{ asset('assets/images/Logos-1200.png') }}" width="1200" height="211" loading="lazy"
                             alt="Logo Pemprov Jawa Barat, pemerintah kabupaten/kota mitra, LLDIKTI Wilayah IV, dan Diktisaintek Berdampak" />
                     </div>
-                    <p class="mb-0">Program GRADASI LLDIKTI WIlayah IV <br/> Kolaborasi Perguruan Tinggi dan Pemerintah Daerah dalam Social Engineering Pengelolaan Sampah di Metropolitan Bandung Raya melalui KKN Tematik Sampah Tuntas</p>
+                    <p class="mb-0">Program GRADASI: KKN Tematik Sampah Tuntas LLDIKTI WIlayah IV. <br/> Kolaborasi Perguruan Tinggi dan Pemerintah Daerah dalam Social Engineering Pengelolaan Sampah di Metropolitan Bandung Raya melalui KKN Tematik Sampah Tuntas</p>
                 </div>
                 <div class="lp-footer-col">
                     <h6 class="footer-title">INFORMASI ATAU ADA KENDALA?</h6>

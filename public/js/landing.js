@@ -33,6 +33,37 @@
     els.forEach(function (el) { el.textContent = "0"; io.observe(el); });
   })();
 
+  // Reveal on scroll; content is only hidden after html.js-reveal is set here
+  (function () {
+    if (reduceMotion || !hasIO) return;
+    document.querySelectorAll("[data-reveal-children]").forEach(function (group) {
+      Array.prototype.forEach.call(group.children, function (child) {
+        if (!child.hasAttribute("data-reveal")) child.setAttribute("data-reveal", "");
+      });
+    });
+    var items = document.querySelectorAll("[data-reveal]");
+    if (!items.length) return;
+    var DURATION = 600, STEP = 70, MAX_DELAY = 280;
+    var io = new IntersectionObserver(function (entries) {
+      var batch = 0;
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var el = e.target, delay = Math.min(batch++ * STEP, MAX_DELAY);
+        io.unobserve(el);
+        el.style.setProperty("--reveal-delay", delay + "ms");
+        el.classList.add("is-visible");
+        // Drop reveal styles afterwards so hover transforms and fixed children behave normally
+        setTimeout(function () {
+          el.removeAttribute("data-reveal");
+          el.classList.remove("is-visible");
+          el.style.removeProperty("--reveal-delay");
+        }, DURATION + delay + 80);
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    document.documentElement.classList.add("js-reveal");
+    items.forEach(function (el) { io.observe(el); });
+  })();
+
   $(function () {
     var nav = document.getElementById("lpNav");
     var offcanvasEl = document.getElementById("lpOffcanvas");
@@ -70,17 +101,14 @@
       if (history.replaceState) history.replaceState(null, "", "#" + id);
     }
 
-    // Offcanvas: tutup dulu, lalu scroll setelah animasi selesai (fokus tidak kembali ke tombol menu)
+    // Offcanvas: data-bs-scroll keeps body unlocked, so scroll starts together with the close animation
     if (offcanvasEl) {
-      var pendingId = null;
       $(offcanvasEl).on("click", "a[href^='#']", function (e) {
+        var id = this.getAttribute("href").slice(1);
+        if (!document.getElementById(id)) return;
         e.preventDefault();
-        pendingId = this.getAttribute("href").slice(1);
         bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl).hide();
-      });
-      offcanvasEl.addEventListener("hidden.bs.offcanvas", function () {
-        if (pendingId) goTo(pendingId);
-        pendingId = null;
+        goTo(id);
       });
     }
 

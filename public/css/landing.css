@@ -1476,6 +1476,95 @@ th[aria-sort] .peserta-sort i {
     }
 }
 
+/* ---------- Motion: hero entrance, reveal on scroll, micro-interaction ---------- */
+:root {
+    --lp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes lpRise {
+    from { opacity: 0; transform: translate3d(0, 20px, 0); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes lpZoom {
+    from { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.97); }
+    to { opacity: 1; transform: none; }
+}
+
+/* Fill "backwards": end state is not locked, so hover transforms keep working */
+html.js-motion .lp-hero-logos { animation: lpRise 0.7s var(--lp-ease) 0ms backwards; }
+html.js-motion .lp-eyebrow { animation: lpRise 0.7s var(--lp-ease) 90ms backwards; }
+html.js-motion .lp-hero-title { animation: lpRise 0.7s var(--lp-ease) 180ms backwards; }
+html.js-motion .lp-hero-lead { animation: lpRise 0.7s var(--lp-ease) 270ms backwards; }
+html.js-motion .lp-hero-actions { animation: lpRise 0.7s var(--lp-ease) 360ms backwards; }
+html.js-motion .lp-hero-figure { animation: lpZoom 0.9s var(--lp-ease) 220ms backwards; }
+html.js-motion .lp-stat { animation: lpRise 0.6s var(--lp-ease) 460ms backwards; }
+html.js-motion .lp-stat:nth-child(2) { animation-delay: 520ms; }
+html.js-motion .lp-stat:nth-child(3) { animation-delay: 580ms; }
+html.js-motion .lp-stat:nth-child(4) { animation-delay: 640ms; }
+html.js-motion .lp-stat:nth-child(5) { animation-delay: 700ms; }
+
+/* Hidden only once landing.js has armed the observer (html.js-reveal) */
+html.js-reveal [data-reveal] {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+    transition: opacity 0.6s var(--lp-ease), transform 0.6s var(--lp-ease);
+    transition-delay: var(--reveal-delay, 0ms);
+}
+
+html.js-reveal [data-reveal="fade"] {
+    transform: none;
+}
+
+html.js-reveal [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+.lp-stat {
+    transition: transform 0.25s var(--lp-ease), background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.lp-hero-actions .btn,
+.lp-cta,
+.panduan-unduh {
+    transition: transform 0.2s var(--lp-ease), box-shadow 0.2s var(--lp-ease), background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.lp-social a {
+    transition: transform 0.2s var(--lp-ease), background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+    .lp-stat:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.26);
+    }
+
+    .lp-hero-actions .btn:hover,
+    .lp-cta:hover,
+    .panduan-unduh:hover,
+    .lp-social a:hover {
+        transform: translateY(-2px);
+    }
+
+    .lp-btn-light:hover {
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
+    }
+
+    .lp-cta:hover,
+    .panduan-unduh:hover {
+        box-shadow: 0 10px 22px rgba(var(--lp-primary-rgb), 0.32);
+    }
+
+    .lp-hero-actions .btn:active,
+    .lp-cta:active,
+    .panduan-unduh:active {
+        transform: none;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .lokasi-link,
     .lokasi-item-img img,
@@ -1485,8 +1574,28 @@ th[aria-sort] .peserta-sort i {
     .lp-social a,
     .peta-sebaran,
     .peta-top-item,
-    .peta-dot {
+    .peta-dot,
+    .lp-stat,
+    .lp-hero-actions .btn,
+    .lp-cta,
+    .panduan-unduh,
+    html.js-reveal [data-reveal] {
         transition: none;
+    }
+
+    html.js-motion .lp-hero-logos,
+    html.js-motion .lp-eyebrow,
+    html.js-motion .lp-hero-title,
+    html.js-motion .lp-hero-lead,
+    html.js-motion .lp-hero-actions,
+    html.js-motion .lp-hero-figure,
+    html.js-motion .lp-stat {
+        animation: none;
+    }
+
+    html.js-reveal [data-reveal] {
+        opacity: 1;
+        transform: none;
     }
 
     .lokasi-link:hover,
@@ -1494,7 +1603,12 @@ th[aria-sort] .peserta-sort i {
     .lokasi-link:hover .lokasi-item-img img,
     .lokasi-link:hover .lokasi-item-cta i,
     .peta-dot:hover,
-    .peta-dot.is-active {
+    .peta-dot.is-active,
+    .lp-stat:hover,
+    .lp-hero-actions .btn:hover,
+    .lp-cta:hover,
+    .panduan-unduh:hover,
+    .lp-social a:hover {
         transform: none;
     }
 
