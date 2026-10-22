@@ -39,12 +39,12 @@ class DesaRequest extends AjaxFormRequest
             'longitude.required_with' => 'Longitude harus diisi jika latitude diisi.',
             'longitude.numeric' => 'Longitude harus berupa angka.',
             'longitude.between' => 'Longitude harus di antara -180 dan 180.',
-            'satuan_baseline.required' => 'Satuan Base Line harus dipilih.',
-            'satuan_baseline.in' => 'Satuan Base Line tidak valid.',
-            'baseline.numeric' => 'Base Line harus berupa angka.',
-            'baseline.min' => 'Base Line tidak boleh kurang dari 0.',
-            'baseline.max' => 'Base Line tidak boleh lebih dari :max.',
-            'baseline.decimal' => 'Base Line maksimal 2 angka desimal.',
+            'satuan_baseline.required' => 'Satuan Baseline harus dipilih.',
+            'satuan_baseline.in' => 'Satuan Baseline tidak valid.',
+            'baseline.numeric' => 'Baseline harus berupa angka.',
+            'baseline.min' => 'Baseline tidak boleh kurang dari 0.',
+            'baseline.max' => 'Baseline tidak boleh lebih dari :max.',
+            'baseline.decimal' => 'Baseline maksimal 2 angka desimal.',
         ];
     }
 }

@@ -88,11 +88,11 @@ class DesaTest extends TestCase
         $this->loginAs('admin');
         $kecamatan = Kecamatan::factory()->create();
         $cases = [
-            '-0.01' => 'Base Line tidak boleh kurang dari 0.',
-            '100.01' => 'Base Line tidak boleh lebih dari 100.',
-            '12.345' => 'Base Line maksimal 2 angka desimal.',
-            'abc' => 'Base Line harus berupa angka.',
-            '12,5' => 'Base Line harus berupa angka.',
+            '-0.01' => 'Baseline tidak boleh kurang dari 0.',
+            '100.01' => 'Baseline tidak boleh lebih dari 100.',
+            '12.345' => 'Baseline maksimal 2 angka desimal.',
+            'abc' => 'Baseline harus berupa angka.',
+            '12,5' => 'Baseline harus berupa angka.',
         ];
 
         foreach ($cases as $input => $message) {
@@ -103,7 +103,7 @@ class DesaTest extends TestCase
 
         $desa = Desa::factory()->create(['id_kecamatan' => $kecamatan->id_kecamatan, 'baseline' => 10]);
         $this->put('desa/update', ['id_desa' => $desa->id_desa, 'id_kecamatan' => $kecamatan->id_kecamatan, 'desa' => $desa->desa, 'satuan_baseline' => '%', 'baseline' => '101'])
-            ->assertJsonPath('errors.baseline.0', 'Base Line tidak boleh lebih dari 100.');
+            ->assertJsonPath('errors.baseline.0', 'Baseline tidak boleh lebih dari 100.');
         $this->assertEquals(10.0, (float) $desa->fresh()->baseline);
     }
 
@@ -125,7 +125,7 @@ class DesaTest extends TestCase
     public function test_listdata_view_has_baseline_column_matching_js_columns(): void
     {
         $this->loginAs('admin');
-        $html = $this->get('desa/listdata')->assertOk()->assertSee('Base Line</th>', false)->getContent();
+        $html = $this->get('desa/listdata')->assertOk()->assertSee('<th class="text-center text-nowrap">Baseline</th>', false)->getContent();
 
         preg_match('#<thead>(.*?)</thead>#s', $html, $thead);
         $thCount = substr_count($thead[1] ?? '', '<th');
@@ -178,18 +178,18 @@ class DesaTest extends TestCase
         $base = ['id_kecamatan' => $kecamatan->id_kecamatan, 'baseline' => '150'];
 
         $this->put('desa/insert', $base + ['desa' => 'Persen', 'satuan_baseline' => '%'])
-            ->assertJsonPath('errors.baseline.0', 'Base Line tidak boleh lebih dari 100.');
+            ->assertJsonPath('errors.baseline.0', 'Baseline tidak boleh lebih dari 100.');
         $this->assertDatabaseMissing('desa', ['desa' => 'Persen']);
 
         $this->put('desa/insert', $base + ['desa' => 'Kilo', 'satuan_baseline' => 'kg'])->assertJson(['success' => true]);
         $this->assertEquals(150.0, (float) Desa::where('desa', 'Kilo')->value('baseline'));
 
         $this->put('desa/insert', ['id_kecamatan' => $kecamatan->id_kecamatan, 'desa' => 'Neg', 'satuan_baseline' => 'kg', 'baseline' => '-1'])
-            ->assertJsonPath('errors.baseline.0', 'Base Line tidak boleh kurang dari 0.');
+            ->assertJsonPath('errors.baseline.0', 'Baseline tidak boleh kurang dari 0.');
 
         $desa = Desa::factory()->create(['id_kecamatan' => $kecamatan->id_kecamatan, 'baseline' => 10]);
         $this->put('desa/update', ['id_desa' => $desa->id_desa, 'id_kecamatan' => $kecamatan->id_kecamatan, 'desa' => $desa->desa] + $base + ['satuan_baseline' => '%'])
-            ->assertJsonPath('errors.baseline.0', 'Base Line tidak boleh lebih dari 100.');
+            ->assertJsonPath('errors.baseline.0', 'Baseline tidak boleh lebih dari 100.');
         $this->assertEquals(10.0, (float) $desa->fresh()->baseline);
     }
 
@@ -199,17 +199,17 @@ class DesaTest extends TestCase
         $kecamatan = Kecamatan::factory()->create();
         $base = ['id_kecamatan' => $kecamatan->id_kecamatan, 'desa' => 'Satuan Uji', 'baseline' => '10'];
 
-        $this->put('desa/insert', $base)->assertJsonPath('errors.satuan_baseline.0', 'Satuan Base Line harus dipilih.');
-        $this->put('desa/insert', $base + ['satuan_baseline' => ''])->assertJsonPath('errors.satuan_baseline.0', 'Satuan Base Line harus dipilih.');
+        $this->put('desa/insert', $base)->assertJsonPath('errors.satuan_baseline.0', 'Satuan Baseline harus dipilih.');
+        $this->put('desa/insert', $base + ['satuan_baseline' => ''])->assertJsonPath('errors.satuan_baseline.0', 'Satuan Baseline harus dipilih.');
         foreach (['ton', 'KG', 'persen', '<b>%</b>'] as $satuan) {
             $this->put('desa/insert', $base + ['satuan_baseline' => $satuan])
-                ->assertJsonPath('errors.satuan_baseline.0', 'Satuan Base Line tidak valid.');
+                ->assertJsonPath('errors.satuan_baseline.0', 'Satuan Baseline tidak valid.');
         }
         $this->assertDatabaseMissing('desa', ['desa' => 'Satuan Uji']);
 
         $desa = Desa::factory()->create(['id_kecamatan' => $kecamatan->id_kecamatan]);
         $this->put('desa/update', ['id_desa' => $desa->id_desa, 'id_kecamatan' => $kecamatan->id_kecamatan, 'desa' => $desa->desa, 'satuan_baseline' => 'ton'])
-            ->assertJsonPath('errors.satuan_baseline.0', 'Satuan Base Line tidak valid.');
+            ->assertJsonPath('errors.satuan_baseline.0', 'Satuan Baseline tidak valid.');
         $this->assertSame('%', $desa->fresh()->satuan_baseline);
     }
 
@@ -219,7 +219,7 @@ class DesaTest extends TestCase
         $desa = Desa::factory()->create(['satuan_baseline' => 'kg', 'baseline' => 1250]);
 
         $this->get('desa/edit/'.$desa->id_desa)->assertOk()
-            ->assertSee('Base Line')->assertSee('name="satuan_baseline"', false)
+            ->assertSee('Baseline</label>', false)->assertSee('Satuan</label>', false)->assertSee('name="satuan_baseline"', false)
             ->assertSee('<option value="kg" selected', false);
     }
 

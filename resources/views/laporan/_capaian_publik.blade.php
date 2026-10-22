@@ -119,7 +119,7 @@
                     <tr>
                         <th class="text-center">No</th>
                         <th class="text-center">Kelurahan/Desa</th>
-                        <th class="text-center">BaseLine</th>
+                        <th class="text-center">Baseline</th>
                         <th class="text-center">Pengurangan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                     </tr>

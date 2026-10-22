@@ -17,16 +17,23 @@
         <label>Nama Kelurahan/Desa</label>
     </div>
     <div class="form-group mb-6">
-        <div class="input-group input-group-merge">
-            <div class="form-floating form-floating-outline">
-                <input type="number" name="baseline" id="baseline-ubah" class="form-control form-control-sm" step="0.01" min="0" inputmode="decimal" placeholder="0,00" value="{{ $data->baseline }}">
-                <label for="baseline-ubah">Base Line</label>
+        <div class="row g-2">
+            <div class="col-8">
+                <div class="form-floating form-floating-outline">
+                    <input type="number" name="baseline" id="baseline-ubah" class="form-control form-control-sm" step="0.01" min="0" inputmode="decimal" placeholder="0,00" value="{{ $data->baseline }}">
+                    <label for="baseline-ubah">Baseline</label>
+                </div>
             </div>
-            <select name="satuan_baseline" id="satuan-baseline-ubah" class="form-select form-select-sm flex-grow-0 w-auto" aria-label="Satuan base line">
-                @foreach (['%' => '%', 'kg' => 'KG'] as $value => $text)
-                    <option value="{{ $value }}" @selected(old('satuan_baseline', $data->satuan_baseline ?? '%') === $value)>{{ $text }}</option>
-                @endforeach
-            </select>
+            <div class="col-4">
+                <div class="form-floating form-floating-outline">
+                    <select name="satuan_baseline" id="satuan-baseline-ubah" class="form-select form-select-sm">
+                        @foreach (['%' => '%', 'kg' => 'KG'] as $value => $text)
+                            <option value="{{ $value }}" @selected(old('satuan_baseline', $data->satuan_baseline ?? '%') === $value)>{{ $text }}</option>
+                        @endforeach
+                    </select>
+                    <label for="satuan-baseline-ubah">Satuan</label>
+                </div>
+            </div>
         </div>
         <span id="baseline_error" class="text-danger d-block small"></span>
         <span id="satuan_baseline_error" class="text-danger d-block small"></span>
