@@ -32,10 +32,10 @@ class LandingPageTest extends TestCase
         Cache::flush();
     }
 
-    // Kecamatan + 2 desa dengan data sampah 20% (baseline diisi & kosong)
+    // Kecamatan + 2 desa dengan penurunan timbulan 20% = 1 - 80 / (1 × 100) (baseline diisi & kosong)
     private function wilayahDenganSampah(): Kecamatan
     {
-        $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Uji']);
+        $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Uji', 'koefisien_timbulan_sampah' => 1]);
         $kecamatan = Kecamatan::factory()->create(['kecamatan' => 'Kec Uji']);
         $pt = Satuanpendidikan::factory()->create();
         $bulan = now()->format('Y-m');
@@ -46,8 +46,8 @@ class LandingPageTest extends TestCase
             Pjdesa::create(['email' => $mhs->email, 'id_desa' => $desa->id_desa]);
             Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $desa->id_desa, 'user_in_up' => $mhs->email]);
             PendataanPemilahanSampah::factory()->create([
-                'email' => $mhs->email, 'tanggal' => $bulan.'-01',
-                'organik_kg' => 20, 'anorganik_kg' => 0, 'residu_kg' => 80,
+                'email' => $mhs->email, 'tanggal' => $bulan.'-01', 'jumlah_anggota_keluarga' => 100,
+                'organik_kg' => 0, 'anorganik_kg' => 0, 'residu_kg' => 80,
             ]);
         }
 
@@ -57,7 +57,7 @@ class LandingPageTest extends TestCase
     private function assertBaselineBeforePersen($response): void
     {
         $response->assertOk()
-            ->assertSeeInOrder(['Kelurahan/Desa</th>', 'BaseLine (%)</th>', 'Pengurangan Sampah (%)</th>', 'Klaster</th>'], false)
+            ->assertSeeInOrder(['Kelurahan/Desa</th>', 'BaseLine</th>', 'Pengurangan Sampah (%)</th>', 'Klaster</th>'], false)
             ->assertSeeInOrder(['Desa Berbaseline</a>', '12,50%</td>', '20,00%</td>'], false)
             ->assertSeeInOrder(['Desa Tanpa Baseline</a>', '-</td>', '20,00%</td>'], false);
     }
@@ -174,5 +174,17 @@ class LandingPageTest extends TestCase
         Desa::where('desa', 'Desa Berbaseline')->firstOrFail()->update(['baseline' => 33.33]);
 
         $this->get($url)->assertSee('33,33%')->assertDontSee('12,50%');
+    }
+
+    public function test_public_capaian_shows_baseline_with_its_satuan(): void
+    {
+        $kec = $this->wilayahDenganSampah();
+        Desa::where('desa', 'Desa Berbaseline')->firstOrFail()->update(['baseline' => 1250, 'satuan_baseline' => 'kg']);
+
+        $this->get(route('login.laporan', ['kecamatan' => $kec->id_kecamatan]))
+            ->assertOk()
+            ->assertSeeInOrder(['BaseLine</th>', 'Desa Berbaseline</a>', '1.250,00 kg</td>', '20,00%</td>'], false)
+            ->assertSeeInOrder(['Desa Tanpa Baseline</a>', '-</td>'], false)
+            ->assertDontSee('1.250,00%');
     }
 }

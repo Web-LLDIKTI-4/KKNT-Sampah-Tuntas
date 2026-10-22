@@ -67,9 +67,7 @@ class PetaSebaranService
             ->leftJoin('kecamatan as k', 'k.id_kecamatan', '=', 'd.id_kecamatan')
             ->leftJoin('mahasiswa_lokasi as ml', function ($join) use ($filter) {
                 $join->on('ml.id_desa', '=', 'd.id_desa')->where('ml.tahun', '=', $filter['tahun']);
-            })
-            ->whereNotNull('d.latitude')
-            ->whereNotNull('d.longitude');
+            });
 
         if ($modePt) {
             $query->leftJoin('mahasiswa as m', function ($join) use ($kodept) {
@@ -85,13 +83,13 @@ class PetaSebaranService
                 DB::raw('COUNT(DISTINCT '.($modePt ? 'm' : 'ml').'.id_mahasiswa) as jumlah'),
             ]);
 
-        // Periode per basis PT (sama dengan dashboard PT); mode all = global
+        // Periode = bulan terakhir global (label); persen memakai bulan terakhir masing-masing desa
         $periode = $this->sampah->bulanTerakhir($kodept, $filter['tahun']);
         $persenDesa = $persenKecamatan = collect();
         if ($periode !== null) {
-            $sampahFilter = ['bulan' => $periode, 'kodept' => $kodept];
-            $persenDesa = $this->sampah->totalPer('desa', $sampahFilter);
-            $persenKecamatan = $this->sampah->totalPer('kecamatan', $sampahFilter);
+            // Kecamatan = agregat log bulan terakhir tiap desanya (konsisten dengan persen desa)
+            $sampahFilter = ['tahun' => $filter['tahun'], 'kodept' => $kodept, 'bulan_terakhir_desa' => true];
+            ['desa' => $persenDesa, 'kecamatan' => $persenKecamatan] = $this->sampah->totalDesaKecamatan($sampahFilter);
         }
 
         $total = 0;
@@ -100,9 +98,19 @@ class PetaSebaranService
         $kecamatanAktif = [];
         $desa = [];
         $kecamatan = [];
+        $belumDipetakan = [];
 
         foreach ($rows as $row) {
             $count = (int) $row->jumlah;
+
+            // Tanpa koordinat: tidak masuk peta/summary, dicatat bila punya mahasiswa atau capaian
+            if ($row->latitude === null || $row->longitude === null) {
+                if ($count > 0 || $persenDesa->has((string) $row->id_desa)) {
+                    $belumDipetakan[] = ['desa' => (string) $row->desa, 'kecamatan' => (string) $row->kecamatan];
+                }
+
+                continue;
+            }
 
             if ($count > 0) {
                 $desaAktif++;
@@ -151,12 +159,14 @@ class PetaSebaranService
                 'jumlah_desa' => $desaAktif,
                 'jumlah_kecamatan' => count($kecamatanAktif),
                 'desa_tersamar' => $masked,
+                'belum_dipetakan' => $belumDipetakan,
+                'jumlah_belum_dipetakan' => count($belumDipetakan),
             ],
             'desa' => $desa,
             // Persen DESC (null di akhir), lalu nama
             'kecamatan' => collect($kecamatan)
                 ->sortBy([
-                    fn ($a, $b) => ($b['persen_pengurangan'] ?? -1) <=> ($a['persen_pengurangan'] ?? -1),
+                    fn ($a, $b) => ($b['persen_pengurangan'] ?? -INF) <=> ($a['persen_pengurangan'] ?? -INF),
                     fn ($a, $b) => strcmp($a['kecamatan'], $b['kecamatan']),
                 ])
                 ->values()

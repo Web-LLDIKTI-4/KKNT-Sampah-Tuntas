@@ -17,8 +17,8 @@
         @if ($desa)
             <div class="d-flex flex-wrap gap-5 mb-4">
                 <div>
-                    <div class="small text-muted">Persentase Penurunan Sampah</div>
-                    <x-status-pengurangan :persen="$total->persen_penurunan" class="fs-6" />
+                    <div class="small text-muted">Persentase Penurunan Timbulan Sampah</div>
+                    <x-status-pengurangan :persen="$total->persen_penurunan_timbulan" class="fs-6" />
                 </div>
                 <div>
                     <div class="small text-muted">Ketaatan Pemilahan</div>

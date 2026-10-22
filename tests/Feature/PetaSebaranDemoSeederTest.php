@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\PetaSebaranDemoSeeder;
+use Database\Seeders\WilayahSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -61,6 +63,47 @@ class PetaSebaranDemoSeederTest extends TestCase
         $this->assertSame(0, count(DB::select('select 1 from desa group by desa, latitude, longitude having count(*) > 1')));
     }
 
+    public function test_database_seeder_fresh_tanpa_desa_demo_dan_semua_desa_berdata_berkoordinat(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $this->assertSame(0, DB::table('desa')->where('desa', 'like', '%(Demo)%')->count());
+        $this->assertSame(0, DB::table('kecamatan')->where('kecamatan', 'like', '%(Demo)%')->count());
+        $this->assertSame(12, DB::table('desa')->count());
+
+        $desaBerdata = DB::table('mahasiswa_lokasi')->whereNotNull('id_desa')->distinct()->pluck('id_desa');
+        $this->assertNotEmpty($desaBerdata);
+        $this->assertSame(0, DB::table('desa')->whereIn('id_desa', $desaBerdata)
+            ->where(fn ($q) => $q->whereNull('latitude')->orWhereNull('longitude'))->count());
+
+        $tahun = (int) date('Y');
+        foreach ([$tahun, $tahun - 1] as $t) {
+            $this->getJson(route('login.peta', ['tahun' => $t]))->assertOk()
+                ->assertJsonPath('summary.belum_dipetakan', [])
+                ->assertJsonPath('summary.jumlah_belum_dipetakan', 0);
+        }
+        $this->assertNotNull($this->getJson(route('login.peta'))->json('periode'));
+    }
+
+    public function test_wilayah_seeder_mengisi_koordinat_tanpa_menimpa_isian_admin(): void
+    {
+        $this->seed(WilayahSeeder::class);
+        $this->assertSame(12, DB::table('desa')->whereNotNull('latitude')->whereNotNull('longitude')->count());
+
+        DB::table('desa')->where('desa', 'Dago')->update(['latitude' => -6.1234567, 'longitude' => 107.7654321]);
+        DB::table('desa')->where('desa', 'Pasteur')->update(['latitude' => null, 'longitude' => null]);
+
+        $this->seed(WilayahSeeder::class);
+
+        $dago = DB::table('desa')->where('desa', 'Dago')->first();
+        $this->assertEqualsWithDelta(-6.1234567, (float) $dago->latitude, 0.0000001);
+        $this->assertEqualsWithDelta(107.7654321, (float) $dago->longitude, 0.0000001);
+        $pasteur = DB::table('desa')->where('desa', 'Pasteur')->first();
+        $this->assertNotNull($pasteur->latitude);
+        $this->assertNotNull($pasteur->longitude);
+        $this->assertSame(12, DB::table('desa')->count());
+    }
+
     public function test_seeder_cleans_legacy_demo_rows_with_non_uuid5_ids(): void
     {
         $legacyKecamatan = $this->kecamatan('Baleendah (Demo)');
@@ -68,8 +111,9 @@ class PetaSebaranDemoSeederTest extends TestCase
 
         $this->seed(PetaSebaranDemoSeeder::class);
 
-        $this->assertSame(1, DB::table('kecamatan')->where('kecamatan', 'Baleendah (Demo)')->count());
-        $this->assertSame(1, DB::table('desa')->where('desa', 'Andir (Demo)')->count());
+        // Legacy "(Demo)" dihapus dan tidak dibuat ulang
+        $this->assertSame(0, DB::table('kecamatan')->where('kecamatan', 'Baleendah (Demo)')->count());
+        $this->assertSame(0, DB::table('desa')->where('desa', 'Andir (Demo)')->count());
     }
 
     public function test_seeder_reuses_legacy_demo_desa_still_referenced_by_real_data(): void

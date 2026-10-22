@@ -112,6 +112,18 @@ class PenguranganSampah extends Model
         return $value === null ? '-' : number_format($value, 2, ',', '.').'%';
     }
 
+    // '%' (or null) -> "12,50%", 'kg' -> "1.250,00 kg", null value -> "-".
+    public static function formatBaseline(?float $nilai, ?string $satuan): string
+    {
+        if ($nilai === null) {
+            return '-';
+        }
+
+        return $satuan === 'kg'
+            ? number_format($nilai, 2, ',', '.').' kg'
+            : self::formatPersen($nilai);
+    }
+
     public function desa()
     {
         return $this->belongsTo(Desa::class, 'id_desa', 'id_desa');

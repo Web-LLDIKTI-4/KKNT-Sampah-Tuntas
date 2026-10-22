@@ -20,7 +20,9 @@ class DesaRequest extends AjaxFormRequest
             ],
             'latitude' => ['nullable', 'required_with:longitude', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'required_with:latitude', 'numeric', 'between:-180,180'],
-            'baseline' => ['nullable', 'numeric', 'between:0,100', 'decimal:0,2'],
+            'satuan_baseline' => ['required', 'string', Rule::in(['%', 'kg'])],
+            // Persentase dibatasi 100; kg mengikuti batas decimal(10,2)
+            'baseline' => ['nullable', 'numeric', 'min:0', 'decimal:0,2', $this->input('satuan_baseline') === '%' ? 'max:100' : 'max:99999999.99'],
         ];
     }
 
@@ -37,8 +39,11 @@ class DesaRequest extends AjaxFormRequest
             'longitude.required_with' => 'Longitude harus diisi jika latitude diisi.',
             'longitude.numeric' => 'Longitude harus berupa angka.',
             'longitude.between' => 'Longitude harus di antara -180 dan 180.',
+            'satuan_baseline.required' => 'Satuan Base Line harus dipilih.',
+            'satuan_baseline.in' => 'Satuan Base Line tidak valid.',
             'baseline.numeric' => 'Base Line harus berupa angka.',
-            'baseline.between' => 'Base Line harus di antara 0 dan 100.',
+            'baseline.min' => 'Base Line tidak boleh kurang dari 0.',
+            'baseline.max' => 'Base Line tidak boleh lebih dari :max.',
             'baseline.decimal' => 'Base Line maksimal 2 angka desimal.',
         ];
     }

@@ -98,7 +98,7 @@ class PenguranganSampahDashboardTest extends TestCase
 
         $this->get('dashboard-pengurangan-sampah?kodept='.$this->pt1->npsn, ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertViewIs('laporan._capaian_publik')
-            ->assertSee('Capaian Keseluruhan')->assertDontSee('Ringkasan');
+            ->assertSee('Capaian Pengurangan Sampah Seluruh Wilayah')->assertDontSee('Ringkasan');
         $this->get('dashboard-pengurangan-sampah')->assertOk()->assertViewIs('pengurangansampah.index')->assertSee('Ringkasan');
     }
 
@@ -239,7 +239,7 @@ class PenguranganSampahDashboardTest extends TestCase
         $this->isiPendataan();
         $this->get(route('landing'))
             ->assertOk()
-            ->assertSee('Capaian Program')
+            ->assertSee('Capaian Pengurangan Sampah')
             ->assertSee('Pengurangan Sampah (%)')
             ->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 3
                 && $l['kecamatan']->first()->nama_lokasi === $this->lokasi->nama_lokasi);
@@ -250,5 +250,32 @@ class PenguranganSampahDashboardTest extends TestCase
         // Setup hanya pj_desa tanpa pendataan: daftar kosong
         $this->loginAs('kepala');
         $this->get('dashboard-pengurangan-sampah')->assertOk()->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 0);
+    }
+
+    // QA: subtitle Rekap Sampah & total dashboard = penurunan timbulan (1 - ΣN / Σ(koef × jiwa)), bukan % pengelolaan
+    public function test_dashboard_total_uses_penurunan_timbulan(): void
+    {
+        $this->lokasi->update(['koefisien_timbulan_sampah' => 0.5]);
+        $bulan = now()->format('Y-m');
+        foreach (Pjdesa::all() as $i => $pj) {
+            $mhs = Mahasiswa::where('email', $pj->email)->firstOrFail();
+            Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $pj->id_desa, 'user_in_up' => $mhs->email]);
+            // Ketua ke-3 tanpa jiwa: tidak ikut penurunan timbulan, tetap ikut pengelolaan
+            PendataanPemilahanSampah::factory()->create(['email' => $mhs->email, 'tanggal' => $bulan.'-05', 'jumlah_anggota_keluarga' => $i < 2 ? 10 : null,
+                'organik_kg' => 2, 'anorganik_kg' => 1, 'residu_kg' => 1]);
+        }
+        // N berjiwa 8 / potensi 0,5 × 20 = 10 -> 20%; pengelolaan 9/12 = 75%
+        $this->loginAs('kepala');
+        $res = $this->get('dashboard-pengurangan-sampah?bulan='.$bulan)->assertOk()
+            ->assertViewHas('total', fn ($t) => $t->persen_penurunan_timbulan == 20.0 && $t->persen_pengurangan == 20.0
+                && $t->persen_penurunan == 75.0 && $t->jml_jiwa === 20);
+        $this->assertMatchesRegularExpression('/card-subtitle">[^<]*20,00%<\/p>/', $res->getContent());
+
+        // Koefisien kosong -> "-"
+        $this->lokasi->update(['koefisien_timbulan_sampah' => null]);
+        \Illuminate\Support\Facades\Cache::flush();
+        $res = $this->get('dashboard-pengurangan-sampah?bulan='.$bulan)->assertOk()
+            ->assertViewHas('total', fn ($t) => $t->persen_penurunan_timbulan === null);
+        $this->assertMatchesRegularExpression('/card-subtitle">[^<]* -<\/p>/', $res->getContent());
     }
 }

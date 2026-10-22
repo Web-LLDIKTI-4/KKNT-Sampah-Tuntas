@@ -51,10 +51,10 @@ class WilayahRoleAccessTest extends TestCase
             ->assertJson(['success' => true]);
         $this->get('kecamatan/edit/'.$kecamatan->id_kecamatan)->assertOk();
 
-        $this->put('desa/insert', ['id_kecamatan' => $kecamatan->id_kecamatan, 'desa' => 'Dago'])
+        $this->put('desa/insert', ['id_kecamatan' => $kecamatan->id_kecamatan, 'desa' => 'Dago', 'satuan_baseline' => '%'])
             ->assertJson(['success' => true]);
         $desa = Desa::where('desa', 'Dago')->firstOrFail();
-        $this->put('desa/update', ['id_desa' => $desa->id_desa, 'id_kecamatan' => $kecamatan->id_kecamatan, 'desa' => 'Dago Atas'])
+        $this->put('desa/update', ['id_desa' => $desa->id_desa, 'id_kecamatan' => $kecamatan->id_kecamatan, 'desa' => 'Dago Atas', 'satuan_baseline' => '%'])
             ->assertJson(['success' => true]);
         $this->get('desa/edit/'.$desa->id_desa)->assertOk();
 

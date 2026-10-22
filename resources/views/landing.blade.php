@@ -415,6 +415,10 @@
                                         <button type="button" id="petaRetry" class="btn btn-sm btn-primary d-none">Coba lagi</button>
                                     </div>
                                 </div>
+                                <details id="petaUnmapped" class="peta-unmapped d-none">
+                                    <summary><i class="ri-map-pin-line" aria-hidden="true"></i><span id="petaUnmappedText"></span></summary>
+                                    <ul id="petaUnmappedList" class="peta-unmapped-list list-unstyled mb-0"></ul>
+                                </details>
                             </div>
 
                             <div class="col-lg-4">

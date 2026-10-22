@@ -112,7 +112,7 @@ class RekapsampahController extends Controller
         $mingguan = $user->role === 'pemda';
         $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0');
 
-        return Cache::remember('rekapsampah.v2.'.$versi.'.'.md5($scope.'|'.(int) $mingguan.'|'.json_encode($input)), now()->addMinutes(10), function () use ($request, $sampah, $isPt, $mingguan) {
+        return Cache::remember('rekapsampah.v3.'.$versi.'.'.md5($scope.'|'.(int) $mingguan.'|'.json_encode($input)), now()->addMinutes(10), function () use ($request, $sampah, $isPt, $mingguan) {
             [$filter, $klasterPt] = $this->filter($request, $sampah);
 
             return [

@@ -70,6 +70,16 @@
         $(this).siblings('.errors-message').remove();
     });
 
+    // Baseline max hint by unit ('%' => 100); server validation is authoritative
+    function syncBaselineMax(select) {
+        var $input = $(select).closest('form').find('[name=baseline]');
+        select.value === '%' ? $input.attr('max', '100') : $input.removeAttr('max');
+    }
+    $(document).on('change', '[name=satuan_baseline]', function () { syncBaselineMax(this); });
+    $(document).ajaxComplete(function () {
+        $('[name=satuan_baseline]').each(function () { syncBaselineMax(this); });
+    });
+
     $(document).on('submit', 'form[data-ajax-form]', function (e) {
         e.preventDefault();
         var form = this;

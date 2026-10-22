@@ -196,6 +196,6 @@ class DataPesertaExportTest extends TestCase
         $links = $this->loginPage()->query('//div[contains(@class,"peserta-toolbar")]//a[@href="'.route('login.data-peserta.export').'"]');
 
         $this->assertSame(1, $links->length);
-        $this->assertStringContainsString('Export Excel', $links->item(0)->textContent);
+        $this->assertStringContainsString('Unduh Data Excel', $links->item(0)->textContent);
     }
 }

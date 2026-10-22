@@ -11,6 +11,7 @@ use App\Models\Mahasiswa_lokasi;
 use App\Models\PendataanPemilahanSampah;
 use App\Models\Satuanpendidikan;
 use App\Services\LokasiProgramSummary;
+use App\Services\PenguranganSampahService;
 use App\Services\PetaSebaranService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -32,12 +33,12 @@ class PetaSebaranTest extends TestCase
         return $m;
     }
 
-    // 1 log: terkelola $terkelola kg dari total 100 kg
-    private function logSampah(Mahasiswa $mhs, string $tanggal, float $terkelola): void
+    // 1 log jiwa 100 (potensi 100 kg bila koef lokasi 1): N = 100 - $persen kg -> penurunan timbulan $persen%
+    private function logSampah(Mahasiswa $mhs, string $tanggal, float $persen): void
     {
         PendataanPemilahanSampah::factory()->create([
-            'email' => $mhs->email, 'tanggal' => $tanggal, 'memilah' => true,
-            'organik_kg' => $terkelola, 'anorganik_kg' => 0, 'residu_kg' => 100 - $terkelola,
+            'email' => $mhs->email, 'tanggal' => $tanggal, 'memilah' => true, 'jumlah_anggota_keluarga' => 100,
+            'organik_kg' => 0, 'anorganik_kg' => 0, 'residu_kg' => 100 - $persen,
         ]);
     }
 
@@ -86,7 +87,8 @@ class PetaSebaranTest extends TestCase
         $response = $this->getJson(route('login.peta'))->assertOk()
             ->assertJsonPath('filter', ['tahun' => $tahun, 'kodept' => null])
             ->assertJsonPath('mode', 'all')
-            ->assertJsonPath('summary', ['total_mahasiswa' => 12, 'total_label' => '12+', 'jumlah_desa' => 2, 'jumlah_kecamatan' => 2, 'desa_tersamar' => 1])
+            ->assertJsonPath('summary', ['total_mahasiswa' => 12, 'total_label' => '12+', 'jumlah_desa' => 2, 'jumlah_kecamatan' => 2, 'desa_tersamar' => 1,
+                'belum_dipetakan' => [['desa' => 'Gamma', 'kecamatan' => $tanpaKoordinat->kecamatan->kecamatan]], 'jumlah_belum_dipetakan' => 1])
             ->assertJsonCount(3, 'desa');
 
         $this->assertSame(['desa' => 'Alfa', 'kecamatan' => $ramai->kecamatan->kecamatan,
@@ -129,7 +131,8 @@ class PetaSebaranTest extends TestCase
         $response = $this->getJson(route('login.peta', ['kodept' => '041001']))->assertOk()
             ->assertJsonPath('filter', ['tahun' => $tahun, 'kodept' => '041001'])
             ->assertJsonPath('mode', 'pt')
-            ->assertJsonPath('summary', ['total_mahasiswa' => 7, 'total_label' => '7+', 'jumlah_desa' => 2, 'jumlah_kecamatan' => 2, 'desa_tersamar' => 1])
+            ->assertJsonPath('summary', ['total_mahasiswa' => 7, 'total_label' => '7+', 'jumlah_desa' => 2, 'jumlah_kecamatan' => 2, 'desa_tersamar' => 1,
+                'belum_dipetakan' => [], 'jumlah_belum_dipetakan' => 0])
             ->assertJsonCount(2, 'desa')
             ->assertJsonCount(2, 'kecamatan');
 
@@ -150,7 +153,8 @@ class PetaSebaranTest extends TestCase
             ->assertJsonPath('desa', [])
             ->assertJsonPath('kecamatan', [])
             ->assertJsonPath('periode', null)
-            ->assertJsonPath('summary', ['total_mahasiswa' => 0, 'total_label' => '0', 'jumlah_desa' => 0, 'jumlah_kecamatan' => 0, 'desa_tersamar' => 0]);
+            ->assertJsonPath('summary', ['total_mahasiswa' => 0, 'total_label' => '0', 'jumlah_desa' => 0, 'jumlah_kecamatan' => 0, 'desa_tersamar' => 0,
+                'belum_dipetakan' => [], 'jumlah_belum_dipetakan' => 0]);
     }
 
     public function test_persen_pengurangan_per_desa_and_kecamatan_from_last_month_of_tahun(): void
@@ -166,11 +170,12 @@ class PetaSebaranTest extends TestCase
         $b = Desa::factory()->create(['desa' => 'Beta', 'id_kecamatan' => $kecB->id_kecamatan, 'latitude' => -6.2, 'longitude' => 107.2]);
         Desa::factory()->create(['desa' => 'Delta', 'id_kecamatan' => $kecC->id_kecamatan, 'latitude' => -6.3, 'longitude' => 107.3]);
 
-        $mA = $this->penempatan($a, $tahun, 3, ['kodept' => $pt1->npsn]);
-        $mG = $this->penempatan($tanpaKoordinat, $tahun, 1, ['kodept' => $pt2->npsn]);
-        $mB = $this->penempatan($b, $tahun, 3, ['kodept' => $pt2->npsn]);
+        $lp = LokasiProgram::factory()->create(['koefisien_timbulan_sampah' => 1])->id;
+        $mA = $this->penempatan($a, $tahun, 3, ['kodept' => $pt1->npsn, 'location_program' => $lp]);
+        $mG = $this->penempatan($tanpaKoordinat, $tahun, 1, ['kodept' => $pt2->npsn, 'location_program' => $lp]);
+        $mB = $this->penempatan($b, $tahun, 3, ['kodept' => $pt2->npsn, 'location_program' => $lp]);
         $pt3 = Satuanpendidikan::factory()->create(['npsn' => '043003']);
-        $mLama = $this->penempatan($a, $tahun, 1, ['kodept' => $pt3->npsn]);
+        $mLama = $this->penempatan($a, $tahun, 1, ['kodept' => $pt3->npsn, 'location_program' => $lp]);
         $this->penempatan($b, $tahun - 1, 1);
 
         $this->logSampah($mA, $tahun.'-02-10', 90);
@@ -209,6 +214,110 @@ class PetaSebaranTest extends TestCase
             ->assertJsonPath('periode', null);
         $this->assertSame([null], array_values(array_unique(array_column($lalu->json('desa'), 'persen_pengurangan'))));
         $this->assertSame([null], array_values(array_unique(array_column($lalu->json('kecamatan'), 'persen_pengurangan'))));
+    }
+
+    public function test_desa_tanpa_koordinat_masuk_belum_dipetakan_dan_tidak_digambar(): void
+    {
+        $tahun = (int) date('Y');
+        $pt = Satuanpendidikan::factory()->create(['npsn' => '041001']);
+        $kec = Kecamatan::factory()->create(['kecamatan' => 'Kec X']);
+        $alfa = Desa::factory()->create(['desa' => 'Alfa', 'id_kecamatan' => $kec->id_kecamatan, 'latitude' => -6.1, 'longitude' => 107.1]);
+        $zeta = Desa::factory()->create(['desa' => 'Zeta', 'id_kecamatan' => $kec->id_kecamatan]);
+        $eta = Desa::factory()->create(['desa' => 'Eta', 'id_kecamatan' => $kec->id_kecamatan, 'latitude' => -6.2]);
+        Desa::factory()->create(['desa' => 'Theta', 'id_kecamatan' => $kec->id_kecamatan]);
+
+        $this->penempatan($alfa, $tahun, 3);
+        $this->penempatan($zeta, $tahun, 4, ['kodept' => $pt->npsn]);
+        // Eta: tanpa mahasiswa tahun ini, tapi punya log capaian (lokasi terakhir mahasiswa tahun lalu)
+        $mEta = $this->penempatan($eta, $tahun - 1, 1);
+        $this->logSampah($mEta, $tahun.'-03-10', 20);
+
+        $response = $this->getJson(route('login.peta'))->assertOk()
+            ->assertJsonPath('summary.belum_dipetakan', [
+                ['desa' => 'Eta', 'kecamatan' => 'Kec X'],
+                ['desa' => 'Zeta', 'kecamatan' => 'Kec X'],
+            ])
+            ->assertJsonPath('summary.jumlah_belum_dipetakan', 2)
+            ->assertJsonPath('summary.jumlah_desa', 1)
+            ->assertJsonPath('summary.total_mahasiswa', 3)
+            ->assertJsonCount(1, 'desa')
+            ->assertJsonPath('desa.0.desa', 'Alfa');
+        $this->assertStringNotContainsString('Theta', $response->getContent());
+
+        // Mode pt: hanya desa dengan mahasiswa PT tsb
+        $this->getJson(route('login.peta', ['kodept' => '041001']))->assertOk()
+            ->assertJsonPath('summary.belum_dipetakan', [['desa' => 'Zeta', 'kecamatan' => 'Kec X']])
+            ->assertJsonPath('summary.jumlah_belum_dipetakan', 1)
+            ->assertJsonPath('summary.jumlah_desa', 0)
+            ->assertJsonPath('desa', []);
+    }
+
+    public function test_desa_dengan_bulan_terakhir_lebih_lama_dari_periode_global_tetap_berpersen(): void
+    {
+        $tahun = (int) date('Y');
+        $pt2 = Satuanpendidikan::factory()->create(['npsn' => '042002']);
+        $k1 = Kecamatan::factory()->create(['kecamatan' => 'Kec 1']);
+        $k2 = Kecamatan::factory()->create(['kecamatan' => 'Kec 2']);
+        $a = Desa::factory()->create(['desa' => 'Alfa', 'id_kecamatan' => $k1->id_kecamatan, 'latitude' => -6.1, 'longitude' => 107.1]);
+        $b = Desa::factory()->create(['desa' => 'Beta', 'id_kecamatan' => $k1->id_kecamatan, 'latitude' => -6.2, 'longitude' => 107.2]);
+        $c = Desa::factory()->create(['desa' => 'Charlie', 'id_kecamatan' => $k2->id_kecamatan, 'latitude' => -6.3, 'longitude' => 107.3]);
+
+        $lp = LokasiProgram::factory()->create(['koefisien_timbulan_sampah' => 1])->id;
+        $mA = $this->penempatan($a, $tahun, 1, ['location_program' => $lp]);
+        $mB = $this->penempatan($b, $tahun, 1, ['kodept' => $pt2->npsn, 'location_program' => $lp]);
+        $mC = $this->penempatan($c, $tahun, 1, ['location_program' => $lp]);
+
+        $this->logSampah($mA, $tahun.'-03-10', 20);
+        $this->logSampah($mB, $tahun.'-01-10', 70);
+        $this->logSampah($mC, $tahun.'-01-10', 90);
+        $this->logSampah($mC, $tahun.'-02-10', 40);
+
+        $response = $this->getJson(route('login.peta'))->assertOk()
+            ->assertJsonPath('periode.bulan', $tahun.'-03')
+            // Kec 1 = 1 - (80 + 30) / 200 (agregat, bukan rata-rata persen desa)
+            ->assertJsonPath('kecamatan', [
+                ['kecamatan' => 'Kec 1', 'persen_pengurangan' => 45],
+                ['kecamatan' => 'Kec 2', 'persen_pengurangan' => 40],
+            ]);
+        $this->assertEquals([20, 70, 40], array_column($response->json('desa'), 'persen_pengurangan'));
+
+        $this->getJson(route('login.peta', ['kodept' => '042002']))->assertOk()
+            ->assertJsonPath('periode.bulan', $tahun.'-01')
+            ->assertJsonPath('desa.0.persen_pengurangan', 70)
+            ->assertJsonPath('kecamatan', [['kecamatan' => 'Kec 1', 'persen_pengurangan' => 70]]);
+    }
+
+    public function test_filter_bulan_terakhir_desa_off_tidak_mengubah_capaian_dan_rekap(): void
+    {
+        $tahun = (int) date('Y');
+        $lp = LokasiProgram::factory()->create(['koefisien_timbulan_sampah' => 1])->id;
+        $a = Desa::factory()->create(['latitude' => -6.1, 'longitude' => 107.1]);
+        $c = Desa::factory()->create(['latitude' => -6.3, 'longitude' => 107.3]);
+        $mA = $this->penempatan($a, $tahun, 1, ['location_program' => $lp]);
+        $mC = $this->penempatan($c, $tahun, 1, ['location_program' => $lp]);
+        $this->logSampah($mA, $tahun.'-03-10', 20);
+        $this->logSampah($mC, $tahun.'-01-10', 90);
+        $this->logSampah($mC, $tahun.'-02-10', 40);
+
+        $svc = app(PenguranganSampahService::class);
+        $filter = ['tahun' => $tahun];
+        $default = $svc->totalPer('desa', $filter);
+        $off = $svc->totalPer('desa', $filter + ['bulan_terakhir_desa' => false]);
+        $on = $svc->totalPer('desa', $filter + ['bulan_terakhir_desa' => true]);
+
+        $this->assertEquals($default, $off);
+        // Default: semua bulan dalam tahun (1 - (10 + 60) / 200); flag on: hanya Feb
+        $this->assertEqualsWithDelta(65, $default[$c->id_desa]->persen_pengurangan, 0.01);
+        $this->assertEqualsWithDelta(40, $on[$c->id_desa]->persen_pengurangan, 0.01);
+        $this->assertEqualsWithDelta(20, $default[$a->id_desa]->persen_pengurangan, 0.01);
+
+        $this->assertEquals($svc->totalPer('kecamatan', $filter), $svc->totalPer('kecamatan', $filter + ['bulan_terakhir_desa' => false]));
+        $total = $svc->total($filter);
+        $this->assertEquals($total, $svc->total($filter + ['bulan_terakhir_desa' => false]));
+        $this->assertSame(3, (int) $total->jml_data);
+
+        // Filter bulan eksplisit tetap per bulan
+        $this->assertEqualsWithDelta(40, $svc->totalPer('desa', ['bulan' => $tahun.'-02'])[$c->id_desa]->persen_pengurangan, 0.01);
     }
 
     public function test_periode_label_always_indonesian(): void
@@ -327,7 +436,7 @@ class PetaSebaranTest extends TestCase
 
         // Top 5 desa diurutkan berdasarkan persen pengurangan sampah
         $this->get(route('landing'))
-            ->assertSee('Top 5 · Pengurangan Sampah Tertinggi')
+            ->assertSee('5 Wilayah dengan Capaian Pengurangan Sampah Tertinggi')
             ->assertDontSee('Top 5 Desa Terbanyak');
     }
 
@@ -378,7 +487,7 @@ class PetaSebaranTest extends TestCase
     {
         $this->loginAs('admin');
         $desa = Desa::factory()->create();
-        $base = ['id_desa' => $desa->id_desa, 'id_kecamatan' => $desa->id_kecamatan, 'desa' => $desa->desa];
+        $base = ['id_desa' => $desa->id_desa, 'id_kecamatan' => $desa->id_kecamatan, 'desa' => $desa->desa, 'satuan_baseline' => '%'];
 
         $this->put('desa/update', $base + ['latitude' => '-6.9175', 'longitude' => '107.6191'])
             ->assertJson(['success' => true]);
@@ -395,7 +504,7 @@ class PetaSebaranTest extends TestCase
     {
         $this->loginAs('admin');
         $desa = Desa::factory()->create();
-        $base = ['id_kecamatan' => $desa->id_kecamatan, 'desa' => 'Desa Baru'];
+        $base = ['id_kecamatan' => $desa->id_kecamatan, 'desa' => 'Desa Baru', 'satuan_baseline' => '%'];
 
         $this->put('desa/insert', $base + ['latitude' => '91', 'longitude' => '107'])
             ->assertJsonPath('errors.latitude.0', 'Latitude harus di antara -90 dan 90.');

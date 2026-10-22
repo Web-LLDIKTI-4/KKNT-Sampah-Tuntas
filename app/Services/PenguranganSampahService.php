@@ -13,9 +13,10 @@ use Illuminate\Support\Facades\DB;
 /**
  * Rekap sampah dari Pendataan Sampah Penduduk, per bulan + kelurahan.
  * Kelurahan log = lokasi mahasiswa (mahasiswa_lokasi) tahun terbaru.
- * Persentase dihitung dari total: ketaatan = memilah/rumah, penurunan = terkelola/dihasilkan.
+ * Persentase dihitung dari total: ketaatan = memilah/rumah, penurunan = terkelola/dihasilkan,
+ * penurunan timbulan (= capaian/persen_pengurangan) = 1 - ΣN / Σ(koef × jiwa).
  *
- * Filter: bulan (Y-m), tahun, id_kecamatan, id_desa, kodept, lokasi, kodept_in.
+ * Filter: bulan (Y-m), tahun, id_kecamatan, id_desa, kodept, lokasi, kodept_in, bulan_terakhir_desa (bool).
  */
 class PenguranganSampahService
 {
@@ -96,31 +97,51 @@ class PenguranganSampahService
     {
         $kolom = ['kecamatan' => 'd.id_kecamatan', 'desa' => 's.id_desa', 'kodept' => 's.kodept', 'lokasi' => 's.location_program'][$kolom];
 
-        return $this->withJumlah($this->query($filter))
+        return $this->withPenurunan($this->withJumlah($this->query($filter)))
             ->whereNotNull($kolom)
             ->groupBy($kolom)
             ->selectRaw("$kolom as kunci")
             ->get()
             ->keyBy('kunci')
-            ->map(fn ($row) => $this->isiPersen($row));
+            ->map(fn ($row) => $this->isiPenurunan($this->isiPersen($row)));
+    }
+
+    /**
+     * totalPer('desa') + totalPer('kecamatan') dalam satu query: kecamatan = jumlah baris desanya
+     * (kunci rumah memuat id desa, jadi semua kolom agregat aditif antar desa).
+     *
+     * @return array{desa: Collection, kecamatan: Collection}
+     */
+    public function totalDesaKecamatan(array $filter): array
+    {
+        $desa = $this->withPenurunan($this->withJumlah($this->query($filter)))
+            ->groupBy('s.id_desa', 'd.id_kecamatan')
+            ->selectRaw('s.id_desa as kunci, d.id_kecamatan')
+            ->get();
+
+        $agregat = ['total_jml_rumah', 'total_jml_rumah_memilah', 'total_organik', 'total_anorganik', 'total_residu', 'total_jiwa', 'dihasilkan_berjiwa', 'potensi_timbulan'];
+        $kecamatan = $desa->whereNotNull('id_kecamatan')
+            ->groupBy('id_kecamatan')
+            ->map(function (Collection $rows, $kunci) use ($agregat) {
+                $row = (object) ['kunci' => $kunci];
+                foreach ($agregat as $kolom) {
+                    $row->{$kolom} = $rows->sum(fn ($r) => (float) $r->{$kolom});
+                }
+
+                return $this->isiPenurunan($this->isiPersen($row));
+            });
+
+        return [
+            'desa' => $desa->keyBy('kunci')->map(fn ($row) => $this->isiPenurunan($this->isiPersen($row))),
+            'kecamatan' => $kecamatan,
+        ];
     }
 
     public function total(array $filter): object
     {
-        $berjiwa = 's.jiwa > 0 AND lp.koefisien_timbulan_sampah > 0';
-        $row = $this->isiPersen($this->withJumlah($this->query($filter))
-            ->leftJoin('lokasi_program as lp', 'lp.id', '=', 's.location_program')
+        return $this->isiPenurunan($this->isiPersen($this->withPenurunan($this->withJumlah($this->query($filter)))
             ->selectRaw('COUNT(*) as jml_data, COUNT(DISTINCT s.id_desa) as jml_desa')
-            ->selectRaw('COALESCE(SUM(s.jiwa), 0) as total_jiwa')
-            ->selectRaw("SUM(CASE WHEN {$berjiwa} THEN ".self::dihasilkanSql('s').' END) as dihasilkan_berjiwa')
-            ->selectRaw("SUM(CASE WHEN {$berjiwa} THEN s.jiwa * lp.koefisien_timbulan_sampah END) as potensi_timbulan")
-            ->first());
-
-        // Penurunan lintas lokasi: 1 - ΣN(berjiwa & berkoefisien) / Σ(koef × jiwa)
-        $row->jml_jiwa = (int) $row->total_jiwa;
-        $row->persen_penurunan_timbulan = self::penurunanTimbulan((float) $row->dihasilkan_berjiwa, (float) $row->potensi_timbulan);
-
-        return $row;
+            ->first()));
     }
 
     /**
@@ -278,7 +299,7 @@ class PenguranganSampahService
 
     /**
      * Laporan berjenjang: kecamatan per lokasi program -> kelurahan -> PT di kelurahan (basis data pendataan).
-     * Persentase = pengurangan / timbulan pada bulan terpilih (default bulan terakhir yang ada datanya).
+     * Persentase = penurunan timbulan (1 - ΣN / Σ(koef × jiwa)) pada bulan terpilih (default bulan terakhir yang ada datanya).
      * Filter: bulan, kodept (PT dikunci), id_kecamatan, id_desa.
      * $totalKeseluruhan: key `total` tidak difilter kecamatan (dipakai versi publik).
      */
@@ -313,6 +334,7 @@ class PenguranganSampahService
                     'id_desa' => $r->id_desa,
                     'desa' => $r->desa,
                     'baseline' => $r->baseline !== null ? (float) $r->baseline : null,
+                    'satuan_baseline' => $r->satuan_baseline ?? '%',
                     'persen' => $persenDesa[$r->id_desa]->persen_pengurangan ?? null,
                 ])->values()
             : collect();
@@ -468,8 +490,8 @@ class PenguranganSampahService
     {
         return $this->penempatanData[(string) $kodept] ??= $this->query(['kodept' => $kodept])
             ->whereNotNull('kc.id_kecamatan')
-            ->groupBy('s.location_program', 's.id_desa', 's.kodept', 'd.desa', 'd.baseline', 'd.id_kecamatan', 'kc.kecamatan')
-            ->select('s.location_program', 's.id_desa', 'd.desa', 'd.baseline', 'd.id_kecamatan', 'kc.kecamatan', 's.kodept')
+            ->groupBy('s.location_program', 's.id_desa', 's.kodept', 'd.desa', 'd.baseline', 'd.satuan_baseline', 'd.id_kecamatan', 'kc.kecamatan')
+            ->select('s.location_program', 's.id_desa', 'd.desa', 'd.baseline', 'd.satuan_baseline', 'd.id_kecamatan', 'kc.kecamatan', 's.kodept')
             ->get();
     }
 
@@ -543,12 +565,36 @@ class PenguranganSampahService
     // Satu baris per log: bulan (Y-m-01), kelurahan mahasiswa, kunci rumah (kelurahan|bulan|alamat)
     private function query(array $filter): Builder
     {
+        $log = $this->logQuery($filter)
+            ->selectRaw("p.email, lm.kodept, lm.location_program, ml.id_desa, p.tanggal, DATE_FORMAT(p.tanggal, '%Y-%m-01') as bulan, p.memilah, p.organik_kg, p.anorganik_kg, p.residu_kg")
+            ->selectRaw('p.id_pendataan, p.created_at, p.nama_kepala_keluarga, p.alamat_rumah, p.jumlah_anggota_keluarga as jiwa')
+            // MD5: kunci pendek agar join/distinct kunci rumah tidak membandingkan string panjang
+            ->selectRaw("MD5(CONCAT_WS('|', ml.id_desa, DATE_FORMAT(p.tanggal, '%Y-%m'), {$this->keyPart('p.alamat_rumah')})) as rumah");
+
+        return DB::query()->fromSub($log, 's')
+            ->join('desa as d', 'd.id_desa', '=', 's.id_desa')
+            ->leftJoin('kecamatan as kc', 'kc.id_kecamatan', '=', 'd.id_kecamatan')
+            ->when($filter['id_kecamatan'] ?? null, fn (Builder $q, $v) => $q->where('d.id_kecamatan', $v))
+            ->when($filter['id_desa'] ?? null, fn (Builder $q, $v) => $q->where('s.id_desa', $v))
+            // Hanya log di bulan terakhir masing-masing kelurahan (dalam set terfilter yang sama)
+            ->when($filter['bulan_terakhir_desa'] ?? false, function (Builder $q) use ($filter) {
+                // Subquery ringan: tanpa kunci rumah; filter desa/kecamatan sudah diterapkan di query luar
+                $terakhir = $this->logQuery(array_diff_key($filter, ['bulan' => 0]))
+                    ->groupBy('ml.id_desa')
+                    ->selectRaw("ml.id_desa, MAX(DATE_FORMAT(p.tanggal, '%Y-%m-01')) as bulan");
+                $q->joinSub($terakhir, 'bt', fn ($j) => $j->on('bt.id_desa', '=', 's.id_desa')->on('bt.bulan', '=', 's.bulan'));
+            });
+    }
+
+    // Log pendataan + kelurahan terakhir mahasiswa, terfilter bulan/tahun/PT/lokasi (tanpa kolom select)
+    private function logQuery(array $filter): Builder
+    {
         $lokasiTerakhir = DB::table('mahasiswa_lokasi')
             ->whereNotNull('id_desa')
             ->groupBy('id_mahasiswa')
             ->selectRaw('id_mahasiswa, MAX(tahun) as tahun');
 
-        $log = DB::table('pendataan_pemilahan_sampah as p')
+        return DB::table('pendataan_pemilahan_sampah as p')
             ->join('mahasiswa as lm', 'lm.email', '=', 'p.email')
             ->joinSub($lokasiTerakhir, 'lt', 'lt.id_mahasiswa', '=', 'lm.id_mahasiswa')
             ->join('mahasiswa_lokasi as ml', fn ($j) => $j->on('ml.id_mahasiswa', '=', 'lt.id_mahasiswa')->on('ml.tahun', '=', 'lt.tahun'))
@@ -561,17 +607,7 @@ class PenguranganSampahService
             ->when($filter['kodept'] ?? null, fn (Builder $q, $v) => $q->where('lm.kodept', $v))
             ->when($filter['lokasi'] ?? null, fn (Builder $q, $v) => $q->where('lm.location_program', $v))
             // Daftar PT hasil pilihan klaster; daftar kosong = tidak ada data
-            ->when(array_key_exists('kodept_in', $filter), fn (Builder $q) => $q->whereIn('lm.kodept', $filter['kodept_in']))
-            ->selectRaw("p.email, lm.kodept, lm.location_program, ml.id_desa, p.tanggal, DATE_FORMAT(p.tanggal, '%Y-%m-01') as bulan, p.memilah, p.organik_kg, p.anorganik_kg, p.residu_kg")
-            ->selectRaw('p.id_pendataan, p.created_at, p.nama_kepala_keluarga, p.alamat_rumah, p.jumlah_anggota_keluarga as jiwa')
-            // MD5: kunci pendek agar join/distinct kunci rumah tidak membandingkan string panjang
-            ->selectRaw("MD5(CONCAT_WS('|', ml.id_desa, DATE_FORMAT(p.tanggal, '%Y-%m'), {$this->keyPart('p.alamat_rumah')})) as rumah");
-
-        return DB::query()->fromSub($log, 's')
-            ->join('desa as d', 'd.id_desa', '=', 's.id_desa')
-            ->leftJoin('kecamatan as kc', 'kc.id_kecamatan', '=', 'd.id_kecamatan')
-            ->when($filter['id_kecamatan'] ?? null, fn (Builder $q, $v) => $q->where('d.id_kecamatan', $v))
-            ->when($filter['id_desa'] ?? null, fn (Builder $q, $v) => $q->where('s.id_desa', $v));
+            ->when(array_key_exists('kodept_in', $filter), fn (Builder $q) => $q->whereIn('lm.kodept', $filter['kodept_in']));
     }
 
     // Normalisasi alamat untuk kunci rumah: lowercase alfanumerik saja
@@ -627,7 +663,27 @@ class PenguranganSampahService
         $row->total_dihasilkan = round($row->total_terkelola + $row->residu, 2);
         $row->persen_ketaatan = PenguranganSampah::persen($row->jml_rumah_memilah, $row->jml_rumah);
         $row->persen_penurunan = PenguranganSampah::persen($row->total_terkelola, $row->total_dihasilkan);
-        $row->persen_pengurangan = $row->persen_penurunan;
+
+        return $row;
+    }
+
+    // Kolom agregat penurunan timbulan; hanya log dengan jiwa > 0 & koefisien > 0
+    private function withPenurunan(Builder $query): Builder
+    {
+        $berjiwa = 's.jiwa > 0 AND lp.koefisien_timbulan_sampah > 0';
+
+        return $query->leftJoin('lokasi_program as lp', 'lp.id', '=', 's.location_program')
+            ->selectRaw('COALESCE(SUM(s.jiwa), 0) as total_jiwa')
+            ->selectRaw("SUM(CASE WHEN {$berjiwa} THEN ".self::dihasilkanSql('s').' END) as dihasilkan_berjiwa')
+            ->selectRaw("SUM(CASE WHEN {$berjiwa} THEN s.jiwa * lp.koefisien_timbulan_sampah END) as potensi_timbulan");
+    }
+
+    // Penurunan timbulan dari total grup: 1 - ΣN / Σ(koef × jiwa) (= kolom P rekap); jadi persen capaian
+    private function isiPenurunan(object $row): object
+    {
+        $row->jml_jiwa = (int) $row->total_jiwa;
+        $row->persen_penurunan_timbulan = self::penurunanTimbulan((float) $row->dihasilkan_berjiwa, (float) $row->potensi_timbulan);
+        $row->persen_pengurangan = $row->persen_penurunan_timbulan;
 
         return $row;
     }

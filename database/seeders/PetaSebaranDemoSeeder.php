@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\PenguranganSampah;
 use App\Services\PetaSebaranService;
+use Database\Seeders\Concerns\SeedsDummyData;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -11,17 +12,20 @@ use Ramsey\Uuid\Uuid;
 use RuntimeException;
 
 /**
- * Data demo peta sebaran (maks 18 desa, 1 PT = 1 desa, mahasiswa tahun ini & tahun lalu, pendataan pemilahan sampah).
- * Tidak terdaftar di DatabaseSeeder.
+ * Data tambahan peta sebaran di kelurahan WilayahSeeder (1 PT = 1 kelurahan, mahasiswa tahun ini & tahun lalu).
+ * Persen pengurangan peta berasal dari PendataanPemilahanSeeder (bulan terakhir per desa); seeder ini tidak mengisi pendataan.
  * Jalankan: php artisan db:seed --class=PetaSebaranDemoSeeder
  * Hapus:    php artisan db:seed --class=PetaSebaranDemoCleanupSeeder
- * Catatan: ID desa/kecamatan = UUID5 dari nama; mengubah nama di WILAYAH membuat cleanup tidak mengenali data lama.
+ * Catatan: cleanup juga menghapus desa/kecamatan "(Demo)" warisan versi lama (ID UUID5 dari nama di LEGACY_WILAYAH).
  */
 class PetaSebaranDemoSeeder extends Seeder
 {
+    use SeedsDummyData;
+
+    // Hanya untuk mengenali wilayah warisan versi lama saat cleanup; tidak dibuat lagi
     public const SUFFIX = ' (Demo)';
 
-    public const NIM_PREFIX = 'DEMO';
+    public const NIM_PREFIX = '99';
 
     public const MARKER = 'seeder-demo';
 
@@ -39,45 +43,36 @@ class PetaSebaranDemoSeeder extends Seeder
         'Teknik Sipil',
     ];
 
-    // kecamatan => [desa => [lat, lng, jumlah tahun ini, jumlah tahun lalu, persen pengurangan|null, hanya bulan lama]]
-    // Urutan menentukan pasangan desa ke-i <-> PT ke-i; 12 desa pertama mencakup 0, 1, 2 dan tier 1-5
-    protected const WILAYAH = [
-        'Baleendah' => [
-            'Andir' => [-6.9951, 107.6312, 12, 6, 23.5, false],
-            'Baleendah' => [-7.0040, 107.6260, 35, 22, 31, false],
-            'Manggahang' => [-7.0130, 107.6370, 4, 0, null, false],
-            'Jelekong' => [-7.0230, 107.6460, 0, 3, null, false],
-            'Malakasari' => [-6.9990, 107.6150, 8, 14, 12, false],
-        ],
-        'Soreang' => [
-            'Sadu' => [-7.0412, 107.5101, 1, 0, 5, false],
-            'Soreang' => [-7.0330, 107.5180, 24, 31, 45, false],
-            'Pamekaran' => [-7.0250, 107.5060, 2, 5, 18, true],
-            'Cingcin' => [-7.0450, 107.5290, 0, 1, null, false],
-        ],
-        'Dayeuhkolot' => [
-            'Citeureup' => [-6.9780, 107.6380, 42, 12, 27, false],
-            'Cangkuang Wetan' => [-6.9840, 107.6200, 15, 8, null, false],
-            'Pasawahan' => [-6.9900, 107.6260, 5, 2, 8.5, false],
-            'Sukapura' => [-6.9740, 107.6290, 9, 19, 21, false],
-        ],
-        'Bojongsoang' => [
-            'Bojongsoang' => [-6.9800, 107.6480, 28, 10, 38, false],
-            'Lengkong' => [-6.9700, 107.6600, 18, 4, null, false],
-            'Tegalluar' => [-6.9650, 107.6900, 2, 0, 15, false],
-            'Buahbatu' => [-6.9750, 107.6750, 7, 26, 3, false],
-            'Cipagalo' => [-6.9620, 107.6460, 3, 2, null, false],
-        ],
+    // kelurahan (WilayahSeeder) => [jumlah tahun ini, jumlah tahun lalu]
+    // Ditambahkan ke mahasiswa MahasiswaSeeder; kelurahan ke-i berpasangan dengan PT ke-i
+    protected const DATA = [
+        'Dago' => [18, 6],
+        'Lebakgede' => [0, 3],
+        'Pasteur' => [4, 0],
+        'Cipedes' => [2, 5],
+        'Citeureup' => [25, 12],
+        'Cangkuang Wetan' => [8, 22],
+        'Andir' => [12, 6],
+        'Manggahang' => [1, 0],
+        'Baros' => [15, 31],
+        'Setiamanah' => [0, 1],
+        'Cibabat' => [9, 19],
+        'Pasirkaliki' => [3, 2],
     ];
 
-    // Total sampah per log = koef (kg/jiwa/hari) × jiwa × 60–95%; terkelola = p% dari total, organik 60% terkelola
-    protected const KOEFISIEN_KG = 0.36;
-
-    protected const PORSI_ORGANIK = 0.6;
+    // Wilayah "(Demo)" versi lama: kecamatan => [desa]
+    protected const LEGACY_WILAYAH = [
+        'Baleendah' => ['Andir', 'Baleendah', 'Manggahang', 'Jelekong', 'Malakasari'],
+        'Soreang' => ['Sadu', 'Soreang', 'Pamekaran', 'Cingcin'],
+        'Dayeuhkolot' => ['Citeureup', 'Cangkuang Wetan', 'Pasawahan', 'Sukapura'],
+        'Bojongsoang' => ['Bojongsoang', 'Lengkong', 'Tegalluar', 'Buahbatu', 'Cipagalo'],
+    ];
 
     public function run(): void
     {
         self::guard();
+        // Kelurahan asli (berkoordinat) wajib ada; idempotent
+        $this->callSilent(WilayahSeeder::class);
 
         DB::transaction(function () {
             self::cleanup($this->warn(...));
@@ -117,9 +112,9 @@ class PetaSebaranDemoSeeder extends Seeder
     {
         $kecamatan = [];
         $desa = [];
-        foreach (self::WILAYAH as $namaKecamatan => $desaList) {
+        foreach (self::LEGACY_WILAYAH as $namaKecamatan => $desaList) {
             $kecamatan[] = self::kecamatanId($namaKecamatan);
-            foreach (array_keys($desaList) as $namaDesa) {
+            foreach ($desaList as $namaDesa) {
                 $desa[] = self::desaId($namaKecamatan, $namaDesa);
             }
         }
@@ -149,7 +144,7 @@ class PetaSebaranDemoSeeder extends Seeder
      */
     protected static function existingKecamatanByNama(): array
     {
-        $nama = array_map(fn (string $n) => $n.self::SUFFIX, array_keys(self::WILAYAH));
+        $nama = array_map(fn (string $n) => $n.self::SUFFIX, array_keys(self::LEGACY_WILAYAH));
 
         return DB::table('kecamatan')->whereIn('kecamatan', $nama)->orderByDesc('created_at')->get(['id_kecamatan', 'kecamatan'])
             ->mapWithKeys(fn ($row) => [Str::beforeLast($row->kecamatan, self::SUFFIX) => $row->id_kecamatan])
@@ -170,7 +165,7 @@ class PetaSebaranDemoSeeder extends Seeder
         foreach (DB::table('desa')->whereIn('id_kecamatan', $idKecamatan)->where('desa', 'like', '%'.self::SUFFIX)->orderByDesc('created_at')->get(['id_desa', 'id_kecamatan', 'desa']) as $row) {
             $kecamatan = Str::beforeLast((string) $namaKecamatan[$row->id_kecamatan], self::SUFFIX);
             $desa = Str::beforeLast($row->desa, self::SUFFIX);
-            if (isset(self::WILAYAH[$kecamatan][$desa])) {
+            if (in_array($desa, self::LEGACY_WILAYAH[$kecamatan] ?? [], true)) {
                 $result[$row->id_kecamatan.'|'.$desa] = $row->id_desa;
             }
         }
@@ -192,7 +187,7 @@ class PetaSebaranDemoSeeder extends Seeder
             ->pluck('id_mahasiswa')
             ->all();
 
-        // Pendataan tidak punya marker -> kenali lewat email mahasiswa demo, ambil sebelum mahasiswa dihapus
+        // Pendataan warisan versi lama tidak punya marker -> kenali lewat email mahasiswa demo, ambil sebelum mahasiswa dihapus
         foreach (array_chunk($demoMahasiswaIds, 500) as $chunk) {
             $emails = DB::table('mahasiswa')->whereIn('id_mahasiswa', $chunk)->whereNotNull('email')->pluck('email')->all();
             if ($emails) {
@@ -215,13 +210,13 @@ class PetaSebaranDemoSeeder extends Seeder
         $referencedDesa = array_values(array_unique($referencedDesa));
 
         if ($referencedDesa && $warn) {
-            $warn('Desa demo dilewati karena masih dirujuk data asli: '.implode(', ', $referencedDesa));
+            $warn('Desa demo lama dilewati karena masih dirujuk data asli: '.implode(', ', $referencedDesa));
         }
         DB::table('desa')->whereIn('id_desa', array_diff($ids['desa'], $referencedDesa))->delete();
 
         $usedKecamatan = DB::table('desa')->whereIn('id_kecamatan', $ids['kecamatan'])->distinct()->pluck('id_kecamatan')->all();
         if ($usedKecamatan && $warn) {
-            $warn('Kecamatan demo dilewati karena masih memiliki desa: '.implode(', ', $usedKecamatan));
+            $warn('Kecamatan demo lama dilewati karena masih memiliki desa: '.implode(', ', $usedKecamatan));
         }
         DB::table('kecamatan')->whereIn('id_kecamatan', array_diff($ids['kecamatan'], $usedKecamatan))->delete();
     }
@@ -231,148 +226,61 @@ class PetaSebaranDemoSeeder extends Seeder
         $this->command?->warn($message);
     }
 
-    /**
-     * Bulan data sampah demo: 3 bulan terakhir sebelum bulan berjalan di tahun berjalan; Januari -> bulan berjalan.
-     *
-     * @return list<int>
-     */
-    protected static function bulanSampah(): array
-    {
-        $bulanIni = (int) date('n');
-
-        return $bulanIni > 1 ? range(max(1, $bulanIni - 3), $bulanIni - 1) : [$bulanIni];
-    }
-
     protected function insert(): void
     {
         $now = now();
         $tahun = (int) date('Y');
-        $kecamatanRows = [];
-        $desaRows = [];
         $mahasiswaRows = [];
         $lokasiRows = [];
-        $pendataanRows = [];
         $seq = 0;
-        $bulanSampah = self::bulanSampah();
 
         $kodeptList = DB::table('ref_satuanpendidikan')->orderBy('npsn')->pluck('npsn')->all();
         if (! $kodeptList) {
-            $this->warn('ref_satuanpendidikan kosong: desa demo diisi tanpa kodept, filter PT tidak bisa didemokan');
+            $this->warn('ref_satuanpendidikan kosong: data diisi tanpa kodept, filter PT tidak bisa didemokan');
         }
-        $jumlahDesa = $kodeptList ? min(18, count($kodeptList)) : 18;
 
-        // Reuse existing demo rows by natural key (nama) so reruns never duplicate wilayah
-        $existingKecamatan = self::existingKecamatanByNama();
-        $existingDesa = self::existingDesaByKey(array_values($existingKecamatan));
-
-        $desaIndex = 0;
-        foreach (self::WILAYAH as $namaKecamatan => $desaList) {
-            if ($desaIndex >= $jumlahDesa) {
+        foreach ($this->penempatan() as $desaIndex => [$lokasi, $desa]) {
+            if ($kodeptList && $desaIndex >= count($kodeptList)) {
                 break;
             }
-            $idKecamatan = $existingKecamatan[$namaKecamatan] ?? self::kecamatanId($namaKecamatan);
-            isset($existingKecamatan[$namaKecamatan]) || $kecamatanRows[] = [
-                'id_kecamatan' => $idKecamatan,
-                'kecamatan' => $namaKecamatan.self::SUFFIX,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
+            $kodept = $kodeptList[$desaIndex] ?? null;
+            $idDesa = $desa->id_desa;
+            [$jumlahIni, $jumlahLalu] = self::DATA[$desa->desa];
 
-            foreach ($desaList as $namaDesa => [$lat, $lng, $jumlahIni, $jumlahLalu, $persen, $hanyaBulanLama]) {
-                if ($desaIndex >= $jumlahDesa) {
-                    break;
-                }
-                $kodept = $kodeptList[$desaIndex] ?? null;
-                $desaIndex++;
-
-                $desaKey = $idKecamatan.'|'.$namaDesa;
-                $idDesa = $existingDesa[$desaKey] ?? self::desaId($namaKecamatan, $namaDesa);
-                isset($existingDesa[$desaKey]) || $desaRows[] = [
-                    'id_desa' => $idDesa,
-                    'id_kecamatan' => $idKecamatan,
-                    'desa' => $namaDesa.self::SUFFIX,
-                    'latitude' => $lat,
-                    'longitude' => $lng,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-
-                $emailTahunIni = [];
-                foreach ([$tahun => $jumlahIni, $tahun - 1 => $jumlahLalu] as $tahunLokasi => $jumlah) {
-                    for ($i = 0; $i < $jumlah; $i++) {
-                        $seq++;
-                        $idMahasiswa = (string) Str::uuid();
-                        $email = 'demo.'.$seq.'@example.test';
-                        $tahunLokasi === $tahun && $emailTahunIni[] = $email;
-                        $mahasiswaRows[] = [
-                            'id_mahasiswa' => $idMahasiswa,
-                            'nim' => sprintf('%s%d%04d', self::NIM_PREFIX, $tahunLokasi, $seq),
-                            'tahun_masuk' => $tahunLokasi - 3,
-                            'nama' => 'Mahasiswa Demo '.$seq,
-                            'email' => $email,
-                            'prodi' => self::PRODI[$seq % count(self::PRODI)],
-                            'kodept' => $kodept,
-                            'created_at' => $now,
-                            'updated_at' => $now,
-                        ];
-                        $lokasiRows[] = [
-                            'id_lokasi' => (string) Str::uuid(),
-                            'tahun' => $tahunLokasi,
-                            'id_mahasiswa' => $idMahasiswa,
-                            'id_desa' => $idDesa,
-                            'user_in_up' => self::MARKER,
-                            'created_at' => $now,
-                            'updated_at' => $now,
-                        ];
-                    }
-                }
-
-                if ($persen === null || ! $emailTahunIni) {
-                    continue;
-                }
-                $jumlahRumah = 3 + ($desaIndex % 3);
-                $bulanDesa = $hanyaBulanLama ? [$bulanSampah[0]] : $bulanSampah;
-                foreach ($bulanDesa as $bulan) {
-                    for ($r = 1; $r <= $jumlahRumah; $r++) {
-                        $jiwa = mt_rand(1, 8);
-                        $total = self::KOEFISIEN_KG * $jiwa * mt_rand(60, 95) / 100;
-                        $organik = round($total * $persen / 100 * self::PORSI_ORGANIK, 2);
-                        $anorganik = round($total * $persen / 100 - $organik, 2);
-                        $pendataanRows[] = [
-                            'id_pendataan' => (string) Str::uuid(),
-                            'email' => $emailTahunIni[($r - 1) % count($emailTahunIni)],
-                            'tanggal' => sprintf('%d-%02d-%02d', $tahun, $bulan, 10 + $r),
-                            'nama_kepala_keluarga' => 'KK Demo '.$r,
-                            'jumlah_anggota_keluarga' => $jiwa,
-                            'alamat_rumah' => 'Jl. Demo No. '.$r.', '.$namaDesa,
-                            'rt' => '001',
-                            'rw' => '001',
-                            'memilah' => $r % 4 !== 0,
-                            'organik_kg' => $organik,
-                            'anorganik_kg' => $anorganik,
-                            'residu_kg' => round($total - $organik - $anorganik, 2),
-                            'created_at' => $now,
-                            'updated_at' => $now,
-                        ];
-                    }
+            foreach ([$tahun => $jumlahIni, $tahun - 1 => $jumlahLalu] as $tahunLokasi => $jumlah) {
+                for ($i = 0; $i < $jumlah; $i++) {
+                    $seq++;
+                    $idMahasiswa = (string) Str::uuid();
+                    $mahasiswaRows[] = [
+                        'id_mahasiswa' => $idMahasiswa,
+                        'nim' => sprintf('%s%d%04d', self::NIM_PREFIX, $tahunLokasi, $seq),
+                        'tahun_masuk' => $tahunLokasi - 3,
+                        'nama' => fake()->name(),
+                        'email' => 'peserta.'.$seq.'@example.test',
+                        'prodi' => self::PRODI[$seq % count(self::PRODI)],
+                        'kodept' => $kodept,
+                        'location_program' => $lokasi->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                    $lokasiRows[] = [
+                        'id_lokasi' => (string) Str::uuid(),
+                        'tahun' => $tahunLokasi,
+                        'id_mahasiswa' => $idMahasiswa,
+                        'id_desa' => $idDesa,
+                        'user_in_up' => self::MARKER,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                 }
             }
         }
 
-        if ($kecamatanRows) {
-            DB::table('kecamatan')->insert($kecamatanRows);
-        }
-        if ($desaRows) {
-            DB::table('desa')->insert($desaRows);
-        }
         foreach (array_chunk($mahasiswaRows, 200) as $chunk) {
             DB::table('mahasiswa')->insert($chunk);
         }
         foreach (array_chunk($lokasiRows, 200) as $chunk) {
             DB::table('mahasiswa_lokasi')->insert($chunk);
-        }
-        foreach (array_chunk($pendataanRows, 200) as $chunk) {
-            DB::table('pendataan_pemilahan_sampah')->insert($chunk);
         }
     }
 }

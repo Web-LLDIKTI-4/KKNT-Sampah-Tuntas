@@ -7,6 +7,7 @@ use App\Models\CapaianKegiatan;
 use App\Models\Pjdesa;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\CapaianKegiatanDummySeeder;
+use Database\Seeders\PetaSebaranDemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -35,11 +36,13 @@ class CapaianKegiatanDummySeederTest extends TestCase
         $this->assertOnePtPerKelurahan();
     }
 
-    // Penempatan mahasiswa tahun ini: setiap PT hanya di 1 kelurahan dan setiap kelurahan hanya 1 PT
+    // Penempatan mahasiswa simulasi (@kknt.test) tahun ini: setiap PT hanya di 1 kelurahan dan setiap kelurahan hanya 1 PT.
+    // Data demo peta (PetaSebaranDemoSeeder, user_in_up seeder-demo) sengaja tersebar & punya tahun lalu -> dikecualikan.
     private function assertOnePtPerKelurahan(): void
     {
         $penempatan = DB::table('mahasiswa_lokasi as ml')
             ->join('mahasiswa as m', 'm.id_mahasiswa', '=', 'ml.id_mahasiswa')
+            ->where('m.email', 'like', '%@kknt.test')
             ->where('ml.tahun', now()->year)
             ->select('m.kodept', 'ml.id_desa')
             ->distinct()
@@ -49,7 +52,7 @@ class CapaianKegiatanDummySeederTest extends TestCase
         $this->assertTrue($penempatan->groupBy('kodept')->every(fn ($rows) => $rows->count() === 1));
         $this->assertTrue($penempatan->groupBy('id_desa')->every(fn ($rows) => $rows->count() === 1));
 
-        $this->assertSame(0, DB::table('mahasiswa_lokasi')->where('tahun', '<>', now()->year)->count());
+        $this->assertSame(0, DB::table('mahasiswa_lokasi')->where('user_in_up', '<>', PetaSebaranDemoSeeder::MARKER)->where('tahun', '<>', now()->year)->count());
     }
 
     public function test_each_pt_has_three_ketua_with_one_report_per_month(): void

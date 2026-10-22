@@ -30,8 +30,9 @@ class CapaianPublikTest extends TestCase
     private array $d = [];
 
     /**
+     * Persen = penurunan timbulan 1 - ΣN / Σ(koef × jiwa); koef lokasi = 1, tiap log jiwa 100 -> N = 100 - persen.
      * Lokasi A / Kec Alfa: Desa Satu (Univ Hijau 25%, Univ Tanpa Data tanpa isian) + Desa Tiga (Univ Kuning 15%)
-     * -> kecamatan & lokasi = 40/200 = 20,00%. Lokasi B / Kec Beta / Desa Dua: Univ Merah 5%. Total = 45/300 = 15%.
+     * -> kecamatan & lokasi = 1 - 160/200 = 20,00%. Lokasi B / Kec Beta / Desa Dua: Univ Merah 5%. Total = 1 - 255/300 = 15%.
      * Sumber daftar & angka: pendataan pemilahan sampah (kelurahan = mahasiswa_lokasi pengisi); pj_desa = atribut ketua.
      */
     protected function setUp(): void
@@ -40,8 +41,8 @@ class CapaianPublikTest extends TestCase
         Cache::flush();
         $this->bulan = now()->subMonth()->format('Y-m');
 
-        $this->d['lokasiA'] = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Alfa']);
-        $this->d['lokasiB'] = LokasiProgram::factory()->create(['nama_lokasi' => 'Kabupaten Beta']);
+        $this->d['lokasiA'] = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Alfa', 'koefisien_timbulan_sampah' => 1]);
+        $this->d['lokasiB'] = LokasiProgram::factory()->create(['nama_lokasi' => 'Kabupaten Beta', 'koefisien_timbulan_sampah' => 1]);
         $this->d['kecA'] = Kecamatan::factory()->create(['kecamatan' => 'Kec Alfa']);
         $this->d['kecB'] = Kecamatan::factory()->create(['kecamatan' => 'Kec Beta']);
         $this->d['desaA'] = Desa::factory()->create(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'desa' => 'Desa Satu']);
@@ -68,21 +69,21 @@ class CapaianPublikTest extends TestCase
         $this->logSampah($mhs, $this->bulan, $pengurangan);
     }
 
-    // Kelurahan log = mahasiswa_lokasi; 1 log: terkelola = $terkelola kg dari total 100 kg
-    private function logSampah(Mahasiswa $mhs, string $bulan, float $terkelola): void
+    // Kelurahan log = mahasiswa_lokasi; 1 log jiwa 100 (potensi 100 kg bila koef 1): N = 100 - $persen kg
+    private function logSampah(Mahasiswa $mhs, string $bulan, float $persen): void
     {
         PendataanPemilahanSampah::factory()->create([
-            'email' => $mhs->email, 'tanggal' => $bulan.'-10', 'memilah' => true,
-            'organik_kg' => $terkelola, 'anorganik_kg' => 0, 'residu_kg' => 100 - $terkelola,
+            'email' => $mhs->email, 'tanggal' => $bulan.'-10', 'memilah' => true, 'jumlah_anggota_keluarga' => 100,
+            'organik_kg' => 0, 'anorganik_kg' => 0, 'residu_kg' => 100 - $persen,
         ]);
     }
 
     // Mahasiswa non-ketua pengisi pendataan di $desa
-    private function pengisi(Satuanpendidikan $pt, ?LokasiProgram $lokasi, Desa $desa, string $bulan, float $terkelola): Mahasiswa
+    private function pengisi(Satuanpendidikan $pt, ?LokasiProgram $lokasi, Desa $desa, string $bulan, float $persen): Mahasiswa
     {
         $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'nama' => 'Pengisi '.$desa->desa, 'location_program' => $lokasi?->id]);
         Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $desa->id_desa, 'user_in_up' => $mhs->email]);
-        $this->logSampah($mhs, $bulan, $terkelola);
+        $this->logSampah($mhs, $bulan, $persen);
 
         return $mhs;
     }
@@ -573,10 +574,13 @@ class CapaianPublikTest extends TestCase
         $lokasi = $this->publik()['kecamatan']->firstWhere('nama_lokasi', 'Tanpa Lokasi Program');
         $this->assertNotNull($lokasi);
         $this->assertSame(['Kec Gamma'], $lokasi->kecamatan->pluck('kecamatan')->all());
-        $this->assertEquals(40.0, $lokasi->kecamatan->first()->persen);
+        // Tanpa lokasi program = tanpa koefisien -> penurunan timbulan tidak dapat dihitung
+        $this->assertNull($lokasi->persen);
+        $this->assertNull($lokasi->kecamatan->first()->persen);
+        $this->assertNull($lokasi->kecamatan->first()->klaster);
 
         $rows = (new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array();
-        $this->assertContains(['Desa Gamma', 0.4, 'Hijau'], $rows);
+        $this->assertContains(['Desa Gamma', '-', '-'], $rows);
     }
 
     public function test_kelurahan_with_ketua_but_without_any_data_is_hidden(): void
@@ -614,10 +618,10 @@ class CapaianPublikTest extends TestCase
         $kunci = $this->d['lokasiA']->id.'|'.$this->d['kecA']->id_kecamatan;
         $this->assertEquals($expectDesa, $export['kelurahan'][$kunci]->firstWhere('desa', 'Desa Satu')->persen);
 
-        $rekap = $sampah->rekapLldikti(['bulan' => $this->bulan]);
-        $this->assertEquals($expectDesa, $rekap->first()->kecamatan->flatMap->desa->firstWhere('id_desa', $idDesa)->persen_pengurangan);
-        $rekapPt = $sampah->rekapLldikti(['bulan' => $this->bulan, 'kodept' => $this->d['pt_hijau']->npsn]);
-        $this->assertEquals(30.0, $rekapPt->first()->kecamatan->flatMap->desa->firstWhere('id_desa', $idDesa)->persen_pengurangan);
+        // Rekap LLDIKTI tetap % pengelolaan (persen_penurunan), tanpa alias persen_pengurangan
+        $rekapDesa = $sampah->rekapLldikti(['bulan' => $this->bulan])->first()->kecamatan->flatMap->desa->firstWhere('id_desa', $idDesa);
+        $this->assertObjectNotHasProperty('persen_pengurangan', $rekapDesa);
+        $this->assertEquals(0.0, $rekapDesa->persen_penurunan);
 
         // Dashboard PT Hijau (kodept dikunci): persen kelurahan = persen PT di kelurahan tsb
         $pt = $this->publik(['kodept' => $this->d['pt_hijau']->npsn, 'id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $idDesa]);
@@ -681,5 +685,123 @@ class CapaianPublikTest extends TestCase
         $this->assertNotNull($b);
         $this->assertEquals($a->persen, $b->persen);
         $this->assertEquals(40.0, $a->persen);
+    }
+
+    // Log mentah: N kg total (residu) dengan jumlah jiwa bebas (null/0 = tanpa jiwa)
+    private function logMentah(Mahasiswa $mhs, string $bulan, float $n, ?int $jiwa): void
+    {
+        PendataanPemilahanSampah::factory()->create([
+            'email' => $mhs->email, 'tanggal' => $bulan.'-12', 'memilah' => false, 'jumlah_anggota_keluarga' => $jiwa,
+            'organik_kg' => 0, 'anorganik_kg' => 0, 'residu_kg' => $n,
+        ]);
+    }
+
+    // QA: persen lokasi di Capaian == subtotal lokasi-bulan rekap Data Sampah (rasio dari total, bukan rata-rata baris)
+    public function test_qa_persen_lokasi_capaian_sama_dengan_subtotal_lokasi_bulan_rekap(): void
+    {
+        $lokasiC = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Cakra', 'koefisien_timbulan_sampah' => 0.7]);
+        $desa = Desa::factory()->create(['id_kecamatan' => $this->d['kecB']->id_kecamatan, 'desa' => 'Desa Cakra']);
+        $mhs = $this->pengisi($this->d['pt_merah'], $lokasiC, $desa, $this->bulan, 0); // N 100, jiwa 100
+        $this->logMentah($mhs, $this->bulan, 2.0, 4);
+        $this->logMentah($mhs, $this->bulan, 3.0, 6);
+        $this->logMentah($mhs, $this->bulan, 9.0, 0);    // tanpa jiwa: tidak ikut
+        $this->logMentah($mhs, $this->bulan, 9.0, null); // tanpa jiwa: tidak ikut
+        // Bulan lain tidak boleh ikut
+        $this->logMentah($mhs, now()->subMonths(2)->format('Y-m'), 50.0, 1);
+        // 1 - (100 + 2 + 3) / (0,7 × 110) = -36,36% (negatif apa adanya)
+        $expect = round((1 - 105 / 77) * 100, 2);
+
+        $publik = $this->publik(['bulan' => $this->bulan])['kecamatan']->keyBy('id_lokasi');
+        $subtotal = app(PenguranganSampahService::class)->dataSampahSubtotal(['bulan' => $this->bulan], false)->keyBy('id');
+
+        $this->assertEquals($expect, $publik[$lokasiC->id]->persen);
+        $this->assertSame('merah', $publik[$lokasiC->id]->klaster);
+        foreach ([$this->d['lokasiA'], $this->d['lokasiB'], $lokasiC] as $lokasi) {
+            $bulan = $subtotal[$lokasi->id]->bulan->firstWhere('bulan', $this->bulan);
+            $this->assertNotNull($bulan, $lokasi->nama_lokasi);
+            $this->assertEquals($bulan->subtotal->persen_penurunan_timbulan, $publik[$lokasi->id]->persen, $lokasi->nama_lokasi);
+            $this->assertEquals($bulan->subtotal->persen_penurunan_timbulan, app(PenguranganSampahService::class)
+                ->totalPer('lokasi', ['bulan' => $this->bulan])[$lokasi->id]->persen_penurunan_timbulan, $lokasi->nama_lokasi);
+        }
+        $this->assertEquals(20.0, $publik[$this->d['lokasiA']->id]->persen);
+    }
+
+    // QA: penurunan timbulan negatif (N > koef × jiwa) tampil apa adanya, klaster merah
+    public function test_qa_persen_negatif_tampil_apa_adanya(): void
+    {
+        $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Minus', 'koefisien_timbulan_sampah' => 0.5]);
+        $kec = Kecamatan::factory()->create(['kecamatan' => 'Kec Minus']);
+        $desa = Desa::factory()->create(['id_kecamatan' => $kec->id_kecamatan, 'desa' => 'Desa Minus']);
+        $pt = Satuanpendidikan::factory()->create(['nm_lemb' => 'Univ Minus']);
+        $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'nama' => 'Ketua Minus', 'location_program' => $lokasi->id]);
+        Pjdesa::create(['email' => $mhs->email, 'id_desa' => $desa->id_desa]);
+        Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $desa->id_desa, 'user_in_up' => $mhs->email]);
+        $this->logMentah($mhs, $this->bulan, 6.0, 8); // 1 - 6 / 4 = -50%
+
+        $data = $this->publik(['id_kecamatan' => $kec->id_kecamatan, 'id_desa' => $desa->id_desa]);
+        $lok = $data['kecamatan']->firstWhere('nama_lokasi', 'Kota Minus');
+        $this->assertEquals(-50.0, $lok->persen);
+        $this->assertSame('merah', $lok->klaster);
+        $this->assertEquals(-50.0, $lok->kecamatan->first()->persen);
+        $this->assertEquals(-50.0, $data['kelurahan']->firstWhere('desa', 'Desa Minus')->persen);
+        $this->assertEquals(-50.0, $data['kelompok']->firstWhere('nama_pt', 'Univ Minus')->persen_pt);
+        $this->assertSame('merah', $data['kelompok']->firstWhere('nama_pt', 'Univ Minus')->klaster_pt);
+        // Total gabungan ikut rumus rasio total: 1 - (255 + 6) / (300 + 4)
+        $this->assertEquals(round((1 - 261 / 304) * 100, 2), $data['total_keseluruhan']->persen_pengurangan);
+
+        // Klaster PT halaman Rekap Sampah ikut rumus baru; negatif paling bawah sebelum null
+        $klasterPt = app(PenguranganSampahService::class)->klasterPt(['bulan' => $this->bulan]);
+        $this->assertEquals(-50.0, $klasterPt[$pt->npsn]->persen);
+        $this->assertSame('merah', $klasterPt[$pt->npsn]->klaster);
+        $this->assertSame([25.0, 15.0, 5.0, -50.0], array_map('floatval', $klasterPt->pluck('persen')->values()->all()));
+
+        $this->get('login/laporan?kecamatan='.$kec->id_kecamatan.'&desa='.$desa->id_desa)->assertOk()->assertSee('-50,00%');
+        $rows = (new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array();
+        $this->assertContains(['Kota Minus', -0.5, 'Merah'], $rows);
+        $this->assertContains(['Desa Minus', -0.5, 'Merah'], $rows);
+    }
+
+    // QA: koefisien lokasi kosong atau jiwa kosong/0 -> persen null ("-"), bukan 0 / 100
+    public function test_qa_koefisien_atau_jiwa_kosong_persen_null(): void
+    {
+        $tanpaKoef = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Tanpa Koef', 'koefisien_timbulan_sampah' => null]);
+        $koefNol = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Koef Nol', 'koefisien_timbulan_sampah' => 0]);
+        $berKoef = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Tanpa Jiwa', 'koefisien_timbulan_sampah' => 0.5]);
+        $kec = Kecamatan::factory()->create(['kecamatan' => 'Kec Kosong']);
+        $pt = Satuanpendidikan::factory()->create(['nm_lemb' => 'Univ Kosong']);
+        foreach ([[$tanpaKoef, 'Desa K1', 10], [$koefNol, 'Desa K2', 10], [$berKoef, 'Desa K3', null], [$berKoef, 'Desa K4', 0]] as [$lokasi, $nama, $jiwa]) {
+            $desa = Desa::factory()->create(['id_kecamatan' => $kec->id_kecamatan, 'desa' => $nama]);
+            $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'location_program' => $lokasi->id]);
+            Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $desa->id_desa, 'user_in_up' => $mhs->email]);
+            $this->logMentah($mhs, $this->bulan, 3.0, $jiwa);
+        }
+
+        $sampah = app(PenguranganSampahService::class);
+        $data = $this->publik(['id_kecamatan' => $kec->id_kecamatan]);
+        foreach (['Kota Tanpa Koef', 'Kota Koef Nol', 'Kota Tanpa Jiwa'] as $nama) {
+            $lok = $data['kecamatan']->firstWhere('nama_lokasi', $nama);
+            $this->assertNotNull($lok, $nama);
+            $this->assertNull($lok->persen, $nama);
+            $this->assertNull($lok->klaster, $nama);
+        }
+        foreach (['Desa K1', 'Desa K2', 'Desa K3', 'Desa K4'] as $nama) {
+            $this->assertNull($data['kelurahan']->firstWhere('desa', $nama)->persen, $nama);
+        }
+        $this->assertNull($sampah->totalPer('kodept', ['bulan' => $this->bulan])[$pt->npsn]->persen_pengurangan);
+        $klasterPt = $sampah->klasterPt(['bulan' => $this->bulan]);
+        $this->assertNull($klasterPt[$pt->npsn]->persen);
+        $this->assertNull($klasterPt[$pt->npsn]->klaster);
+        // Total keseluruhan tidak terpengaruh baris tanpa koef/jiwa: tetap 15%
+        $this->assertEquals(15.0, $data['total_keseluruhan']->persen_pengurangan);
+
+        // Filter PT yang seluruh datanya tanpa koef/jiwa: total null, tidak error
+        $total = $sampah->total(['bulan' => $this->bulan, 'kodept' => $pt->npsn]);
+        $this->assertNull($total->persen_penurunan_timbulan);
+        $this->assertNull($total->persen_pengurangan);
+        $this->assertEquals(12.0, $total->total_dihasilkan);
+
+        $rows = (new CapaianProgramSheet($sampah->capaianProgram(['bulan' => $this->bulan])))->array();
+        $this->assertContains(['Kota Tanpa Koef', '-', '-'], $rows);
+        $this->assertContains(['Desa K3', '-', '-'], $rows);
     }
 }

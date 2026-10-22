@@ -740,6 +740,7 @@
       $("#petaSubtitle").text("Data tidak tersedia");
       $("#petaTotal").text("–");
       $("#petaSummaryNote").text("");
+      petaUnmapped(null);
       petaStatus(message, true);
     }
 
@@ -899,6 +900,26 @@
       $("#petaSummaryBadge").text(tahun ? "Tahun " + tahun : "Semua Tahun");
       $("#petaTotal").text(summary.total_label == null ? "0" : summary.total_label);
       $("#petaSummaryNote").text(note);
+      petaUnmapped(summary);
+    }
+
+    // Desa ber-data tanpa koordinat; disembunyikan bila 0/field tidak ada
+    function petaUnmapped(summary) {
+      var box = document.getElementById("petaUnmapped");
+      var list = document.getElementById("petaUnmappedList");
+      var rows = petaList(summary && summary.belum_dipetakan);
+      var total = parseInt(summary && summary.jumlah_belum_dipetakan, 10) || 0;
+      list.textContent = "";
+      box.open = false;
+      box.classList.toggle("d-none", total <= 0);
+      if (total <= 0) return;
+      document.getElementById("petaUnmappedText").textContent =
+        total + " desa/kelurahan belum dipetakan (koordinat belum diisi)";
+      rows.forEach(function (row) {
+        var li = petaEl("li", null, row && row.desa ? row.desa : "-");
+        if (row && row.kecamatan) li.appendChild(petaEl("span", "peta-muted", " — " + row.kecamatan));
+        list.appendChild(li);
+      });
     }
 
     function petaSide(rows, periode) {

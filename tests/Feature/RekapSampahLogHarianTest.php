@@ -8,6 +8,7 @@ use App\Models\Kecamatan;
 use App\Models\PenguranganSampah;
 use App\Models\Logkegiatan;
 use App\Models\PendataanPemilahanSampah;
+use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
@@ -83,7 +84,8 @@ class RekapSampahLogHarianTest extends TestCase
         $this->assertEquals(5.0, $r->total_terkelola);
         $this->assertEquals(12.0, $r->total_dihasilkan);
         $this->assertEqualsWithDelta(41.67, $r->persen_penurunan, 0.01);
-        $this->assertSame($r->persen_penurunan, $r->persen_pengurangan);
+        // Baris LLDIKTI = % pengelolaan; alias persen_pengurangan kini milik penurunan timbulan (total/totalPer)
+        $this->assertObjectNotHasProperty('persen_pengurangan', $r);
     }
 
     public function test_kunci_rumah_abaikan_variasi_tulisan_dan_berat_tetap_dijumlah(): void
@@ -504,10 +506,12 @@ class RekapSampahLogHarianTest extends TestCase
         $desa = Desa::factory()->create(['id_kecamatan' => $kec->id_kecamatan]);
         $pt = Satuanpendidikan::factory()->create();
         $ketua = $this->mahasiswaDi($desa, $pt->npsn);
+        $ketua->forceFill(['location_program' => LokasiProgram::factory()->create(['koefisien_timbulan_sampah' => 1])->id])->save();
         Pjdesa::create(['email' => $ketua->email, 'id_desa' => $desa->id_desa]);
 
         $this->get('/')->assertOk()->assertDontSee('30,00%');
-        $this->log($ketua, ['tanggal' => now()->format('Y-m').'-01', 'organik_kg' => 30, 'anorganik_kg' => 0, 'residu_kg' => 70]);
+        // Penurunan timbulan 1 - 70 / (1 × 100) = 30%
+        $this->log($ketua, ['tanggal' => now()->format('Y-m').'-01', 'jumlah_anggota_keluarga' => 100, 'organik_kg' => 0, 'anorganik_kg' => 0, 'residu_kg' => 70]);
         $this->get('/')->assertOk()->assertSee('Kec Publik')->assertSee('30,00%');
     }
 

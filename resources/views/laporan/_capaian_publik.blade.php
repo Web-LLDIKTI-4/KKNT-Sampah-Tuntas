@@ -130,7 +130,7 @@
                     <tr>
                         <th class="text-center">No</th>
                         <th class="text-center">Kelurahan/Desa</th>
-                        <th class="text-center">BaseLine (%)</th>
+                        <th class="text-center">BaseLine</th>
                         <th class="text-center">Pengurangan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                     </tr>
@@ -142,7 +142,7 @@
                             <td @class(['fw-bold' => $kel->id_desa === $params['desa']])>
                                 <a href="#" data-drill='@json(['desa' => $kel->id_desa])'>{{ $kel->desa }}</a>
                             </td>
-                            <td class="text-center text-nowrap">{{ $persen($kel->baseline ?? null) }}</td>
+                            <td class="text-center text-nowrap">{{ PenguranganSampah::formatBaseline(isset($kel->baseline) ? (float) $kel->baseline : null, $kel->satuan_baseline ?? '%') }}</td>
                             <td class="text-center">{{ $persen($kel->persen) }}</td>
                             <td class="text-center">@if ($k = $klasterOf($kel->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                         </tr>

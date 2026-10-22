@@ -19,12 +19,18 @@
     <div class="form-group mb-6">
         <div class="input-group input-group-merge">
             <div class="form-floating form-floating-outline">
-                <input type="number" name="baseline" id="baseline-ubah" class="form-control form-control-sm" step="0.01" min="0" max="100" inputmode="decimal" placeholder="0,00" value="{{ $data->baseline }}">
-                <label for="baseline-ubah">Base Line (%)</label>
+                <input type="number" name="baseline" id="baseline-ubah" class="form-control form-control-sm" step="0.01" min="0" inputmode="decimal" placeholder="0,00" value="{{ $data->baseline }}">
+                <label for="baseline-ubah">Base Line</label>
             </div>
-            <span class="input-group-text">%</span>
+            <select name="satuan_baseline" id="satuan-baseline-ubah" class="form-select form-select-sm flex-grow-0 w-auto" aria-label="Satuan base line">
+                @foreach (['%' => '%', 'kg' => 'KG'] as $value => $text)
+                    <option value="{{ $value }}" @selected(old('satuan_baseline', $data->satuan_baseline ?? '%') === $value)>{{ $text }}</option>
+                @endforeach
+            </select>
         </div>
-        <div class="form-text">Opsional, 0–100 dengan maksimal 2 angka desimal.</div>
+        <span id="baseline_error" class="text-danger d-block small"></span>
+        <span id="satuan_baseline_error" class="text-danger d-block small"></span>
+        <div class="form-text">Opsional, maksimal 2 angka desimal. Satuan %: 0–100.</div>
     </div>
     <div class="row g-4 mb-2">
         <div class="col-12 col-sm-6">

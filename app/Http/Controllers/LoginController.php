@@ -61,7 +61,7 @@ class LoginController extends Controller
     {
         $filter = $request->filter();
 
-        return response()->json(Cache::remember('login.peta.v4.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1).'.'.Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0').'.'.$filter['tahun'].'.'.($filter['kodept'] ?? 'all'), now()->addMinutes(10), fn () => $peta->sebaran($filter)));
+        return response()->json(Cache::remember('login.peta.v6.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1).'.'.Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0').'.'.$filter['tahun'].'.'.($filter['kodept'] ?? 'all'), now()->addMinutes(10), fn () => $peta->sebaran($filter)));
     }
 
     // Detail peserta per PT untuk modal tab Data Peserta (tidak disamarkan, sesuai keputusan pemilik)
@@ -176,7 +176,7 @@ class LoginController extends Controller
         // Versi peta ikut: berubah saat master desa (mis. baseline) disimpan
         $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0').'.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1);
 
-        return Cache::remember('login.capaian.v4.'.$versi.'.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter));
+        return Cache::remember('login.capaian.v6.'.$versi.'.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter));
     }
 
     /**
