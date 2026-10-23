@@ -527,6 +527,291 @@
       renderPeserta();
     }
 
+    // Daftar status (badge sudah/belum): paginasi & pencarian di server
+    var $statusModal = $("#modalStatusList");
+    if ($statusModal.length) {
+      var statusColumns = {
+        mobilisasi: [["NIM", "nim"], ["Nama Ketua", "nama"], ["PTS", "nama_pt"], ["Kecamatan", "kecamatan"], ["Desa", "desa"]],
+        pelaksanaan: [["Kode PT", "kode_pt"], ["Nama PTS", "nama_pt"]],
+        lokasi: [["NIM", "nim"], ["Nama", "nama"], ["PTS", "nama_pt"], ["Lokasi Program", "lokasi"], ["Kecamatan", "kecamatan"], ["Desa", "desa"]]
+      };
+      // Kolom angka: rata tengah (header & sel)
+      var statusCentered = { nim: true, kode_pt: true };
+      var $statusMsg = $statusModal.find(".status-list-status");
+      var $statusWrap = $statusModal.find(".status-list-wrap");
+      var $statusTableWrap = $statusModal.find(".status-list-table");
+      var $statusHead = $statusModal.find("thead tr");
+      var $statusTbody = $("#statusListTbody");
+      var $statusNoResult = $statusModal.find(".status-list-noresult");
+      var $statusSearch = $("#statusListSearch");
+      var $statusLimit = $("#statusListLimit");
+      var $statusInfo = $("#statusListInfo");
+      var $statusPagination = $("#statusListPagination");
+      var statusState = { jenis: "", status: "", page: 1, q: "", sort: "", dir: "" };
+      var statusXhr = null;
+      var statusTimer = null;
+      var statusLoaded = false;
+
+      var statusNum = function (n) {
+        return (Number(n) || 0).toLocaleString("id-ID");
+      };
+
+      // Pesan + tombol "Coba lagi" (opsional) di elemen target
+      var statusRetryTimer = null;
+      var statusRetryUntil = 0;
+
+      var statusMessage = function ($el, text, retry) {
+        $el.empty().append(document.createTextNode(text));
+        if (retry) {
+          // aria-live off: hitung mundur per detik tidak dibacakan berulang
+          return $('<button type="button" class="btn btn-sm btn-outline-primary" aria-live="off">Coba lagi</button>')
+            .on("click", function () { statusFetch(); })
+            .appendTo($el);
+        }
+      };
+
+      var statusStopCountdown = function () {
+        clearInterval(statusRetryTimer);
+        statusRetryTimer = null;
+      };
+
+      // Tombol retry disabled sampai Retry-After habis
+      var statusCountdown = function ($btn) {
+        statusStopCountdown();
+        var tick = function () {
+          var left = Math.ceil((statusRetryUntil - Date.now()) / 1000);
+          if (left <= 0) {
+            statusStopCountdown();
+            $btn.prop("disabled", false).text("Coba lagi");
+            return;
+          }
+          $btn.prop("disabled", true).text("Coba lagi dalam " + left + " detik");
+        };
+        tick();
+        if (Date.now() < statusRetryUntil) {
+          statusRetryTimer = setInterval(tick, 1000);
+        }
+      };
+
+      var statusAbort = function () {
+        statusStopCountdown();
+        clearTimeout(statusTimer);
+        if (statusXhr) {
+          statusXhr.abort();
+          statusXhr = null;
+        }
+      };
+
+      // Sinkronkan aria-sort & indikator panah dengan statusState
+      var statusSortUi = function () {
+        $statusHead.find(".status-sort").each(function () {
+          var active = $(this).data("sort") === statusState.sort;
+          var $th = $(this).closest("th");
+          if (active) {
+            $th.attr("aria-sort", statusState.dir === "desc" ? "descending" : "ascending");
+          } else {
+            $th.removeAttr("aria-sort");
+          }
+          $(this).toggleClass("is-active", active)
+            .find(".status-sort-ind").text(active ? (statusState.dir === "desc" ? "▼" : "▲") : "↕");
+        });
+      };
+
+      var statusRender = function (res) {
+        var cols = statusColumns[statusState.jenis];
+        var rows = Array.isArray(res.data) ? res.data : [];
+        var meta = res.meta || {};
+        var total = Number(meta.total) || 0;
+        var from = Number(meta.from) || 0;
+        var lastPage = Math.max(1, Number(meta.last_page) || 1);
+        statusState.page = Number(meta.page) || statusState.page;
+        if (meta.sort && cols.some(function (col) { return col[1] === meta.sort; })) {
+          statusState.sort = meta.sort;
+          statusState.dir = meta.dir === "desc" ? "desc" : "asc";
+          statusSortUi();
+        }
+
+        // Kosong tanpa pencarian: tidak ada data sama sekali
+        if (total === 0 && statusState.q === "" && !statusLoaded) {
+          $statusWrap.addClass("d-none");
+          statusMessage($statusMsg.removeClass("d-none"), "Belum ada data.");
+          return;
+        }
+        statusLoaded = true;
+        $statusMsg.addClass("d-none").empty();
+        $statusWrap.removeClass("d-none is-loading").removeAttr("aria-busy");
+
+        $statusTbody.empty().append(rows.map(function (row, i) {
+          var $tr = $("<tr>").append($('<td class="text-center">').text(statusNum(from + i)));
+          cols.forEach(function (col) {
+            var val = row ? row[col[1]] : null;
+            val = val === null || val === undefined ? "" : String(val).trim();
+            $tr.append($("<td>").toggleClass("text-center", statusCentered[col[1]] === true).text(val === "" ? "-" : val));
+          });
+          return $tr[0];
+        }));
+
+        $statusTableWrap.toggleClass("d-none", rows.length === 0);
+        $statusNoResult.toggleClass("d-none", rows.length > 0);
+        if (!rows.length) {
+          statusMessage($statusNoResult, "Data tidak ditemukan.");
+        }
+
+        $statusInfo.text(total === 0
+          ? "Tidak ada data yang cocok"
+          : "Menampilkan " + statusNum(from) + "–" + statusNum(meta.to) + " dari " + statusNum(total) + " data");
+
+        if (lastPage <= 1) {
+          $statusPagination.empty().closest("nav").addClass("d-none");
+          return;
+        }
+        $statusPagination.html(paginationHtml(statusState.page, lastPage)).closest("nav").removeClass("d-none");
+      };
+
+      var statusShowError = function (throttled) {
+        var text = throttled ? "Terlalu banyak permintaan." : "Gagal memuat data. Silakan coba lagi.";
+        var $btn;
+        if (!statusLoaded) {
+          $statusWrap.addClass("d-none");
+          $btn = statusMessage($statusMsg.removeClass("d-none"), text, true);
+        } else {
+          $statusWrap.removeClass("is-loading").removeAttr("aria-busy");
+          $statusTableWrap.addClass("d-none");
+          $statusPagination.empty().closest("nav").addClass("d-none");
+          $statusInfo.text("");
+          $btn = statusMessage($statusNoResult.removeClass("d-none"), text, true);
+        }
+        if (throttled) {
+          statusCountdown($btn);
+        }
+      };
+
+      var statusFail = function (xhr) {
+        var throttled = xhr.status === 429;
+        if (throttled) {
+          var wait = parseInt(xhr.getResponseHeader("Retry-After"), 10);
+          statusRetryUntil = Date.now() + (wait > 0 ? wait : 60) * 1000;
+        }
+        statusShowError(throttled);
+      };
+
+      var statusFetch = function () {
+        statusAbort();
+        // Masih dalam jeda throttle: tampilkan ulang state 429 tanpa request
+        if (Date.now() < statusRetryUntil) {
+          statusShowError(true);
+          return;
+        }
+        if (statusLoaded) {
+          // Kontrol tetap tampil agar fokus input pencarian tidak hilang
+          $statusWrap.addClass("is-loading").attr("aria-busy", "true");
+        } else {
+          $statusWrap.addClass("d-none");
+          statusMessage($statusMsg.removeClass("d-none"), "Memuat data…");
+        }
+
+        var params = {
+          jenis: statusState.jenis,
+          status: statusState.status,
+          page: statusState.page,
+          per_page: $statusLimit.val() === "25" ? 25 : 10
+        };
+        if (statusState.q !== "") {
+          params.q = statusState.q;
+        }
+        if (statusState.sort !== "") {
+          params.sort = statusState.sort;
+          params.dir = statusState.dir;
+        }
+
+        var xhr = $.ajax({ url: $statusModal.data("url"), data: params, dataType: "json" });
+        statusXhr = xhr;
+        xhr.done(function (res) {
+          statusRender(res || {});
+        }).fail(function (jq, status) {
+          if (status !== "abort") {
+            statusFail(jq);
+          }
+        }).always(function () {
+          if (statusXhr === xhr) {
+            statusXhr = null;
+          }
+        });
+      };
+
+      $(document).on("click", ".status-badge-btn", function () {
+        var jenis = String($(this).data("jenis"));
+        var status = String($(this).data("status"));
+        if (!statusColumns[jenis] || (status !== "sudah" && status !== "belum")) {
+          return;
+        }
+
+        // Reset state tiap modal dibuka
+        statusAbort();
+        statusState = { jenis: jenis, status: status, page: 1, q: "", sort: "", dir: "" };
+        statusLoaded = false;
+        $statusSearch.val("");
+        $statusLimit.val("10");
+        $statusTbody.empty();
+        $statusNoResult.addClass("d-none").empty();
+        $statusTableWrap.removeClass("d-none");
+        $statusHead.empty().append([["No"]].concat(statusColumns[jenis]).map(function (col) {
+          var $th = $('<th scope="col">').toggleClass("text-center", col[0] === "No" || statusCentered[col[1]] === true);
+          if (!col[1]) {
+            return $th.text(col[0])[0];
+          }
+          return $th.append($('<button type="button" class="table-sort status-sort">').attr("data-sort", col[1])
+            .text(col[0]).append('<span class="status-sort-ind" aria-hidden="true"></span>'))[0];
+        }));
+        statusSortUi();
+        $("#modalStatusListTitle").text(String($(this).data("title")));
+
+        bootstrap.Modal.getOrCreateInstance($statusModal[0]).show();
+        statusFetch();
+      });
+
+      // Debounce 400ms; minimal 2 karakter (atau kosong) agar hemat kuota throttle
+      $statusSearch.on("input", function () {
+        clearTimeout(statusTimer);
+        var q = String($statusSearch.val() || "").trim().slice(0, 50);
+        if (q === statusState.q || (q !== "" && q.length < 2)) {
+          return;
+        }
+        statusTimer = setTimeout(function () {
+          statusState.q = q;
+          statusState.page = 1;
+          statusFetch();
+        }, 400);
+      });
+
+      $statusLimit.on("change", function () {
+        statusState.page = 1;
+        statusFetch();
+      });
+
+      // Sort di server: klik pertama asc, berikutnya bergantian desc/asc
+      $statusHead.on("click", ".status-sort", function () {
+        var key = String($(this).data("sort"));
+        statusState.dir = key === statusState.sort && statusState.dir === "asc" ? "desc" : "asc";
+        statusState.sort = key;
+        statusState.page = 1;
+        statusSortUi();
+        statusFetch();
+      });
+
+      $statusPagination.on("click", "button.page-link", function () {
+        var target = parseInt($(this).data("page"), 10);
+        if ($(this).prop("disabled") || !target || target === statusState.page) {
+          return;
+        }
+        statusState.page = target;
+        statusFetch();
+        $statusModal.find(".modal-body").scrollTop(0);
+      });
+
+      $statusModal.on("hide.bs.modal", statusAbort);
+    }
+
     // Peta sebaran: Leaflet dimuat saat section terlihat; respons di-cache per kombinasi filter
     var petaMap = null;
     var petaLayer = null;

@@ -2,12 +2,16 @@
 
 namespace App\Services;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class SebaranPtSummary
 {
+    // Mahasiswa (alias m) already set desa; shared by statusLokasi() and the landing list
+    public const SUDAH_LOKASI_SQL = 'EXISTS (SELECT 1 FROM mahasiswa_lokasi ml WHERE ml.id_mahasiswa = m.id_mahasiswa AND ml.id_desa IS NOT NULL)';
+
     // Ikut versi peta: flush data mahasiswa/dpl ikut menyegarkan cache ini
     public function cached(): Collection
     {
@@ -65,6 +69,12 @@ class SebaranPtSummary
             ->values();
     }
 
+    // Population of lokasi status & list (alias m)
+    public function lokasiBase(): Builder
+    {
+        return DB::table('mahasiswa as m')->whereNotNull('m.location_program')->whereNotNull('m.kodept');
+    }
+
     /**
      * Mahasiswa sebaran (location_program & kodept terisi) yang sudah/belum set desa, tanpa cache.
      *
@@ -72,10 +82,9 @@ class SebaranPtSummary
      */
     public function statusLokasi(): array
     {
-        $row = DB::table('mahasiswa as m')
-            ->whereNotNull('m.location_program')->whereNotNull('m.kodept')
+        $row = $this->lokasiBase()
             ->selectRaw('COUNT(*) as total')
-            ->selectRaw('SUM(CASE WHEN EXISTS (SELECT 1 FROM mahasiswa_lokasi ml WHERE ml.id_mahasiswa = m.id_mahasiswa AND ml.id_desa IS NOT NULL) THEN 1 ELSE 0 END) as sudah')
+            ->selectRaw('SUM(CASE WHEN '.self::SUDAH_LOKASI_SQL.' THEN 1 ELSE 0 END) as sudah')
             ->first();
 
         $total = (int) $row->total;

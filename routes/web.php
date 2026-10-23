@@ -112,6 +112,7 @@ Route::get('login/laporan/export', [CapaianProgramExportController::class, 'publ
 Route::get('login/data-peserta/export', [LoginController::class, 'dataPesertaExport'])->middleware('throttle:10,1')->name('login.data-peserta.export');
 
 Route::get('login/peserta', [LoginController::class, 'peserta'])->middleware('throttle:peta')->name('login.peserta');
+Route::get('login/status-list', [LoginController::class, 'statusList'])->middleware('throttle:status-list')->name('login.status-list');
 
 Route::middleware('auth')->group(function () {
     Route::get('home', [HomeController::class, 'index'])->name('home');

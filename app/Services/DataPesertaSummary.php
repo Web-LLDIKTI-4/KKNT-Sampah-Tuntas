@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -39,10 +40,7 @@ class DataPesertaSummary
             ->groupBy('mahasiswa.kodept')
             ->pluck('total', 'kodept');
 
-        // Same UNION as header jumlahPt in LoginController::statistikPublik()
-        $kodept = DB::table('mahasiswa')->whereNotNull('kodept')->select('kodept')
-            ->union(DB::table('dpl')->whereNotNull('kodept')->select('kodept'))
-            ->pluck('kodept');
+        $kodept = $this->kodeptBase()->pluck('kodept');
         $namaPt = DB::table('ref_satuanpendidikan')->whereIn('npsn', $kodept)->pluck('nm_lemb', 'npsn');
 
         return $kodept->map(fn ($kode) => (object) [
@@ -53,6 +51,19 @@ class DataPesertaSummary
             'jumlah_pic' => (int) ($jumlahPicPerPt[$kode] ?? 0),
             'jumlah_ketua_kelompok' => (int) ($jumlahKetuaPerPt[$kode] ?? 0),
         ])->sortBy('nama_pt', SORT_NATURAL | SORT_FLAG_CASE)->values();
+    }
+
+    // Population of mobilisasi status & list: every pj_desa row
+    public function mobilisasiBase(): Builder
+    {
+        return DB::table('pj_desa');
+    }
+
+    // Same UNION as header jumlahPt in LoginController::statistikPublik()
+    public function kodeptBase(): Builder
+    {
+        return DB::table('mahasiswa')->whereNotNull('kodept')->select('kodept')
+            ->union(DB::table('dpl')->whereNotNull('kodept')->select('kodept'));
     }
 
     /**
@@ -79,7 +90,7 @@ class DataPesertaSummary
      */
     public function status(Collection $kodept): array
     {
-        $mobilisasi = DB::table('pj_desa')
+        $mobilisasi = $this->mobilisasiBase()
             ->selectRaw("COUNT(*) as total, COALESCE(SUM(CASE WHEN status_mobilisasi = 'sudah' THEN 1 ELSE 0 END), 0) as sudah")
             ->first();
 

@@ -481,6 +481,91 @@ body.lp {
     font-weight: 600;
 }
 
+/* Badge yang membuka #modalStatusList: warna tetap, tambahan affordance klik */
+.status-badge-btn {
+    appearance: none;
+    border: 1px solid transparent;
+    font-family: inherit;
+    line-height: 1;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.status-badge-btn::after {
+    content: "\ea6e";
+    font-family: "remixicon";
+    font-weight: normal;
+    margin-left: 0.15rem;
+    opacity: 0.7;
+}
+
+.status-badge-btn:hover {
+    border-color: currentColor;
+    box-shadow: 0 4px 10px rgba(20, 24, 70, 0.1);
+    transform: translateY(-1px);
+}
+
+.status-badge-btn:active {
+    transform: none;
+}
+
+.status-badge-btn:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
+.status-list-wrap {
+    transition: opacity 0.15s ease;
+}
+
+.status-list-wrap.is-loading .status-list-table,
+.status-list-wrap.is-loading .peserta-footer {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+#modalStatusList .table th {
+    white-space: nowrap;
+}
+
+/* Header sort (server-side); gaya dasar dari .table-sort di laporan.css */
+.status-sort {
+    border-radius: 2px;
+}
+
+.status-sort:hover,
+.status-sort.is-active {
+    color: var(--bs-primary);
+}
+
+.status-sort:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
+.status-sort-ind {
+    display: inline-block;
+    margin-left: 0.3rem;
+    font-size: 0.7em;
+    opacity: 0.4;
+}
+
+.status-sort:hover .status-sort-ind,
+.status-sort.is-active .status-sort-ind {
+    opacity: 1;
+}
+
+#modalStatusList .table td {
+    font-size: 0.8125rem;
+    min-width: 7rem;
+}
+
+#modalStatusList .table td:first-child {
+    min-width: 0;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
 .lp-card {
     border: 1px solid var(--lp-line);
     border-radius: var(--lp-radius);
@@ -1594,8 +1679,14 @@ html.js-reveal [data-reveal].is-visible {
     .lp-hero-actions .btn,
     .lp-cta,
     .panduan-unduh,
+    .status-badge-btn,
+    .status-list-wrap,
     html.js-reveal [data-reveal] {
         transition: none;
+    }
+
+    .status-badge-btn:hover {
+        transform: none;
     }
 
     html.js-motion .lp-hero-logos,

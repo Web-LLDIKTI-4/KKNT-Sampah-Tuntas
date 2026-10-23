@@ -7,10 +7,12 @@ use App\Http\Requests\Auth\LaporanPublikRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\PesertaDetailRequest;
 use App\Http\Requests\Auth\PetaSebaranRequest;
+use App\Http\Requests\Auth\StatusListRequest;
 use App\Models\PenguranganSampah;
 use App\Models\LokasiProgram;
 use App\Models\Panduan;
 use App\Services\DataPesertaSummary;
+use App\Services\LandingStatusList;
 use App\Services\PenguranganSampahService;
 use App\Services\LokasiProgramSummary;
 use App\Services\PetaSebaranService;
@@ -84,6 +86,32 @@ class LoginController extends Controller
             'nama_pt' => $pt->nama_pt,
             'jenis' => $jenis,
             'data' => $peserta->members($kodept, $jenis),
+        ]);
+    }
+
+    // Sudah/belum list behind the landing status badges
+    public function statusList(StatusListRequest $request, LandingStatusList $list)
+    {
+        $jenis = $request->validated('jenis');
+        $status = $request->validated('status');
+        $sort = $request->validated('sort');
+        $dir = $request->validated('dir') ?? 'asc';
+        $rows = $list->list($jenis, $status, $request->validated('q'), (int) ($request->validated('page') ?? 1), (int) ($request->validated('per_page') ?? 10), $sort, $dir);
+
+        return response()->json([
+            'jenis' => $jenis,
+            'status' => $status,
+            'data' => $rows->items(),
+            'meta' => [
+                'page' => $rows->currentPage(),
+                'per_page' => $rows->perPage(),
+                'total' => $rows->total(),
+                'last_page' => $rows->lastPage(),
+                'from' => $rows->firstItem(),
+                'to' => $rows->lastItem(),
+                'sort' => $sort,
+                'dir' => $dir,
+            ],
         ]);
     }
 

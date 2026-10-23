@@ -317,4 +317,31 @@ class LandingPageTest extends TestCase
 
         $this->assertStatus($this->get('/'), ['sudah' => 0, 'belum' => 0, 'total' => 0], ['sudah' => 0, 'belum' => 1, 'total' => 1]);
     }
+
+    public function test_status_badges_open_modal_only_when_count_positive(): void
+    {
+        [, $b, $c] = $this->seedStatusPeserta();
+        PelaksanaanKkn::factory()->forPt($b->npsn)->create();
+        PelaksanaanKkn::factory()->forPt($c->npsn)->create();
+        Mahasiswa::factory()->create(['kodept' => $b->npsn, 'location_program' => LokasiProgram::factory()->create()->id]);
+
+        $response = $this->get('/')->assertOk()
+            ->assertViewHas('statusPeserta', fn ($s) => $s['pelaksanaan'] === ['sudah' => 3, 'belum' => 0, 'total' => 3])
+            ->assertViewHas('statusLokasi', ['sudah' => 0, 'belum' => 1, 'total' => 1]);
+        $html = $response->getContent();
+        $button = fn (string $jenis, string $status) => '/<button type="button" class="badge bg-label-(success|danger) status-badge-btn" data-jenis="'.$jenis.'" data-status="'.$status.'"[^>]*aria-controls="modalStatusList">/';
+
+        foreach ([['mobilisasi', 'sudah'], ['mobilisasi', 'belum'], ['pelaksanaan', 'sudah'], ['lokasi', 'belum']] as [$jenis, $status]) {
+            $this->assertMatchesRegularExpression($button($jenis, $status), $html, "$jenis/$status harus button");
+        }
+        foreach ([['pelaksanaan', 'belum'], ['lokasi', 'sudah']] as [$jenis, $status]) {
+            $this->assertDoesNotMatchRegularExpression('/data-jenis="'.$jenis.'" data-status="'.$status.'"/', $html, "$jenis/$status (0) bukan button");
+        }
+        $this->assertSame(4, substr_count($html, 'status-badge-btn"'));
+        $text = preg_replace('/\s+/', ' ', strip_tags($this->statusBlock($response)));
+        $this->assertStringContainsString('Belum isi 0', $text);
+
+        $response->assertSee('id="modalStatusList"', false)
+            ->assertSee('data-url="'.route('login.status-list').'"', false);
+    }
 }

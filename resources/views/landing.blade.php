@@ -247,8 +247,8 @@
                                     <div class="peserta-status-item">
                                         <dt>{{ $statusLabel }}</dt>
                                         <dd>
-                                            <span class="badge bg-label-success"><i class="ri-check-line" aria-hidden="true"></i> {{ $doneLabel }} {{ $fmt($statusPeserta[$statusKey]['sudah'] ?? 0) }}</span>
-                                            <span class="badge bg-label-danger"><i class="ri-close-line" aria-hidden="true"></i> {{ $todoLabel }} {{ $fmt($statusPeserta[$statusKey]['belum'] ?? 0) }}</span>
+                                            @include('landing._status_badge', ['jenis' => $statusKey, 'status' => 'sudah', 'title' => $statusLabel, 'label' => $doneLabel, 'count' => $statusPeserta[$statusKey]['sudah'] ?? 0])
+                                            @include('landing._status_badge', ['jenis' => $statusKey, 'status' => 'belum', 'title' => $statusLabel, 'label' => $todoLabel, 'count' => $statusPeserta[$statusKey]['belum'] ?? 0])
                                         </dd>
                                     </div>
                                 @endforeach
@@ -344,8 +344,8 @@
                                 <div class="peserta-status-item">
                                     <dt>Mahasiswa Set Lokasi</dt>
                                     <dd>
-                                        <span class="badge bg-label-success"><i class="ri-check-line" aria-hidden="true"></i> Sudah {{ $fmt($statusLokasi['sudah'] ?? 0) }}</span>
-                                        <span class="badge bg-label-danger"><i class="ri-close-line" aria-hidden="true"></i> Belum {{ $fmt($statusLokasi['belum'] ?? 0) }}</span>
+                                        @include('landing._status_badge', ['jenis' => 'lokasi', 'status' => 'sudah', 'title' => 'Mahasiswa Set Lokasi', 'label' => 'Sudah', 'count' => $statusLokasi['sudah'] ?? 0])
+                                        @include('landing._status_badge', ['jenis' => 'lokasi', 'status' => 'belum', 'title' => 'Mahasiswa Set Lokasi', 'label' => 'Belum', 'count' => $statusLokasi['belum'] ?? 0])
                                     </dd>
                                 </div>
                             </dl>
@@ -587,6 +587,52 @@
                             <span id="pesertaDetailInfo" class="peserta-info" aria-live="polite"></span>
                             <nav aria-label="Navigasi halaman detail peserta">
                                 <ul id="pesertaDetailPagination" class="pagination pagination-sm"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal daftar status (mobilisasi, pelaksanaan, set lokasi): paginasi & pencarian di server --}}
+    <div class="modal fade" id="modalStatusList" tabindex="-1" aria-labelledby="modalStatusListTitle" aria-hidden="true"
+        data-url="{{ route('login.status-list') }}">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-sm-down">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalStatusListTitle">Daftar Status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="status-list-status lp-empty mb-0" role="status" aria-live="polite"></div>
+                    <div class="status-list-wrap d-none">
+                        <div class="peserta-toolbar">
+                            <label class="peserta-limit" for="statusListLimit">
+                                <span>Tampilkan</span>
+                                <select id="statusListLimit" class="form-select form-select-sm" data-no-search>
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                </select>
+                                <span>data</span>
+                            </label>
+                            <div class="input-group input-group-sm peserta-search">
+                                <span class="input-group-text"><i class="ri-search-line" aria-hidden="true"></i></span>
+                                <input type="search" id="statusListSearch" class="form-control" placeholder="Cari nama / NIM / PT…"
+                                    maxlength="50" aria-label="Cari data" aria-controls="statusListTbody" autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="table-responsive status-list-table">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead><tr></tr></thead>
+                                <tbody id="statusListTbody"></tbody>
+                            </table>
+                        </div>
+                        <div class="status-list-noresult lp-empty d-none mb-0" role="status" aria-live="polite"></div>
+                        <div class="peserta-footer">
+                            <span id="statusListInfo" class="peserta-info" aria-live="polite"></span>
+                            <nav aria-label="Navigasi halaman daftar status">
+                                <ul id="statusListPagination" class="pagination pagination-sm"></ul>
                             </nav>
                         </div>
                     </div>

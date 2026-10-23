@@ -34,6 +34,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Peta sebaran publik: bucket per IP, terpisah dari login
         RateLimiter::for('peta', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
+        // Distinct keys per window so minute and hour counters do not share one bucket
+        RateLimiter::for('status-list', fn (Request $request) => [
+            Limit::perMinute(20)->by('m:'.$request->ip()),
+            Limit::perHour(200)->by('h:'.$request->ip()),
+        ]);
 
         // DT_RowIndex (addIndexColumn) bukan kolom DB: abaikan saat search/sort engine query/eloquent.
         // Key string wajib: blacklist dari addColumn() (key numerik) menimpa index config saat di-merge Yajra
