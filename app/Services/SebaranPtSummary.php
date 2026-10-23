@@ -66,6 +66,25 @@ class SebaranPtSummary
     }
 
     /**
+     * Mahasiswa sebaran (location_program & kodept terisi) yang sudah/belum set desa, tanpa cache.
+     *
+     * @return array{sudah: int, belum: int, total: int}
+     */
+    public function statusLokasi(): array
+    {
+        $row = DB::table('mahasiswa as m')
+            ->whereNotNull('m.location_program')->whereNotNull('m.kodept')
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('SUM(CASE WHEN EXISTS (SELECT 1 FROM mahasiswa_lokasi ml WHERE ml.id_mahasiswa = m.id_mahasiswa AND ml.id_desa IS NOT NULL) THEN 1 ELSE 0 END) as sudah')
+            ->first();
+
+        $total = (int) $row->total;
+        $sudah = (int) $row->sudah;
+
+        return ['sudah' => $sudah, 'belum' => $total - $sudah, 'total' => $total];
+    }
+
+    /**
      * Nama lokasi per PT, turunan dari cached().
      *
      * @return array<string, string[]>

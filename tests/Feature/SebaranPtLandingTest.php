@@ -109,12 +109,18 @@ class SebaranPtLandingTest extends TestCase
         [$alfa] = $this->seedPasangan();
         $this->get('/')->assertViewHas('sebaranPtList', fn ($l) => $l->count() === 4);
 
+        // Eloquent write → observer bumps version, landing fresh without manual flush
         $baru = LokasiProgram::factory()->create(['nama_lokasi' => 'Kab Garut']);
         Mahasiswa::factory()->create(['kodept' => $alfa->npsn, 'location_program' => $baru->id]);
-        $this->get('/')->assertViewHas('sebaranPtList', fn ($l) => $l->count() === 4);
+        $this->get('/')->assertViewHas('sebaranPtList', fn ($l) => $l->count() === 5);
+
+        // Write bypassing events stays cached until version is bumped
+        $garut2 = LokasiProgram::factory()->create(['nama_lokasi' => 'Kab Garut 2']);
+        Mahasiswa::withoutEvents(fn () => Mahasiswa::factory()->create(['kodept' => $alfa->npsn, 'location_program' => $garut2->id]));
+        $this->get('/')->assertViewHas('sebaranPtList', fn ($l) => $l->count() === 5);
 
         PetaSebaranService::flushCache();
-        $this->get('/')->assertViewHas('sebaranPtList', fn ($l) => $l->count() === 5);
+        $this->get('/')->assertViewHas('sebaranPtList', fn ($l) => $l->count() === 6);
     }
 
     // AC6: angka Data Peserta jadi link polos
@@ -232,5 +238,39 @@ class SebaranPtLandingTest extends TestCase
             ->assertSee('<td>Kec &lt;b&gt;X&lt;/b&gt;</td>', false);
 
         $this->assertStringContainsString('&lt;script&gt;alert(3)&lt;/script&gt;"', $response->getContent());
+    }
+
+    public function test_status_lokasi_counts_only_sebaran_mahasiswa(): void
+    {
+        $lokasi = LokasiProgram::factory()->create();
+        $pt = Satuanpendidikan::factory()->create();
+        $desa = $this->desa('Kec A', 'Desa A');
+
+        // Sudah: multi-tahun tetap dihitung sekali
+        $mhs = $this->placed($pt->npsn, $lokasi, $desa, 2024);
+        Mahasiswa_lokasi::create(['tahun' => 2025, 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $desa->id_desa]);
+        // Belum: tanpa baris lokasi / id_desa NULL
+        [$belum] = Mahasiswa::factory()->count(2)->create(['kodept' => $pt->npsn, 'location_program' => $lokasi->id]);
+        Mahasiswa_lokasi::create(['tahun' => 2025, 'id_mahasiswa' => $belum->id_mahasiswa, 'id_desa' => null]);
+        // Di luar populasi sebaran, walau punya desa
+        $luar = Mahasiswa::factory()->create(['kodept' => null, 'location_program' => $lokasi->id]);
+        Mahasiswa_lokasi::create(['tahun' => 2025, 'id_mahasiswa' => $luar->id_mahasiswa, 'id_desa' => $desa->id_desa]);
+        Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'location_program' => null]);
+
+        $this->assertSame(['sudah' => 1, 'belum' => 2, 'total' => 3], app(SebaranPtSummary::class)->statusLokasi());
+        $this->get('/')->assertOk()->assertViewHas('statusLokasi', ['sudah' => 1, 'belum' => 2, 'total' => 3]);
+    }
+
+    public function test_status_lokasi_updates_immediately_after_set_lokasi(): void
+    {
+        $lokasi = LokasiProgram::factory()->create();
+        $pt = Satuanpendidikan::factory()->create();
+        $mhs = Mahasiswa::factory()->create(['kodept' => $pt->npsn, 'location_program' => $lokasi->id]);
+
+        $this->get('/')->assertViewHas('statusLokasi', ['sudah' => 0, 'belum' => 1, 'total' => 1]);
+
+        Mahasiswa_lokasi::create(['tahun' => 2025, 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $this->desa('Kec B', 'Desa B')->id_desa]);
+
+        $this->get('/')->assertViewHas('statusLokasi', ['sudah' => 1, 'belum' => 0, 'total' => 1]);
     }
 }

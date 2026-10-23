@@ -152,18 +152,24 @@ class LocationProgramSyncTest extends TestCase
     }
 
     // AC5 (DPL)
-    public function test_dpl_edit_flushes_cache_only_when_location_changes(): void
+    public function test_dpl_edit_flushes_cache_only_when_location_or_kodept_changes(): void
     {
         $this->loginAs('admin');
-        $dpl = Dpl::factory()->create(['email' => 'dpl@pps.test', 'location_program' => $this->lama->id]);
+        $kodept = Satuanpendidikan::factory()->create()->npsn;
+        $dpl = Dpl::factory()->create(['email' => 'dpl@pps.test', 'kodept' => $kodept, 'location_program' => $this->lama->id]);
         $this->account('dpl', 'dpl@pps.test', $this->lama->id);
         Cache::forever(PetaSebaranService::VERSION_CACHE_KEY, 5);
 
-        $this->put('dpl/update', $this->dplPayload($dpl, ['location_program' => $this->lama->id]))->assertJson(['success' => true]);
+        // Only non-cached columns (nama, nidn, ...) changed
+        $this->put('dpl/update', $this->dplPayload($dpl, ['kodept' => $kodept, 'location_program' => $this->lama->id]))->assertJson(['success' => true]);
         $this->assertSame(5, $this->cacheVersion());
 
-        $this->put('dpl/update', $this->dplPayload($dpl))->assertJson(['success' => true]);
+        // kodept feeds capaian/sebaran cache
+        $this->put('dpl/update', $this->dplPayload($dpl, ['location_program' => $this->lama->id]))->assertJson(['success' => true]);
         $this->assertSame(6, $this->cacheVersion());
+
+        $this->put('dpl/update', $this->dplPayload($dpl, ['kodept' => $dpl->fresh()->kodept]))->assertJson(['success' => true]);
+        $this->assertSame(7, $this->cacheVersion());
     }
 
     // AC3

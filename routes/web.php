@@ -70,6 +70,7 @@ use App\Http\Controllers\PtevaluasikegiatanController;
 use App\Http\Controllers\PtmahasiswaController;
 use App\Http\Controllers\PtdplController;
 use App\Http\Controllers\PttugasakhirController;
+use App\Http\Controllers\PtpjdesaController;
 use App\Http\Controllers\PicpjController;
 
 use App\Http\Controllers\SaranController;
@@ -559,4 +560,9 @@ Route::middleware(['auth', 'role:pt'])->group(function () {
     Route::get('pttugasakhir', [PttugasakhirController::class, 'index'])->name('pttugasakhir');
     Route::get('pttugasakhir/listdata', [PttugasakhirController::class, 'listdata'])->name('pttugasakhir.listdata');
     Route::get('pttugasakhir/listdataserver', [PttugasakhirController::class, 'listdataserver'])->name('pttugasakhir.listdataserver');
+    Route::get('ptpjdesa', [PtpjdesaController::class, 'index'])->name('ptpjdesa');
+    Route::get('ptpjdesa/listdata', [PtpjdesaController::class, 'listdata'])->name('ptpjdesa.listdata');
+    Route::get('ptpjdesa/listdataserver', [PtpjdesaController::class, 'listdataserver'])->name('ptpjdesa.listdataserver');
+    Route::get('ptpjdesa/edit/{id_pjdesa}', [PtpjdesaController::class, 'edit'])->whereUuid('id_pjdesa')->name('ptpjdesa.edit');
+    Route::put('ptpjdesa/update', [PtpjdesaController::class, 'update'])->middleware('throttle:sensitive')->name('ptpjdesa.update');
 });

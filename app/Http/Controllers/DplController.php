@@ -9,7 +9,6 @@ use App\Models\LokasiProgram;
 use App\Models\Satuanpendidikan;
 use App\Models\User;
 use App\Services\PersonDeletionService;
-use App\Services\PetaSebaranService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -67,7 +66,7 @@ class DplController extends PersonMasterController
     // Email hanya diubah bila DPL belum punya akun: kunci relasi ke users, dplmentoring, dpllaporan
     public function update(DplRequest $request)
     {
-        $lokasiChanged = DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($request) {
             // Lock row so the email lock is evaluated atomically
             $dpl = Dpl::lockForUpdate()->findOrFail($request->validated('id_dpl'));
             $hasAccount = $dpl->hasAccount();
@@ -82,14 +81,9 @@ class DplController extends PersonMasterController
             if ($hasAccount) {
                 User::where('email', $dpl->email)->where('role', 'dpl')->first()?->forceFill(['name' => $dpl->nama, 'location_program' => $dpl->location_program])->save();
             }
-
-            return $dpl->wasChanged('location_program');
         });
 
-        // Data Peserta / peta sebaran dibaca dari cache
-        if ($lokasiChanged) {
-            PetaSebaranService::flushCache();
-        }
+        // Cache peta/sebaran di-flush oleh PetaSebaranCacheObserver (model Dpl)
 
         return $this->saved('Data DPL berhasil diupdate');
     }

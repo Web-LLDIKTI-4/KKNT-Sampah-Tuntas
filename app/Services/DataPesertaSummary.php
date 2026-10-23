@@ -56,6 +56,51 @@ class DataPesertaSummary
     }
 
     /**
+     * Satu PT yang ada di all() (punya mahasiswa/dpl), tanpa hitung ulang seluruh daftar.
+     */
+    public function find(string $kodept): ?object
+    {
+        $ada = DB::table('mahasiswa')->where('kodept', $kodept)->exists()
+            || DB::table('dpl')->where('kodept', $kodept)->exists();
+        if (! $ada) {
+            return null;
+        }
+
+        return (object) [
+            'kodept' => $kodept,
+            'nama_pt' => (string) (DB::table('ref_satuanpendidikan')->where('npsn', $kodept)->value('nm_lemb') ?? $kodept),
+        ];
+    }
+
+    /**
+     * Ringkasan mobilisasi (semua baris pj_desa) & pelaksanaan (PT peserta di $kodept).
+     *
+     * @return array{mobilisasi: array{sudah: int, belum: int, total: int}, pelaksanaan: array{sudah: int, belum: int, total: int}}
+     */
+    public function status(Collection $kodept): array
+    {
+        $mobilisasi = DB::table('pj_desa')
+            ->selectRaw("COUNT(*) as total, COALESCE(SUM(CASE WHEN status_mobilisasi = 'sudah' THEN 1 ELSE 0 END), 0) as sudah")
+            ->first();
+
+        $kodept = $kodept->map(fn ($kode) => (string) $kode)->unique()->values();
+        $sudahPelaksanaan = $kodept->isEmpty() ? 0 : DB::table('pelaksanaan_kkn')->whereIn('kodept', $kodept)->count();
+
+        return [
+            'mobilisasi' => [
+                'sudah' => (int) $mobilisasi->sudah,
+                'belum' => (int) $mobilisasi->total - (int) $mobilisasi->sudah,
+                'total' => (int) $mobilisasi->total,
+            ],
+            'pelaksanaan' => [
+                'sudah' => $sudahPelaksanaan,
+                'belum' => $kodept->count() - $sudahPelaksanaan,
+                'total' => $kodept->count(),
+            ],
+        ];
+    }
+
+    /**
      * Daftar anggota satu PT per jenis; filter wajib sama dengan hitungan di all().
      *
      * @return array<int, array{nim: string, nama: string}>|array<int, array{kode_pt: string, nama_pt: string, nama_user: string}>

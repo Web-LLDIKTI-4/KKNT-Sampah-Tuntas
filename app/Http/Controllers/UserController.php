@@ -224,7 +224,8 @@ class UserController extends Controller
         }
 
         // Data Peserta / peta sebaran dibaca dari cache
-        if ($lokasiChanged) {
+        // Mass Pjdesa delete above skips model events
+        if ($lokasiChanged || ($akses && $role === 'mahasiswa')) {
             PetaSebaranService::flushCache();
         }
 

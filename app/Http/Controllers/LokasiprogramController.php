@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Master\LokasiProgramRequest;
+use App\Services\PetaSebaranService;
 use App\Models\LokasiProgram;
 use App\Models\PenguranganSampah;
 use App\Models\User;
@@ -87,6 +88,7 @@ class LokasiprogramController extends Controller
         // Subtotal Data Sampah memuat nama & koefisien lokasi
         if ($lokasi->wasChanged(['nama_lokasi', 'koefisien_timbulan_sampah'])) {
             PenguranganSampah::forgetPublicCache();
+            PetaSebaranService::flushCache();
             Cache::forget(RekapsampahController::LOKASI_LIST_CACHE_KEY);
         }
 

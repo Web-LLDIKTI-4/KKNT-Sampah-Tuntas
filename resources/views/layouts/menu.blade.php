@@ -372,6 +372,13 @@
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Data Mahasiswa
                                     </a>
                                 </li>
+                                @if (Auth::user()->role === 'pt')
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('ptpjdesa') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Ketua Kelompok
+                                        </a>
+                                    </li>
+                                @endif
                                 @if (Auth::user()->isPemantau())
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('picpj') }}">

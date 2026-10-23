@@ -25,10 +25,15 @@ class LoginController extends Controller
     // Landing publik: tamu & user login (user login dapat tombol "Ke Dashboard" di view)
     public function landing(LokasiProgramSummary $summary, PenguranganSampahService $sampah, DataPesertaSummary $peserta, RekapPenguranganSampahService $rekap, SebaranPtSummary $sebaran)
     {
+        // Ringan, tanpa cache; data berat di-cache dengan invalidasi saat data berubah
+        $dataPeserta = $this->dataPeserta($peserta);
+
         return view('landing', [
             'lokasiProgramList' => $summary->all(),
-            'dataPesertaList' => $this->dataPeserta($peserta),
+            'dataPesertaList' => $dataPeserta,
+            'statusPeserta' => $peserta->status($dataPeserta->pluck('kodept')),
             'sebaranPtList' => $sebaran->cached(),
+            'statusLokasi' => $sebaran->statusLokasi(),
             'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]) + ['publik' => true],
             'panduanList' => $this->getPanduanPublik(),
         ] + $this->statistikPublik($rekap));
@@ -70,22 +75,19 @@ class LoginController extends Controller
         $kodept = $request->validated('kodept');
         $jenis = $request->validated('jenis');
 
-        // Only PT listed in the summary, so cache keys stay bounded
-        // Strict compare: loose == matches numeric variants like 0+kode or kode+e0
-        $pt = $this->dataPeserta($peserta)->firstWhere('kodept', '===', $kodept);
+        // Only PT listed in the summary (has mahasiswa/dpl)
+        $pt = $peserta->find($kodept);
         abort_if($pt === null, 404);
         $kodept = $pt->kodept;
 
-        $key = 'login.data_peserta.detail.v2.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1).'.'.$kodept.'.'.$jenis;
-
-        return response()->json(Cache::remember($key, now()->addMinutes(10), fn () => [
+        return response()->json([
             'nama_pt' => $pt->nama_pt,
             'jenis' => $jenis,
             'data' => $peserta->members($kodept, $jenis),
-        ]));
+        ]);
     }
 
-    // Same cached list as the table on /login, so no re-query
+    // Same list as the Data Peserta table on landing
     public function dataPesertaExport(DataPesertaSummary $peserta)
     {
         return (new DataPesertaExport($this->dataPeserta($peserta)))->download('data_peserta_'.date('Y-m-d_H-i-s').'.xlsx');
@@ -158,7 +160,7 @@ class LoginController extends Controller
 
     private function dataPeserta(DataPesertaSummary $peserta)
     {
-        return Cache::remember('login.data_peserta.v3.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1), now()->addMinutes(10), fn () => $peserta->all());
+        return $peserta->all();
     }
 
     // Cache di-forget oleh hook model Panduan setiap ada perubahan

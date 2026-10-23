@@ -3,15 +3,19 @@
 namespace Tests\Feature;
 
 use App\Models\Desa;
+use App\Models\Dpl;
 use App\Models\Kecamatan;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
+use App\Models\PelaksanaanKkn;
 use App\Models\PendataanPemilahanSampah;
 use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
+use App\Services\PetaSebaranService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class LandingPageTest extends TestCase
@@ -198,5 +202,119 @@ class LandingPageTest extends TestCase
             ->assertSeeInOrder(['Baseline</th>', 'Desa Berbaseline</a>', '1.250,00 kg</td>', '20,00%</td>'], false)
             ->assertSeeInOrder(['Desa Tanpa Baseline</a>', '-</td>'], false)
             ->assertDontSee('1.250,00%');
+    }
+
+    // pj_desa: 2 sudah + 3 belum; PT peserta: A (mhs), B (dpl), C (mhs); pelaksanaan: A + PT non-peserta
+    private function seedStatusPeserta(): array
+    {
+        foreach (['sudah', 'sudah', 'belum', 'belum', 'belum'] as $status) {
+            Pjdesa::create(['email' => fake()->unique()->safeEmail(), 'id_desa' => Desa::factory()->create()->id_desa, 'status_mobilisasi' => $status]);
+        }
+        [$a, $b, $c, $luar] = Satuanpendidikan::factory()->count(4)->create()->all();
+        Mahasiswa::factory()->count(2)->create(['kodept' => $a->npsn]);
+        Dpl::factory()->create(['kodept' => $b->npsn]);
+        Mahasiswa::factory()->create(['kodept' => $c->npsn]);
+        PelaksanaanKkn::factory()->forPt($a->npsn)->create();
+        PelaksanaanKkn::factory()->forPt($luar->npsn)->create();
+
+        return [$a, $b, $c];
+    }
+
+    private function statusBlock($response): string
+    {
+        $html = $response->assertOk()->getContent();
+        $start = strpos($html, 'class="peserta-status"');
+        $this->assertNotFalse($start, 'Blok ringkasan status peserta tidak tampil');
+
+        return substr($html, $start, strpos($html, '</dl>', $start) - $start);
+    }
+
+    private function assertStatus($response, array $mobilisasi, array $pelaksanaan): void
+    {
+        $response->assertViewHas('statusPeserta', fn ($s) => $s['mobilisasi'] === $mobilisasi && $s['pelaksanaan'] === $pelaksanaan);
+        $block = $this->statusBlock($response);
+        $text = preg_replace('/\s+/', ' ', strip_tags($block));
+        $this->assertStringContainsString('Mobilisasi Kelompok Sudah '.$mobilisasi['sudah'].' Belum '.$mobilisasi['belum'], $text);
+        $this->assertStringContainsString('Pelaksanaan KKN Sudah isi '.$pelaksanaan['sudah'].' Belum isi '.$pelaksanaan['belum'], $text);
+    }
+
+    private function pesertaCacheVersion(): int
+    {
+        return (int) Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1);
+    }
+
+    public function test_landing_shows_mobilisasi_and_pelaksanaan_summary(): void
+    {
+        $this->seedStatusPeserta();
+
+        $response = $this->get('/')
+            ->assertViewHas('dataPesertaList', fn ($l) => $l->count() === 3);
+        $this->assertStatus($response, ['sudah' => 2, 'belum' => 3, 'total' => 5], ['sudah' => 1, 'belum' => 2, 'total' => 3]);
+        $response->assertSeeInOrder(['id="pesertaTitle"', 'class="peserta-status"', 'bg-label-success', 'bg-label-danger', 'class="card lp-card"'], false);
+    }
+
+    public function test_mobilisasi_counts_non_sudah_status_as_belum(): void
+    {
+        $this->seedStatusPeserta();
+        DB::table('pj_desa')->where('status_mobilisasi', 'belum')->limit(1)->update(['status_mobilisasi' => 'x']);
+
+        $this->assertStatus($this->get('/'), ['sudah' => 2, 'belum' => 3, 'total' => 5], ['sudah' => 1, 'belum' => 2, 'total' => 3]);
+    }
+
+    public function test_pelaksanaan_total_equals_pt_in_table_and_ignores_non_peserta(): void
+    {
+        [, $b, $c] = $this->seedStatusPeserta();
+        PelaksanaanKkn::factory()->forPt($b->npsn)->create();
+        PelaksanaanKkn::factory()->forPt($c->npsn)->create();
+
+        $this->get('/')->assertViewHas('statusPeserta', fn ($s) => $s['pelaksanaan'] === ['sudah' => 3, 'belum' => 0, 'total' => 3])
+            ->assertViewHas('dataPesertaList', fn ($l) => $l->count() === 3);
+    }
+
+    public function test_status_summary_is_fresh_after_data_changes(): void
+    {
+        [, $b] = $this->seedStatusPeserta();
+        $this->assertStatus($this->get('/'), ['sudah' => 2, 'belum' => 3, 'total' => 5], ['sudah' => 1, 'belum' => 2, 'total' => 3]);
+
+        Pjdesa::where('status_mobilisasi', 'belum')->firstOrFail()->update(['status_mobilisasi' => 'sudah']);
+        PelaksanaanKkn::factory()->forPt($b->npsn)->create();
+
+        $this->assertStatus($this->get('/'), ['sudah' => 3, 'belum' => 2, 'total' => 5], ['sudah' => 2, 'belum' => 1, 'total' => 3]);
+    }
+
+    public function test_pjdesa_email_or_desa_change_flushes_peta_cache_but_status_toggle_does_not(): void
+    {
+        // Reload: like a request, wasRecentlyCreated is false
+        $pj = Pjdesa::create(['email' => 'ketua@pps.test', 'id_desa' => Desa::factory()->create()->id_desa])->fresh();
+        $desaBaru = Desa::factory()->create();
+        Cache::forever(PetaSebaranService::VERSION_CACHE_KEY, 5);
+
+        $pj->update(['status_mobilisasi' => 'sudah']);
+        $pj->update(['status_mobilisasi' => 'belum']);
+        $this->assertSame(5, $this->pesertaCacheVersion());
+
+        $pj->update(['id_desa' => $desaBaru->id_desa]);
+        $this->assertSame(6, $this->pesertaCacheVersion());
+
+        $pj->update(['email' => 'ketua-baru@pps.test']);
+        $this->assertSame(7, $this->pesertaCacheVersion());
+
+        $pj->delete();
+        $this->assertSame(8, $this->pesertaCacheVersion());
+    }
+
+    public function test_status_summary_hidden_when_both_totals_zero(): void
+    {
+        $this->get('/')->assertOk()
+            ->assertViewHas('statusPeserta', fn ($s) => $s['mobilisasi']['total'] === 0 && $s['pelaksanaan']['total'] === 0)
+            ->assertDontSee('peserta-status', false)
+            ->assertDontSee('Mobilisasi Kelompok');
+    }
+
+    public function test_status_summary_shown_when_only_one_total_nonzero(): void
+    {
+        Mahasiswa::factory()->create(['kodept' => Satuanpendidikan::factory()->create()->npsn]);
+
+        $this->assertStatus($this->get('/'), ['sudah' => 0, 'belum' => 0, 'total' => 0], ['sudah' => 0, 'belum' => 1, 'total' => 1]);
     }
 }

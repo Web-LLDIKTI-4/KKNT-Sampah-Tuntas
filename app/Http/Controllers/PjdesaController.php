@@ -35,15 +35,17 @@ class PjdesaController extends Controller
         // mahasiswa.email is not unique: subquery (deterministic) instead of join to avoid duplicate rows
         $mahasiswaCol = fn (string $col) => "(SELECT {$col} FROM mahasiswa m LEFT JOIN ref_satuanpendidikan sp ON sp.npsn = m.kodept"
             .' WHERE m.email = pj_desa.email ORDER BY m.id_mahasiswa DESC LIMIT 1)';
+        $mobilisasi = $request->query('mobilisasi');
 
         // desa/kecamatan joined on PK (no duplicates); capaian = current-year count per row
         $query = Pjdesa::query()
             ->leftJoin('desa', 'desa.id_desa', '=', 'pj_desa.id_desa')
             ->leftJoin('kecamatan', 'kecamatan.id_kecamatan', '=', 'desa.id_kecamatan')
-            ->select('pj_desa.id_pjdesa', 'pj_desa.email', 'desa.desa as nama_desa', 'kecamatan.kecamatan as nama_kecamatan')
+            ->select('pj_desa.id_pjdesa', 'pj_desa.email', 'pj_desa.status_mobilisasi', 'desa.desa as nama_desa', 'kecamatan.kecamatan as nama_kecamatan')
             ->selectSub(CapaianKegiatan::selectRaw('count(*)')
                 ->whereColumn('capaian_kegiatan.email', 'pj_desa.email')
                 ->whereYear('bulan', now()->year), 'capaian_count')
+            ->when(in_array($mobilisasi, Pjdesa::MOBILISASI_STATUSES, true), fn ($q) => $q->where('pj_desa.status_mobilisasi', $mobilisasi))
             ->with('mahasiswa.sp')
             ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q
                 ->orderBy('kecamatan.kecamatan')
@@ -58,6 +60,7 @@ class PjdesaController extends Controller
             ->addColumn('pjdesa', fn (Pjdesa $row) => $row->mahasiswa->nama ?? 'Data tidak tersedia')
             ->addColumn('instansi', fn (Pjdesa $row) => $row->mahasiswa->sp->nm_lemb ?? 'Data tidak tersedia')
             ->addColumn('capaian_kpi', fn (Pjdesa $row) => (int) $row->capaian_count)
+            ->addColumn('mobilisasi', fn (Pjdesa $row) => view('pjdesa._mobilisasi-badge', ['status' => $row->status_mobilisasi])->render())
             ->filterColumn('kecamatan', fn ($q, $k) => $q->where('kecamatan.kecamatan', 'like', $this->likeContains($k)))
             ->filterColumn('desa', fn ($q, $k) => $q->where('desa.desa', 'like', $this->likeContains($k)))
             ->filterColumn('pjdesa', fn ($q, $k) => $q->whereHas('mahasiswa', fn ($m) => $m->where('nama', 'like', $this->likeContains($k))))
@@ -71,7 +74,7 @@ class PjdesaController extends Controller
                 idField: 'id_pjdesa',
                 idValue: $row->id_pjdesa,
             ))
-            ->rawColumns(['action'])
+            ->rawColumns(['mobilisasi', 'action'])
             ->make(true);
     }
 

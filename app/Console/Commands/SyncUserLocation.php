@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\PetaSebaranService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -109,6 +110,11 @@ class SyncUserLocation extends Command
                 $this->error('Gagal, semua perubahan di-rollback: '.$e->getMessage());
 
                 return self::FAILURE;
+            }
+
+            // Raw users update skips model events
+            if ($updated) {
+                PetaSebaranService::flushCache();
             }
 
             if ($conflicts) {

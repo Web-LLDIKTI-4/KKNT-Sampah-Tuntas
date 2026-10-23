@@ -1,6 +1,8 @@
 @php
     $lokasiProgramList ??= collect();
     $dataPesertaList ??= collect();
+    $statusPeserta ??= [];
+    $statusLokasi ??= [];
     $sebaranPtList ??= collect();
     $panduanList ??= collect();
     $fmt = fn ($v) => number_format((int) $v, 0, ',', '.');
@@ -239,6 +241,19 @@
                         <p class="lp-kicker">PARTISIPASI PERGURUAN TINGGI</p>
                         <h2 class="lp-title" id="pesertaTitle">{{ $navItems['peserta'] }}</h2>
                         <p class="lp-lead">Jelajahi keterlibatan perguruan tinggi melalui data mahasiswa, dosen pembimbing lapangan, penanggung jawab perguruan tinggi, dan ketua kelompok. Klik jumlah peserta untuk melihat informasi lebih lanjut.</p>
+                        @if (($statusPeserta['mobilisasi']['total'] ?? 0) + ($statusPeserta['pelaksanaan']['total'] ?? 0) > 0)
+                            <dl class="peserta-status">
+                                @foreach (['mobilisasi' => ['Mobilisasi Kelompok', 'Sudah', 'Belum'], 'pelaksanaan' => ['Pelaksanaan KKN', 'Sudah isi', 'Belum isi']] as $statusKey => [$statusLabel, $doneLabel, $todoLabel])
+                                    <div class="peserta-status-item">
+                                        <dt>{{ $statusLabel }}</dt>
+                                        <dd>
+                                            <span class="badge bg-label-success"><i class="ri-check-line" aria-hidden="true"></i> {{ $doneLabel }} {{ $fmt($statusPeserta[$statusKey]['sudah'] ?? 0) }}</span>
+                                            <span class="badge bg-label-danger"><i class="ri-close-line" aria-hidden="true"></i> {{ $todoLabel }} {{ $fmt($statusPeserta[$statusKey]['belum'] ?? 0) }}</span>
+                                        </dd>
+                                    </div>
+                                @endforeach
+                            </dl>
+                        @endif
                     </div>
                 </div>
                 <div class="card lp-card" data-reveal>
@@ -324,6 +339,17 @@
                         <p class="lp-kicker">SEBARAN PERGURUAN TINGGI</p>
                         <h2 class="lp-title" id="sebaranTitle">{{ $navItems['sebaran'] }}</h2>
                         <p class="lp-lead">Telusuri sebaran penugasan perguruan tinggi, mahasiswa, dan dosen pembimbing lapangan pada setiap wilayah pelaksanaan KKN Tematik Sampah Tuntas.</p>
+                        @if (($statusLokasi['total'] ?? 0) > 0)
+                            <dl class="peserta-status">
+                                <div class="peserta-status-item">
+                                    <dt>Mahasiswa Set Lokasi</dt>
+                                    <dd>
+                                        <span class="badge bg-label-success"><i class="ri-check-line" aria-hidden="true"></i> Sudah {{ $fmt($statusLokasi['sudah'] ?? 0) }}</span>
+                                        <span class="badge bg-label-danger"><i class="ri-close-line" aria-hidden="true"></i> Belum {{ $fmt($statusLokasi['belum'] ?? 0) }}</span>
+                                    </dd>
+                                </div>
+                            </dl>
+                        @endif
                     </div>
                 </div>
                 <div class="card lp-card" data-reveal>

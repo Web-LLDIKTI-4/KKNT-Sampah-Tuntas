@@ -449,6 +449,38 @@ body.lp {
     line-height: 1.6;
 }
 
+.peserta-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin: 1rem 0 0;
+}
+
+.peserta-status-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.6rem;
+}
+
+.peserta-status dt {
+    color: var(--lp-ink);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.peserta-status dd {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+}
+
+.peserta-status .badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
 .lp-card {
     border: 1px solid var(--lp-line);
     border-radius: var(--lp-radius);

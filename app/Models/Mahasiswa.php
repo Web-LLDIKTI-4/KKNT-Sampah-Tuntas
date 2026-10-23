@@ -1,5 +1,7 @@
 <?php
 namespace App\Models;
+use App\Observers\PetaSebaranCacheObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -7,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon; 
+#[ObservedBy(PetaSebaranCacheObserver::class)]
 class Mahasiswa extends Model
 {
     use HasFactory, HasUuids;

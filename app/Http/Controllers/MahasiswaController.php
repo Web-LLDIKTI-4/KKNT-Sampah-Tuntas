@@ -10,7 +10,6 @@ use App\Models\Mahasiswa;
 use App\Models\Satuanpendidikan;
 use App\Models\User;
 use App\Services\PersonDeletionService;
-use App\Services\PetaSebaranService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -107,9 +106,7 @@ class MahasiswaController extends PersonMasterController
             }
         });
 
-        // Data Peserta / peta sebaran dibaca dari cache
-        PetaSebaranService::flushCache();
-
+        // Cache peta/capaian di-flush oleh PetaSebaranCacheObserver (model Mahasiswa)
         return $this->saved('Data mahasiswa berhasil diupdate');
     }
 }
