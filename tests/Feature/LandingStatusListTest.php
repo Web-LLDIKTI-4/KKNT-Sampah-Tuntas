@@ -242,26 +242,27 @@ class LandingStatusListTest extends TestCase
             ->assertJsonCount(10, 'data');
 
         $this->list(['jenis' => 'lokasi', 'status' => 'belum', 'page' => 99])->assertOk()
-            ->assertJsonPath('data', [])
-            ->assertJsonPath('meta.page', 99)->assertJsonPath('meta.total', 31)
-            ->assertJsonPath('meta.from', null)->assertJsonPath('meta.to', null);
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('meta.page', 4)->assertJsonPath('meta.total', 31)
+            ->assertJsonPath('meta.from', 31)->assertJsonPath('meta.to', 31);
     }
 
-    public function test_page_beyond_last_page_returns_200_with_empty_data(): void
+    public function test_page_beyond_last_page_is_clamped_to_last_page(): void
     {
         $this->seedStatusData();
 
         foreach (['mobilisasi', 'pelaksanaan', 'lokasi'] as $jenis) {
-            $lastPage = $this->list(['jenis' => $jenis, 'status' => 'belum'])->assertOk()->json('meta.last_page');
-            foreach ([$lastPage + 1, 1000] as $page) {
+            $last = $this->list(['jenis' => $jenis, 'status' => 'belum'])->assertOk()->json('meta');
+            $lastData = $this->list(['jenis' => $jenis, 'status' => 'belum', 'page' => $last['last_page']])->json('data');
+            foreach ([$last['last_page'] + 1, 1001, 100000] as $page) {
                 $this->list(['jenis' => $jenis, 'status' => 'belum', 'page' => $page])->assertOk()
-                    ->assertJsonPath('data', [])
-                    ->assertJsonPath('meta.page', $page)
-                    ->assertJsonPath('meta.last_page', $lastPage);
+                    ->assertJsonPath('data', $lastData)
+                    ->assertJsonPath('meta.page', $last['last_page'])
+                    ->assertJsonPath('meta.last_page', $last['last_page']);
             }
         }
 
-        $this->list(['jenis' => 'lokasi', 'status' => 'belum', 'page' => 1001])->assertStatus(422)->assertJsonValidationErrors('page');
+        $this->list(['jenis' => 'lokasi', 'status' => 'belum', 'page' => 100001])->assertStatus(422)->assertJsonValidationErrors('page');
     }
 
     public function test_empty_population_returns_empty_list(): void
@@ -390,7 +391,7 @@ class LandingStatusListTest extends TestCase
             [['jenis' => 'lokasi', 'status' => 'sudah', 'q' => ['x']], 'q'],
             [['jenis' => 'lokasi', 'status' => 'sudah', 'page' => 0], 'page'],
             [['jenis' => 'lokasi', 'status' => 'sudah', 'page' => 'x'], 'page'],
-            [['jenis' => 'lokasi', 'status' => 'sudah', 'page' => 1001], 'page'],
+            [['jenis' => 'lokasi', 'status' => 'sudah', 'page' => 100001], 'page'],
             [['jenis' => 'lokasi', 'status' => 'sudah', 'q' => 'a'], 'q'],
         ];
         foreach ($cases as [$params, $field]) {

@@ -34,9 +34,10 @@ class LandingStatusList
             'lokasi' => $this->lokasi($sudah, $like, $sort, $dir),
         };
 
-        // Out-of-range page: count only, skip the OFFSET query
+        // Page past the end is clamped to the last page
         $total = $query->getCountForPagination();
-        $items = ($page - 1) * $perPage < $total ? $query->forPage($page, $perPage)->get() : collect();
+        $page = min($page, max(1, (int) ceil($total / $perPage)));
+        $items = $total > 0 ? $query->forPage($page, $perPage)->get() : collect();
         if ($jenis === 'lokasi') {
             $items = $this->lokasiRows($items->pluck('id_mahasiswa'), $sudah);
         }

@@ -27,6 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Hanya host APP_URL (& subdomain) yang diterima; nonaktif di local/testing
         $middleware->trustHosts();
 
+        // Proxy IPs from config('trustedproxy.proxies') (TRUSTED_PROXIES); per-IP rate limits need the real client IP
+        $middleware->trustProxies(headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_HOST | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO);
+
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('home'));
     })
