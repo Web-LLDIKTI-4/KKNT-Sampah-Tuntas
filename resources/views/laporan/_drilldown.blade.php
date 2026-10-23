@@ -72,25 +72,25 @@
     @if ($params['kecamatan'])
         <h6 class="mb-2">Sebaran Lokasi (Kelurahan/Desa) - Kecamatan {{ $namaKecamatan }}</h6>
         <div class="table-responsive scroll-box mb-5">
-            <table class="table table-sm table-bordered mb-0" style="max-width: 560px">
+            <table class="table table-sm table-bordered mb-0" style="max-width: 560px" data-sortable>
                 <thead>
                     <tr>
                         <th class="text-center" width="1">No</th>
-                        <th>Kelurahan/Desa</th>
-                        <th class="text-center">Penurunan Timbulan Sampah (%)</th>
+                        <th><x-button.sort>Kelurahan/Desa</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Penurunan Timbulan Sampah (%)</x-button.sort></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($kelurahan as $kel)
                         <tr>
-                            <td class="text-center">{{ $loop->iteration }}</td>
+                            <td class="text-center" data-sort-no>{{ $loop->iteration }}</td>
                             <td @class(['fw-bold' => $kel->id_desa === $params['desa']])>
                                 <a href="#" data-drill='@json(['desa' => $kel->id_desa])'>{{ $kel->desa }}</a>
                             </td>
-                            <td class="text-center {{ $sel($kel->persen) }}">{{ $persen($kel->persen) }}</td>
+                            <td class="text-center {{ $sel($kel->persen) }}" data-sort-value="{{ $kel->persen }}">{{ $persen($kel->persen) }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="3" class="text-center text-muted">Belum ada kelurahan</td></tr>
+                        <tr data-sort-fixed><td colspan="3" class="text-center text-muted">Belum ada kelurahan</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -100,36 +100,36 @@
     @if ($params['desa'])
         <h6 class="mb-2">PTS / Kelompok di Kelurahan {{ $namaDesa }}</h6>
         <div class="table-responsive scroll-box">
-            <table class="table table-sm table-bordered mb-0">
+            <table class="table table-sm table-bordered mb-0" data-sortable>
                 <thead>
                     <tr>
                         <th class="text-center" width="1">No</th>
-                        <th>PTS</th>
-                        <th>Lokasi</th>
-                        <th class="text-center">Jml Mhs</th>
-                        <th class="text-center">DPL</th>
-                        <th class="text-center">Ketua Kelompok</th>
-                        <th class="text-center">Penurunan Timbulan Sampah (%)</th>
+                        <th><x-button.sort>PTS</x-button.sort></th>
+                        <th><x-button.sort>Lokasi</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Jml Mhs</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">DPL</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Ketua Kelompok</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Penurunan Timbulan Sampah (%)</x-button.sort></th>
                         <th class="text-center">Detail</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($kelompok as $row)
                         <tr>
-                            <td class="text-center">{{ $loop->iteration }}</td>
+                            <td class="text-center" data-sort-no>{{ $loop->iteration }}</td>
                             <td>{{ $row->nama_pt }}</td>
                             <td>{{ $row->lokasi }}</td>
-                            <td class="text-center">{{ $num($row->jumlah_mahasiswa) }}</td>
-                            <td class="text-center">{{ $num($row->jumlah_dpl) }}</td>
-                            <td class="text-center">{{ $num($row->jumlah_ketua) }}</td>
-                            <td class="text-center {{ $sel($row->persen) }}">
+                            <td class="text-center" data-sort-value="{{ (int) $row->jumlah_mahasiswa }}">{{ $num($row->jumlah_mahasiswa) }}</td>
+                            <td class="text-center" data-sort-value="{{ (int) $row->jumlah_dpl }}">{{ $num($row->jumlah_dpl) }}</td>
+                            <td class="text-center" data-sort-value="{{ (int) $row->jumlah_ketua }}">{{ $num($row->jumlah_ketua) }}</td>
+                            <td class="text-center {{ $sel($row->persen) }}" data-sort-value="{{ $row->persen }}">
                                 {{ $persen($row->persen) }}
                             </td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-outline-primary" data-detail-toggle="detail-{{ $row->kodept }}">Detail</button>
                             </td>
                         </tr>
-                        <tr id="detail-{{ $row->kodept }}" class="d-none">
+                        <tr id="detail-{{ $row->kodept }}" class="d-none" data-sort-follow>
                             <td colspan="8" class="bg-lighter">
                                 <table class="table table-sm table-bordered mb-0 bg-white">
                                     <thead>
@@ -156,7 +156,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="8" class="text-center text-muted">Belum ada kelompok di kelurahan ini</td></tr>
+                        <tr data-sort-fixed><td colspan="8" class="text-center text-muted">Belum ada kelompok di kelurahan ini</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -105,4 +105,35 @@
         delete params.length;
         $link.attr('href', base + (base.indexOf('?') === -1 ? '?' : '&') + $.param(params));
     });
+
+    // Opt-in filter: <select data-table-filter="param" data-table-target="#tableId"> is sent as ajax param
+    function tableFilters(tableId) {
+        return tableId ? $('[data-table-filter]').filter(function () {
+            return $(this).attr('data-table-target') === '#' + tableId;
+        }) : $();
+    }
+    $(document).on('preXhr.dt', function (e, settings, data) {
+        tableFilters(settings.nTable.id).each(function () {
+            data[$(this).attr('data-table-filter')] = $(this).val();
+        });
+    }).on('change', '[data-table-filter]', function () {
+        var $table = $($(this).attr('data-table-target'));
+        if ($table.length && $.fn.DataTable.isDataTable($table)) $table.DataTable().draw();
+    });
+
+    // Decode first (yajra escapes by default) then escape, so output is safe without double-escaping
+    function escapeText(value) {
+        var decoder = document.createElement('textarea');
+        decoder.innerHTML = String(value);
+        return $('<div>').text(decoder.value).html();
+    }
+
+    // Render: null/empty -> red badge, otherwise escaped text
+    $.fn.dataTable.render.emptyBadge = function (label) {
+        return function (data, type) {
+            var empty = data === null || data === undefined || data === '';
+            if (type !== 'display') return empty ? '' : data;
+            return empty ? '<span class="badge bg-danger">' + escapeText(label) + '</span>' : escapeText(data);
+        };
+    };
 })(jQuery);

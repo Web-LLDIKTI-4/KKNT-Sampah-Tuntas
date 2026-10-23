@@ -134,7 +134,7 @@ class DataSampahExport
             ...($mingguan ? [['nama_bulan', 'Bulan', 'text', 16], ['minggu_label', 'Minggu', 'text', 16]] : []),
             ['tanggal', 'Tanggal', 'text', 12],
             ['kecamatan', 'Nama Kecamatan', 'text', 20],
-            ['desa', 'Nama Desa/Kelurahan', 'text', 22],
+            ['desa', 'Nama Kelurahan/Desa', 'text', 22],
             ['nama_kepala_keluarga', 'Nama Kepala Rumah', 'text', 26],
             ['alamat_rumah', 'Alamat Rumah', 'text', 32],
             ['jml_rumah', 'Jumlah Rumah Keseluruhan', 'angka', 14],

@@ -40,7 +40,11 @@ class DplmentoringController extends Controller
         abort_unless($request->ajax(), 404);
         $this->sanitizeDataTablesInput();
 
-        $data = Dplmentoring::ofDpl($request->user())->with(['mahasiswa.sp', 'tugasakhir'])->get();
+        $status = $request->query('lokasi_status');
+        $data = Dplmentoring::ofDpl($request->user())
+            // Only a known status narrows; otherwise mentees without a mahasiswa record stay listed
+            ->when(in_array($status, Mahasiswa::LOKASI_STATUSES, true), fn ($q) => $q->whereHas('mahasiswa', fn ($m) => $m->lokasiStatus($status)))
+            ->with(['mahasiswa' => fn ($q) => $q->withLatestLokasi(), 'mahasiswa.sp', 'tugasakhir'])->get();
 
         return DataTables::of($data)
             ->addIndexColumn()
@@ -48,6 +52,8 @@ class DplmentoringController extends Controller
             ->addColumn('nama', fn ($row) => $row->mahasiswa->nama ?? 'tidak ada')
             ->addColumn('nm_lemb', fn ($row) => $row->mahasiswa->sp->nm_lemb ?? 'tidak terdata')
             ->addColumn('prodi', fn ($row) => $row->mahasiswa->prodi ?? 'tidak ada')
+            ->addColumn('nama_kecamatan', fn ($row) => $row->mahasiswa?->nama_kecamatan)
+            ->addColumn('nama_desa', fn ($row) => $row->mahasiswa?->nama_desa)
             ->addColumn('rekapnilai', fn ($row) => ActionButtons::modal(
                 url('dplmentoring/rekapnilai/'.base64_encode($row->email_mahasiswa)),
                 'Rekap Nilai',

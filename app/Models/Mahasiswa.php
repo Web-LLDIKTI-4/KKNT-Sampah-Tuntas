@@ -4,6 +4,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon; 
 class Mahasiswa extends Model
 {
@@ -13,6 +15,48 @@ class Mahasiswa extends Model
     protected $guarded = [];
     protected $primaryKey = 'id_mahasiswa';
     //protected $with = ['user','sp','dplmentoring','logkegiatan','logbulanan','lokasi'];
+
+    // Alias => source column of withLatestLokasi()
+    public const LOKASI_COLUMNS = ['nama_kecamatan' => 'k.kecamatan', 'nama_desa' => 'd.desa'];
+
+    // Adds nama_kecamatan & nama_desa as correlated subqueries (no N+1, no duplicate rows)
+    public function scopeWithLatestLokasi(Builder $query): Builder
+    {
+        return $query->addSelect(array_map(self::latestLokasi(...), self::LOKASI_COLUMNS));
+    }
+
+    // Value from the latest-year mahasiswa_lokasi row with a desa (null when none)
+    public static function latestLokasi(string $column): QueryBuilder
+    {
+        return self::lokasiWithDesa()
+            ->leftJoin('desa as d', 'd.id_desa', '=', 'ml.id_desa')
+            ->leftJoin('kecamatan as k', 'k.id_kecamatan', '=', 'd.id_kecamatan')
+            ->orderByDesc('ml.tahun')
+            ->orderByDesc('ml.updated_at')
+            ->orderByDesc('ml.id_lokasi')
+            ->limit(1)
+            ->select($column);
+    }
+
+    public const LOKASI_STATUSES = ['belum', 'sudah'];
+
+    // lokasi_status filter: 'sudah' = has a lokasi row with desa, 'belum' = none; other values ignored
+    public function scopeLokasiStatus(Builder $query, mixed $status): Builder
+    {
+        return match ($status) {
+            'sudah' => $query->whereExists(self::lokasiWithDesa()),
+            'belum' => $query->whereNotExists(self::lokasiWithDesa()),
+            default => $query,
+        };
+    }
+
+    // "Lokasi set" rows: shared definition for withLatestLokasi() & lokasiStatus()
+    private static function lokasiWithDesa(): QueryBuilder
+    {
+        return DB::table('mahasiswa_lokasi as ml')
+            ->whereColumn('ml.id_mahasiswa', 'mahasiswa.id_mahasiswa')
+            ->whereNotNull('ml.id_desa');
+    }
 
     /**
      * Mahasiswa yang boleh dilihat user: admin semua, DPL bimbingannya,

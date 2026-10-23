@@ -14,12 +14,18 @@ $(function () {
             return (data === true || data === 1 || data === '1') ? '<i class="ri-check-line text-success" aria-label="Ya"></i>' : '-';
         } }] : [];
 
+        // Opt-in column key: emptyBadge (null -> red badge)
+        var columns = ($table.data('columns') || []).map(function (col) {
+            if (col.emptyBadge) col.render = $.fn.dataTable.render.emptyBadge(col.emptyBadge);
+            return col;
+        });
+
         $table.DataTable({
             processing: true,
             serverSide: true,
             searchDelay: 500, // debounce search requests
             ajax: $table.data('ajax'),
-            columns: $table.data('columns'),
+            columns: columns,
             order: $table.data('order'),
             searching: $table.data('searching'),
             lengthChange: $table.data('length-change'),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\SortsLatestLokasi;
 use App\Http\Requests\Admin\MahasiswaRequest;
 use App\Imports\ImportMahasiswa;
 use App\Models\LokasiProgram;
@@ -13,9 +14,12 @@ use App\Services\PetaSebaranService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\EloquentDataTable;
 
 class MahasiswaController extends PersonMasterController
 {
+    use SortsLatestLokasi;
+
     public function __construct(private PersonDeletionService $deletion) {}
 
     protected function model(): string
@@ -41,7 +45,20 @@ class MahasiswaController extends PersonMasterController
     // ketua_kelompok: EXISTS pj_desa per baris dalam 1 query (tanpa N+1)
     protected function listQuery(): Builder
     {
-        return parent::listQuery()->withExists('pjdesa as ketua_kelompok');
+        return parent::listQuery()
+            ->withExists('pjdesa as ketua_kelompok')
+            ->withLatestLokasi()
+            ->lokasiStatus(request()->query('lokasi_status'));
+    }
+
+    protected function extraOrderColumns(): array
+    {
+        return array_keys(Mahasiswa::LOKASI_COLUMNS);
+    }
+
+    protected function customizeDataTable(EloquentDataTable $dataTable): EloquentDataTable
+    {
+        return $this->latestLokasiColumns($dataTable);
     }
 
     protected function makeImport(): object
@@ -86,7 +103,7 @@ class MahasiswaController extends PersonMasterController
             $mahasiswa->update($request->safe()->only($fields));
 
             if ($hasAccount) {
-                User::where('email', $mahasiswa->email)->where('role', 'mahasiswa')->first()?->forceFill(['name' => $mahasiswa->nama])->save();
+                User::where('email', $mahasiswa->email)->where('role', 'mahasiswa')->first()?->forceFill(['name' => $mahasiswa->nama, 'location_program' => $mahasiswa->location_program])->save();
             }
         });
 

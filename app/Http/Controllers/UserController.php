@@ -19,6 +19,7 @@ use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
 use App\Models\User;
 use App\Services\PersonDeletionService;
+use App\Services\PetaSebaranService;
 use App\Services\UserAccountService;
 use App\Support\ActionButtons;
 use App\Support\LikeKeyword;
@@ -188,7 +189,7 @@ class UserController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($request, $user, $role, $akses, $lokasiDesa) {
+            $lokasiChanged = DB::transaction(function () use ($request, $user, $role, $akses, $lokasiDesa) {
                 $this->accounts->changeEmail($user, $request->validated('email'));
                 $email = $user->email;
 
@@ -196,9 +197,8 @@ class UserController extends Controller
                     'name' => $request->validated('name'),
                     'location_program' => $request->validated('location_program'),
                 ];
-                if ($role === 'mahasiswa' && $data['location_program']) {
-                    Mahasiswa::where('email', $email)->update(['location_program' => $data['location_program']]);
-                }
+                // Keep person record in sync with users.location_program (role is mahasiswa/dpl only)
+                $personUpdated = ($role === 'mahasiswa' ? Mahasiswa::class : Dpl::class)::where('email', $email)->update(['location_program' => $data['location_program']]);
 
                 if ($akses && $role === 'mahasiswa') {
                     if ($akses === 'hapuspjdesa') {
@@ -215,10 +215,17 @@ class UserController extends Controller
                 }
 
                 $user->forceFill($data)->save();
+
+                return $personUpdated > 0 || $user->wasChanged('location_program');
             });
         } catch (UniqueConstraintViolationException|ValidationException) {
             // Concurrent update took the same email between validation and save
             return response()->json(['success' => false, 'message' => 'Data gagal disimpan!', 'errors' => ['email' => ['Email sudah digunakan!']]]);
+        }
+
+        // Data Peserta / peta sebaran dibaca dari cache
+        if ($lokasiChanged) {
+            PetaSebaranService::flushCache();
         }
 
         return $this->saved('User berhasil diupdate');

@@ -623,29 +623,6 @@ body.lp {
     font-variant-numeric: tabular-nums;
 }
 
-.peserta-sort {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: inherit;
-    font: inherit;
-    white-space: nowrap;
-    cursor: pointer;
-}
-
-.peserta-sort i {
-    font-size: 0.875em;
-    opacity: 0.4;
-}
-
-.peserta-sort:hover i,
-th[aria-sort] .peserta-sort i {
-    opacity: 1;
-}
-
 .peserta-toolbar,
 .peserta-footer {
     display: flex;

@@ -1,18 +1,18 @@
 <div class="table-responsive">
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped" data-sortable>
     <thead>
         <tr>
             <th width="1%">No</th>
-            <th>Mata Kuliah</th>
-            <th>SKS</th>
-            <th>Nilai DPL</th>
+            <th><x-button.sort>Mata Kuliah</x-button.sort></th>
+            <th><x-button.sort type="num">SKS</x-button.sort></th>
+            <th><x-button.sort type="num">Nilai DPL</x-button.sort></th>
             {{-- <th>Nilai DPA</th> --}}
-            <th>Nilai Akhir</th>
+            <th><x-button.sort type="num">Nilai Akhir</x-button.sort></th>
         </tr>
     </thead>
     <tbody>
         @if($nilai->isEmpty())
-            <tr>
+            <tr data-sort-fixed>
                 <td colspan="6">Tidak ada data yang tersedia</td>
             </tr>
         @else
@@ -28,12 +28,12 @@
                     }
                 @endphp
                 <tr>
-                    <td class="text-center">{{$loop->iteration}}</td>
+                    <td class="text-center" data-sort-no>{{$loop->iteration}}</td>
                     <td class="text-wrap">{{$item->matakuliah}}</td>
                     <td class="text-center">{{$item->sks}}</td>
                     <td class="text-center">{{$item->nilai_dpl}}</td>
                     {{-- <td class="text-center">{{$item->nilai_dpa}}</td> --}}
-                    <td class="text-center">{{ $nilaiakhir }}</td>
+                    <td class="text-center" data-sort-value="{{ $nilaiakhir }}">{{ $nilaiakhir }}</td>
                 </tr>
             @endforeach
         @endif

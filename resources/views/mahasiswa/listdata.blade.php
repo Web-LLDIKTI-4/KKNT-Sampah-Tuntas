@@ -1,3 +1,5 @@
+<x-filter.lokasi-status />
+
 <x-table
     :ajax="route('mahasiswa.listdataserver')"
     :columns="[
@@ -9,6 +11,8 @@
         ['data' => 'nm_lemb', 'name' => 'nm_lemb'],
         ['data' => 'location_program', 'name' => 'location_program'],
         ['data' => 'ketua_kelompok', 'name' => 'ketua_kelompok', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
+        ['data' => 'nama_kecamatan', 'name' => 'nama_kecamatan', 'emptyBadge' => 'Belum diisi'],
+        ['data' => 'nama_desa', 'name' => 'nama_desa', 'emptyBadge' => 'Belum diisi'],
         ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'searchable' => false],
     ]"
     :check="[7]"
@@ -24,6 +28,8 @@
             <th>Perguruan Tinggi</th>
             <th>Lokasi Program KKN</th>
             <th>Ketua Kelompok</th>
+            <th>Kecamatan</th>
+            <th>Kelurahan/Desa</th>
             <th width="1">Aksi</th>
         </tr>
     </x-slot:thead>

@@ -64,7 +64,7 @@
         </p>
 
         <div class="table-responsive scroll-box mb-5">
-            <table class="table table-sm table-bordered mb-0">
+            <table class="table table-sm table-bordered mb-0" data-sortable>
                 <colgroup>
                     <col style="width: 8%">
                     <col style="width: 52%">
@@ -74,30 +74,30 @@
                 <thead>
                     <tr>
                         <th class="text-center">No</th>
-                        <th class="text-center">Kecamatan</th>
-                        <th class="text-center">Penurunan Timbulan Sampah (%)</th>
-                        <th class="text-center">Klaster</th>
+                        <th class="text-center"><x-button.sort>Kecamatan</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Penurunan Timbulan Sampah (%)</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Klaster</x-button.sort></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($kecamatan as $lokasi)
-                        <tr class="capaian-lokasi">
+                        <tr class="capaian-lokasi" data-sort-fixed>
                             <th colspan="2" scope="rowgroup">{{ $lokasi->nama_lokasi }}</th>
                             <th class="text-center">{{ $persen($lokasi->persen) }}</th>
                             <th class="text-center">{{ $klasterOf($lokasi->klaster)['label'] ?? '-' }}</th>
                         </tr>
                         @foreach ($lokasi->kecamatan as $kec)
                             <tr>
-                                <td class="text-center">{{ $loop->iteration }}</td>
+                                <td class="text-center" data-sort-no>{{ $loop->iteration }}</td>
                                 <td @class(['fw-bold' => $kec->id_kecamatan === $params['kecamatan']])>
                                     <a href="#" data-drill='@json(['kecamatan' => $kec->id_kecamatan, 'desa' => null])'>{{ $kec->kecamatan }}</a>
                                 </td>
-                                <td class="text-center">{{ $persen($kec->persen) }}</td>
-                                <td class="text-center">@if ($k = $klasterOf($kec->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
+                                <td class="text-center" data-sort-value="{{ $kec->persen }}">{{ $persen($kec->persen) }}</td>
+                                <td class="text-center" data-sort-value="{{ $kec->persen }}">@if ($k = $klasterOf($kec->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                             </tr>
                         @endforeach
                     @empty
-                        <tr><td colspan="4" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kecamatan pada klaster ini' : 'Belum ada kelompok yang ditempatkan' }}</td></tr>
+                        <tr data-sort-fixed><td colspan="4" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kecamatan pada klaster ini' : 'Belum ada kelompok yang ditempatkan' }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -108,7 +108,7 @@
         <h6 class="mb-2">Sebaran Lokasi (Kelurahan/Desa) - Kecamatan {{ $namaKecamatan }}</h6>
         <div class="table-responsive scroll-box mb-5">
             {{-- min-width: 7 kolom tetap terbaca di HP, scroll horizontal lewat .table-responsive --}}
-            <table class="table table-sm table-bordered mb-0" style="min-width: 640px">
+            <table class="table table-sm table-bordered mb-0" style="min-width: 640px" data-sortable>
                 <colgroup>
                     <col style="width: 6%">
                     <col style="width: 22%">
@@ -121,29 +121,29 @@
                 <thead>
                     <tr>
                         <th class="text-center">No</th>
-                        <th class="text-center">Kelurahan/Desa</th>
+                        <th class="text-center"><x-button.sort>Kelurahan/Desa</x-button.sort></th>
                         <th class="text-center">Baseline</th>
-                        <th class="text-center">Ketaatan Pemilahan (%)</th>
-                        <th class="text-center">Pengelolaan Sampah (%)</th>
-                        <th class="text-center">Penurunan Timbulan Sampah (%)</th>
-                        <th class="text-center">Klaster</th>
+                        <th class="text-center"><x-button.sort type="num">Ketaatan Pemilahan (%)</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Pengelolaan Sampah (%)</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Penurunan Timbulan Sampah (%)</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Klaster</x-button.sort></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($kelurahan as $kel)
                         <tr>
-                            <td class="text-center">{{ $loop->iteration }}</td>
+                            <td class="text-center" data-sort-no>{{ $loop->iteration }}</td>
                             <td @class(['fw-bold' => $kel->id_desa === $params['desa']])>
                                 <a href="#" data-drill='@json(['desa' => $kel->id_desa])'>{{ $kel->desa }}</a>
                             </td>
                             <td class="text-center text-nowrap">{{ PenguranganSampah::formatBaseline(isset($kel->baseline) ? (float) $kel->baseline : null, $kel->satuan_baseline ?? '%') }}</td>
-                            <td class="text-center">{{ $persen($kel->persen_ketaatan ?? null) }}</td>
-                            <td class="text-center">{{ $persen($kel->persen_pengelolaan ?? null) }}</td>
-                            <td class="text-center">{{ $persen($kel->persen) }}</td>
-                            <td class="text-center">@if ($k = $klasterOf($kel->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
+                            <td class="text-center" data-sort-value="{{ $kel->persen_ketaatan ?? '' }}">{{ $persen($kel->persen_ketaatan ?? null) }}</td>
+                            <td class="text-center" data-sort-value="{{ $kel->persen_pengelolaan ?? '' }}">{{ $persen($kel->persen_pengelolaan ?? null) }}</td>
+                            <td class="text-center" data-sort-value="{{ $kel->persen }}">{{ $persen($kel->persen) }}</td>
+                            <td class="text-center" data-sort-value="{{ $kel->persen }}">@if ($k = $klasterOf($kel->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kelurahan/desa pada klaster ini' : 'Belum ada kelurahan/desa' }}</td></tr>
+                        <tr data-sort-fixed><td colspan="7" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kelurahan/desa pada klaster ini' : 'Belum ada kelurahan/desa' }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -153,29 +153,29 @@
     @if ($params['desa'])
         <h6 class="mb-2">Pelaksana (PTS) di Kelurahan/Desa {{ $namaDesa }}</h6>
         <div class="table-responsive scroll-box">
-            <table class="table table-sm table-bordered mb-0 table-pts">
+            <table class="table table-sm table-bordered mb-0 table-pts" data-sortable>
                 <thead>
                     <tr>
                         <th class="text-center" width="1">No</th>
-                        <th class="text-center">PTS</th>
-                        <th class="text-center">Lokasi</th>
-                        <th class="text-center">Mahasiswa</th>
-                        <th class="text-center">DPL</th>
-                        <th class="text-center">Penurunan Timbulan Sampah (%)</th>
-                        <th class="text-center">Klaster</th>
+                        <th class="text-center"><x-button.sort>PTS</x-button.sort></th>
+                        <th class="text-center"><x-button.sort>Lokasi</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Mahasiswa</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">DPL</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Penurunan Timbulan Sampah (%)</x-button.sort></th>
+                        <th class="text-center"><x-button.sort type="num">Klaster</x-button.sort></th>
                         <th class="text-center">Detail</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($kelompok as $row)
                         <tr>
-                            <td class="text-center">{{ $loop->iteration }}</td>
+                            <td class="text-center" data-sort-no>{{ $loop->iteration }}</td>
                             <td>{{ $row->nama_pt }}</td>
                             <td>{{ $row->lokasi }}</td>
-                            <td class="text-center">{{ $num($row->jumlah_mahasiswa) }}</td>
-                            <td class="text-center">{{ $num($row->jumlah_dpl) }}</td>
-                            <td class="text-center">{{ $persen($row->persen_pt) }}</td>
-                            <td class="text-center">@if ($k = $klasterOf($row->klaster_pt))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
+                            <td class="text-center" data-sort-value="{{ (int) $row->jumlah_mahasiswa }}">{{ $num($row->jumlah_mahasiswa) }}</td>
+                            <td class="text-center" data-sort-value="{{ (int) $row->jumlah_dpl }}">{{ $num($row->jumlah_dpl) }}</td>
+                            <td class="text-center" data-sort-value="{{ $row->persen_pt }}">{{ $persen($row->persen_pt) }}</td>
+                            <td class="text-center" data-sort-value="{{ $row->persen_pt }}">@if ($k = $klasterOf($row->klaster_pt))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-icon btn-primary" data-detail-toggle="detail-{{ $row->kodept }}"
                                     title="Detail" aria-label="Detail {{ $row->nama_pt }}">
@@ -183,7 +183,7 @@
                                 </button>
                             </td>
                         </tr>
-                        <tr id="detail-{{ $row->kodept }}" class="d-none">
+                        <tr id="detail-{{ $row->kodept }}" class="d-none" data-sort-follow>
                             <td colspan="8" class="bg-lighter text-start">
                                 <table class="table table-sm table-bordered mb-0 bg-white table-pts">
                                     <thead>
@@ -214,7 +214,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="8" class="text-center text-muted">Belum ada PTS di kelurahan/desa ini</td></tr>
+                        <tr data-sort-fixed><td colspan="8" class="text-center text-muted">Belum ada PTS di kelurahan/desa ini</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -55,9 +55,11 @@ class DataPesertaSortTest extends TestCase
         $rows = [];
         foreach ($xpath->query('//tbody[@id="pesertaTbody"]/tr') as $tr) {
             $attrs = [];
-            foreach (self::SORT_KEYS as $key) {
-                $this->assertTrue($tr->hasAttribute('data-sort-'.$key), "Row missing data-sort-{$key}");
-                $attrs[$key] = $tr->getAttribute('data-sort-'.$key);
+            foreach (self::SORT_KEYS as $i => $key) {
+                $td = $xpath->query('./td['.($i + 2).']', $tr)->item(0);
+                $this->assertNotNull($td, "Row missing td #".($i + 1));
+                $this->assertTrue($td->hasAttribute('data-sort-value'), "td #".($i + 1)." ({$key}) missing data-sort-value");
+                $attrs[$key] = $td->getAttribute('data-sort-value');
             }
             $rows[$attrs['kodept']] = $attrs;
         }
@@ -65,38 +67,30 @@ class DataPesertaSortTest extends TestCase
         return $rows;
     }
 
-    public function test_header_has_six_sort_buttons_with_key_and_type(): void
+    public function test_header_has_six_sort_buttons_with_type(): void
     {
         $xpath = $this->pesertaTable();
-        $ths = $xpath->query('//table[contains(@class,"peserta-table")]/thead/tr/th');
+        $ths = $xpath->query('//table[tbody[@id="pesertaTbody"]]/thead/tr/th');
 
         $this->assertSame(7, $ths->length);
         $this->assertSame(0, $xpath->query('.//button', $ths->item(0))->length, 'Kolom No tidak boleh sortable');
 
-        $expected = [
-            1 => ['kodept', 'text'],
-            2 => ['nama', 'text'],
-            3 => ['mahasiswa', 'num'],
-            4 => ['dpl', 'num'],
-            5 => ['pic', 'num'],
-            6 => ['ketua', 'num'],
-        ];
-        foreach ($expected as $i => [$key, $type]) {
-            $buttons = $xpath->query('./button[contains(concat(" ",normalize-space(@class)," ")," peserta-sort ")]', $ths->item($i));
+        $expected = [1 => 'text', 2 => 'text', 3 => 'num', 4 => 'num', 5 => 'num', 6 => 'num'];
+        foreach ($expected as $i => $type) {
+            $buttons = $xpath->query('./button[contains(@class,"table-sort")]', $ths->item($i));
             $this->assertSame(1, $buttons->length, "th #{$i} harus punya satu tombol sort");
             $this->assertSame('button', $buttons->item(0)->getAttribute('type'));
-            $this->assertSame($key, $buttons->item(0)->getAttribute('data-sort'));
             $this->assertSame($type, $buttons->item(0)->getAttribute('data-sort-type'));
         }
 
-        $this->assertSame(6, $xpath->query('//table[contains(@class,"peserta-table")]//button[contains(@class,"peserta-sort")]')->length);
+        $this->assertSame(6, $xpath->query('//table[tbody[@id="pesertaTbody"]]//button[contains(@class,"table-sort")]')->length);
     }
 
     public function test_header_text_is_unchanged(): void
     {
         $headers = array_map(
             fn ($th) => trim($th->textContent),
-            iterator_to_array($this->pesertaTable()->query('//table[contains(@class,"peserta-table")]/thead/tr/th'))
+            iterator_to_array($this->pesertaTable()->query('//table[tbody[@id="pesertaTbody"]]/thead/tr/th'))
         );
 
         $this->assertSame(['No', 'Kode PT', 'Nama PTS', 'Mahasiswa', 'DPL', 'PIC PTS', 'Ketua Kelompok'], $headers);
@@ -136,7 +130,7 @@ class DataPesertaSortTest extends TestCase
     {
         $html = $this->get(route('landing'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('data-sort-nama="Universitas &quot;Alfa&quot; &amp; &lt;Co&gt;"', $html);
+        $this->assertStringContainsString('data-sort-value="Universitas &quot;Alfa&quot; &amp; &lt;Co&gt;"', $html);
     }
 
     public function test_footer_is_outside_tbody_so_it_is_not_sorted(): void
@@ -144,7 +138,8 @@ class DataPesertaSortTest extends TestCase
         $xpath = $this->pesertaTable();
 
         $this->assertSame(0, $xpath->query('//tbody[@id="pesertaTbody"]//th')->length);
-        $this->assertSame('Total', trim($xpath->query('//table[contains(@class,"peserta-table")]/tfoot/tr/th')->item(0)->textContent));
-        $this->assertSame(0, $xpath->query('//table[contains(@class,"peserta-table")]/tfoot/tr[@data-sort-kodept]')->length);
+        $this->assertSame('Total', trim($xpath->query('//table[tbody[@id="pesertaTbody"]]/tfoot/tr/th')->item(0)->textContent));
+        $this->assertSame(1, $xpath->query('//table[tbody[@id="pesertaTbody"]][@data-sortable]')->length);
+        $this->assertSame(0, $xpath->query('//table[tbody[@id="pesertaTbody"]]/tfoot//*[@data-sort-value]')->length);
     }
 }

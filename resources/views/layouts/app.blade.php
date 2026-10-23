@@ -185,6 +185,7 @@
     <script src="{{ asset('js/crud.js') }}?v={{ filemtime(public_path('js/crud.js')) }}"></script>
     <script src="{{ asset('js/search-select.js') }}?v={{ filemtime(public_path('js/search-select.js')) }}"></script>
     <script src="{{ asset('js/grouped-table.js') }}?v={{ filemtime(public_path('js/grouped-table.js')) }}"></script>
+    <script src="{{ asset('js/table-sort.js') }}?v={{ filemtime(public_path('js/table-sort.js')) }}"></script>
 
     <!-- Page JS -->
     <script src="../../assets/js/front-page-landing.js"></script>

@@ -1,3 +1,4 @@
+<x-filter.lokasi-status />
 
 <div class="row">
     <div class="col-12 table-responsive">
@@ -10,6 +11,8 @@
                     <th>Nama</th>
                     <th>Perguruan Tinggi</th>
                     <th>Prodi</th>
+                    <th>Kecamatan</th>
+                    <th>Kelurahan/Desa</th>
                     <th>Aksi</th>
                     <th>Nilai Log Bulanan</th>
                     {{-- <th>Nilai & Free Form</th> --}}
@@ -41,6 +44,8 @@
                 {data: 'nama', name: 'nama'},
                 {data: 'nm_lemb', name: 'nm_lemb'},
                 {data: 'prodi', name: 'prodi'},
+                {data: 'nama_kecamatan', name: 'nama_kecamatan', render: $.fn.dataTable.render.emptyBadge('Belum diisi')},
+                {data: 'nama_desa', name: 'nama_desa', render: $.fn.dataTable.render.emptyBadge('Belum diisi')},
                 {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
                 {data: 'rekapnilai', name: 'rekapnilai', className: 'text-center'},
                 // {data: 'nilai_freeform', name: 'nilai_freeform', className: 'text-center'},

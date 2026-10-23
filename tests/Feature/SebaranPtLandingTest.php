@@ -69,7 +69,7 @@ class SebaranPtLandingTest extends TestCase
         $response = $this->get('/')->assertOk()
             ->assertViewHas('sebaranPtList', fn ($list) => $list->count() === 4)
             ->assertSeeInOrder(['id="peserta"', 'id="sebaran"', 'id="peta"'], false)
-            ->assertSeeInOrder(['No.</th>', 'Kode PT</th>', 'Nama PTS</th>', 'Lokasi Program</th>'], false)
+            ->assertSeeInOrder(['No.</th>', 'Kode PT<i class="ri-arrow-up-down-line"', 'Nama PTS<i class="ri-arrow-up-down-line"', 'Lokasi Program<i class="ri-arrow-up-down-line"'], false)
             ->assertSeeInOrder(['<td>Universitas Alfa</td>', '<td>Kota Bandung</td>', '<td>Universitas Alfa</td>', '<td>Kota Cimahi</td>'], false);
 
         $html = $response->getContent();
@@ -223,7 +223,7 @@ class SebaranPtLandingTest extends TestCase
         $this->placed($pt->npsn, $lokasi, $this->desa('Kec <b>X</b>', '<script>alert(3)</script>'));
 
         $response = $this->get('/')->assertOk()
-            ->assertSeeInOrder(['Lokasi Program</th>', 'Kecamatan</th>', 'Kelurahan/Desa</th>'], false)
+            ->assertSeeInOrder(['Lokasi Program<i class="ri-arrow-up-down-line"', 'Kecamatan<i class="ri-arrow-up-down-line"', 'Kelurahan/Desa<i class="ri-arrow-up-down-line"'], false)
             ->assertSeeInOrder(['<td>Kota Bandung</td>', '<td>Kec Coblong</td>', '<td>Desa Dago</td>'], false)
             ->assertSee('data-search="'.mb_strtolower($pt->npsn.' Universitas Alfa Kota Bandung Kec Coblong Desa Dago').'"', false)
             ->assertDontSee('<script>alert(3)</script>', false)

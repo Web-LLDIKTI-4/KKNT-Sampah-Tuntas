@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
+use App\Http\Controllers\Concerns\SortsLatestLokasi;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
 class PtmahasiswaController extends Controller
 {
-    use HandlesDataTablesOrder;
+    use HandlesDataTablesOrder, SortsLatestLokasi;
 
     public function index()
     {
@@ -33,9 +34,11 @@ class PtmahasiswaController extends Controller
             ->leftJoin('lokasi_program as lp', 'lp.id', '=', 'mahasiswa.location_program')
             ->select('mahasiswa.id_mahasiswa', 'mahasiswa.nim', 'mahasiswa.nama', 'mahasiswa.email', 'mahasiswa.phone', 'sp.nm_lemb', 'lp.nama_lokasi')
             ->withExists('pjdesa as ketua_kelompok')
-            ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q->orderBy('mahasiswa.nama')->orderBy('mahasiswa.id_mahasiswa'));
+            ->withLatestLokasi()
+            ->lokasiStatus($request->query('lokasi_status'))
+            ->when(! $this->hasClientOrder([...$whitelist, ...array_keys(Mahasiswa::LOKASI_COLUMNS)]), fn ($q) => $q->orderBy('mahasiswa.nama')->orderBy('mahasiswa.id_mahasiswa'));
 
-        return DataTables::eloquent($query)
+        $dataTable = DataTables::eloquent($query)
             ->addIndexColumn()
             ->whitelist($whitelist)
             ->addColumn('nm_lemb', fn ($row) => $row->nm_lemb ?? 'Belum Terdata')
@@ -43,7 +46,8 @@ class PtmahasiswaController extends Controller
             ->filterColumn('nm_lemb', fn ($q, $k) => $q->where('sp.nm_lemb', 'like', $this->likeContains($k)))
             ->orderColumn('nm_lemb', 'sp.nm_lemb $1')
             ->filterColumn('location_program', fn ($q, $k) => $q->where('lp.nama_lokasi', 'like', $this->likeContains($k)))
-            ->orderColumn('location_program', 'lp.nama_lokasi $1')
-            ->make(true);
+            ->orderColumn('location_program', 'lp.nama_lokasi $1');
+
+        return $this->latestLokasiColumns($dataTable)->make(true);
     }
 }

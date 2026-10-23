@@ -263,26 +263,23 @@
                                 <x-button.export :url="route('login.data-peserta.export')" label="Unduh Data Excel" class="btn-sm" />
                             </div>
                             <div class="table-responsive peserta-table-wrap">
-                                <table class="table table-sm table-hover align-middle peserta-table">
+                                <table class="table table-sm table-hover align-middle peserta-table" data-sortable>
                                     <thead>
                                         <tr>
                                             <th scope="col" class="text-center">No</th>
                                             @foreach (['kodept' => 'Kode PT', 'nama' => 'Nama PTS', 'mahasiswa' => 'Mahasiswa', 'dpl' => 'DPL', 'pic' => 'PIC PTS', 'ketua' => 'Ketua Kelompok'] as $sortKey => $sortLabel)
-                                                <th scope="col" class="text-center"><button type="button" class="peserta-sort" data-sort="{{ $sortKey }}" data-sort-type="{{ in_array($sortKey, ['kodept', 'nama']) ? 'text' : 'num' }}">{{ $sortLabel }}<i class="ri-arrow-up-down-line" aria-hidden="true"></i></button></th>
+                                                <th scope="col" class="text-center"><x-button.sort :type="in_array($sortKey, ['kodept', 'nama']) ? 'text' : 'num'">{{ $sortLabel }}</x-button.sort></th>
                                             @endforeach
                                         </tr>
                                     </thead>
                                     <tbody id="pesertaTbody" data-detail-url="{{ route('login.peserta') }}">
                                         @foreach ($dataPesertaList as $peserta)
-                                            <tr data-search="{{ mb_strtolower($peserta->kodept.' '.$peserta->nama_pt) }}"
-                                                data-sort-kodept="{{ $peserta->kodept }}" data-sort-nama="{{ $peserta->nama_pt }}"
-                                                data-sort-mahasiswa="{{ (int) $peserta->jumlah_mahasiswa }}" data-sort-dpl="{{ (int) $peserta->jumlah_dpl }}"
-                                                data-sort-pic="{{ (int) ($peserta->jumlah_pic ?? 0) }}" data-sort-ketua="{{ (int) ($peserta->jumlah_ketua_kelompok ?? 0) }}">
+                                            <tr data-search="{{ mb_strtolower($peserta->kodept.' '.$peserta->nama_pt) }}">
                                                 <td class="text-center peserta-no">{{ $loop->iteration }}</td>
-                                                <td class="text-center">{{ $peserta->kodept }}</td>
-                                                <td>{{ $peserta->nama_pt }}</td>
+                                                <td class="text-center" data-sort-value="{{ $peserta->kodept }}">{{ $peserta->kodept }}</td>
+                                                <td data-sort-value="{{ $peserta->nama_pt }}">{{ $peserta->nama_pt }}</td>
                                                 @foreach (['mahasiswa' => $peserta->jumlah_mahasiswa, 'dpl' => $peserta->jumlah_dpl, 'pic' => $peserta->jumlah_pic ?? 0, 'ketua' => $peserta->jumlah_ketua_kelompok ?? 0] as $jenis => $jumlah)
-                                                    <td class="text-center">
+                                                    <td class="text-center" data-sort-value="{{ (int) $jumlah }}">
                                                         @if ($jumlah > 0)
                                                             <button type="button" class="peserta-detail" data-kodept="{{ $peserta->kodept }}" data-jenis="{{ $jenis }}">{{ $fmt($jumlah) }}</button>
                                                         @else
@@ -350,15 +347,14 @@
                                 </div>
                             </div>
                             <div class="table-responsive peserta-table-wrap">
-                                <table class="table table-sm table-hover align-middle peserta-table sebaran-table">
+                                <table class="table table-sm table-hover align-middle peserta-table sebaran-table" data-sortable>
                                     <thead>
                                         <tr>
                                             <th scope="col" class="text-center">No.</th>
-                                            <th scope="col" class="text-center">Kode PT</th>
-                                            <th scope="col">Nama PTS</th>
-                                            <th scope="col">Lokasi Program</th>
-                                            <th scope="col">Kecamatan</th>
-                                            <th scope="col">Kelurahan/Desa</th>
+                                            <th scope="col" class="text-center"><x-button.sort>Kode PT</x-button.sort></th>
+                                            @foreach (['Nama PTS', 'Lokasi Program', 'Kecamatan', 'Kelurahan/Desa'] as $sortLabel)
+                                                <th scope="col"><x-button.sort>{{ $sortLabel }}</x-button.sort></th>
+                                            @endforeach
                                         </tr>
                                     </thead>
                                     <tbody id="sebaranTbody">
@@ -580,6 +576,7 @@
     <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
     <script src="{{ asset('js/search-select.js') }}?v={{ filemtime(public_path('js/search-select.js')) }}"></script>
     <script src="{{ asset('js/drilldown.js') }}?v={{ filemtime(public_path('js/drilldown.js')) }}"></script>
+    <script src="{{ asset('js/table-sort.js') }}?v={{ filemtime(public_path('js/table-sort.js')) }}"></script>
     <script src="{{ asset('js/landing.js') }}?v={{ filemtime(public_path('js/landing.js')) }}"
         data-leaflet-src="{{ asset('assets/vendor/libs/leaflet/leaflet.js') }}" id="landingScript"></script>
 </body>

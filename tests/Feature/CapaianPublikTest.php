@@ -19,10 +19,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
+use Tests\Concerns\InspectsSortableTables;
 use Tests\TestCase;
 
 class CapaianPublikTest extends TestCase
 {
+    use InspectsSortableTables;
     use RefreshDatabase;
 
     private string $bulan;
@@ -222,8 +224,8 @@ class CapaianPublikTest extends TestCase
         $this->wilayahKolomKelurahan();
         $kel = $this->publik(['id_kecamatan' => $this->d['kecD']->id_kecamatan])['kelurahan']->keyBy('desa');
         $fmt = fn ($p) => PenguranganSampah::formatPersen($p).'</td>';
-        $header = ['Kelurahan/Desa</th>', 'Baseline</th>', '>Ketaatan Pemilahan (%)</th>',
-            '>Pengelolaan Sampah (%)</th>', '>Penurunan Timbulan Sampah (%)</th>', 'Klaster</th>'];
+        $header = ['Kelurahan/Desa<i class="ri-arrow-up-down-line"', 'Baseline</th>', '>Ketaatan Pemilahan (%)<i class="ri-arrow-up-down-line"',
+            '>Pengelolaan Sampah (%)<i class="ri-arrow-up-down-line"', '>Penurunan Timbulan Sampah (%)<i class="ri-arrow-up-down-line"', 'Klaster<i class="ri-arrow-up-down-line"'];
         $baris = [
             'Desa Bulan Lain</a>', '-</td>', '-</td>', '-</td>', '-</td>', '- </td>',
             'Desa Nol</a>', '-</td>', '100,00%</td>', '-</td>', $fmt($kel['Desa Nol']->persen),
@@ -247,10 +249,10 @@ class CapaianPublikTest extends TestCase
     public function test_capaian_tables_use_consistent_penurunan_header_on_landing_and_dashboard(): void
     {
         $query = '?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa;
-        $header = '<th class="text-center">Penurunan Timbulan Sampah (%)</th>';
+        $header = '<th class="text-center"><button type="button" class="table-sort" data-sort-type="num">Penurunan Timbulan Sampah (%)<i class="ri-arrow-up-down-line"';
         $cek = function ($res) use ($header) {
             $html = $res->assertOk()
-                ->assertSeeInOrder(['Kecamatan</th>', $header, 'Kelurahan/Desa</th>', $header, 'PTS</th>', $header], false)
+                ->assertSeeInOrder(['Kecamatan<i class="ri-arrow-up-down-line"', $header, 'Kelurahan/Desa<i class="ri-arrow-up-down-line"', $header, 'PTS<i class="ri-arrow-up-down-line"', $header], false)
                 ->assertDontSee('Pengurangan Timbulan Sampah (%)')->assertDontSee('% Pengurangan Sampah')
                 ->assertDontSee('Persentase Penurunan Timbulan Sampah')
                 ->getContent();
@@ -316,7 +318,7 @@ class CapaianPublikTest extends TestCase
 
         $res = $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa)->assertOk()
             ->assertSee('Pelaksana (PTS) di Kelurahan/Desa Desa Satu')
-            ->assertSee('<th class="text-center">Mahasiswa</th>', false)->assertSee('<th class="text-center">DPL</th>', false)
+            ->assertSee('<th class="text-center"><button type="button" class="table-sort" data-sort-type="num">Mahasiswa<i class="ri-arrow-up-down-line"', false)->assertSee('<th class="text-center"><button type="button" class="table-sort" data-sort-type="num">DPL<i class="ri-arrow-up-down-line"', false)
             ->assertSee('Ketua Univ Hijau')->assertSee('ri-eye-line', false)
             ->assertSee('25,00%')
             // Revisi-5/6: no. kontak ketua boleh tampil, email tidak
@@ -984,5 +986,67 @@ class CapaianPublikTest extends TestCase
         $rows = (new CapaianProgramSheet($sampah->capaianProgram(['bulan' => $this->bulan])))->array();
         $this->assertContains(['Kota Tanpa Koef', '-', '-'], $rows);
         $this->assertContains(['Desa K3', '-', '-'], $rows);
+    }
+
+    private const SORT_KECAMATAN = '//table[thead/tr/th[2][normalize-space()="Kecamatan"]]';
+
+    private const SORT_KELURAHAN = '//table[thead/tr/th[2][normalize-space()="Kelurahan/Desa"]]';
+
+    private const SORT_PTS = '//table[contains(@class,"table-pts")][thead/tr/th[2][normalize-space()="PTS"]]';
+
+    public function test_capaian_tables_are_sortable_with_fixed_group_and_follow_detail_rows(): void
+    {
+        $html = $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa)->assertOk()->getContent();
+        $xpath = $this->xpathOf($html);
+
+        $kecamatan = $this->findTable($xpath, self::SORT_KECAMATAN);
+        $this->assertSortableHeader($xpath, $kecamatan, [1 => 'text', 2 => 'num', 3 => 'num']);
+        $grup = $this->bodyRows($xpath, $kecamatan, '[contains(@class,"capaian-lokasi")]');
+        $this->assertCount(2, $grup);
+        foreach ($grup as $tr) {
+            $this->assertTrue($tr->hasAttribute('data-sort-fixed'), 'Header grup lokasi harus data-sort-fixed');
+        }
+        $dataKec = $this->bodyRows($xpath, $kecamatan, '[not(@data-sort-fixed)]');
+        $this->assertCount(2, $dataKec);
+        foreach ($dataKec as $tr) {
+            $this->assertSame(1, $xpath->query('./td[1][@data-sort-no]', $tr)->length, 'Kolom No harus data-sort-no');
+            $this->assertMatchesRegularExpression('/^-?\d+(\.\d+)?$/', $xpath->query('./td[3]', $tr)->item(0)->getAttribute('data-sort-value'));
+        }
+
+        $kelurahan = $this->findTable($xpath, self::SORT_KELURAHAN);
+        $this->assertSortableHeader($xpath, $kelurahan, [1 => 'text', 3 => 'num', 4 => 'num', 5 => 'num', 6 => 'num']);
+        $this->assertCount(2, $this->bodyRows($xpath, $kelurahan, '[td[1][@data-sort-no]]'));
+
+        $pts = $this->findTable($xpath, self::SORT_PTS);
+        $this->assertSortableHeader($xpath, $pts, [1 => 'text', 2 => 'text', 3 => 'num', 4 => 'num', 5 => 'num', 6 => 'num']);
+        $utama = $this->bodyRows($xpath, $pts, '[not(@data-sort-follow)]');
+        $detail = $this->bodyRows($xpath, $pts, '[starts-with(@id,"detail-")]');
+        $this->assertCount(2, $utama);
+        $this->assertCount(2, $detail);
+        foreach ($detail as $tr) {
+            $this->assertTrue($tr->hasAttribute('data-sort-follow'), 'Baris detail PTS harus data-sort-follow');
+            $prev = $xpath->query('./preceding-sibling::tr[1]', $tr)->item(0);
+            $this->assertNotNull($prev);
+            $this->assertFalse($prev->hasAttribute('data-sort-follow') || $prev->hasAttribute('data-sort-fixed'), 'Baris detail harus tepat setelah baris PTS-nya');
+            $this->assertSame(1, $xpath->query('.//button[@data-detail-toggle="'.$tr->getAttribute('id').'"]', $prev)->length);
+            $this->assertSame(0, $xpath->query('.//table[@data-sortable]', $tr)->length, 'Tabel detail di dalam baris tidak boleh sortable');
+        }
+        // Univ Tanpa Data: persen null -> nilai kosong (diletakkan di akhir oleh JS)
+        $tanpaData = $xpath->query('./tbody/tr[td[2][normalize-space()="Univ Tanpa Data"]]/td[6]', $pts)->item(0);
+        $this->assertSame('', $tanpaData->getAttribute('data-sort-value'));
+    }
+
+    public function test_capaian_empty_state_rows_are_sort_fixed(): void
+    {
+        $desaKosong = Desa::factory()->create(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'desa' => 'Desa Kosong']);
+        $html = $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$desaKosong->id_desa.'&klaster=merah')
+            ->assertOk()->getContent();
+        $xpath = $this->xpathOf($html);
+
+        foreach ([self::SORT_KECAMATAN, self::SORT_KELURAHAN, self::SORT_PTS] as $query) {
+            $rows = $this->bodyRows($xpath, $this->findTable($xpath, $query));
+            $this->assertCount(1, $rows, $query);
+            $this->assertTrue($rows[0]->hasAttribute('data-sort-fixed'), "Baris empty-state harus data-sort-fixed: {$query}");
+        }
     }
 }

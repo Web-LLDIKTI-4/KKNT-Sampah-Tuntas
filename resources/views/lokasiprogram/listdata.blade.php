@@ -5,9 +5,9 @@
                 <tr>
                     <th width="1">No</th>
                     <th>Id</th>
-                    <th>Gambar</th>
+                    <th class="text-center">Gambar</th>
                     <th>Nama Lokasi</th>
-                    <th>Koefisien Timbulan Sampah</th>
+                    <th class="text-center">Koefisien Timbulan Sampah</th>
                     <th width="1">Aksi</th>
                 </tr>
             </x-slot:thead>
@@ -32,9 +32,9 @@
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'id', name: 'id', visible:false},
-            {data: 'gambar', name: 'gambar', orderable: false, searchable: false},
+            {data: 'gambar', name: 'gambar', className: 'text-center', orderable: false, searchable: false},
             {data: 'nama_lokasi', name: 'nama_lokasi'},
-            {data: 'koefisien_timbulan_sampah', name: 'koefisien_timbulan_sampah', className: 'text-end', searchable: false, render: function (data) {
+            {data: 'koefisien_timbulan_sampah', name: 'koefisien_timbulan_sampah', className: 'text-center', searchable: false, render: function (data) {
                 var num = parseFloat(data);
                 return isNaN(num) ? '-' : num.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 4});
             }},

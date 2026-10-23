@@ -13,37 +13,37 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered mb-0 text-nowrap">
+                    <table class="table table-sm table-bordered mb-0 text-nowrap" data-sortable>
                         <thead>
                             <tr>
-                                <th>Lokasi Kegiatan</th>
-                                <th class="text-center">Kecamatan</th>
-                                <th class="text-center">Kelurahan/Desa</th>
+                                <th><x-button.sort>Lokasi Kegiatan</x-button.sort></th>
+                                <th class="text-center"><x-button.sort type="num">Kecamatan</x-button.sort></th>
+                                <th class="text-center"><x-button.sort type="num">Kelurahan/Desa</x-button.sort></th>
                                 @if ($perPt)
-                                    <th class="text-center">Perguruan Tinggi</th>
+                                    <th class="text-center"><x-button.sort type="num">Perguruan Tinggi</x-button.sort></th>
                                 @endif
-                                <th class="text-center">Mahasiswa</th>
-                                <th class="text-center">DPL</th>
-                                <th class="text-center">Kelompok</th>
+                                <th class="text-center"><x-button.sort type="num">Mahasiswa</x-button.sort></th>
+                                <th class="text-center"><x-button.sort type="num">DPL</x-button.sort></th>
+                                <th class="text-center"><x-button.sort type="num">Kelompok</x-button.sort></th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($lokasi['rows'] as $row)
                                 <tr>
                                     <td>{{ $row['lokasi'] }}</td>
-                                    <td class="text-center">{{ $num($row['kecamatan']) }}</td>
-                                    <td class="text-center">{{ $num($row['kelurahan']) }}</td>
+                                    <td class="text-center" data-sort-value="{{ (int) $row['kecamatan'] }}">{{ $num($row['kecamatan']) }}</td>
+                                    <td class="text-center" data-sort-value="{{ (int) $row['kelurahan'] }}">{{ $num($row['kelurahan']) }}</td>
                                     @if ($perPt)
-                                        <td class="text-center">{{ $num($row['pt']) }}</td>
+                                        <td class="text-center" data-sort-value="{{ (int) $row['pt'] }}">{{ $num($row['pt']) }}</td>
                                     @endif
-                                    <td class="text-center">{{ $num($row['mahasiswa']) }}</td>
-                                    <td class="text-center">{{ $num($row['dpl']) }}</td>
-                                    <td class="text-center">{{ $num($row['kelompok']) }}</td>
+                                    <td class="text-center" data-sort-value="{{ (int) $row['mahasiswa'] }}">{{ $num($row['mahasiswa']) }}</td>
+                                    <td class="text-center" data-sort-value="{{ (int) $row['dpl'] }}">{{ $num($row['dpl']) }}</td>
+                                    <td class="text-center" data-sort-value="{{ (int) $row['kelompok'] }}">{{ $num($row['kelompok']) }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="{{ $perPt ? 7 : 6 }}" class="text-center text-muted">Belum ada mahasiswa yang ditempatkan</td></tr>
+                                <tr data-sort-fixed><td colspan="{{ $perPt ? 7 : 6 }}" class="text-center text-muted">Belum ada mahasiswa yang ditempatkan</td></tr>
                             @endforelse
-                            <tr>
+                            <tr data-sort-fixed>
                                 <td class="text-muted">Belum memilih lokasi</td>
                                 @if ($perPt)
                                     <td class="text-center">-</td>

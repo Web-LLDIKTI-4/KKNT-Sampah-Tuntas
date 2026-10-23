@@ -8,6 +8,7 @@ use App\Http\Requests\Profile\ProfileRequest;
 use App\Models\Dpl;
 use App\Models\Mahasiswa;
 use App\Models\Satuanpendidikan;
+use App\Services\PetaSebaranService;
 use Illuminate\Http\Request;
 
 class ProfileController extends Controller
@@ -43,14 +44,20 @@ class ProfileController extends Controller
 
         if ($user->role === 'dpl') {
             // Campus is locked once set; only an empty kodept can be filled from input
-            $existingKodept = Dpl::where('email', $user->email)->value('kodept');
-            Dpl::updateOrCreate(['email' => $user->email], [
+            $existing = Dpl::where('email', $user->email)->first(['kodept']);
+            // New DPL record inherits the account's location so both sides match
+            $dpl = Dpl::updateOrCreate(['email' => $user->email], [
                 'nidn' => $request->validated('nidn'),
                 'nama' => $request->validated('nama'),
                 'prodi' => $request->validated('prodi'),
-                'kodept' => $existingKodept ?: $request->validated('kodept'),
+                'kodept' => $existing?->kodept ?: $request->validated('kodept'),
                 'phone' => $request->validated('phone'),
-            ]);
+            ] + ($existing ? [] : ['location_program' => $user->location_program]));
+
+            // Data Peserta / peta sebaran dibaca dari cache
+            if ($dpl->wasRecentlyCreated && $dpl->location_program) {
+                PetaSebaranService::flushCache();
+            }
         }
 
         return $this->saved('Profile berhasil disimpan');

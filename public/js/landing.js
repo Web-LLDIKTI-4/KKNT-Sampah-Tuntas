@@ -205,6 +205,13 @@
       var sebaranPage = 1;
       var sebaranTimer = null;
 
+      var sebaranToTop = function () {
+        $sebaranWrap.scrollTop(0);
+        if ($sebaranWrap[0].getBoundingClientRect().top < 0) {
+          $sebaranWrap[0].scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+        }
+      };
+
       var renderSebaran = function () {
         var keyword = String($sebaranSearch.val() || "").toLowerCase().trim();
         var limit = parseInt($sebaranLimit.val(), 10) || 0;
@@ -249,6 +256,13 @@
         renderSebaran();
       });
 
+      $sebaranTbody.closest("table").on("table:sorted", function () {
+        $sebaranRows = $sebaranTbody.children("tr");
+        sebaranPage = 1;
+        renderSebaran();
+        sebaranToTop();
+      });
+
       $sebaranPagination.on("click", "button.page-link", function () {
         var target = parseInt($(this).data("page"), 10);
         if ($(this).prop("disabled") || !target || target === sebaranPage) {
@@ -256,10 +270,7 @@
         }
         sebaranPage = target;
         renderSebaran();
-        $sebaranWrap.scrollTop(0);
-        if ($sebaranWrap[0].getBoundingClientRect().top < 0) {
-          $sebaranWrap[0].scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-        }
+        sebaranToTop();
       });
 
       renderSebaran();
@@ -340,33 +351,9 @@
         renderPeserta();
       });
 
-      // Sort header: asc -> desc, dari urutan asli agar nilai sama tetap stabil
-      var pesertaOrig = $pesertaRows.get();
-      var pesertaSort = { key: null, dir: 1 };
-      var $pesertaSortBtns = $pesertaTbody.closest("table").find(".peserta-sort");
-
-      $pesertaSortBtns.on("click", function () {
-        var key = String($(this).data("sort"));
-        var isNum = $(this).data("sort-type") === "num";
-        var attr = "data-sort-" + key;
-        pesertaSort.dir = pesertaSort.key === key ? -pesertaSort.dir : 1;
-        pesertaSort.key = key;
-
-        var dir = pesertaSort.dir;
-        var sorted = pesertaOrig.slice().sort(function (a, b) {
-          var x = a.getAttribute(attr) || "";
-          var y = b.getAttribute(attr) || "";
-          return dir * (isNum ? (Number(x) || 0) - (Number(y) || 0) : x.localeCompare(y, "id", { numeric: true, sensitivity: "base" }));
-        });
-
-        $pesertaSortBtns.each(function () {
-          var active = String($(this).data("sort")) === key;
-          $(this).closest("th").attr("aria-sort", active ? (dir === 1 ? "ascending" : "descending") : null);
-          $(this).children("i").attr("class", active ? (dir === 1 ? "ri-arrow-up-line" : "ri-arrow-down-line") : "ri-arrow-up-down-line");
-        });
-
-        $pesertaTbody.append(sorted);
-        $pesertaRows = $(sorted);
+      // Sort header (table-sort.js): ambil urutan baris baru lalu render ulang dari halaman 1
+      $pesertaTbody.closest("table").on("table:sorted", function () {
+        $pesertaRows = $pesertaTbody.children("tr");
         pesertaPage = 1;
         renderPeserta();
         pesertaToTop();
@@ -896,7 +883,7 @@
         note += ". " + summary.desa_tersamar + " kelurahan/desa dengan <3 mahasiswa disamarkan.";
       }
 
-      $("#petaSubtitle").text("Jelajahi sebaran mahasiswa KKN Tematik Sampah Tuntas di 73 desa/kelurahan pada 32 kecamatan. Pantau lokasi penugasan, jumlah mahasiswa, dan capaian pengurangan sampah di setiap wilayah.");
+      $("#petaSubtitle").text("Jelajahi sebaran mahasiswa KKN Tematik Sampah Tuntas di 73 kelurahan/desa pada 32 kecamatan. Pantau lokasi penugasan, jumlah mahasiswa, dan capaian pengurangan sampah di setiap wilayah.");
       $("#petaSummaryBadge").text(tahun ? "Tahun " + tahun : "Semua Tahun");
       $("#petaTotal").text(summary.total_label == null ? "0" : summary.total_label);
       $("#petaSummaryNote").text(note);
@@ -914,7 +901,7 @@
       box.classList.toggle("d-none", total <= 0);
       if (total <= 0) return;
       document.getElementById("petaUnmappedText").textContent =
-        total + " desa/kelurahan belum dipetakan (koordinat belum diisi)";
+        total + " kelurahan/desa belum dipetakan (koordinat belum diisi)";
       rows.forEach(function (row) {
         var li = petaEl("li", null, row && row.desa ? row.desa : "-");
         if (row && row.kecamatan) li.appendChild(petaEl("span", "peta-muted", " — " + row.kecamatan));

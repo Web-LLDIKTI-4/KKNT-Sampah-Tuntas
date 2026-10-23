@@ -1,17 +1,17 @@
 <div class="table-responsive">
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped" data-sortable>
     <thead>
         <tr>
             <th width="1%">No</th>
-            <th>Free Form</th>
-            <th>Nilai DPL</th>
+            <th><x-button.sort>Free Form</x-button.sort></th>
+            <th><x-button.sort type="num">Nilai DPL</x-button.sort></th>
             {{-- <th>Nilai DPA</th> --}}
-            <th>Nilai Akhir</th>
+            <th><x-button.sort type="num">Nilai Akhir</x-button.sort></th>
         </tr>
     </thead>
     <tbody>
         @if($nilai->isEmpty())
-            <tr>
+            <tr data-sort-fixed>
                 <td colspan="5">Tidak ada data yang tersedia</td>
             </tr>
         @else
@@ -27,11 +27,11 @@
                     }
                 @endphp
                 <tr>
-                    <td class="text-center">{{$loop->iteration}}</td>
+                    <td class="text-center" data-sort-no>{{$loop->iteration}}</td>
                     <td class="text-wrap">{{$item->freeform}}</td>
                     <td class="text-center">{{$item->nilai_dpl}}</td>
                     {{-- <td class="text-center">{{$item->nilai_dpa}}</td> --}}
-                    <td class="text-center">{{ $nilaiakhir }} - {{ $grade }}</td>
+                    <td class="text-center" data-sort-value="{{ $nilaiakhir }}">{{ $nilaiakhir }} - {{ $grade }}</td>
                 </tr>
             @endforeach
         @endif

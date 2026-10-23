@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
+use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Facades\DataTables;
 
 /**
@@ -55,9 +56,9 @@ abstract class PersonMasterController extends Controller
         $whitelist = [$this->idNumberColumn(), 'nama', 'email', 'phone', 'nm_lemb', 'location_program'];
 
         $query = $this->listQuery()
-            ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q->orderBy($model->getTable().'.nama'));
+            ->when(! $this->hasClientOrder([...$whitelist, ...$this->extraOrderColumns()]), fn ($q) => $q->orderBy($model->getTable().'.nama'));
 
-        return DataTables::eloquent($query)
+        $dataTable = DataTables::eloquent($query)
             ->addIndexColumn()
             ->addColumn('nm_lemb', fn ($row) => $row->nm_lemb ?? 'Belum Terdata')
             ->addColumn('location_program', fn ($row) => $row->nama_lokasi ?? 'Belum Terdata')
@@ -73,8 +74,20 @@ abstract class PersonMasterController extends Controller
                 idValue: $row->{$key},
             ))
             ->rawColumns(['action'])
-            ->whitelist($whitelist)
-            ->make(true);
+            ->whitelist($whitelist);
+
+        return $this->customizeDataTable($dataTable)->make(true);
+    }
+
+    // Subquery-alias columns sorted via orderColumn(); kept out of whitelist so they never hit raw WHERE
+    protected function extraOrderColumns(): array
+    {
+        return [];
+    }
+
+    protected function customizeDataTable(EloquentDataTable $dataTable): EloquentDataTable
+    {
+        return $dataTable;
     }
 
     // Tombol edit hanya muncul bila subclass mengembalikan URL

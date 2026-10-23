@@ -143,3 +143,38 @@
   margin: 0 !important;
   font-size: 1rem;
 }
+
+/* Tombol sort header tabel (public/js/table-sort.js) */
+/* Label boleh wrap; ikon inline (bukan inline-block) agar menempel di kata terakhir */
+.table-sort {
+  display: inline-block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.table-sort:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.table-sort i,
+.table-sort i::before {
+  display: inline;
+}
+
+.table-sort i {
+  margin-left: 0.25rem;
+  font-size: 0.875em;
+  opacity: 0.4;
+}
+
+.table-sort:hover i,
+th[aria-sort] .table-sort i {
+  opacity: 1;
+}
