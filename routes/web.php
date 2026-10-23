@@ -390,6 +390,7 @@ Route::middleware(['auth', 'role:admin,kepala,pemda'])->group(function () {
     Route::get('pelaksanaankkn', [PelaksanaanKknController::class, 'index'])->name('pelaksanaankkn');
     Route::get('pelaksanaankkn/listdata', [PelaksanaanKknController::class, 'listdata'])->name('pelaksanaankkn.listdata');
     Route::get('pelaksanaankkn/listdataserver', [PelaksanaanKknController::class, 'listdataserver'])->middleware('throttle:60,1')->name('pelaksanaankkn.listdataserver');
+    Route::get('pelaksanaankkn/export', [PelaksanaanKknController::class, 'export'])->middleware('throttle:3,1')->name('pelaksanaankkn.export');
 });
 
 Route::middleware(['auth', 'role:admin,kepala,pemda'])->group(function () {

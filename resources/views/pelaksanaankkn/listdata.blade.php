@@ -16,6 +16,8 @@
         </x-datatable>
     </div>
 </div>
+
+<x-button.export url="{{ route('pelaksanaankkn.export') }}" table="#dataTable" />
 <script type="text/javascript">
   $(function () {
     // Read-only: tanpa kolom aksi

@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Testing\TestResponse;
+use Tests\Concerns\ReadsXlsx;
 use Tests\TestCase;
 
 use App\Models\Desa;
@@ -17,6 +19,7 @@ use App\Models\User;
 
 class PelaksanaanKknTest extends TestCase
 {
+    use ReadsXlsx;
     use RefreshDatabase;
 
     private const AJAX = ['X-Requested-With' => 'XMLHttpRequest'];
@@ -331,5 +334,142 @@ class PelaksanaanKknTest extends TestCase
         $record = PelaksanaanKkn::factory()->forPt($this->ptA->npsn)->create();
         $this->ptA->delete();
         $this->assertModelMissing($record);
+    }
+
+    // --- Export Excel (param DataTables dari table.ajax.params()) ---
+
+    private const EXPORT_COLUMNS = ['DT_RowIndex', 'kodept', 'nama_pt', 'lokasi', 'tanggal_mulai', 'tanggal_selesai', 'durasi_hari', 'updated_at'];
+
+    // Query string kolom DataTables; $searchable/$orderable menimpa default per index
+    private function exportQuery(array $extra = [], array $override = []): string
+    {
+        $params = [];
+        foreach (self::EXPORT_COLUMNS as $i => $data) {
+            $params['columns'][$i] = ['data' => $data, 'name' => $data, 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']];
+            $params['columns'][$i] = array_replace($params['columns'][$i], $override[$i] ?? []);
+        }
+
+        return 'pelaksanaankkn/export?'.http_build_query(array_replace_recursive($params, $extra));
+    }
+
+    private function exportSheet(string $uri): \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet
+    {
+        return $this->xlsxFromResponse($this->get($uri), '/filename=pelaksanaan_kkn_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.xlsx/');
+    }
+
+    public function test_export_viewer_roles_download_all_rows_with_header(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Uji']);
+        Mahasiswa::factory()->create(['kodept' => $this->ptA->npsn, 'location_program' => $lokasi->id]);
+        PelaksanaanKkn::factory()->forPt($this->ptA->npsn)->create(['tanggal_mulai' => '2026-01-01', 'tanggal_selesai' => '2026-01-03']);
+        PelaksanaanKkn::factory()->forPt($this->ptB->npsn)->create(['tanggal_mulai' => '2026-02-01', 'tanggal_selesai' => '2026-02-01']);
+        PelaksanaanKkn::factory()->count(11)->create();
+
+        foreach (['admin', 'kepala', 'pemda'] as $role) {
+            $this->loginAs($role);
+            // start/length dari klien diabaikan: semua 13 baris ikut
+            $ws = $this->exportSheet($this->exportQuery(['draw' => 1, 'start' => 0, 'length' => 5]));
+
+            $this->assertSame(['No.', 'Kode PT', 'Nama PTS', 'Lokasi', 'Tanggal Mulai', 'Tanggal Selesai', 'Durasi (hari)', 'Terakhir Diubah'], $this->headerRow($ws), $role);
+            $rows = collect($this->dataRows($ws))->keyBy(1);
+            $this->assertCount(13, $rows, $role);
+            $this->assertSame(range(1, 13), array_map('intval', $this->dataColumn($ws, 0)), $role);
+
+            $a = $rows[$this->ptA->npsn];
+            $this->assertSame(['Universitas Alfa', 'Kota Uji', '01-01-2026', '03-01-2026'], [$a[2], $a[3], $a[4], $a[5]], $role);
+            $this->assertEquals(3, $a[6], $role);
+            $this->assertMatchesRegularExpression('/^\d{2}-\d{2}-\d{4} \d{2}:\d{2}$/', (string) $a[7], $role);
+            $this->assertSame('-', $rows[$this->ptB->npsn][3], $role);
+            $this->assertEquals(1, $rows[$this->ptB->npsn][6], $role);
+        }
+    }
+
+    public function test_export_default_order_is_nama_pt(): void
+    {
+        PelaksanaanKkn::factory()->forPt($this->ptB->npsn)->create();
+        PelaksanaanKkn::factory()->forPt($this->ptA->npsn)->create();
+        $this->loginAs('admin');
+
+        $ws = $this->exportSheet('pelaksanaankkn/export');
+        $this->assertSame(['Universitas Alfa', 'Universitas Beta'], $this->dataColumn($ws, 2));
+    }
+
+    public function test_export_follows_search_and_order(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Uji']);
+        Mahasiswa::factory()->create(['kodept' => $this->ptA->npsn, 'location_program' => $lokasi->id]);
+        PelaksanaanKkn::factory()->forPt($this->ptA->npsn)->create(['tanggal_mulai' => '2026-01-01', 'tanggal_selesai' => '2026-01-02']);
+        PelaksanaanKkn::factory()->forPt($this->ptB->npsn)->create(['tanggal_mulai' => '2026-02-01', 'tanggal_selesai' => '2026-02-10']);
+        $this->loginAs('admin');
+
+        $ws = $this->exportSheet($this->exportQuery(['search' => ['value' => 'Alfa', 'regex' => 'false']]));
+        $this->assertSame(['Universitas Alfa'], $this->dataColumn($ws, 2));
+        $this->assertStringContainsString('Alfa', $this->cellText($ws, 'A2'));
+
+        $ws = $this->exportSheet($this->exportQuery(['order' => [['column' => 6, 'dir' => 'desc']]]));
+        $this->assertSame(['Universitas Beta', 'Universitas Alfa'], $this->dataColumn($ws, 2));
+        $ws = $this->exportSheet($this->exportQuery(['order' => [['column' => 6, 'dir' => 'asc']]]));
+        $this->assertSame(['Universitas Alfa', 'Universitas Beta'], $this->dataColumn($ws, 2));
+
+        // Kolom lokasi (bukan kolom DB) di order/search tidak boleh error
+        $ws = $this->exportSheet($this->exportQuery(['order' => [['column' => 3, 'dir' => 'desc']], 'search' => ['value' => 'Kota']]));
+        $this->assertIsArray($this->dataRows($ws));
+        $ws = $this->exportSheet($this->exportQuery(['columns' => [3 => ['search' => ['value' => 'Kota']]]]));
+        $this->assertIsArray($this->dataRows($ws));
+        // Kolom tak dikenal / injection di order diabaikan
+        $this->exportSheet($this->exportQuery(['order' => [['column' => 99, 'dir' => 'desc;drop']]]));
+    }
+
+    public function test_export_formula_values_stay_text(): void
+    {
+        $pt = Satuanpendidikan::factory()->create(['nm_lemb' => '=HYPERLINK("http://evil.test","x")']);
+        PelaksanaanKkn::factory()->forPt($pt->npsn)->create();
+        $this->loginAs('admin');
+
+        $ws = $this->exportSheet('pelaksanaankkn/export');
+        $this->assertCellIsText($ws, 'C'.(\App\Support\XlsxStreamer::HEADER_ROW + 1), '=HYPERLINK("http://evil.test","x")');
+
+        $ws = $this->exportSheet('pelaksanaankkn/export?search[value]='.urlencode('=1+1'));
+        $this->assertCellIsText($ws, 'A2', $this->cellText($ws, 'A2'));
+        $this->assertStringContainsString('=1+1', $this->cellText($ws, 'A2'));
+    }
+
+    public function test_export_forbidden_for_other_roles_and_guest(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $this->get('pelaksanaankkn/export')->assertRedirect(route('login'));
+
+        $logins = [
+            'pt' => fn () => $this->loginPt($this->ptA),
+            'dpl' => fn () => $this->loginAs('dpl'),
+            'mahasiswa' => fn () => $this->loginAs('mahasiswa'),
+            'ketua' => fn () => $this->loginKetua(),
+        ];
+        foreach ($logins as $role => $login) {
+            $login();
+            $status = $this->get('pelaksanaankkn/export')->status();
+            $this->assertTrue(in_array($status, [302, 403], true), "$role export: $status");
+        }
+    }
+
+    public function test_export_is_throttled(): void
+    {
+        $this->loginAs('admin');
+        foreach (range(1, 3) as $i) {
+            $this->get('pelaksanaankkn/export')->assertOk();
+        }
+        $this->get('pelaksanaankkn/export')->assertStatus(429);
+    }
+
+    public function test_listdata_shows_export_button_bound_to_table(): void
+    {
+        $this->loginAs('admin');
+
+        $this->get('pelaksanaankkn/listdata')->assertOk()
+            ->assertSee('href="'.route('pelaksanaankkn.export').'"', false)
+            ->assertSee('data-export-table="#dataTable"', false);
+        $this->assertSame(url('pelaksanaankkn/export'), route('pelaksanaankkn.export'));
     }
 }

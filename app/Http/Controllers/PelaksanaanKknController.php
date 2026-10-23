@@ -8,7 +8,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Yajra\DataTables\Facades\DataTables;
+use Yajra\DataTables\QueryDataTable;
 
+use App\Exports\PelaksanaanKknExport;
 use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Pt\PelaksanaanKknRequest;
@@ -39,6 +41,33 @@ class PelaksanaanKknController extends Controller
         Gate::authorize('viewAny', PelaksanaanKkn::class);
         $this->sanitizeDataTablesInput();
 
+        $lokasiPerPt = $sebaran->lokasiPerPt();
+
+        return $this->table()
+            ->addIndexColumn()
+            ->addColumn('lokasi', fn ($row) => implode(', ', $lokasiPerPt[$row->kodept] ?? []) ?: '-')
+            ->editColumn('tanggal_mulai', fn ($row) => $this->formatTanggal($row->tanggal_mulai))
+            ->editColumn('tanggal_selesai', fn ($row) => $this->formatTanggal($row->tanggal_selesai))
+            ->editColumn('durasi_hari', fn ($row) => ((int) $row->durasi_hari).' hari')
+            ->editColumn('updated_at', fn ($row) => $row->updated_at ? Carbon::parse($row->updated_at)->translatedFormat('d M Y H:i') : '-')
+            ->only(['DT_RowIndex', 'kodept', 'nama_pt', 'lokasi', 'tanggal_mulai', 'tanggal_selesai', 'durasi_hari', 'updated_at'])
+            ->make(true);
+    }
+
+    // Ikut search & order aktif tabel (param DataTables dari table.ajax.params())
+    public function export(Request $request, SebaranPtSummary $sebaran)
+    {
+        Gate::authorize('viewAny', PelaksanaanKkn::class);
+        $this->sanitizeDataTablesInput();
+        $rows = $this->dataTablesExportQuery($this->table(), 'kodept')->lazy(1000);
+
+        return (new PelaksanaanKknExport($rows, $sebaran->lokasiPerPt(), $request->input('search.value')))
+            ->download('pelaksanaan_kkn_'.date('Y-m-d_H-i-s').'.xlsx');
+    }
+
+    // Shared by list and export: same search/order
+    private function table(): QueryDataTable
+    {
         // Subquery agar alias (nama_pt, durasi_hari) bisa dicari/diurutkan tanpa kolom ambigu
         $rows = DB::table('pelaksanaan_kkn')
             ->leftJoin('ref_satuanpendidikan', 'ref_satuanpendidikan.npsn', '=', 'pelaksanaan_kkn.kodept')
@@ -54,18 +83,8 @@ class PelaksanaanKknController extends Controller
         $whitelist = ['kodept', 'nama_pt', 'tanggal_mulai', 'tanggal_selesai', 'durasi_hari', 'updated_at'];
         $query = DB::query()->fromSub($rows, 'pelaksanaan')
             ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q->orderBy('nama_pt')->orderBy('kodept'));
-        $lokasiPerPt = $sebaran->lokasiPerPt();
 
-        return DataTables::query($query)
-            ->addIndexColumn()
-            ->addColumn('lokasi', fn ($row) => implode(', ', $lokasiPerPt[$row->kodept] ?? []) ?: '-')
-            ->editColumn('tanggal_mulai', fn ($row) => $this->formatTanggal($row->tanggal_mulai))
-            ->editColumn('tanggal_selesai', fn ($row) => $this->formatTanggal($row->tanggal_selesai))
-            ->editColumn('durasi_hari', fn ($row) => ((int) $row->durasi_hari).' hari')
-            ->editColumn('updated_at', fn ($row) => $row->updated_at ? Carbon::parse($row->updated_at)->translatedFormat('d M Y H:i') : '-')
-            ->whitelist($whitelist)
-            ->only(['DT_RowIndex', 'kodept', 'nama_pt', 'lokasi', 'tanggal_mulai', 'tanggal_selesai', 'durasi_hari', 'updated_at'])
-            ->make(true);
+        return DataTables::query($query)->whitelist($whitelist);
     }
 
     // Upsert milik PT login; id/kodept dari klien diabaikan
