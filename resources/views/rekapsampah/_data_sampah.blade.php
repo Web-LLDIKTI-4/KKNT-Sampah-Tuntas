@@ -95,6 +95,55 @@
     </x-datatable>
 </div>
 
+{{-- Keterangan rumus; huruf kolom ikut $kolom (PEMDA bergeser +2). Sumber: PenguranganSampahService barisLog/angkaSubtotal --}}
+@php($h = array_column($kolom, 'huruf', 'data'))
+<details class="small text-muted mt-3">
+    <summary class="fw-semibold text-body">Keterangan perhitungan tabel</summary>
+    <div class="pt-2">
+        <p class="fw-semibold text-body mb-1">Jumlah Rumah ({{ $h['jml_rumah'] }}) &amp; Rumah Memilah ({{ $h['jml_rumah_memilah'] }})</p>
+        <ul class="ps-3 mb-3">
+            <li>Satu rumah = alamat rumah yang sama di kelurahan yang sama dalam bulan yang sama. Alamat dibandingkan tanpa huruf besar/kecil, spasi, dan tanda baca ("Jl. Melati 1" = "jl melati 1"). Nama kepala rumah tidak dipakai.</li>
+            <li>Rumah dihitung satu kali per bulan, di catatan pertamanya (urut tanggal, lalu waktu input): {{ $h['jml_rumah'] }} = 1. Catatan berikutnya untuk rumah yang sama: {{ $h['jml_rumah'] }} = 0 dan {{ $h['jml_rumah_memilah'] }} = 0, tetapi berat ({{ $h['organik'] }}, {{ $h['anorganik'] }}, {{ $h['residu'] }}) dan jiwa ({{ $h['jml_jiwa'] }}) tetap dijumlah.</li>
+            <li>Di bulan berikutnya rumah yang sama dihitung lagi.</li>
+            <li>{{ $h['jml_rumah_memilah'] }} = 1 bila minimal satu catatan rumah itu di bulan tersebut memilah; angkanya ditaruh di baris catatan pertama.</li>
+            @if ($mingguan ?? false)
+                <li>Tampilan mingguan: rumah dihitung di minggu pertama ia didata. Minggu per 7 tanggal: Minggu 1 = tgl 1–7 … Minggu 5 = tgl 29–akhir bulan.</li>
+            @endif
+            <li>Rumah dihitung di dalam data yang sedang difilter.</li>
+        </ul>
+
+        <p class="fw-semibold text-body mb-1">Rumus kolom</p>
+        <ul class="ps-3 mb-3">
+            <li>{{ $h['persen_ketaatan'] }} Ketaatan Pemilahan = {{ $h['jml_rumah_memilah'] }} ÷ {{ $h['jml_rumah'] }} × 100%.</li>
+            <li>{{ $h['total_terkelola'] }} Total Terkelola = {{ $h['organik'] }} + {{ $h['anorganik'] }}. {{ $h['total_dihasilkan'] }} Total Dihasilkan = {{ $h['organik'] }} + {{ $h['anorganik'] }} + {{ $h['residu'] }}.</li>
+            <li>{{ $h['persen_pengelolaan'] }} Pengelolaan Sampah = {{ $h['total_terkelola'] }} ÷ {{ $h['total_dihasilkan'] }} × 100%.</li>
+            <li>{{ $h['persen_penurunan_timbulan'] }} Penurunan Timbulan = (1 − {{ $h['total_dihasilkan'] }} ÷ (koefisien × {{ $h['jml_jiwa'] }})) × 100%. Koefisien = Koefisien Timbulan lokasi program (tertulis di judul tiap lokasi), {{ $h['jml_jiwa'] }} = jumlah jiwa.</li>
+        </ul>
+
+        <p class="fw-semibold text-body mb-1">Subtotal &amp; total</p>
+        <ul class="ps-3 mb-3">
+            <li>Subtotal dan total menjumlahkan kolom angka dari baris-barisnya, lalu persen dihitung ulang dari jumlah itu dengan rumus di atas. Bukan rata-rata persen baris.</li>
+            <li>{{ $h['persen_penurunan_timbulan'] }} subtotal = (1 − jumlah {{ $h['total_dihasilkan'] }} ÷ (koefisien × jumlah {{ $h['jml_jiwa'] }})) × 100%. {{ $h['total_dihasilkan'] }} hanya diambil dari catatan yang jumlah jiwanya diisi.</li>
+        </ul>
+
+        <p class="fw-semibold text-body mb-1">Arti tanda "-"</p>
+        <ul class="ps-3 mb-3">
+            <li>{{ $h['persen_ketaatan'] }} pada baris: rumah sudah dihitung di catatan sebelumnya ({{ $h['jml_rumah'] }} = 0, tidak bisa dibagi).</li>
+            <li>{{ $h['persen_pengelolaan'] }}: {{ $h['total_dihasilkan'] }} = 0 (belum ada berat sampah).</li>
+            <li>{{ $h['persen_penurunan_timbulan'] }}: koefisien lokasi program atau jumlah jiwa kosong/0. {{ $h['jml_jiwa'] }} "-" = jumlah jiwa tidak diisi.</li>
+            <li>Pada subtotal/total: belum ada data untuk dibagi, atau koefisien/jiwa kosong.</li>
+            <li>Nilai negatif ditampilkan apa adanya. {{ $h['persen_penurunan_timbulan'] }} negatif = sampah dihasilkan lebih besar dari perkiraan timbulan (koefisien × jiwa).</li>
+        </ul>
+
+        @unless ($isPt ?? false)
+            <p class="fw-semibold text-body mb-1">Klaster PT</p>
+            <ul class="ps-3 mb-0">
+                <li>Dari Penurunan Timbulan gabungan tiap PT sesuai filter (rumus subtotal di atas): {{ collect(PenguranganSampah::KLASTER)->map(fn ($k) => $k['label'].' '.$k['ket'])->join(', ') }}. PT tanpa nilai ("-") tidak masuk klaster.</li>
+            </ul>
+        @endunless
+    </div>
+</details>
+
 <script type="text/javascript">
   $(function () {
     // Host dimuat ulang lewat drilldown.js: hancurkan instance lama yang tabelnya sudah lepas dari DOM

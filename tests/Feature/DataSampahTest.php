@@ -81,6 +81,15 @@ class DataSampahTest extends TestCase
             $ketaatan = $kolom[array_search('persen_ketaatan', $keys)]['label'];
             $this->assertStringContainsString($pemda ? '(I/H)' : '(G/F)', $ketaatan, $role);
             $this->assertStringContainsString($pemda ? '(1-(P/(koefisien*N)))' : '(1-(N/(koefisien*L)))', end($kolom)['label'], $role);
+
+            // Blok keterangan: huruf ikut header tabel, poin mingguan hanya PEMDA, klaster tidak untuk PT
+            $res->assertSee('Keterangan perhitungan tabel');
+            $res->assertSee($pemda
+                ? ['Jumlah Rumah (H) &amp; Rumah Memilah (I)', 'J Ketaatan Pemilahan = I ÷ H × 100%', 'O Total Terkelola = K + L. P Total Dihasilkan = K + L + M.', 'Q Pengelolaan Sampah = O ÷ P × 100%', 'R Penurunan Timbulan = (1 − P ÷ (koefisien × N)) × 100%']
+                : ['Jumlah Rumah (F) &amp; Rumah Memilah (G)', 'H Ketaatan Pemilahan = G ÷ F × 100%', 'M Total Terkelola = I + J. N Total Dihasilkan = I + J + K.', 'O Pengelolaan Sampah = M ÷ N × 100%', 'P Penurunan Timbulan = (1 − N ÷ (koefisien × L)) × 100%'], false);
+            $pemda ? $res->assertSee('Tampilan mingguan:') : $res->assertDontSee('Tampilan mingguan:');
+            $klaster = 'Hijau ≥ 20%, Kuning 0% s.d. < 20%, Merah < 0%';
+            $role === 'pt' ? $res->assertDontSee($klaster)->assertDontSee('Dari Penurunan Timbulan gabungan tiap PT') : $res->assertSee($klaster);
         }
     }
 

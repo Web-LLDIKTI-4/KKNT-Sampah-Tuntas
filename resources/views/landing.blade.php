@@ -127,7 +127,7 @@
                                 <i class="ri-bar-chart-2-line me-1" aria-hidden="true"></i> Lihat Capaian
                             </a>
                             @auth
-                                <a href="{{ route('home') }}" class="btn btn-lg lp-btn-ghost">Ke Dashboard <i class="ri-arrow-right-line ms-1" aria-hidden="true"></i></a>
+                                <a href="{{ route('home') }}" class="btn btn-lg lp-btn-ghost d-sm-none">Ke Dashboard <i class="ri-arrow-right-line ms-1" aria-hidden="true"></i></a>
                             @else
                                 <a href="#lokasi" class="btn btn-lg lp-btn-ghost">Pilih Lokasi &amp; Masuk <i class="ri-arrow-right-line ms-1" aria-hidden="true"></i></a>
                             @endauth

@@ -59,7 +59,10 @@ class LandingPageTest extends TestCase
         $response->assertOk()
             ->assertSeeInOrder(['Kelurahan/Desa</th>', 'Baseline</th>', '>Persentase Penurunan Timbulan Sampah</th>', 'Klaster</th>'], false)
             ->assertSeeInOrder(['Desa Berbaseline</a>', '12,50%</td>', '20,00%</td>'], false)
-            ->assertSeeInOrder(['Desa Tanpa Baseline</a>', '-</td>', '20,00%</td>'], false);
+            ->assertSeeInOrder(['Desa Tanpa Baseline</a>', '-</td>', '20,00%</td>'], false)
+            ->assertDontSee('Pengurangan Timbulan Sampah (%)', false)
+            ->assertDontSee('% Pengurangan Sampah', false);
+        $this->assertDoesNotMatchRegularExpression('/\(%\)\s*<\/th>/', $response->getContent());
     }
 
     // AC1
@@ -73,6 +76,8 @@ class LandingPageTest extends TestCase
             ->assertDontSee('Ke Dashboard')
             ->assertDontSee('lp-fab', false)
             ->assertSeeInOrder(['id="lpOffcanvas"', 'href="'.route('login').'"', 'Masuk'], false)
+            ->assertSee('class="btn btn-primary lp-cta d-none d-sm-inline-flex"', false)
+            ->assertSee('<a href="#lokasi" class="btn btn-lg lp-btn-ghost">Pilih Lokasi &amp; Masuk', false)
             ->assertSee('data-drilldown="'.route('login.laporan').'"', false)
             ->assertSee('id="peserta"', false)
             ->assertSee('data-url="'.route('login.peta').'"', false)
@@ -93,6 +98,8 @@ class LandingPageTest extends TestCase
             ->assertDontSee('href="'.route('login').'"', false)
             ->assertDontSee('lp-fab', false)
             ->assertSeeInOrder(['id="lpOffcanvas"', 'href="'.route('home').'"', 'Ke Dashboard', 'action="'.route('logout').'"', 'Keluar'], false)
+            ->assertSee('href="'.route('home').'" class="btn btn-primary lp-cta d-none d-sm-inline-flex"', false)
+            ->assertSee('href="'.route('home').'" class="btn btn-lg lp-btn-ghost d-sm-none">Ke Dashboard', false)
             ->assertSee('data-drilldown="'.route('login.laporan').'"', false)
             ->assertSee('id="peserta"', false)
             ->assertSee('id="dokumen"', false);

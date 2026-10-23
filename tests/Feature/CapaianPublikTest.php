@@ -244,6 +244,26 @@ class CapaianPublikTest extends TestCase
             ->assertOk()->assertSee('<td colspan="7" class="text-center text-muted">Tidak ada kelurahan/desa pada klaster ini</td>', false);
     }
 
+    public function test_capaian_tables_use_consistent_penurunan_header_on_landing_and_dashboard(): void
+    {
+        $query = '?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa;
+        $header = '<th class="text-center">Persentase Penurunan Timbulan Sampah</th>';
+        $cek = function ($res) use ($header) {
+            $html = $res->assertOk()
+                ->assertSeeInOrder(['Kecamatan</th>', $header, 'Kelurahan/Desa</th>', $header, 'PTS</th>', $header], false)
+                ->assertDontSee('Pengurangan Timbulan Sampah (%)')->assertDontSee('% Pengurangan Sampah')
+                ->getContent();
+            $this->assertSame(3, substr_count($html, $header));
+        };
+
+        $cek($this->get('login/laporan'.$query));
+        $this->get(route('landing'))->assertOk()
+            ->assertDontSee('Pengurangan Timbulan Sampah (%)')->assertDontSee('% Pengurangan Sampah');
+
+        $this->loginAs('admin');
+        $cek($this->get('dashboard-pengurangan-sampah'.$query, ['X-Requested-With' => 'XMLHttpRequest']));
+    }
+
     public function test_kelurahan_columns_scoped_to_logged_in_pt(): void
     {
         $this->wilayahKolomKelurahan();
