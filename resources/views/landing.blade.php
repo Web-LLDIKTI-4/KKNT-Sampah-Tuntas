@@ -15,7 +15,7 @@
     $navItems = [
         'beranda' => 'KKN Tematik Sampah Tuntas',
         'lokasi' => 'Lokasi Pelaksanaan KKN Tematik Sampah Tuntas',
-        'capaian' => 'Capaian Pengurangan Sampah',
+        'capaian' => 'Capaian Pengurangan Timbulan Sampah',
         'peserta' => 'Perguruan Tinggi Peserta',
         'sebaran' => 'Sebaran Perguruan Tinggi pada Wilayah Pelaksanaan Program',
         'peta' => 'Jejak Aksi Mahasiswa di Setiap Wilayah',

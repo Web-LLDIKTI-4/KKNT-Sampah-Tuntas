@@ -27,7 +27,7 @@ class CapaianProgramExportController extends Controller
         $filter = ['bulan' => $request->validated('bulan'), 'klaster' => $request->validated('klaster')];
         $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0');
 
-        return $this->unduh(Cache::remember('login.capaian-program.v3.'.$versi.'.'.md5(json_encode($filter)), now()->addMinutes(10),
+        return $this->unduh(Cache::remember('login.capaian-program.v4.'.$versi.'.'.md5(json_encode($filter)), now()->addMinutes(10),
             fn () => $sampah->capaianProgram($filter)));
     }
 

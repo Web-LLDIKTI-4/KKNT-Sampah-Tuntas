@@ -54,43 +54,36 @@ class PenguranganSampah extends Model
         return $persen === null ? null : (float) $persen >= self::TARGET_PENGURANGAN;
     }
 
-    // Klaster PT/wilayah berdasarkan persentase pengurangan sampah
-    public const BATAS_KUNING = 10.0;
+    // Klaster PT/wilayah berdasarkan persentase pengurangan sampah: hijau >= 20, kuning 0 – < 20, merah < 0
+    public const BATAS_KUNING = 0.0;
 
     public const KLASTER = [
         'hijau' => ['label' => 'Hijau', 'ket' => '≥ 20%', 'sel' => 'table-success', 'badge' => 'bg-success', 'rgb' => 'C6EFCE'],
-        'kuning' => ['label' => 'Kuning', 'ket' => '10% – < 20%', 'sel' => 'table-warning', 'badge' => 'bg-warning', 'rgb' => 'FFEB9C'],
-        'merah' => ['label' => 'Merah', 'ket' => '< 10%', 'sel' => 'table-danger', 'badge' => 'bg-danger', 'rgb' => 'FFC7CE'],
+        'kuning' => ['label' => 'Kuning', 'ket' => '0% s.d. < 20%', 'sel' => 'table-warning', 'badge' => 'bg-warning', 'rgb' => 'FFEB9C'],
+        'merah' => ['label' => 'Merah', 'ket' => '< 0%', 'sel' => 'table-danger', 'badge' => 'bg-danger', 'rgb' => 'FFC7CE'],
     ];
 
-    // $strict: hijau bila > 20% (halaman publik); default >= 20%
-    public static function klaster($persen, bool $strict = false): ?string
+    public static function klaster($persen): ?string
     {
         return match (true) {
             $persen === null => null,
-            $strict ? (float) $persen > self::TARGET_PENGURANGAN : (float) $persen >= self::TARGET_PENGURANGAN => 'hijau',
+            (float) $persen >= self::TARGET_PENGURANGAN => 'hijau',
             (float) $persen >= self::BATAS_KUNING => 'kuning',
             default => 'merah',
         };
     }
 
     // Kelas warna sel tabel sesuai klaster; '' bila belum ada data
-    public static function warnaSel($persen, bool $strict = false): string
+    public static function warnaSel($persen): string
     {
-        return self::KLASTER[static::klaster($persen, $strict)]['sel'] ?? '';
+        return self::KLASTER[static::klaster($persen)]['sel'] ?? '';
     }
 
-    // Capaian pengurangan sampah: min(100, persen / 20 × 100); $strict: 100% hanya bila > 20%, selain itu maks 99,99
-    public static function capaian($persen, bool $strict = false): ?float
+    // Capaian pengurangan sampah: min(100, persen / 20 × 100); 100% bila persen >= 20%
+    public static function capaian($persen): ?float
     {
         if ($persen === null) {
             return null;
-        }
-
-        if ($strict) {
-            return (float) $persen > self::TARGET_PENGURANGAN
-                ? 100.0
-                : min(99.99, round((float) $persen / self::TARGET_PENGURANGAN * 100, 2));
         }
 
         return min(100.0, round((float) $persen / self::TARGET_PENGURANGAN * 100, 2));

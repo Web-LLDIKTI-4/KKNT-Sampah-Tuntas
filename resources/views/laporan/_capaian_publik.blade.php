@@ -57,10 +57,10 @@
 
     <div data-png-target>
         <p class="small text-muted mb-3">
-            <span class="badge bg-success">Hijau</span> &gt; 20%;
-            <span class="badge bg-warning">Kuning</span> 10% s.d. &le; 20%;
-            <span class="badge bg-danger">Merah</span> &lt; 10%.
-            <em class="d-block mt-1">Target Pengurangan Sampah terpenuhi atau 100% jika setiap kelurahan/desa &gt; 20%</em>
+            <span class="badge bg-success">Hijau</span> &ge; 20%;
+            <span class="badge bg-warning">Kuning</span> 0% s.d. &lt; 20%;
+            <span class="badge bg-danger">Merah</span> &lt; 0%.
+            <em class="d-block mt-1">Target Pengurangan Sampah terpenuhi atau 100% jika setiap kelurahan/desa &ge; 20%</em>
         </p>
 
         <div class="table-responsive scroll-box mb-5">
@@ -75,7 +75,7 @@
                     <tr>
                         <th class="text-center">No</th>
                         <th class="text-center">Kecamatan</th>
-                        <th class="text-center">Pengurangan Sampah (%)</th>
+                        <th class="text-center">Pengurangan Timbulan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                     </tr>
                 </thead>
@@ -105,22 +105,27 @@
     </div>
 
     @if ($params['kecamatan'])
-        <h6 class="mb-2">Sebaran Lokasi (Kelurahan) &mdash; Kecamatan {{ $namaKecamatan }}</h6>
+        <h6 class="mb-2">Sebaran Lokasi (Kelurahan/Desa) - Kecamatan {{ $namaKecamatan }}</h6>
         <div class="table-responsive scroll-box mb-5">
-            <table class="table table-sm table-bordered mb-0">
+            {{-- min-width: 7 kolom tetap terbaca di HP, scroll horizontal lewat .table-responsive --}}
+            <table class="table table-sm table-bordered mb-0" style="min-width: 640px">
                 <colgroup>
-                    <col style="width: 8%">
-                    <col style="width: 40%">
-                    <col style="width: 15%">
+                    <col style="width: 6%">
                     <col style="width: 22%">
-                    <col style="width: 15%">
+                    <col style="width: 12%">
+                    <col style="width: 16%">
+                    <col style="width: 16%">
+                    <col style="width: 16%">
+                    <col style="width: 12%">
                 </colgroup>
                 <thead>
                     <tr>
                         <th class="text-center">No</th>
                         <th class="text-center">Kelurahan/Desa</th>
                         <th class="text-center">Baseline</th>
-                        <th class="text-center">Pengurangan Sampah (%)</th>
+                        <th class="text-center">Persentase Ketaatan Pemilahan</th>
+                        <th class="text-center">Persentase Pengelolaan Sampah</th>
+                        <th class="text-center">Persentase Penurunan Timbulan Sampah</th>
                         <th class="text-center">Klaster</th>
                     </tr>
                 </thead>
@@ -132,11 +137,13 @@
                                 <a href="#" data-drill='@json(['desa' => $kel->id_desa])'>{{ $kel->desa }}</a>
                             </td>
                             <td class="text-center text-nowrap">{{ PenguranganSampah::formatBaseline(isset($kel->baseline) ? (float) $kel->baseline : null, $kel->satuan_baseline ?? '%') }}</td>
+                            <td class="text-center">{{ $persen($kel->persen_ketaatan ?? null) }}</td>
+                            <td class="text-center">{{ $persen($kel->persen_pengelolaan ?? null) }}</td>
                             <td class="text-center">{{ $persen($kel->persen) }}</td>
                             <td class="text-center">@if ($k = $klasterOf($kel->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kelurahan/desa pada klaster ini' : 'Belum ada kelurahan/desa' }}</td></tr>
+                        <tr><td colspan="7" class="text-center text-muted">{{ $params['klaster'] ? 'Tidak ada kelurahan/desa pada klaster ini' : 'Belum ada kelurahan/desa' }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -154,7 +161,7 @@
                         <th class="text-center">Lokasi</th>
                         <th class="text-center">Mahasiswa</th>
                         <th class="text-center">DPL</th>
-                        <th class="text-center">Pengurangan Sampah (%)</th>
+                        <th class="text-center">Pengurangan Timbulan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                         <th class="text-center">Detail</th>
                     </tr>

@@ -78,6 +78,15 @@ class CapaianPublikTest extends TestCase
         ]);
     }
 
+    // Lokasi/kecamatan/desa terpisah dengan penurunan negatif (-10%) -> klaster merah
+    private function wilayahMinus(): void
+    {
+        $this->d['lokasiM'] = LokasiProgram::factory()->create(['nama_lokasi' => 'Lokasi Minus', 'koefisien_timbulan_sampah' => 1]);
+        $this->d['kecM'] = Kecamatan::factory()->create(['kecamatan' => 'Kec Minus']);
+        $this->d['desaM'] = Desa::factory()->create(['id_kecamatan' => $this->d['kecM']->id_kecamatan, 'desa' => 'Desa Minus']);
+        $this->ketua('minus', 'Univ Minus', $this->d['lokasiM'], $this->d['desaM'], -10);
+    }
+
     // Mahasiswa non-ketua pengisi pendataan di $desa
     private function pengisi(Satuanpendidikan $pt, ?LokasiProgram $lokasi, Desa $desa, string $bulan, float $persen): Mahasiswa
     {
@@ -93,25 +102,55 @@ class CapaianPublikTest extends TestCase
         return app(PenguranganSampahService::class)->drilldownPublik($filter + ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]);
     }
 
-    public function test_persen_lokasi_is_cumulative_and_strict_threshold_makes_twenty_yellow(): void
+    public function test_persen_lokasi_is_cumulative_and_twenty_is_green(): void
     {
         $data = $this->publik();
         $lokasi = $data['kecamatan']->keyBy('nama_lokasi');
 
         $this->assertEquals(20.0, $lokasi['Kota Alfa']->persen);
-        $this->assertSame('kuning', $lokasi['Kota Alfa']->klaster);
+        $this->assertSame('hijau', $lokasi['Kota Alfa']->klaster);
         $this->assertEquals(5.0, $lokasi['Kabupaten Beta']->persen);
-        $this->assertSame('merah', $lokasi['Kabupaten Beta']->klaster);
-        $this->assertSame('kuning', $lokasi['Kota Alfa']->kecamatan->first()->klaster);
+        $this->assertSame('kuning', $lokasi['Kabupaten Beta']->klaster);
+        $this->assertSame('hijau', $lokasi['Kota Alfa']->kecamatan->first()->klaster);
         $this->assertEquals(15.0, $data['total_keseluruhan']->persen_pengurangan);
+    }
 
-        $this->assertSame('hijau', PenguranganSampah::klaster(20.0));
-        $this->assertSame('kuning', PenguranganSampah::klaster(20.0, true));
-        $this->assertSame('hijau', PenguranganSampah::klaster(20.01, true));
-        $this->assertSame('kuning', PenguranganSampah::klaster(10.0, true));
-        $this->assertSame('merah', PenguranganSampah::klaster(9.99, true));
-        $this->assertSame('table-success', PenguranganSampah::warnaSel(20.0));
-        $this->assertSame('table-warning', PenguranganSampah::warnaSel(20.0, true));
+    public function test_klaster_boundaries_green_from_twenty_yellow_from_zero_red_below_zero(): void
+    {
+        $kasus = [[20.0, 'hijau'], [20.01, 'hijau'], [100.0, 'hijau'], ['20.00', 'hijau'], [19.99, 'kuning'], [10.0, 'kuning'], [0.0, 'kuning'],
+            [0, 'kuning'], ['0.00', 'kuning'], [-0.01, 'merah'], [-50.0, 'merah'], [null, null]];
+        foreach ($kasus as [$persen, $klaster]) {
+            $this->assertSame($klaster, PenguranganSampah::klaster($persen), var_export($persen, true));
+            $this->assertSame($klaster ? PenguranganSampah::KLASTER[$klaster]['sel'] : '', PenguranganSampah::warnaSel($persen), var_export($persen, true));
+        }
+        $this->assertSame(['≥ 20%', '0% s.d. < 20%', '< 0%'], array_column(PenguranganSampah::KLASTER, 'ket'));
+        // Parameter strict sudah dihapus
+        foreach (['klaster', 'warnaSel', 'capaian'] as $fn) {
+            $this->assertSame(1, (new \ReflectionMethod(PenguranganSampah::class, $fn))->getNumberOfParameters(), $fn);
+        }
+    }
+
+    public function test_publik_dashboard_and_export_share_klaster_for_negative_zero_and_twenty(): void
+    {
+        $this->wilayahMinus();
+        $this->ketua('nol', 'Univ Nol', $this->d['lokasiM'], Desa::factory()->create(['id_kecamatan' => $this->d['kecM']->id_kecamatan, 'desa' => 'Desa Nol']), 0);
+
+        $kel = $this->publik(['id_kecamatan' => $this->d['kecM']->id_kecamatan])['kelurahan']->keyBy('desa');
+        $this->assertEquals(-10.0, $kel['Desa Minus']->persen);
+        $this->assertSame('merah', $kel['Desa Minus']->klaster);
+        $this->assertEquals(0.0, $kel['Desa Nol']->persen);
+        $this->assertSame('kuning', $kel['Desa Nol']->klaster);
+
+        $this->loginAs('admin');
+        $html = $this->get('dashboard-pengurangan-sampah?kecamatan='.$this->d['kecM']->id_kecamatan, ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/Desa Minus<\/a>.*?<span class="badge bg-danger">Merah<\/span><\/td>/s', $html);
+        $this->assertMatchesRegularExpression('/Desa Nol<\/a>.*?<span class="badge bg-warning">Kuning<\/span><\/td>/s', $html);
+
+        $baris = collect((new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array())
+            ->filter(fn ($r) => $r[0])->keyBy(0);
+        $this->assertSame([-0.1, 'Merah'], array_slice($baris['Desa Minus'], 1));
+        $this->assertSame([0, 'Kuning'], [(int) $baris['Desa Nol'][1], $baris['Desa Nol'][2]]);
+        $this->assertSame([0.2, 'Hijau'], array_slice($baris['Kota Alfa'], 1));
     }
 
     public function test_total_keseluruhan_ignores_kecamatan_and_klaster_filter(): void
@@ -126,14 +165,116 @@ class CapaianPublikTest extends TestCase
         $this->assertEquals(5.0, $dashboard['total']->persen_pengurangan);
     }
 
-    public function test_capaian_strict_only_reaches_hundred_above_target(): void
+    // Kec Data (lokasi A): Desa Taat (3 rumah, 2 memilah, 1 log ulang), Desa Nol (N = 0), Desa Bulan Lain (tanpa data bulan ini)
+    private function wilayahKolomKelurahan(): void
     {
-        $this->assertEquals(99.99, PenguranganSampah::capaian(20.0, true));
-        $this->assertEquals(100.0, PenguranganSampah::capaian(20.01, true));
-        $this->assertEquals(50.0, PenguranganSampah::capaian(10.0, true));
-        $this->assertNull(PenguranganSampah::capaian(null, true));
-        // Dashboard tetap inklusif
+        $this->d['kecD'] = Kecamatan::factory()->create(['kecamatan' => 'Kec Data']);
+        foreach (['taat' => 'Desa Taat', 'nol' => 'Desa Nol', 'lain' => 'Desa Bulan Lain'] as $key => $nama) {
+            $this->d['desa_'.$key] = Desa::factory()->create(['id_kecamatan' => $this->d['kecD']->id_kecamatan, 'desa' => $nama]);
+            $this->ketua($key, 'Univ '.ucfirst($key), $this->d['lokasiA'], $this->d['desa_'.$key], null);
+        }
+        $log = fn (string $key, array $attr) => PendataanPemilahanSampah::factory()->create($attr + [
+            'email' => $this->d['ketua_'.$key]->email, 'tanggal' => $this->bulan.'-10', 'jumlah_anggota_keluarga' => 100, 'rt' => '001', 'rw' => '001',
+        ]);
+        $rumah = fn (string $nama, string $alamat, bool $memilah, float $o, float $a, float $r, string $tgl = '-10') => [
+            'nama_kepala_keluarga' => $nama, 'alamat_rumah' => $alamat, 'memilah' => $memilah,
+            'organik_kg' => $o, 'anorganik_kg' => $a, 'residu_kg' => $r, 'tanggal' => $this->bulan.$tgl,
+        ];
+        // Terkelola 30+10+0+10+5+5 = 60, dihasilkan 210 -> 28,57%; rumah unik 3, memilah 2 -> 66,67%
+        $log('taat', $rumah('Ani', 'Jl Satu 1', true, 30, 10, 60));
+        $log('taat', $rumah('Budi', 'Jl Dua 2', false, 0, 0, 50));
+        $log('taat', $rumah('Cici', 'Jl Tiga 3', true, 10, 0, 40));
+        $log('taat', $rumah('Ani', 'Jl Satu 1', false, 5, 5, 0, '-20'));
+        $log('nol', $rumah('Dedi', 'Jl Nol 0', true, 0, 0, 0));
+        $log('lain', ['tanggal' => now()->subMonths(2)->format('Y-m').'-10'] + $rumah('Eka', 'Jl Lain 9', true, 10, 0, 10));
+    }
+
+    public function test_kelurahan_table_has_ketaatan_and_pengelolaan_matching_data_sampah(): void
+    {
+        $this->wilayahKolomKelurahan();
+        $sampah = app(PenguranganSampahService::class);
+        $kel = $this->publik(['id_kecamatan' => $this->d['kecD']->id_kecamatan])['kelurahan']->keyBy('desa');
+
+        $this->assertEquals(66.67, $kel['Desa Taat']->persen_ketaatan);
+        $this->assertEquals(28.57, $kel['Desa Taat']->persen_pengelolaan);
+        // Pembagi 0 (N = 0) -> pengelolaan null; tanpa data bulan terpilih -> semua null
+        $this->assertEquals(100.0, $kel['Desa Nol']->persen_ketaatan);
+        $this->assertNull($kel['Desa Nol']->persen_pengelolaan);
+        foreach (['persen', 'persen_ketaatan', 'persen_pengelolaan', 'klaster'] as $f) {
+            $this->assertNull($kel['Desa Bulan Lain']->{$f}, $f);
+        }
+
+        // Sama dengan modul Data Sampah (subtotal) untuk desa & bulan yang sama
+        foreach (['Desa Taat' => 'taat', 'Desa Nol' => 'nol'] as $nama => $key) {
+            $ds = $sampah->dataSampahSubtotal(['bulan' => $this->bulan, 'id_desa' => $this->d['desa_'.$key]->id_desa], false)->first()->total;
+            $this->assertEquals($ds->persen_ketaatan, $kel[$nama]->persen_ketaatan, $nama);
+            $this->assertEquals($ds->persen_pengelolaan, $kel[$nama]->persen_pengelolaan, $nama);
+            $this->assertEquals($ds->persen_penurunan_timbulan, $kel[$nama]->persen, $nama);
+        }
+        // Dashboard (drilldown) memakai angka yang sama
+        $dash = $sampah->drilldown(['bulan' => null, 'id_kecamatan' => $this->d['kecD']->id_kecamatan])['kelurahan']->keyBy('desa');
+        $this->assertEquals(66.67, $dash['Desa Taat']->persen_ketaatan);
+        $this->assertEquals(28.57, $dash['Desa Taat']->persen_pengelolaan);
+    }
+
+    public function test_kelurahan_table_renders_new_columns_on_landing_and_dashboard(): void
+    {
+        $this->wilayahKolomKelurahan();
+        $kel = $this->publik(['id_kecamatan' => $this->d['kecD']->id_kecamatan])['kelurahan']->keyBy('desa');
+        $fmt = fn ($p) => PenguranganSampah::formatPersen($p).'</td>';
+        $header = ['Kelurahan/Desa</th>', 'Baseline</th>', '>Persentase Ketaatan Pemilahan</th>',
+            '>Persentase Pengelolaan Sampah</th>', '>Persentase Penurunan Timbulan Sampah</th>', 'Klaster</th>'];
+        $baris = [
+            'Desa Bulan Lain</a>', '-</td>', '-</td>', '-</td>', '-</td>', '- </td>',
+            'Desa Nol</a>', '-</td>', '100,00%</td>', '-</td>', $fmt($kel['Desa Nol']->persen),
+            'Desa Taat</a>', '-</td>', '66,67%</td>', '28,57%</td>', $fmt($kel['Desa Taat']->persen),
+        ];
+
+        $cek = function ($res) use ($header, $baris) {
+            $res->assertOk()->assertSee('Sebaran Lokasi (Kelurahan/Desa) - Kecamatan Kec Data', false)
+                ->assertSeeInOrder($header, false)->assertSeeInOrder($baris, false)
+                ->assertDontSee('Pengurangan Sampah (%)</th>', false)->assertDontSee('(G/D)', false)->assertDontSee('(M/N)', false)->assertDontSee('0,36*L', false);
+        };
+        $cek($this->get('login/laporan?kecamatan='.$this->d['kecD']->id_kecamatan));
+        $this->loginAs('admin');
+        $cek($this->get('dashboard-pengurangan-sampah?kecamatan='.$this->d['kecD']->id_kecamatan, ['X-Requested-With' => 'XMLHttpRequest']));
+
+        // Kosong: colspan ikut 7 kolom
+        $this->get('dashboard-pengurangan-sampah?kecamatan='.$this->d['kecD']->id_kecamatan.'&klaster=merah', ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()->assertSee('<td colspan="7" class="text-center text-muted">Tidak ada kelurahan/desa pada klaster ini</td>', false);
+    }
+
+    public function test_kelurahan_columns_scoped_to_logged_in_pt(): void
+    {
+        $this->wilayahKolomKelurahan();
+        // PT lain tidak bisa melihat angka kelurahan milik Univ Taat walau mengirim kodept/kecamatan
+        $this->loginAs('pt', ['email' => $this->d['pt_merah']->npsn]);
+        $this->get('dashboard-pengurangan-sampah?kodept='.$this->d['pt_taat']->npsn.'&kecamatan='.$this->d['kecD']->id_kecamatan, ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()->assertDontSee('Desa Taat')->assertDontSee('66,67%');
+        // PT pemilik melihat angkanya sendiri
+        $this->loginAs('pt', ['email' => $this->d['pt_taat']->npsn]);
+        $this->get('dashboard-pengurangan-sampah?kecamatan='.$this->d['kecD']->id_kecamatan, ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()->assertSeeInOrder(['Desa Taat</a>', '66,67%</td>', '28,57%</td>'], false)->assertDontSee('Desa Nol');
+    }
+
+    public function test_rekap_sampah_klaster_pt_uses_new_threshold(): void
+    {
+        $this->wilayahMinus();
+        $this->loginAs('admin');
+        $klaster = $this->get('rekapsampah?bulan='.$this->bulan)->assertOk()->viewData('klasterPt')->pluck('klaster', 'nama_pt')->all();
+
+        $this->assertSame(['Univ Hijau' => 'hijau', 'Univ Kuning' => 'kuning', 'Univ Merah' => 'kuning', 'Univ Minus' => 'merah'], collect($klaster)->sortKeys()->all());
+    }
+
+    public function test_capaian_reaches_hundred_from_target_inclusive(): void
+    {
         $this->assertEquals(100.0, PenguranganSampah::capaian(20.0));
+        $this->assertEquals(100.0, PenguranganSampah::capaian(20.01));
+        $this->assertEquals(100.0, PenguranganSampah::capaian(80.0));
+        $this->assertEquals(99.95, PenguranganSampah::capaian(19.99));
+        $this->assertEquals(50.0, PenguranganSampah::capaian(10.0));
+        $this->assertEquals(0.0, PenguranganSampah::capaian(0.0));
+        $this->assertNull(PenguranganSampah::capaian(null));
     }
 
     public function test_persen_pt_is_per_pt_in_kelurahan_and_ketua_has_names_only(): void
@@ -245,14 +386,15 @@ class CapaianPublikTest extends TestCase
 
         $sheet = new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan]));
         $rows = $sheet->array();
-        // Lokasi (urut nama) -> kecamatan -> kelurahan; 1 baris kosong hanya antar lokasi; persen pecahan, klaster strict
-        $this->assertSame(['Nama', 'Pengurangan Sampah (%)', 'Klaster'], $rows[1]);
+        // Lokasi (urut nama) -> kecamatan -> kelurahan; 1 baris kosong hanya antar lokasi; persen pecahan, klaster >= 20 hijau, < 0 merah
+        $this->assertSame(['Nama', 'Pengurangan Timbulan Sampah (%)', 'Klaster'], $rows[1]);
         $this->assertSame([
-            ['Kabupaten Beta', 0.05, 'Merah'], ['Kec Beta', 0.05, 'Merah'], ['Desa Dua', 0.05, 'Merah'], [null, null, null],
-            ['Kota Alfa', 0.2, 'Kuning'], ['Kec Alfa', 0.2, 'Kuning'],
+            ['Kabupaten Beta', 0.05, 'Kuning'], ['Kec Beta', 0.05, 'Kuning'], ['Desa Dua', 0.05, 'Kuning'], [null, null, null],
+            ['Kota Alfa', 0.2, 'Hijau'], ['Kec Alfa', 0.2, 'Hijau'],
             ['Desa Satu', 0.25, 'Hijau'], ['Desa Tiga', 0.15, 'Kuning'],
         ], array_slice($rows, 2));
         $this->assertSame([3 => 'lokasi', 4 => 'kecamatan', 7 => 'lokasi', 8 => 'kecamatan'], $sheet->jenisBaris());
+        $this->wilayahMinus();
 
         // Fill warna di file xlsx asli
         $path = tempnam(sys_get_temp_dir(), 'cap').'.xlsx';
@@ -267,9 +409,12 @@ class CapaianPublikTest extends TestCase
         $this->assertSame('FFFF00', $ws->getStyle('A4')->getFill()->getStartColor()->getRGB());
         $this->assertNotSame('FFFFFF', $ws->getStyle('A4')->getFont()->getColor()->getRGB());
         $this->assertSame(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_NONE, $ws->getStyle('A5')->getFill()->getFillType());
-        $this->assertSame(PenguranganSampah::KLASTER['merah']['rgb'], $ws->getStyle('C5')->getFill()->getStartColor()->getRGB());
+        $this->assertSame(PenguranganSampah::KLASTER['kuning']['rgb'], $ws->getStyle('C5')->getFill()->getStartColor()->getRGB());
         $this->assertSame(PenguranganSampah::KLASTER['hijau']['rgb'], $ws->getStyle('C9')->getFill()->getStartColor()->getRGB());
         $this->assertSame(PenguranganSampah::KLASTER['kuning']['rgb'], $ws->getStyle('C10')->getFill()->getStartColor()->getRGB());
+        // Lokasi Minus (-10%) setelah sekat: baris 12 lokasi, 13 kecamatan, 14 kelurahan merah
+        $this->assertSame(['Desa Minus', -0.1, 'Merah'], [$ws->getCell('A14')->getValue(), $ws->getCell('B14')->getValue(), $ws->getCell('C14')->getValue()]);
+        $this->assertSame(PenguranganSampah::KLASTER['merah']['rgb'], $ws->getStyle('C14')->getFill()->getStartColor()->getRGB());
         // Kelurahan tanpa klaster ("-"): tanpa fill
         $tanpa = new CapaianProgramSheet(['bulan' => $this->bulan, 'klaster' => null, 'kelurahan' => collect(['x|y' => collect([(object) ['desa' => 'Desa Nol', 'persen' => null, 'klaster' => null]])]),
             'lokasi' => collect([(object) ['id_lokasi' => 'x', 'nama_lokasi' => 'Lokasi X', 'persen' => null, 'klaster' => null,
@@ -289,10 +434,12 @@ class CapaianPublikTest extends TestCase
             }
         }
 
-        // Filter klaster ikut: merah hanya Kabupaten Beta
+        // Filter klaster ikut: merah hanya Lokasi Minus, kuning hanya Kabupaten Beta
         $merah = (new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan, 'klaster' => 'merah'])))->array();
         $this->assertStringContainsString('Klaster Merah', $merah[0][0]);
-        $this->assertSame(['Kabupaten Beta', 'Kec Beta', 'Desa Dua'], array_values(array_filter(array_column(array_slice($merah, 2), 0), fn ($n) => $n && $n !== 'Kelurahan')));
+        $this->assertSame(['Lokasi Minus', 'Kec Minus', 'Desa Minus'], array_values(array_filter(array_column(array_slice($merah, 2), 0), fn ($n) => $n && $n !== 'Kelurahan')));
+        $kuning = (new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan, 'klaster' => 'kuning'])))->array();
+        $this->assertSame(['Kabupaten Beta', 'Kec Beta', 'Desa Dua'], array_values(array_filter(array_column(array_slice($kuning, 2), 0), fn ($n) => $n && $n !== 'Kelurahan')));
     }
 
     public function test_export_capaian_program_rejected_for_kepala_and_pt(): void
@@ -313,7 +460,7 @@ class CapaianPublikTest extends TestCase
         Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $mhs->id_mahasiswa, 'id_desa' => $desaKosong->id_desa, 'user_in_up' => $mhs->email]);
         // Data bulan lain tidak boleh ikut ke bulan terpilih
         $this->logSampah($mhs, now()->subMonths(2)->format('Y-m'), 90);
-        // Kelurahan tepat 20% -> Kuning (ambang strict > 20%)
+        // Kelurahan tepat 20% -> Hijau (ambang >= 20%)
         $this->ketua('pas', 'Univ Pas', $this->d['lokasiA'], Desa::factory()->create(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'desa' => 'Desa Pas']), 20);
 
         $this->loginAs('admin');
@@ -336,7 +483,7 @@ class CapaianPublikTest extends TestCase
             }
         }
         $this->assertSame(['Desa Kosong', '-', '-'], $baris['Desa Kosong']);
-        $this->assertSame(['Desa Pas', 0.2, 'Kuning'], $baris['Desa Pas']);
+        $this->assertSame(['Desa Pas', 0.2, 'Hijau'], $baris['Desa Pas']);
 
         // Kecamatan tanpa kelurahan: tidak error, hanya baris lokasi + kecamatan
         $kosong = (new CapaianProgramSheet(['bulan' => $this->bulan, 'klaster' => null, 'kelurahan' => collect(), 'lokasi' => collect([(object) [
@@ -392,20 +539,27 @@ class CapaianPublikTest extends TestCase
 
     public function test_klaster_filters_rows_without_recalculating(): void
     {
-        $merah = $this->publik(['klaster' => 'merah']);
-        $this->assertSame(['Kabupaten Beta'], $merah['kecamatan']->pluck('nama_lokasi')->all());
-        $this->assertSame('merah', $merah['params']['klaster']);
-        $this->assertEquals(15.0, $merah['total_keseluruhan']->persen_pengurangan);
+        $this->assertTrue($this->publik(['klaster' => 'merah'])['kecamatan']->isEmpty());
+        $this->get('login/laporan?klaster=merah')->assertOk()->assertSee('Tidak ada kecamatan pada klaster ini');
 
-        $hijau = $this->publik(['klaster' => 'hijau']);
-        $this->assertTrue($hijau['kecamatan']->isEmpty());
+        $this->wilayahMinus();
+        Cache::flush();
+        $merah = $this->publik(['klaster' => 'merah']);
+        $this->assertSame(['Lokasi Minus'], $merah['kecamatan']->pluck('nama_lokasi')->all());
+        $this->assertSame('merah', $merah['params']['klaster']);
+        // Total tidak ikut filter: 1 - (75 + 85 + 95 + 110) / 400
+        $this->assertEquals(8.75, $merah['total_keseluruhan']->persen_pengurangan);
+
+        $this->assertSame(['Kota Alfa'], $this->publik(['klaster' => 'hijau'])['kecamatan']->pluck('nama_lokasi')->all());
+        $this->assertSame(['Kabupaten Beta'], $this->publik(['klaster' => 'kuning'])['kecamatan']->pluck('nama_lokasi')->all());
 
         $pt = $this->publik(['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $this->d['desaA']->id_desa, 'klaster' => 'hijau']);
         $this->assertSame(['Univ Hijau'], $pt['kelompok']->pluck('nama_pt')->all());
         $this->assertEquals(25.0, $pt['kelompok']->first()->persen_pt);
 
-        $this->get('login/laporan?klaster=merah')->assertOk()->assertSee('Kec Beta')->assertDontSee('Kec Alfa');
-        $this->get('login/laporan?klaster=hijau')->assertOk()->assertSee('Tidak ada kecamatan pada klaster ini');
+        $this->get('login/laporan?klaster=merah')->assertOk()->assertSee('Kec Minus')->assertDontSee('Kec Beta')->assertDontSee('Kec Alfa');
+        $this->get('login/laporan?klaster=hijau')->assertOk()->assertSee('Kec Alfa')->assertDontSee('Kec Beta')->assertDontSee('Kec Minus');
+        $this->get('login/laporan?klaster=kuning')->assertOk()->assertSee('Kec Beta')->assertDontSee('Kec Alfa');
     }
 
     public function test_jumlah_ketua_counts_ketua_per_pt_in_kelurahan_and_matches_dashboard(): void
@@ -495,17 +649,23 @@ class CapaianPublikTest extends TestCase
         $this->get('login/laporan?kecamatan='.$this->d['kecA']->id_kecamatan)->assertOk()->assertSee('data-drill-reset', false);
     }
 
-    public function test_dashboard_uses_public_partial_and_strict_threshold(): void
+    public function test_dashboard_uses_public_partial_and_inclusive_threshold(): void
     {
-        // Kec Alfa tepat 20,00%: kuning di publik & dashboard (> 20%)
+        // Kec Alfa tepat 20,00%: hijau di publik & dashboard (>= 20%); Kec Beta 5%: kuning; tidak ada merah
+        $legend = ['<span class="badge bg-success">Hijau</span> &ge; 20%;', '<span class="badge bg-warning">Kuning</span> 0% s.d. &lt; 20%;', '<span class="badge bg-danger">Merah</span> &lt; 0%.'];
         $this->get('login/laporan')->assertOk()
+            ->assertSeeInOrder($legend, false)
+            ->assertSee('<span class="badge bg-success">Hijau</span></t', false)
             ->assertSee('<span class="badge bg-warning">Kuning</span></t', false)
-            ->assertDontSee('<span class="badge bg-success">Hijau</span></t', false);
+            ->assertDontSee('<span class="badge bg-danger">Merah</span></t', false)
+            ->assertDontSee('10% s.d.', false);
         $this->loginAs('kepala');
         $this->get('dashboard-pengurangan-sampah', ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertViewIs('laporan._capaian_publik')
+            ->assertSeeInOrder($legend, false)
+            ->assertSee('<span class="badge bg-success">Hijau</span></t', false)
             ->assertSee('<span class="badge bg-warning">Kuning</span></t', false)
-            ->assertDontSee('<span class="badge bg-success">Hijau</span></t', false)
+            ->assertDontSee('<span class="badge bg-danger">Merah</span></t', false)
             ->assertSee('data-png-download', false)->assertSee('name="klaster"', false);
     }
 

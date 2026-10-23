@@ -99,7 +99,7 @@ class PenguranganSampahDashboardTest extends TestCase
         $this->get('dashboard-pengurangan-sampah?kodept='.$this->pt1->npsn, ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertViewIs('laporan._capaian_publik')
             ->assertDontSee('Capaian Pengurangan Sampah Seluruh Wilayah')->assertDontSee('Ringkasan')
-            ->assertSeeInOrder(['Kecamatan</th>', 'Pengurangan Sampah (%)</th>', 'Klaster</th>'], false);
+            ->assertSeeInOrder(['Kecamatan</th>', 'Pengurangan Timbulan Sampah (%)</th>', 'Klaster</th>'], false);
         $this->get('dashboard-pengurangan-sampah')->assertOk()->assertViewIs('pengurangansampah.index')->assertSee('Ringkasan');
     }
 
@@ -235,13 +235,27 @@ class PenguranganSampahDashboardTest extends TestCase
         $this->actingAs($kepala->fresh())->put('user/insertuserkepala', [])->assertForbidden();
     }
 
+    public function test_capaian_section_title_on_landing_dashboard_and_home(): void
+    {
+        $judul = 'Capaian Pengurangan Timbulan Sampah';
+        $this->get(route('landing'))->assertOk()->assertSee('<h2 class="lp-title" id="capaianTitle">'.$judul.'</h2>', false);
+
+        foreach (['admin', 'kepala'] as $role) {
+            $this->loginAs($role);
+            $this->get('dashboard-pengurangan-sampah')->assertOk()
+                ->assertSee('<h5 class="mb-1">'.$judul.'</h5>', false)->assertDontSee('<h5 class="mb-1">Laporan Kegiatan</h5>', false);
+            $this->get('home')->assertOk()->assertViewHas('penguranganSampahHome')
+                ->assertSee('<h5 class="mb-1">'.$judul.'</h5>', false)->assertDontSee('<h5 class="mb-1">Laporan Kegiatan</h5>', false);
+        }
+    }
+
     public function test_landing_page_shows_laporan_kegiatan(): void
     {
         $this->isiPendataan();
         $this->get(route('landing'))
             ->assertOk()
-            ->assertSee('Capaian Pengurangan Sampah')
-            ->assertSee('Pengurangan Sampah (%)')
+            ->assertSee('Capaian Pengurangan Timbulan Sampah')
+            ->assertSee('Pengurangan Timbulan Sampah (%)')
             ->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 3
                 && $l['kecamatan']->first()->nama_lokasi === $this->lokasi->nama_lokasi);
     }

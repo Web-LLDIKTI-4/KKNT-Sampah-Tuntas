@@ -78,7 +78,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-1">Laporan Kegiatan</h5>
+                <h5 class="mb-1">Capaian Pengurangan Timbulan Sampah</h5>
                 <p class="mb-0 card-subtitle">Capaian = persentase pengurangan sampah per bulan; klik kecamatan lalu kelurahan untuk melihat kelompok dan detail capaiannya</p>
             </div>
             <div class="card-body">

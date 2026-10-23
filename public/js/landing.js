@@ -987,9 +987,9 @@
         head.appendChild(petaEl("span", "peta-kec-value" + (persen === null ? " is-empty" : ""), persen === null ? "Belum ada data" : petaPersenText(persen)));
         li.appendChild(head);
         if (persen !== null) {
-          // Klaster warna mengikuti laporan publik: >20 hijau, >=10 kuning, <10 merah
-          var fill = petaEl("div", "peta-kec-fill " + (persen > 20 ? "is-high" : persen >= 10 ? "is-mid" : "is-low"));
-          fill.style.width = Math.min(100, Math.max(0, persen)) + "%";
+          // Klaster warna mengikuti laporan publik: >=20 hijau, >=0 kuning, <0 merah
+          var fill = petaEl("div", "peta-kec-fill " + (persen >= 20 ? "is-high" : persen >= 0 ? "is-mid" : "is-low"));
+          fill.style.width = (persen < 0 ? 4 : Math.min(100, persen)) + "%"; // negatif tetap terlihat merah
           bar.appendChild(fill);
         }
         bar.setAttribute("aria-hidden", "true");

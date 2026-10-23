@@ -14,7 +14,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 /**
  * Capaian Program (dashboard admin): lokasi (biru) -> kecamatan (kuning) -> kelurahan; 1 baris kosong antar lokasi.
- * Kolom: Nama | Pengurangan Sampah (%) | Klaster. Data dari PenguranganSampahService::capaianProgram().
+ * Kolom: Nama | Pengurangan Timbulan Sampah (%) | Klaster. Data dari PenguranganSampahService::capaianProgram().
  */
 class CapaianProgramSheet implements FromArray, WithTitle, WithEvents, WithStrictNullComparison
 {
@@ -47,7 +47,7 @@ class CapaianProgramSheet implements FromArray, WithTitle, WithEvents, WithStric
         if ($this->data['klaster']) {
             $judul .= ' - Klaster '.PenguranganSampah::KLASTER[$this->data['klaster']]['label'];
         }
-        $rows = [[$judul, null, null], ['Nama', 'Pengurangan Sampah (%)', 'Klaster']];
+        $rows = [[$judul, null, null], ['Nama', 'Pengurangan Timbulan Sampah (%)', 'Klaster']];
 
         foreach ($this->data['lokasi']->values() as $i => $lokasi) {
             if ($i > 0) {

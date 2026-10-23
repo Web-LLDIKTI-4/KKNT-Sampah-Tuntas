@@ -70,7 +70,7 @@
     </div>
 
     @if ($params['kecamatan'])
-        <h6 class="mb-2">Sebaran Lokasi (Kelurahan) &mdash; Kecamatan {{ $namaKecamatan }}</h6>
+        <h6 class="mb-2">Sebaran Lokasi (Kelurahan/Desa) - Kecamatan {{ $namaKecamatan }}</h6>
         <div class="table-responsive scroll-box mb-5">
             <table class="table table-sm table-bordered mb-0" style="max-width: 560px">
                 <thead>

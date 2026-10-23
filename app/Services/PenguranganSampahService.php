@@ -336,6 +336,8 @@ class PenguranganSampahService
                     'baseline' => $r->baseline !== null ? (float) $r->baseline : null,
                     'satuan_baseline' => $r->satuan_baseline ?? '%',
                     'persen' => $persenDesa[$r->id_desa]->persen_pengurangan ?? null,
+                    'persen_ketaatan' => $persenDesa[$r->id_desa]->persen_ketaatan ?? null,
+                    'persen_pengelolaan' => $persenDesa[$r->id_desa]->persen_pengelolaan ?? null,
                 ])->values()
             : collect();
 
@@ -356,7 +358,7 @@ class PenguranganSampahService
 
     /**
      * Versi halaman publik (login): drilldown() + persen per lokasi program, total keseluruhan,
-     * persen per PT di kelurahan, dan filter klaster (hijau > 20%) per baris tanpa hitung ulang angka.
+     * persen per PT di kelurahan, dan filter klaster (hijau >= 20%) per baris tanpa hitung ulang angka.
      */
     public function drilldownPublik(array $filter): array
     {
@@ -377,23 +379,23 @@ class PenguranganSampahService
 
         $data['kecamatan'] = $data['kecamatan']->map(function ($lokasi) use ($persenLokasi, $cocok) {
             $lokasi->persen = $persenLokasi[$lokasi->id_lokasi]->persen_pengurangan ?? null;
-            $lokasi->klaster = PenguranganSampah::klaster($lokasi->persen, true);
+            $lokasi->klaster = PenguranganSampah::klaster($lokasi->persen);
             $lokasi->kecamatan = $lokasi->kecamatan
-                ->each(fn ($r) => $r->klaster = PenguranganSampah::klaster($r->persen, true))
+                ->each(fn ($r) => $r->klaster = PenguranganSampah::klaster($r->persen))
                 ->filter(fn ($r) => $cocok($r->klaster))->values();
 
             return $lokasi;
         })->filter(fn ($lokasi) => $lokasi->kecamatan->isNotEmpty())->values();
 
         $data['kelurahan'] = $data['kelurahan']
-            ->each(fn ($r) => $r->klaster = PenguranganSampah::klaster($r->persen, true))
+            ->each(fn ($r) => $r->klaster = PenguranganSampah::klaster($r->persen))
             ->filter(fn ($r) => $cocok($r->klaster))->values();
 
         $data['kelompok'] = $data['kelompok']->each(function ($r) use ($persenPt, $bulan) {
             // Detail hanya capaian bulan terpilih; ketua tanpa isian tampil baris kosong (detailPublik)
             $r->capaian = $r->capaian->filter(fn ($c) => $bulan && str_starts_with((string) $c->bulan, $bulan))->values();
             $r->persen_pt = $persenPt[$r->kodept]->persen_pengurangan ?? null;
-            $r->klaster_pt = PenguranganSampah::klaster($r->persen_pt, true);
+            $r->klaster_pt = PenguranganSampah::klaster($r->persen_pt);
         })->filter(fn ($r) => $cocok($r->klaster_pt));
 
         // No. kontak semua ketua (1 query); email tidak ikut ke data publik
@@ -447,7 +449,7 @@ class PenguranganSampahService
 
     /**
      * Export "Capaian Program" (admin): lokasi -> kecamatan (dari drilldownPublik) + SEMUA kelurahan berdata
-     * per lokasi|kecamatan. Ikut filter bulan & klaster, ambang strict seperti halaman publik.
+     * per lokasi|kecamatan. Ikut filter bulan & klaster, ambang klaster sama dengan halaman publik.
      */
     public function capaianProgram(array $filter): array
     {
@@ -461,7 +463,7 @@ class PenguranganSampahService
             ->map(function ($r) use ($persenDesa) {
                 $persen = $persenDesa[$r->id_desa]->persen_pengurangan ?? null;
 
-                return (object) ['kunci' => $r->location_program.'|'.$r->id_kecamatan, 'desa' => $r->desa, 'persen' => $persen, 'klaster' => PenguranganSampah::klaster($persen, true)];
+                return (object) ['kunci' => $r->location_program.'|'.$r->id_kecamatan, 'desa' => $r->desa, 'persen' => $persen, 'klaster' => PenguranganSampah::klaster($persen)];
             })
             ->filter(fn ($r) => ! $klaster || $r->klaster === $klaster)
             ->groupBy('kunci');
@@ -663,6 +665,8 @@ class PenguranganSampahService
         $row->total_dihasilkan = round($row->total_terkelola + $row->residu, 2);
         $row->persen_ketaatan = PenguranganSampah::persen($row->jml_rumah_memilah, $row->jml_rumah);
         $row->persen_penurunan = PenguranganSampah::persen($row->total_terkelola, $row->total_dihasilkan);
+        // Sama dengan persen_pengelolaan Data Sampah (barisLog/angkaSubtotal)
+        $row->persen_pengelolaan = $row->persen_penurunan;
 
         return $row;
     }
