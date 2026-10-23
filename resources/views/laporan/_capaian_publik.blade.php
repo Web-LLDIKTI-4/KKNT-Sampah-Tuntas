@@ -75,7 +75,7 @@
                     <tr>
                         <th class="text-center">No</th>
                         <th class="text-center">Kecamatan</th>
-                        <th class="text-center">Persentase Penurunan Timbulan Sampah</th>
+                        <th class="text-center">Penurunan Timbulan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                     </tr>
                 </thead>
@@ -123,9 +123,9 @@
                         <th class="text-center">No</th>
                         <th class="text-center">Kelurahan/Desa</th>
                         <th class="text-center">Baseline</th>
-                        <th class="text-center">Persentase Ketaatan Pemilahan</th>
-                        <th class="text-center">Persentase Pengelolaan Sampah</th>
-                        <th class="text-center">Persentase Penurunan Timbulan Sampah</th>
+                        <th class="text-center">Ketaatan Pemilahan (%)</th>
+                        <th class="text-center">Pengelolaan Sampah (%)</th>
+                        <th class="text-center">Penurunan Timbulan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                     </tr>
                 </thead>
@@ -161,7 +161,7 @@
                         <th class="text-center">Lokasi</th>
                         <th class="text-center">Mahasiswa</th>
                         <th class="text-center">DPL</th>
-                        <th class="text-center">Persentase Penurunan Timbulan Sampah</th>
+                        <th class="text-center">Penurunan Timbulan Sampah (%)</th>
                         <th class="text-center">Klaster</th>
                         <th class="text-center">Detail</th>
                     </tr>

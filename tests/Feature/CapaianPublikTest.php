@@ -222,8 +222,8 @@ class CapaianPublikTest extends TestCase
         $this->wilayahKolomKelurahan();
         $kel = $this->publik(['id_kecamatan' => $this->d['kecD']->id_kecamatan])['kelurahan']->keyBy('desa');
         $fmt = fn ($p) => PenguranganSampah::formatPersen($p).'</td>';
-        $header = ['Kelurahan/Desa</th>', 'Baseline</th>', '>Persentase Ketaatan Pemilahan</th>',
-            '>Persentase Pengelolaan Sampah</th>', '>Persentase Penurunan Timbulan Sampah</th>', 'Klaster</th>'];
+        $header = ['Kelurahan/Desa</th>', 'Baseline</th>', '>Ketaatan Pemilahan (%)</th>',
+            '>Pengelolaan Sampah (%)</th>', '>Penurunan Timbulan Sampah (%)</th>', 'Klaster</th>'];
         $baris = [
             'Desa Bulan Lain</a>', '-</td>', '-</td>', '-</td>', '-</td>', '- </td>',
             'Desa Nol</a>', '-</td>', '100,00%</td>', '-</td>', $fmt($kel['Desa Nol']->persen),
@@ -233,7 +233,7 @@ class CapaianPublikTest extends TestCase
         $cek = function ($res) use ($header, $baris) {
             $res->assertOk()->assertSee('Sebaran Lokasi (Kelurahan/Desa) - Kecamatan Kec Data', false)
                 ->assertSeeInOrder($header, false)->assertSeeInOrder($baris, false)
-                ->assertDontSee('Pengurangan Sampah (%)</th>', false)->assertDontSee('(G/D)', false)->assertDontSee('(M/N)', false)->assertDontSee('0,36*L', false);
+                ->assertDontSee('Pengurangan Sampah (%)</th>', false)->assertDontSee('>Persentase ', false)->assertDontSee('(G/D)', false)->assertDontSee('(M/N)', false)->assertDontSee('0,36*L', false);
         };
         $cek($this->get('login/laporan?kecamatan='.$this->d['kecD']->id_kecamatan));
         $this->loginAs('admin');
@@ -247,11 +247,12 @@ class CapaianPublikTest extends TestCase
     public function test_capaian_tables_use_consistent_penurunan_header_on_landing_and_dashboard(): void
     {
         $query = '?kecamatan='.$this->d['kecA']->id_kecamatan.'&desa='.$this->d['desaA']->id_desa;
-        $header = '<th class="text-center">Persentase Penurunan Timbulan Sampah</th>';
+        $header = '<th class="text-center">Penurunan Timbulan Sampah (%)</th>';
         $cek = function ($res) use ($header) {
             $html = $res->assertOk()
                 ->assertSeeInOrder(['Kecamatan</th>', $header, 'Kelurahan/Desa</th>', $header, 'PTS</th>', $header], false)
                 ->assertDontSee('Pengurangan Timbulan Sampah (%)')->assertDontSee('% Pengurangan Sampah')
+                ->assertDontSee('Persentase Penurunan Timbulan Sampah')
                 ->getContent();
             $this->assertSame(3, substr_count($html, $header));
         };

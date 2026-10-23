@@ -40,7 +40,7 @@
                 <tr>
                     @forelse ($kecamatan as $lokasi)
                         <th>{{ $lokasi->nama_lokasi }}</th>
-                        <th class="text-center">Persentase Penurunan Timbulan Sampah</th>
+                        <th class="text-center">Penurunan Timbulan Sampah (%)</th>
                     @empty
                         <th>Kecamatan</th>
                     @endforelse
@@ -77,7 +77,7 @@
                     <tr>
                         <th class="text-center" width="1">No</th>
                         <th>Kelurahan/Desa</th>
-                        <th class="text-center">Persentase Penurunan Timbulan Sampah</th>
+                        <th class="text-center">Penurunan Timbulan Sampah (%)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -109,7 +109,7 @@
                         <th class="text-center">Jml Mhs</th>
                         <th class="text-center">DPL</th>
                         <th class="text-center">Ketua Kelompok</th>
-                        <th class="text-center">Persentase Penurunan Timbulan Sampah</th>
+                        <th class="text-center">Penurunan Timbulan Sampah (%)</th>
                         <th class="text-center">Detail</th>
                     </tr>
                 </thead>

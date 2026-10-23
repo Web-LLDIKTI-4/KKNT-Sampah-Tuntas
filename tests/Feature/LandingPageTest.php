@@ -57,12 +57,13 @@ class LandingPageTest extends TestCase
     private function assertBaselineBeforePersen($response): void
     {
         $response->assertOk()
-            ->assertSeeInOrder(['Kelurahan/Desa</th>', 'Baseline</th>', '>Persentase Penurunan Timbulan Sampah</th>', 'Klaster</th>'], false)
+            ->assertSeeInOrder(['Kelurahan/Desa</th>', 'Baseline</th>', '>Penurunan Timbulan Sampah (%)</th>', 'Klaster</th>'], false)
             ->assertSeeInOrder(['Desa Berbaseline</a>', '12,50%</td>', '20,00%</td>'], false)
             ->assertSeeInOrder(['Desa Tanpa Baseline</a>', '-</td>', '20,00%</td>'], false)
             ->assertDontSee('Pengurangan Timbulan Sampah (%)', false)
-            ->assertDontSee('% Pengurangan Sampah', false);
-        $this->assertDoesNotMatchRegularExpression('/\(%\)\s*<\/th>/', $response->getContent());
+            ->assertDontSee('% Pengurangan Sampah', false)
+            ->assertDontSee('Persentase Penurunan Timbulan Sampah</th>', false);
+        $this->assertMatchesRegularExpression('/Penurunan Timbulan Sampah \(%\)\s*<\/th>/', $response->getContent());
     }
 
     // AC1

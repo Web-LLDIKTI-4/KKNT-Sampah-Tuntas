@@ -99,7 +99,7 @@ class PenguranganSampahDashboardTest extends TestCase
         $this->get('dashboard-pengurangan-sampah?kodept='.$this->pt1->npsn, ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertViewIs('laporan._capaian_publik')
             ->assertDontSee('Capaian Pengurangan Sampah Seluruh Wilayah')->assertDontSee('Ringkasan')
-            ->assertSeeInOrder(['Kecamatan</th>', '>Persentase Penurunan Timbulan Sampah</th>', 'Klaster</th>'], false)
+            ->assertSeeInOrder(['Kecamatan</th>', '>Penurunan Timbulan Sampah (%)</th>', 'Klaster</th>'], false)
             ->assertDontSee('Pengurangan Timbulan Sampah (%)')->assertDontSee('% Pengurangan Sampah');
         $this->get('dashboard-pengurangan-sampah')->assertOk()->assertViewIs('pengurangansampah.index')->assertSee('Ringkasan');
     }
@@ -256,7 +256,7 @@ class PenguranganSampahDashboardTest extends TestCase
         $this->get(route('landing'))
             ->assertOk()
             ->assertSee('Capaian Pengurangan Timbulan Sampah')
-            ->assertSee('>Persentase Penurunan Timbulan Sampah</th>', false)
+            ->assertSee('>Penurunan Timbulan Sampah (%)</th>', false)->assertDontSee('>Persentase Penurunan Timbulan Sampah</th>', false)
             ->assertDontSee('Pengurangan Timbulan Sampah (%)')->assertDontSee('% Pengurangan Sampah')
             ->assertViewHas('laporan', fn ($l) => self::jumlahKecamatan($l) === 3
                 && $l['kecamatan']->first()->nama_lokasi === $this->lokasi->nama_lokasi);
