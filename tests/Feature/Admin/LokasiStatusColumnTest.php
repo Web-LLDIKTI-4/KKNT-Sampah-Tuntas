@@ -480,10 +480,23 @@ class LokasiStatusColumnTest extends TestCase
         $this->assertCount(count($columns), $ths, 'PT: jumlah th == columns');
         $this->assertSame('Kecamatan', $ths[$this->columnIndex($columns, 'nama_kecamatan')]);
         $this->assertSame('Kelurahan/Desa', $ths[$this->columnIndex($columns, 'nama_desa')]);
-        $this->assertNotContains('Aksi', $ths, 'PT tidak punya kolom Aksi');
-        $this->assertNotContains('action', array_column($columns, 'data'));
-        $this->assertSame([7], json_decode($table->getAttribute('data-check'), true));
-        $this->assertSame('ketua_kelompok', $columns[7]['data']);
+        $this->assertSame('Aksi', end($ths), 'PT punya kolom Aksi terakhir');
+        $this->assertSame('action', end($columns)['data']);
+        $this->assertFalse($table->hasAttribute('data-check'));
+        $this->assertSame('ketua_status', $columns[7]['data']);
+        $this->assertSame('Ketua Kelompok', $ths[7]);
+
+        foreach (['kepala', 'pemda'] as $role) {
+            $this->loginAs($role);
+            $xpath = $this->xpathOf($this->get('ptmahasiswa/listdata')->assertOk()->getContent());
+            $table = $this->findTable($xpath, '//table[@data-datatable]');
+            $columns = json_decode($table->getAttribute('data-columns'), true);
+            $ths = array_map(fn ($th) => trim($th->textContent), iterator_to_array($xpath->query('./thead/tr/th', $table)));
+            $this->assertCount(count($columns), $ths, "{$role}: jumlah th == columns");
+            $this->assertNotContains('Aksi', $ths, "{$role} tidak punya kolom Aksi");
+            $this->assertNotContains('action', array_column($columns, 'data'), $role);
+            $this->assertSame('ketua_status', $columns[7]['data'], $role);
+        }
 
         $this->loginAs('dpl');
         $xpath = $this->xpathOf($this->get('dplmentoring/listdata')->assertOk()->getContent());

@@ -566,4 +566,6 @@ Route::middleware(['auth', 'role:pt'])->group(function () {
     Route::get('ptpjdesa/listdataserver', [PtpjdesaController::class, 'listdataserver'])->name('ptpjdesa.listdataserver');
     Route::get('ptpjdesa/edit/{id_pjdesa}', [PtpjdesaController::class, 'edit'])->whereUuid('id_pjdesa')->name('ptpjdesa.edit');
     Route::put('ptpjdesa/update', [PtpjdesaController::class, 'update'])->middleware('throttle:sensitive')->name('ptpjdesa.update');
+    Route::put('ptmahasiswa/setketua', [PtmahasiswaController::class, 'setKetua'])->middleware('throttle:sensitive')->name('ptmahasiswa.setketua');
+    Route::put('ptmahasiswa/cabutketua', [PtmahasiswaController::class, 'cabutKetua'])->middleware('throttle:sensitive')->name('ptmahasiswa.cabutketua');
 });

@@ -6,10 +6,9 @@ use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Models\CapaianKegiatan;
 use App\Models\Pjdesa;
-use App\Models\User;
+use App\Services\KetuaKelompokService;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class PjdesaController extends Controller
@@ -78,24 +77,16 @@ class PjdesaController extends Controller
             ->make(true);
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request, KetuaKelompokService $ketua)
     {
         $pjdesa = Pjdesa::find($request->input('id_pjdesa'));
         if (! $pjdesa) {
             return $this->notFound();
         }
 
-        if (CapaianKegiatan::where('email', $pjdesa->email)->whereYear('bulan', now()->year)->exists()) {
-            return $this->deleteRejected('Tidak dapat dihapus karena ketua kelompok memiliki capaian KPI tahun ini');
+        if ($error = $ketua->revoke($pjdesa)) {
+            return $this->deleteRejected($error);
         }
-
-        DB::transaction(function () use ($pjdesa) {
-            $pjdesa->delete();
-            // Revoke only when no other assignment remains for this email
-            if (! Pjdesa::where('email', $pjdesa->email)->exists()) {
-                User::where('email', $pjdesa->email)->where('akses', 'pjdesa')->update(['akses' => null]);
-            }
-        });
 
         return $this->deleted('Akses ketua kelompok berhasil dicabut');
     }

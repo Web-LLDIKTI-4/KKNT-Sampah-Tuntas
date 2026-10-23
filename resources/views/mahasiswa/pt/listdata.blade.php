@@ -10,11 +10,13 @@
         ['data' => 'phone', 'name' => 'phone', 'className' => 'text-center'],
         ['data' => 'nm_lemb', 'name' => 'nm_lemb'],
         ['data' => 'location_program', 'name' => 'location_program'],
-        ['data' => 'ketua_kelompok', 'name' => 'ketua_kelompok', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
+        ['data' => 'ketua_status', 'name' => 'ketua_status', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
         ['data' => 'nama_kecamatan', 'name' => 'nama_kecamatan', 'emptyBadge' => 'Belum diisi'],
         ['data' => 'nama_desa', 'name' => 'nama_desa', 'emptyBadge' => 'Belum diisi'],
+        ...(auth()->user()->role === 'pt'
+            ? [['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'orderable' => false, 'searchable' => false]]
+            : []),
     ]"
-    :check="[7]"
 >
     <x-slot:thead>
         <tr>
@@ -28,6 +30,9 @@
             <th>Ketua Kelompok</th>
             <th>Kecamatan</th>
             <th>Kelurahan/Desa</th>
+            @if (auth()->user()->role === 'pt')
+                <th>Aksi</th>
+            @endif
         </tr>
     </x-slot:thead>
 </x-table>

@@ -4,6 +4,7 @@
  *               [data-reload-page] (tombol submit id="btnSubmit_{formId}")
  *               [data-result-target="#el"] : respons HTML dimuat ke #el (form pemuat isian)
  * - Hapus     : .btn-delete (lihat <x-action-data>) data-url data-id-field data-id-value [data-confirm]
+ * - Konfirmasi: .btn-confirm-put — sama dengan .btn-delete (PUT + confirm) untuk aksi non-hapus
  * - Loading   : btnLoading(btn, true|false[, label]) — satu-satunya state loading tombol
  * Respons server: {success, message, errors?}
  */
@@ -149,7 +150,7 @@
         });
     });
 
-    $(document).on('click', '.btn-delete', function (e) {
+    $(document).on('click', '.btn-delete, .btn-confirm-put', function (e) {
         e.preventDefault();
         var $btn = $(this);
         if (!confirm($btn.data('confirm') || 'Anda yakin ingin menghapus data ini?')) {
@@ -185,7 +186,7 @@
             },
             error: function (xhr) {
                 var ret = xhr.responseJSON || {};
-                toastr.error(ret.message || ret.error || 'Terjadi kesalahan saat menghapus data');
+                toastr.error(ret.message || ret.error || $btn.data('error') || 'Terjadi kesalahan saat menghapus data');
             }
         });
     });

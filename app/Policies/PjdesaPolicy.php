@@ -13,4 +13,15 @@ class PjdesaPolicy
     {
         return $user->role === 'pt' && Mahasiswa::canBeViewedBy($user, $pjdesa->email);
     }
+
+    // PT menunjuk mahasiswanya sendiri sebagai ketua
+    public function assign(User $user, Mahasiswa $mahasiswa): bool
+    {
+        return $user->role === 'pt' && Mahasiswa::canBeViewedBy($user, $mahasiswa->email);
+    }
+
+    public function revoke(User $user, Pjdesa $pjdesa): bool
+    {
+        return $this->updateMobilisasi($user, $pjdesa);
+    }
 }
