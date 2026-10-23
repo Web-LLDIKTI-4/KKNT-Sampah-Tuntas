@@ -526,15 +526,6 @@
         </div>
     </footer>
 
-    {{-- CTA melayang di mobile --}}
-    <div class="lp-fab d-sm-none">
-        @auth
-            <a href="{{ route('home') }}" class="btn btn-primary"><i class="ri-dashboard-line me-1" aria-hidden="true"></i> Ke Dashboard</a>
-        @else
-            <a href="{{ route('login') }}" class="btn btn-primary"><i class="ri-login-box-line me-1" aria-hidden="true"></i> Masuk</a>
-        @endauth
-    </div>
-
     {{-- Modal detail data peserta --}}
     <div class="modal fade" id="modalPesertaDetail" tabindex="-1" aria-labelledby="modalPesertaDetailTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">

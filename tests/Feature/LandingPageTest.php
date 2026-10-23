@@ -71,6 +71,8 @@ class LandingPageTest extends TestCase
             ->assertSee('href="'.route('login').'"', false)
             ->assertSee('Masuk')
             ->assertDontSee('Ke Dashboard')
+            ->assertDontSee('lp-fab', false)
+            ->assertSeeInOrder(['id="lpOffcanvas"', 'href="'.route('login').'"', 'Masuk'], false)
             ->assertSee('data-drilldown="'.route('login.laporan').'"', false)
             ->assertSee('id="peserta"', false)
             ->assertSee('data-url="'.route('login.peta').'"', false)
@@ -89,6 +91,8 @@ class LandingPageTest extends TestCase
             ->assertSee('href="'.route('home').'"', false)
             ->assertSee('action="'.route('logout').'"', false)
             ->assertDontSee('href="'.route('login').'"', false)
+            ->assertDontSee('lp-fab', false)
+            ->assertSeeInOrder(['id="lpOffcanvas"', 'href="'.route('home').'"', 'Ke Dashboard', 'action="'.route('logout').'"', 'Keluar'], false)
             ->assertSee('data-drilldown="'.route('login.laporan').'"', false)
             ->assertSee('id="peserta"', false)
             ->assertSee('id="dokumen"', false);

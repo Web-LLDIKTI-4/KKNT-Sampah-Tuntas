@@ -27,8 +27,6 @@ body.lp {
     font-family: 'Inter', var(--bs-font-sans-serif, system-ui), sans-serif;
     background: var(--lp-bg);
     color: var(--lp-muted);
-    /* Ruang untuk CTA melayang di HP */
-    padding-bottom: 4.5rem;
 }
 
 .lp .btn-primary {
@@ -1303,34 +1301,13 @@ th[aria-sort] .peserta-sort i {
     text-align: center;
 }
 
-/* CTA melayang (HP saja) */
-.lp-fab {
-    position: fixed;
-    left: 1rem;
-    right: 1rem;
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-    z-index: 1020;
-}
-
-.lp-fab .btn {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border-radius: 999px;
-    font-weight: 700;
-    box-shadow: 0 12px 28px rgba(var(--lp-primary-rgb), 0.45);
-}
-
-/* Badge reCAPTCHA tidak dipakai di landing; toastr di atas FAB */
+/* Badge reCAPTCHA tidak dipakai di landing; toastr di atas header sticky */
 #toast-container {
     z-index: 1090;
 }
 
 /* ---------- >= 576px ---------- */
 @media (min-width: 576px) {
-    body.lp {
-        padding-bottom: 0;
-    }
-
     .lp-hero-actions {
         flex-direction: row;
         flex-wrap: wrap;
