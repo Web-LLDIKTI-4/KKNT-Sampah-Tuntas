@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-// Capaian KPI kini diukur dari persentase pengurangan sampah; target & realisasi per kegiatan tidak dipakai lagi.
+// Evaluasi Pendataan Sampah kini diukur dari persentase pengurangan sampah; target & realisasi per kegiatan tidak dipakai lagi.
 return new class extends Migration
 {
     public function up(): void

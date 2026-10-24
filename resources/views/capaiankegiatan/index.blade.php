@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Capaian KPI')
+@section('title','Evaluasi Pendataan Sampah')
 @section('container')
 @php
     use App\Models\PenguranganSampah;
@@ -43,7 +43,7 @@
 
 <div class="card">
     <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h5 class="mb-0">Riwayat Capaian KPI</h5>
+        <h5 class="mb-0">Riwayat Evaluasi Pendataan Sampah</h5>
         {{-- Input capaian hanya ketua kelompok --}}
         @if ($isKetua ?? false)
             <x-button :modal="url('capaiankegiatan/tambah')" title="Tambah Data" icon="ri-add-circle-line">Tambah Data</x-button>

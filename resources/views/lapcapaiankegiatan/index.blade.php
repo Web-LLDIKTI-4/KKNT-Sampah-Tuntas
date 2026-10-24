@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Laporan Capaian KPI')
+@section('title','Laporan Evaluasi Pendataan Sampah')
 
 @section('container')
 <div class="d-flex mb-4 gap-4">
@@ -12,9 +12,9 @@
         <h5 class="mb-0">
             <span class="align-middle">Capaian Key Performance Indicator (KPI)</span>
         </h5>
-        <span>Data Capaian KPI</span>
+        <span>Data Evaluasi Pendataan Sampah</span>
     </div>
-</div> 
+</div>
 
 <div class="card">
     <div class="card-body">
@@ -29,4 +29,4 @@ $(function(){
     loadPartial('#resultcontent', "{{ url('lapcapaiankegiatan/listdata') }}");
 })
 </script>
-@stop 
+@stop

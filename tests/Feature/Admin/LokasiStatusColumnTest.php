@@ -80,9 +80,19 @@ class LokasiStatusColumnTest extends TestCase
         ]);
     }
 
-    private function mahasiswaRows(array $extra = [], array $columnSearch = []): TestResponse
+    // Admin view dropped the Kelurahan/Desa column; endpoint still serves nama_desa, so append it for server-contract checks
+    private function adminColumnsWithDesa(): array
     {
         $columns = $this->viewColumns('mahasiswa/listdata');
+        $this->assertNotContains('nama_desa', array_column($columns, 'data'), 'Kolom nama_desa sudah dihapus dari view admin');
+        array_splice($columns, -1, 0, [['data' => 'nama_desa', 'name' => 'nama_desa', 'visible' => false]]);
+
+        return $columns;
+    }
+
+    private function mahasiswaRows(array $extra = [], array $columnSearch = [], bool $withDesa = false): TestResponse
+    {
+        $columns = $withDesa ? $this->adminColumnsWithDesa() : $this->viewColumns('mahasiswa/listdata');
         foreach ($columnSearch as $data => $value) {
             $columns[$this->columnIndex($columns, $data)]['search'] = $value;
         }
@@ -157,7 +167,7 @@ class LokasiStatusColumnTest extends TestCase
         foreach ([['Zaenal', 'Desa Alfa', 'Kec Charlie'], ['Yanti', 'Desa Bravo', 'Kec Bravo'], ['Xavier', 'Desa Charlie', 'Kec Alfa']] as [$nama, $desa, $kec]) {
             $this->lokasi(Mahasiswa::factory()->create(['nama' => $nama]), $this->desa($desa, $kec), $y);
         }
-        $columns = $this->viewColumns('mahasiswa/listdata');
+        $columns = $this->adminColumnsWithDesa();
 
         $cases = [
             'nama_desa' => ['Desa Alfa', 'Desa Bravo', 'Desa Charlie'],
@@ -192,19 +202,22 @@ class LokasiStatusColumnTest extends TestCase
 
         $emails = fn (TestResponse $r) => collect($r->json('data'))->pluck('email')->all();
 
-        foreach (['nama_desa' => ['Qxbaru', 'Qxlama'], 'nama_kecamatan' => ['Qkbaru', 'Qklama']] as $data => [$latest, $old]) {
-            $this->assertSame([$target->email], $emails($this->mahasiswaRows([], [$data => $latest])), "column search {$data} terbaru");
-            $this->assertSame([], $emails($this->mahasiswaRows([], [$data => $old])), "column search {$data} lama tidak boleh cocok");
+        // nama_kecamatan from the view as is; nama_desa via the appended column (server contract)
+        foreach (['nama_desa' => ['Qxbaru', 'Qxlama', true], 'nama_kecamatan' => ['Qkbaru', 'Qklama', false]] as $data => [$latest, $old, $withDesa]) {
+            $this->assertSame([$target->email], $emails($this->mahasiswaRows([], [$data => $latest], $withDesa)), "column search {$data} terbaru");
+            $this->assertSame([], $emails($this->mahasiswaRows([], [$data => $old], $withDesa)), "column search {$data} lama tidak boleh cocok");
 
-            $this->assertSame([$target->email], $emails($this->mahasiswaRows(['search' => ['value' => $latest, 'regex' => 'false']])), "global search {$latest}");
-            $this->assertSame([], $emails($this->mahasiswaRows(['search' => ['value' => $old, 'regex' => 'false']])), "global search {$old} lama tidak boleh cocok");
+            $this->assertSame([$target->email], $emails($this->mahasiswaRows(['search' => ['value' => $latest, 'regex' => 'false']], [], $withDesa)), "global search {$latest}");
+            $this->assertSame([], $emails($this->mahasiswaRows(['search' => ['value' => $old, 'regex' => 'false']], [], $withDesa)), "global search {$old} lama tidak boleh cocok");
         }
 
         // Wildcard & payload SQL diperlakukan literal, tanpa error
         foreach (['%', '_', "' OR 1=1 -- ", '") OR ("1"="1'] as $payload) {
-            $r = $this->mahasiswaRows([], ['nama_desa' => $payload]);
-            $this->assertSame(0, $r->json('recordsFiltered'), "column search literal: {$payload}");
-            $this->mahasiswaRows(['search' => ['value' => $payload, 'regex' => 'false']]);
+            foreach (['nama_desa' => true, 'nama_kecamatan' => false] as $data => $withDesa) {
+                $r = $this->mahasiswaRows([], [$data => $payload], $withDesa);
+                $this->assertSame(0, $r->json('recordsFiltered'), "column search {$data} literal: {$payload}");
+            }
+            $this->mahasiswaRows(['search' => ['value' => $payload, 'regex' => 'false']], [], true);
         }
     }
 
@@ -227,7 +240,7 @@ class LokasiStatusColumnTest extends TestCase
         $this->loginAs('admin');
 
         $cases = [
-            'mahasiswa/listdata' => ['nama_kecamatan' => 'Status Set Lokasi', 'nama_desa' => 'Kelurahan/Desa'],
+            'mahasiswa/listdata' => ['nama_kecamatan' => 'Status Set Lokasi'],
             'dpl/listdata' => [],
         ];
         foreach ($cases as $url => $newColumns) {
@@ -244,6 +257,10 @@ class LokasiStatusColumnTest extends TestCase
                 $this->assertSame($label, trim($ths[$i]->textContent), "{$url}: header {$data}");
             }
             if ($url === 'mahasiswa/listdata') {
+                // Kelurahan/Desa removed from the admin table (PT view keeps it)
+                $this->assertNotContains('nama_desa', array_column($columns, 'data'));
+                $this->assertNotContains('Kelurahan/Desa', array_map(fn ($th) => trim($th->textContent), $ths));
+                $this->assertSame('id_mahasiswa', $table->getAttribute('data-select-key'));
                 $this->assertFalse($table->hasAttribute('data-check'));
                 $this->assertSame('ketua_kelompok', $columns[7]['data']);
                 $this->assertSame(['Ketua kelompok', 'Bukan ketua'], $columns[7]['boolIcon']);
@@ -251,6 +268,8 @@ class LokasiStatusColumnTest extends TestCase
             } else {
                 // Data DPL kembali ke kolom semula
                 $this->assertSame(['DT_RowIndex', 'nidn', 'nama', 'email', 'phone', 'nm_lemb', 'location_program', 'action'], array_column($columns, 'data'));
+                // Bulk checkbox column is prepended client-side by table-init.js, not in data-columns
+                $this->assertSame('id_dpl', $table->getAttribute('data-select-key'));
                 $this->assertFalse($table->hasAttribute('data-check'));
             }
         }
@@ -268,11 +287,8 @@ class LokasiStatusColumnTest extends TestCase
             $this->assertDoesNotMatchRegularExpression('/ratioOf|renderRatio/', File::get(public_path('js/'.$js)), $js);
         }
 
-        // dpl/listdata identik dengan HEAD (kolom bimbingan sudah di-revert)
-        $head = (string) shell_exec('git -C '.escapeshellarg(base_path()).' show HEAD:resources/views/dpl/listdata.blade.php 2>/dev/null');
-        if ($head !== '') {
-            $this->assertSame($head, File::get(resource_path('views/dpl/listdata.blade.php')), 'dpl/listdata harus sama dengan HEAD');
-        }
+        // Kolom bimbingan di dpl/listdata tetap di-revert (cek struktural, bukan diff terhadap HEAD)
+        $this->assertDoesNotMatchRegularExpression('/bimbingan|nama_desa|nama_kecamatan/i', File::get(resource_path('views/dpl/listdata.blade.php')));
 
         // JSON Data DPL tidak membawa kolom lokasi/bimbingan
         Dpl::factory()->create();

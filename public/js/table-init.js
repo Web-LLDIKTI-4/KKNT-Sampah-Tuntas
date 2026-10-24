@@ -35,6 +35,8 @@ $(function () {
             });
             // Shift order indexes past the new first column
             order = (order || []).map(function (o) { return [o[0] + 1, o[1]]; });
+            // DataTables merges $table.data() over init options; keep the cache in sync
+            $table.data('columns', columns).data('order', order);
         }
 
         $table.DataTable({

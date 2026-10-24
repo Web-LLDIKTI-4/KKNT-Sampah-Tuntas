@@ -187,7 +187,7 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankegiatan') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Evaluasi Pendataan Sampah
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -324,12 +324,12 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkehadiran') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kehadiran
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kehadiran Mahasiswa
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankegiatan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Evaluasi Pendataan Sampah
                                 </a>
                             </li>
                         </ul>
@@ -485,12 +485,12 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('admlogkehadiran') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kehadiran
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kehadiran Mahasiswa
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('lapcapaiankegiatan') }}">
-                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                    <i class="menu-icon tf-icons ri-circle-line me-2"></i> Evaluasi Pendataan Sampah
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -530,7 +530,7 @@
                             <ul class="nav flex-column">
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('logkehadiran') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kehadiran
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kehadiran Mahasiswa
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -560,7 +560,7 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('capaiankegiatan') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Evaluasi Pendataan Sampah
                                     </a>
                                 </li>
                                 <li class="nav-item">

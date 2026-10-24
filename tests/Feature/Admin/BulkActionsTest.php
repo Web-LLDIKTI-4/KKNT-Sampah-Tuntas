@@ -30,10 +30,12 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use OpenSpout\Reader\XLSX\Reader;
 use RuntimeException;
+use Tests\Concerns\InspectsSortableTables;
 use Tests\TestCase;
 
 class BulkActionsTest extends TestCase
 {
+    use InspectsSortableTables;
     use RefreshDatabase;
 
     private const MODULES = ['user', 'mahasiswa', 'dpl'];
@@ -215,7 +217,7 @@ class BulkActionsTest extends TestCase
         $missing = (string) Str::uuid();
 
         $response = $this->put('user/bulk-destroy', ['ids' => [$admin->id, $otherAdmin->id, $mhs->id, $kepala->id, $missing]])
-            ->assertJson(['success' => true, 'toast' => 'warning', 'processed' => 2, 'skipped' => 3, 'failed' => 0, 'message' => '2 data diproses, 3 dilewati.']);
+            ->assertJson(['success' => true, 'toast' => 'warning', 'processed' => 2, 'skipped' => 3, 'failed' => 0, 'message' => '2 berhasil diproses, 3 dilewati.']);
 
         $reasons = collect($response->json('skipped_items'))->pluck('reason', 'id');
         $this->assertSame('Akun sendiri tidak dapat dihapus', $reasons[$admin->id]);
@@ -567,6 +569,194 @@ class BulkActionsTest extends TestCase
 
         $this->getJson('mahasiswa/listdataserver?'.$query, ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertJsonPath('recordsTotal', 2)->assertJsonPath('data.0.nim', '9001');
+    }
+
+    public function test_selectable_tables_markup_keeps_columns_aligned_with_header(): void
+    {
+        $this->loginAs('admin');
+
+        foreach (self::SELECTABLE_PAGES as $uri => [$tableId, $selectKey]) {
+            [$table, $ths, $columns, $order] = $this->datatableMarkup($uri, $tableId);
+
+            $this->assertSame($selectKey, $table->getAttribute('data-select-key'), "{$uri} select key");
+            // JS prepends both the checkbox th and column; server markup must stay 1:1 without them
+            $this->assertCount(count($ths), $columns, "{$uri}: jumlah th != jumlah columns");
+            $this->assertStringNotContainsString('data-bulk-all', $table->ownerDocument->saveHTML($table), "{$uri}: checkbox header hanya dari JS");
+            $this->assertSame('No', $ths[0], "{$uri}: th pertama harus No");
+            $this->assertSame('DT_RowIndex', $columns[0]['data'], "{$uri}: kolom pertama harus DT_RowIndex");
+            foreach ($columns as $i => $col) {
+                $this->assertNotNull($col['data'] ?? null, "{$uri}: kolom #{$i} tanpa data (checkbox tidak boleh di markup)");
+            }
+
+            // Order after the +1 shift must land on a data column, never on the checkbox (index 0)
+            $this->assertNotEmpty($order, "{$uri}: data-order kosong");
+            foreach ($order as [$index, $dir]) {
+                $this->assertArrayHasKey($index, $columns, "{$uri}: order index {$index} di luar kolom");
+                $this->assertGreaterThanOrEqual(1, $index + 1);
+                $this->assertContains($dir, ['asc', 'desc']);
+            }
+        }
+    }
+
+    public function test_admin_mahasiswa_table_drops_desa_column_but_pt_view_keeps_it(): void
+    {
+        $this->loginAs('admin');
+        [, $ths, $columns] = $this->datatableMarkup('mahasiswa/listdata');
+        $this->assertNotContains('Kelurahan/Desa', $ths);
+        $this->assertNotContains('nama_desa', array_column($columns, 'data'));
+        // Checkbox th + column are added in pairs by table-init.js
+        $this->assertSame(count($ths) + 1, count($columns) + 1);
+        $this->assertSame('Aksi', end($ths));
+        $this->assertSame('action', end($columns)['data']);
+
+        $this->loginAs('pt', ['email' => Satuanpendidikan::factory()->create()->npsn]);
+        [$table, $ths, $columns] = $this->datatableMarkup('ptmahasiswa/listdata');
+        $this->assertFalse($table->hasAttribute('data-select-key'));
+        $this->assertContains('Kelurahan/Desa', $ths);
+        $this->assertContains('nama_desa', array_column($columns, 'data'));
+        $this->assertCount(count($ths), $columns);
+    }
+
+    public function test_non_selectable_tables_are_unaffected(): void
+    {
+        // Other <x-table> pages (same table-init.js) render without select key, toolbar or shifted order
+        $pt = $this->loginAs('pt', ['email' => Satuanpendidikan::factory()->create()->npsn]);
+        $kepala = User::factory()->role('kepala')->create();
+        foreach (['ptmahasiswa/listdata' => $pt, 'ptdpl/listdata' => $pt, 'picpj/listdata' => $kepala] as $uri => $user) {
+            $this->actingAs($user);
+            [$table, $ths, $columns, $order] = $this->datatableMarkup($uri);
+            $this->assertFalse($table->hasAttribute('data-select-key'), "{$uri}: select key");
+            $this->assertCount(count($ths), $columns, "{$uri}: jumlah th != jumlah columns");
+            $this->assertSame([[0, 'asc']], $order, "{$uri}: order");
+            $this->assertStringNotContainsString('data-bulk-toolbar', $this->get($uri)->getContent());
+        }
+    }
+
+    public function test_table_init_js_syncs_data_cache_for_checkbox_column(): void
+    {
+        $js = file_get_contents(public_path('js/table-init.js'));
+        $start = strpos($js, 'if (selectKey)');
+        $end = strpos($js, '$table.DataTable(');
+        $this->assertNotFalse($start);
+        $this->assertNotFalse($end);
+        $block = substr($js, $start, $end - $start);
+
+        // Checkbox column is first and not orderable/searchable
+        $this->assertMatchesRegularExpression("/thead tr'\\)\\.first\\(\\)\\.prepend\\(/", $block);
+        $this->assertMatchesRegularExpression('/columns\.unshift\(\{\s*data: null,\s*orderable: false,\s*searchable: false,/', $block);
+        // Order shifted +1 and DataTables 1.13 data-* cache overwritten with the shifted values
+        $this->assertStringContainsString('return [o[0] + 1, o[1]];', $block);
+        $sync = strpos($block, "\$table.data('columns', columns).data('order', order);");
+        $this->assertNotFalse($sync, 'Cache data(columns/order) harus disinkronkan di blok selectable');
+        $this->assertGreaterThan(strpos($block, 'columns.unshift('), $sync);
+        $this->assertGreaterThan(strpos($block, 'o[0] + 1'), $sync);
+        // Sync must stay inside the selectable block (non-selectable tables untouched)
+        $this->assertSame(1, substr_count($js, "\$table.data('columns', columns)"));
+    }
+
+    public function test_listdataserver_handles_shifted_request_built_from_markup(): void
+    {
+        $this->loginAs('admin');
+        Mahasiswa::factory()->count(3)->create();
+        Dpl::factory()->count(3)->create();
+        User::factory()->count(2)->role('pt')->create();
+
+        $sortBy = ['user/listdata' => 'email', 'mahasiswa/listdata' => 'nim', 'dpl/listdata' => 'nidn'];
+
+        foreach (self::SELECTABLE_PAGES as $uri => [$tableId]) {
+            [$table, , $columns, $order] = $this->datatableMarkup($uri, $tableId);
+
+            // Simulate what DataTables sends after table-init.js prepends the checkbox column
+            $requestColumns = [['data' => '', 'name' => '', 'searchable' => 'false', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']]];
+            foreach ($columns as $col) {
+                $requestColumns[] = [
+                    'data' => $col['data'], 'name' => $col['name'] ?? $col['data'],
+                    'searchable' => ($col['searchable'] ?? true) ? 'true' : 'false',
+                    'orderable' => ($col['orderable'] ?? true) ? 'true' : 'false',
+                    'search' => ['value' => '', 'regex' => 'false'],
+                ];
+            }
+            $ajax = $table->getAttribute('data-ajax');
+            $sortIndex = array_search($sortBy[$uri], array_column($columns, 'data'), true) + 1;
+
+            $variants = [
+                'default' => array_map(fn ($o) => ['column' => $o[0] + 1, 'dir' => $o[1]], $order),
+                'asc' => [['column' => $sortIndex, 'dir' => 'asc']],
+                'desc' => [['column' => $sortIndex, 'dir' => 'desc']],
+            ];
+            foreach ($variants as $label => $requestOrder) {
+                $query = http_build_query([
+                    'draw' => 1, 'start' => 0, 'length' => 50,
+                    'columns' => $requestColumns, 'order' => $requestOrder,
+                    'search' => ['value' => '', 'regex' => 'false'],
+                ]);
+                $json = $this->getJson($ajax.(str_contains($ajax, '?') ? '&' : '?').$query, ['X-Requested-With' => 'XMLHttpRequest'])
+                    ->assertOk()->assertJsonMissingPath('error')->json();
+                $this->assertNotEmpty($json['data'], "{$uri} [{$label}] kosong");
+
+                if ($label !== 'default') {
+                    $values = array_map(fn ($row) => strip_tags((string) $row[$sortBy[$uri]]), $json['data']);
+                    $expected = $values;
+                    $label === 'asc' ? sort($expected, SORT_STRING) : rsort($expected, SORT_STRING);
+                    $this->assertSame($expected, $values, "{$uri} [{$label}] urutan {$sortBy[$uri]} salah (index tergeser?)");
+                }
+            }
+        }
+    }
+
+    public function test_bulk_toolbar_wraps_responsively(): void
+    {
+        $this->loginAs('admin');
+
+        foreach (array_keys(self::SELECTABLE_PAGES) as $uri) {
+            $xpath = $this->xpathOf($this->get($uri)->assertOk()->getContent());
+            $toolbar = $xpath->query('//div[@data-bulk-toolbar]');
+            $this->assertSame(1, $toolbar->length, "{$uri}: toolbar");
+            $this->assertClasses(['d-flex', 'flex-wrap', 'mw-100', 'gap-2'], $toolbar->item(0), "{$uri} toolbar");
+            $this->assertClasses(['text-nowrap'], $xpath->query('.//*[@data-bulk-count]', $toolbar->item(0))->item(0), "{$uri} count");
+
+            foreach (['edit', 'export', 'delete'] as $action) {
+                $button = $xpath->query(".//*[@data-bulk-action='{$action}']", $toolbar->item(0));
+                $this->assertSame(1, $button->length, "{$uri}: tombol {$action}");
+                $this->assertClasses(['flex-grow-1', 'flex-md-grow-0', 'text-truncate'], $button->item(0), "{$uri} {$action}");
+                $this->assertTrue($button->item(0)->hasAttribute('disabled'), "{$uri}: {$action} default disabled");
+            }
+
+            $clear = $xpath->query(".//*[@data-bulk-action='clear']", $toolbar->item(0))->item(0);
+            $this->assertClasses(['ms-md-auto'], $clear, "{$uri} clear");
+            $this->assertNotContains('ms-auto', explode(' ', $clear->getAttribute('class')));
+        }
+    }
+
+    // uri => [table id, select key]
+    private const SELECTABLE_PAGES = [
+        'user/listdata' => ['dataTable-user', 'id'],
+        'mahasiswa/listdata' => ['dataTable', 'id_mahasiswa'],
+        'dpl/listdata' => ['dataTable', 'id_dpl'],
+    ];
+
+    // Returns [table element, th texts, data-columns, data-order] of a DataTables page
+    private function datatableMarkup(string $uri, string $tableId = 'dataTable'): array
+    {
+        $xpath = $this->xpathOf($this->get($uri)->assertOk()->getContent());
+        $tables = $xpath->query("//table[@id='{$tableId}'][@data-datatable]");
+        $this->assertSame(1, $tables->length, "{$uri}: tabel #{$tableId}");
+        $table = $tables->item(0);
+
+        $ths = array_map(fn ($th) => trim($th->textContent), iterator_to_array($xpath->query('./thead/tr[1]/th', $table)));
+        $columns = json_decode($table->getAttribute('data-columns'), true, flags: JSON_THROW_ON_ERROR);
+        $order = json_decode($table->getAttribute('data-order'), true, flags: JSON_THROW_ON_ERROR);
+
+        return [$table, $ths, $columns, $order];
+    }
+
+    private function assertClasses(array $expected, ?\DOMElement $element, string $context): void
+    {
+        $this->assertNotNull($element, "{$context}: elemen tidak ada");
+        $classes = preg_split('/\s+/', trim($element->getAttribute('class')));
+        foreach ($expected as $class) {
+            $this->assertContains($class, $classes, "{$context}: class {$class} hilang");
+        }
     }
 
     // Download the xlsx and read rows from the header row on as plain values

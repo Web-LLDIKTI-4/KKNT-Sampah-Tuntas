@@ -19,7 +19,7 @@
                     <th>Nama Kelurahan/Desa</th>
                     <th>Ketua Kelompok</th>
                     <th>Perguruan Tinggi</th>
-                    <th>Capaian KPI</th>
+                    <th>Evaluasi Pendataan Sampah</th>
                     <th>Status Mobilisasi</th>
                     <th width="1">Aksi</th>
                 </tr>

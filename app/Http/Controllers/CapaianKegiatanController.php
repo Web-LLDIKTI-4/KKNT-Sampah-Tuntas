@@ -100,7 +100,7 @@ class CapaianKegiatanController extends Controller
             return $this->failed(CapaianKegiatanRequest::DUPLIKAT_BULAN);
         }
 
-        return $this->saved('Capaian KPI berhasil disimpan');
+        return $this->saved('Evaluasi Pendataan Sampah berhasil disimpan');
     }
 
     public function edit(Request $request, string $id_capaian)
@@ -125,7 +125,7 @@ class CapaianKegiatanController extends Controller
             return $this->failed(CapaianKegiatanRequest::DUPLIKAT_BULAN);
         }
 
-        return $this->saved('Capaian KPI berhasil disimpan');
+        return $this->saved('Evaluasi Pendataan Sampah berhasil disimpan');
     }
 
     public function destroy(Request $request)

@@ -18,7 +18,6 @@
         ['data' => 'location_program', 'name' => 'location_program'],
         ['data' => 'ketua_kelompok', 'name' => 'ketua_kelompok', 'className' => 'text-center', 'orderable' => false, 'searchable' => false, 'boolIcon' => ['Ketua kelompok', 'Bukan ketua']],
         ['data' => 'nama_kecamatan', 'name' => 'nama_kecamatan', 'className' => 'text-center', 'orderable' => false, 'lokasiStatus' => true],
-        ['data' => 'nama_desa', 'name' => 'nama_desa', 'visible' => false],
         ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'searchable' => false],
     ]"
 >
@@ -33,7 +32,6 @@
             <th>Lokasi Program KKN</th>
             <th>Status Ketua Kelompok</th>
             <th>Status Set Lokasi</th>
-            <th>Kelurahan/Desa</th>
             <th width="1">Aksi</th>
         </tr>
     </x-slot:thead>

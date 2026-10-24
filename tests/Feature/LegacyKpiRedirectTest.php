@@ -158,7 +158,7 @@ class LegacyKpiRedirectTest extends TestCase
         foreach (['kpi', 'kpicapaian', 'lapcapaiankpi', 'dashboardkpi'] as $lama) {
             $this->assertStringNotContainsString('href="'.url($lama).'"', $html, "$role: link lama $lama");
         }
-        // Label fitur "Capaian KPI" dipertahankan; menu lama KPI tidak boleh muncul
+        // Label fitur "Evaluasi Pendataan Sampah" dipertahankan; menu lama KPI tidak boleh muncul
         $this->assertDoesNotMatchRegularExpression('/>\s*[^<]*\b(Kelola|Dashboard) KPI\b[^<]*</', $html, "$role: label KPI lama");
     }
 

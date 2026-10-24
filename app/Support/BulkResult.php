@@ -44,7 +44,7 @@ class BulkResult
         $skipped = count($this->skipped);
         $failed = count($this->failed);
 
-        $message = "{$this->processed} data diproses";
+        $message = "{$this->processed} berhasil diproses";
         if ($skipped > 0) {
             $message .= ", {$skipped} dilewati";
         }

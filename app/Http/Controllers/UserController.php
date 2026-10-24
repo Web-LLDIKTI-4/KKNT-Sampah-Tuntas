@@ -116,7 +116,7 @@ class UserController extends Controller
                 urlDelete: url('user/destroy'),
                 idValue: $row->id,
                 confirm: $row->akses === 'pjdesa'
-                    ? 'User ini ketua kelompok. Capaian KPI dan data pengurangan sampah kelompok/desa ikut terhapus. Lanjutkan? Tindakan ini tidak dapat dibatalkan.'
+                    ? 'User ini ketua kelompok. Evaluasi Pendataan Sampah dan data pengurangan sampah kelompok/desa ikut terhapus. Lanjutkan? Tindakan ini tidak dapat dibatalkan.'
                     : 'Hapus user ini beserta SEMUA datanya? Tindakan ini tidak dapat dibatalkan.',
             ))
             // Escaped LIKE so % _ \ are matched literally
