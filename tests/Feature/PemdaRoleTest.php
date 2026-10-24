@@ -47,7 +47,7 @@ class PemdaRoleTest extends TestCase
             'kecamatan', 'kecamatan/listdata', 'kecamatan/listdataserver', 'kecamatan/tambah',
             'desa', 'desa/listdata', 'desa/listdataserver', 'desa/tambah',
         ], true);
-        // Kepala boleh melihat PIC DLH, pemda tidak
+        // Kepala boleh melihat Kontak Pelaksana Program, pemda tidak
         $kepalaOnly = array_fill_keys(['picdlh', 'picdlh/listdata', 'picdlh/listdataserver'], true);
         $kepala = array_diff_key($this->statuses('kepala'), $pemdaOnly, $kepalaOnly);
         $pemda = array_diff_key($this->statuses('pemda'), $pemdaOnly, $kepalaOnly);

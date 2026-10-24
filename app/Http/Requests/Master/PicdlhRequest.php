@@ -27,9 +27,9 @@ class PicdlhRequest extends AjaxFormRequest
     public function messages(): array
     {
         return [
-            'id_pic_dlh.required' => 'Data PIC DLH tidak valid.',
-            'id_pic_dlh.uuid' => 'Data PIC DLH tidak valid.',
-            'id_pic_dlh.exists' => 'Data PIC DLH tidak ditemukan.',
+            'id_pic_dlh.required' => 'Data Kontak Pelaksana Program tidak valid.',
+            'id_pic_dlh.uuid' => 'Data Kontak Pelaksana Program tidak valid.',
+            'id_pic_dlh.exists' => 'Data Kontak Pelaksana Program tidak ditemukan.',
             'id_kecamatan.required' => 'Kecamatan harus dipilih.',
             'id_kecamatan.exists' => 'Kecamatan tidak valid.',
             'nama.required' => 'Nama harus diisi.',

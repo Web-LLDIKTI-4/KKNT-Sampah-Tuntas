@@ -130,7 +130,7 @@ class PicdlhController extends Controller
         return $this->deleted();
     }
 
-    // Hanya admin mengelola PIC DLH; role lain hanya melihat
+    // Hanya admin mengelola Kontak Pelaksana Program; role lain hanya melihat
     private function canManage(): bool
     {
         return auth()->user()->role === 'admin';

@@ -202,7 +202,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 
     //semua route dalam grup ini hanya bisa diakses oleh operator
-    
+
     Route::get('admlaporandpl', [AdmlaporandplController::class, 'index']);
     Route::get('admlaporandpl/listdatagroup', [AdmlaporandplController::class, 'listdatagroup'])->name('admlaporandpl.listdatagroup');
     Route::get('admlaporandpl/listdatagrouping', [AdmlaporandplController::class, 'listdatagrouping'])->name('admlaporandpl.listdatagrouping');
@@ -247,7 +247,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admstructureform/listdata', [AdmstructureformController::class, 'listdata'])->name('admstructureform.listdata');
     Route::get('admstructureform/listdataserver', [AdmstructureformController::class, 'listdataserver'])->name('admstructureform.listdataserver');
     Route::get('admstructureform/export', [AdmstructureformController::class, 'export'])->middleware('throttle:3,1');
-    
+
     Route::get('admfreeform', [AdmfreeformController::class, 'index']);
     Route::get('admfreeform/listdata', [AdmfreeformController::class, 'listdata'])->name('admfreeform.listdata');
     Route::get('admfreeform/listdataserver', [AdmfreeformController::class, 'listdataserver'])->name('admfreeform.listdataserver');
@@ -300,7 +300,7 @@ Route::middleware(['auth', 'role:admin,pemda'])->group(function () {
     Route::put('desaprofile/destroy', [DesaprofileController::class, 'destroy']);
 });
 
-// PIC DLH per kecamatan: admin, kepala, pt, dpl dapat melihat; hanya admin dapat mengelola
+// Kontak Pelaksana Program per kecamatan: admin, kepala, pt, dpl dapat melihat; hanya admin dapat mengelola
 Route::middleware(['auth', 'role:admin,kepala,pt,dpl'])->group(function () {
     Route::get('picdlh', [PicdlhController::class, 'index']);
     Route::get('picdlh/listdata', [PicdlhController::class, 'listdata'])->name('picdlh.listdata');
@@ -336,7 +336,7 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function ()
     Route::get('admlogkegiatan/listdata/{email}', [AdmlogkegiatanController::class, 'listdata'])->name('admlogkegiatan.listdata');
     Route::get('admlogkegiatan/listdataserver/{email}', [AdmlogkegiatanController::class, 'listdataserver'])->name('admlogkegiatan.listdataserver');
     Route::get('admlogkegiatan/export/{email}', [AdmlogkegiatanController::class, 'export'])->middleware('throttle:3,1');
- 
+
     Route::get('admlogbulanan', [AdmlogbulananController::class, 'index']);
     Route::get('admlogbulanan/listdatagroup', [AdmlogbulananController::class, 'listdatagroup'])->name('admlogbulanan.listdatagroup');
     Route::get('admlogbulanan/listdatagrouping', [AdmlogbulananController::class, 'listdatagrouping'])->name('admlogbulanan.listdatagrouping');
@@ -345,7 +345,7 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function ()
     Route::get('admlogbulanan/export/{email}', [AdmlogbulananController::class, 'export'])->middleware('throttle:3,1');
     Route::get('admlogbulanan/formpenilaian/{id}', [AdmlogbulananController::class, 'formpenilaian']);
     Route::put('admlogbulanan/updatenilai', [AdmlogbulananController::class, 'updatenilai']);
-    
+
     Route::get('admlogkehadiran', [AdmlogkehadiranController::class, 'index']);
     Route::get('admlogkehadiran/listdatagroup', [AdmlogkehadiranController::class, 'listdatagroup'])->name('admlogkehadiran.listdatagroup');
     Route::get('admlogkehadiran/listdatagrouping', [AdmlogkehadiranController::class, 'listdatagrouping'])->name('admlogkehadiran.listdatagrouping');
@@ -421,7 +421,7 @@ Route::middleware(['auth', 'role:dpl,pt,kepala,pemda'])->group(function () {
     Route::get('dplmentoring/nilaifreeform/{id_mahasiswa}', [DplmentoringController::class, 'nilaifreeform']);
     Route::get('dplmentoring/nilaikonversi/{id_mahasiswa}', [DplmentoringController::class, 'nilaikonversi']);
     Route::get('dplmentoring/freeform/{id_mahasiswa}', [DplmentoringController::class, 'freeform']);
-    
+
     Route::get('dplfreeform', [DplfreeformController::class, 'index']);
     Route::get('dplfreeform/listdata', [DplfreeformController::class, 'listdata'])->name('dplfreeform.listdata');
     Route::get('dplfreeform/listdataserver', [DplfreeformController::class, 'listdataserver'])->name('dplfreeform.listdataserver');

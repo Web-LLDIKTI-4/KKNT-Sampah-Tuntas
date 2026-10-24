@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('pic_dlh', function (Blueprint $table) {
             $table->uuid('id_pic_dlh')->primary();
-            // Restrict: kecamatan tidak boleh terhapus selama masih punya PIC DLH
+            // Restrict: kecamatan tidak boleh terhapus selama masih punya Kontak Pelaksana Program
             $table->foreignUuid('id_kecamatan')
                 ->index()
                 ->constrained('kecamatan', 'id_kecamatan')

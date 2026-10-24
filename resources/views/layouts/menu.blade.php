@@ -126,7 +126,7 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('picdlh') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> PIC DLH
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kontak Pelaksana Program
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -294,7 +294,7 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('picdlh') }}">
-                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> PIC DLH
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kontak Pelaksana Program
                                     </a>
                                 </li>
                             </ul>
@@ -424,7 +424,7 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('picdlh') }}">
-                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> PIC DLH
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Kontak Pelaksana Program
                                         </a>
                                     </li>
                                 @endunless
