@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Exports\UserExport;
 use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Admin\BulkSelectionRequest;
+use App\Http\Requests\Admin\BulkUpdateUserRequest;
 use App\Http\Requests\Admin\CreateAccountsRequest;
 use App\Http\Requests\Admin\DestroyUserRequest;
+use App\Http\Requests\Admin\ExportSelectedRequest;
 use App\Http\Requests\Admin\KepalaUserRequest;
 use App\Http\Requests\Admin\PtUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
@@ -18,6 +21,8 @@ use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
 use App\Models\User;
+use App\Services\BulkDeletionService;
+use App\Services\BulkUpdateService;
 use App\Services\PersonDeletionService;
 use App\Services\PetaSebaranService;
 use App\Services\UserAccountService;
@@ -348,5 +353,43 @@ class UserController extends Controller
         return response()->streamDownload(fn () => $export->writeTo('php://output'), 'users_'.date('Y-m-d_H-i-s').'.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
+    }
+
+    public function bulkEdit()
+    {
+        return view('user.bulk_edit', ['locationPrograms' => LokasiProgram::orderBy('nama_lokasi')->get()]);
+    }
+
+    // Only mahasiswa/dpl/pt accounts have location_program; others are skipped
+    public function bulkUpdate(BulkUpdateUserRequest $request, BulkUpdateService $service)
+    {
+        return $service->updateUserLokasi($request->validated('ids'), $request->validated('location_program'))->toResponse();
+    }
+
+    public function bulkDestroy(BulkSelectionRequest $request, PersonDeletionService $deletion, BulkDeletionService $bulk)
+    {
+        $ids = $request->validated('ids');
+        $authId = $request->user()->id;
+
+        $result = $bulk->run(
+            User::whereIn('id', $ids)->get(),
+            $ids,
+            'id',
+            fn (User $user) => $deletion->deleteUser($user),
+            fn (User $user) => $user->name,
+            fn (User $user) => match (true) {
+                $user->id === $authId => 'Akun sendiri tidak dapat dihapus',
+                $user->role === 'admin' => 'Akun admin tidak dapat dihapus',
+                default => null,
+            },
+        );
+        Cache::forget(self::PT_FILTER_CACHE);
+
+        return $result->toResponse();
+    }
+
+    public function exportSelected(ExportSelectedRequest $request)
+    {
+        return (new UserExport)->downloadSelected($request->validated('ids'), 'users_terpilih_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

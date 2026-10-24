@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Exports;
+
+use App\Support\XlsxStreamer;
+use Illuminate\Support\Collection;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+// Rows come from DplController::listQuery() so values match the table
+class DplExport
+{
+    public function download(Collection $rows, string $filename): StreamedResponse
+    {
+        return (new XlsxStreamer('Data DPL', $this->columns()))
+            ->info(['Data' => $rows->count().' baris terpilih'])
+            ->download($filename, $rows);
+    }
+
+    private function columns(): array
+    {
+        return [
+            XlsxStreamer::column('NIDN', 'nidn', 18),
+            XlsxStreamer::column('Nama', 'nama', 30),
+            XlsxStreamer::column('Email', 'email', 32),
+            XlsxStreamer::column('HP', 'phone', 16),
+            XlsxStreamer::column('Perguruan Tinggi', fn ($row) => $row->nm_lemb ?? 'Belum Terdata', 40),
+            XlsxStreamer::column('Lokasi Program KKN', fn ($row) => $row->nama_lokasi ?? 'Belum Terdata', 30),
+        ];
+    }
+}

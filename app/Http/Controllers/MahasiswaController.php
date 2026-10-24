@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\MahasiswaExport;
 use App\Http\Controllers\Concerns\SortsLatestLokasi;
+use App\Http\Requests\Admin\BulkUpdateMahasiswaRequest;
 use App\Http\Requests\Admin\MahasiswaRequest;
 use App\Imports\ImportMahasiswa;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Satuanpendidikan;
 use App\Models\User;
+use App\Services\BulkUpdateService;
 use App\Services\PersonDeletionService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -66,6 +69,11 @@ class MahasiswaController extends PersonMasterController
         return new ImportMahasiswa;
     }
 
+    protected function makeExport(): object
+    {
+        return new MahasiswaExport;
+    }
+
     protected function deleteRecord(Model $record): void
     {
         $this->deletion->deleteMahasiswa($record);
@@ -109,5 +117,10 @@ class MahasiswaController extends PersonMasterController
 
         // Cache peta/capaian di-flush oleh PetaSebaranCacheObserver (model Mahasiswa)
         return $this->saved('Data mahasiswa berhasil diupdate');
+    }
+
+    public function bulkUpdate(BulkUpdateMahasiswaRequest $request, BulkUpdateService $service)
+    {
+        return $service->updatePersons(Mahasiswa::class, 'mahasiswa', $request->validated('ids'), $request->fields())->toResponse();
     }
 }

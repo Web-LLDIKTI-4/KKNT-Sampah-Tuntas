@@ -1,5 +1,9 @@
+<x-bulk-toolbar :edit-url="url('dpl/bulk-edit')" :export-url="url('dpl/export-selected')" :delete-url="url('dpl/bulk-destroy')" />
+
 <x-table
     :ajax="route('dpl.listdataserver')"
+    :selectable="auth()->user()?->role === 'admin'"
+    select-key="id_dpl"
     :columns="[
         ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
         ['data' => 'nidn', 'name' => 'nidn', 'className' => 'text-center'],

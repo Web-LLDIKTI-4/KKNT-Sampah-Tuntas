@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\DplExport;
+use App\Http\Requests\Admin\BulkUpdateDplRequest;
 use App\Http\Requests\Admin\DplRequest;
 use App\Imports\DPLImport;
 use App\Models\Dpl;
 use App\Models\LokasiProgram;
 use App\Models\Satuanpendidikan;
 use App\Models\User;
+use App\Services\BulkUpdateService;
 use App\Services\PersonDeletionService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +42,11 @@ class DplController extends PersonMasterController
     protected function makeImport(): object
     {
         return new DPLImport;
+    }
+
+    protected function makeExport(): object
+    {
+        return new DplExport;
     }
 
     protected function deleteRecord(Model $record): void
@@ -86,5 +94,10 @@ class DplController extends PersonMasterController
         // Cache peta/sebaran di-flush oleh PetaSebaranCacheObserver (model Dpl)
 
         return $this->saved('Data DPL berhasil diupdate');
+    }
+
+    public function bulkUpdate(BulkUpdateDplRequest $request, BulkUpdateService $service)
+    {
+        return $service->updatePersons(Dpl::class, 'dpl', $request->validated('ids'), $request->fields())->toResponse();
     }
 }

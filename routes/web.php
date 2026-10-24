@@ -171,24 +171,36 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('user/edituserkepala/{id}', [UserController::class, 'edituserkepala']);
     Route::put('user/updateuserkepala', [UserController::class, 'updateuserkepala'])->middleware('throttle:sensitive');
     Route::get('user/export', [UserController::class, 'export'])->middleware('throttle:3,1')->name('user.export');
+    Route::get('user/bulk-edit', [UserController::class, 'bulkEdit']);
+    Route::put('user/bulk-update', [UserController::class, 'bulkUpdate'])->middleware('throttle:sensitive');
+    Route::put('user/bulk-destroy', [UserController::class, 'bulkDestroy'])->middleware('throttle:sensitive');
+    Route::post('user/export-selected', [UserController::class, 'exportSelected'])->middleware('throttle:3,1')->name('user.export-selected');
 
     Route::get('dpl', [DplController::class, 'index']);
     Route::get('dpl/listdata', [DplController::class, 'listdata'])->name('dpl.listdata');
     Route::get('dpl/listdataserver', [DplController::class, 'listdataserver'])->name('dpl.listdataserver');
     Route::get('dpl/import', [DplController::class, 'import']);
     Route::put('dpl/prosesimport', [DplController::class, 'prosesimport'])->middleware('throttle:sensitive');
-    Route::put('dpl/destroy', [DplController::class, 'destroy']);
+    Route::put('dpl/destroy', [DplController::class, 'destroy'])->middleware('throttle:sensitive');
     Route::get('dpl/edit/{id}', [DplController::class, 'edit'])->whereUuid('id');
     Route::put('dpl/update', [DplController::class, 'update'])->middleware('throttle:sensitive');
+    Route::get('dpl/bulk-edit', [DplController::class, 'bulkEdit']);
+    Route::put('dpl/bulk-update', [DplController::class, 'bulkUpdate'])->middleware('throttle:sensitive');
+    Route::put('dpl/bulk-destroy', [DplController::class, 'bulkDestroy'])->middleware('throttle:sensitive');
+    Route::post('dpl/export-selected', [DplController::class, 'exportSelected'])->middleware('throttle:3,1')->name('dpl.export-selected');
 
     Route::get('mahasiswa', [MahasiswaController::class, 'index']);
     Route::get('mahasiswa/listdata', [MahasiswaController::class, 'listdata'])->name('mahasiswa.listdata');
     Route::get('mahasiswa/listdataserver', [MahasiswaController::class, 'listdataserver'])->name('mahasiswa.listdataserver');
     Route::get('mahasiswa/import', [MahasiswaController::class, 'import']);
     Route::put('mahasiswa/prosesimport', [MahasiswaController::class, 'prosesimport'])->middleware('throttle:sensitive');
-    Route::put('mahasiswa/destroy', [MahasiswaController::class, 'destroy']);
+    Route::put('mahasiswa/destroy', [MahasiswaController::class, 'destroy'])->middleware('throttle:sensitive');
     Route::get('mahasiswa/edit/{id}', [MahasiswaController::class, 'edit'])->whereUuid('id');
     Route::put('mahasiswa/update', [MahasiswaController::class, 'update'])->middleware('throttle:sensitive');
+    Route::get('mahasiswa/bulk-edit', [MahasiswaController::class, 'bulkEdit']);
+    Route::put('mahasiswa/bulk-update', [MahasiswaController::class, 'bulkUpdate'])->middleware('throttle:sensitive');
+    Route::put('mahasiswa/bulk-destroy', [MahasiswaController::class, 'bulkDestroy'])->middleware('throttle:sensitive');
+    Route::post('mahasiswa/export-selected', [MahasiswaController::class, 'exportSelected'])->middleware('throttle:3,1')->name('mahasiswa.export-selected');
 
     Route::get('kategori-kegiatan', [KategoriKegiatanController::class, 'index']);
     Route::get('kategori-kegiatan/listdata', [KategoriKegiatanController::class, 'listdata'])->name('kategori-kegiatan.listdata');

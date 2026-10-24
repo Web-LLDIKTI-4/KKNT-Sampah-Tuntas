@@ -6,6 +6,11 @@ use App\Http\Requests\AjaxFormRequest;
 
 class NilaiTugasakhirRequest extends AjaxFormRequest
 {
+    public function authorize(): bool
+    {
+        return $this->user()?->role === 'dpl';
+    }
+
     public function rules(): array
     {
         return [

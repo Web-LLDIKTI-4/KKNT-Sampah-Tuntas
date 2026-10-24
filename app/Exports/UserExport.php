@@ -7,6 +7,7 @@ use App\Support\XlsxStreamer;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserExport
 {
@@ -67,6 +68,17 @@ class UserExport
         (new XlsxStreamer('Data Pengguna', $this->columns()))
             ->info($this->filterInfo())
             ->writeTo($path, $this->query()->lazyById(1000, 'u.id', 'id'));
+    }
+
+    // Selected rows only, in the given order (ids capped by BulkSelectionRequest)
+    public function downloadSelected(array $ids, string $filename): StreamedResponse
+    {
+        $position = array_flip($ids);
+        $rows = $this->query()->whereIn('u.id', $ids)->get()->sortBy(fn ($row) => $position[$row->id])->values();
+
+        return (new XlsxStreamer('Data Pengguna', $this->columns()))
+            ->info(['Data' => $rows->count().' baris terpilih'])
+            ->download($filename, $rows);
     }
 
     private function columns(): array

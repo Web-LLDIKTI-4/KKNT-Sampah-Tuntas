@@ -6,6 +6,8 @@
     'order' => [[0, 'asc']],
     'searching' => true,
     'lengthChange' => true,
+    'selectable' => false,
+    'selectKey' => 'id',
 ])
 
 <table
@@ -17,6 +19,7 @@
     data-order='@json($order)'
     data-searching="{{ $searching ? 'true' : 'false' }}"
     data-length-change="{{ $lengthChange ? 'true' : 'false' }}"
+    @if ($selectable) data-select-key="{{ $selectKey }}" @endif
 >
     <thead class="text-center">
         {{ $thead ?? '' }}

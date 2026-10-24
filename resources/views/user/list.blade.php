@@ -1,6 +1,9 @@
+<x-bulk-toolbar target="#dataTable-user" :edit-url="url('user/bulk-edit')" :export-url="url('user/export-selected')" :delete-url="url('user/bulk-destroy')" />
 <div class="table-responsive">
 <x-table
     id="dataTable-user"
+    :selectable="auth()->user()?->role === 'admin'"
+    select-key="id"
     :ajax="route('user.listdataserver', $filters)"
     :columns="[
         ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],

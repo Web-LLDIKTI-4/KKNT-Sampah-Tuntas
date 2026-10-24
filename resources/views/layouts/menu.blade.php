@@ -392,12 +392,14 @@
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Konversi Nilai
                                         </a>
                                     </li>
+                                @endif --}}
+                                @if (Auth::user()->role === 'pt')
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pttugasakhir') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Laporan Akhir
                                         </a>
                                     </li>
-                                @endif --}}
+                                @endif
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url(Auth::user()->isPemantau() ? 'admevaluasikegiatan' : 'ptevaluasikegiatan') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i>

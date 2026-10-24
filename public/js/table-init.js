@@ -14,6 +14,28 @@ $(function () {
             if (col.boolIcon) col.render = $.fn.dataTable.render.boolIcon(col.boolIcon[0], col.boolIcon[1]);
             return col;
         });
+        var order = $table.data('order');
+
+        // Opt-in selection column (data-select-key); handled by bulk-actions.js
+        var selectKey = $table.data('select-key');
+        if (selectKey) {
+            $table.find('thead tr').first().prepend(
+                '<th width="1" class="text-center"><input type="checkbox" class="form-check-input" data-bulk-all aria-label="Pilih semua baris di halaman ini"></th>'
+            );
+            columns.unshift({
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: 'text-center',
+                render: function (data, type, row) {
+                    if (type !== 'display') return '';
+                    var value = $('<div>').text(row[selectKey] == null ? '' : String(row[selectKey])).html().replace(/"/g, '&quot;');
+                    return '<input type="checkbox" class="form-check-input" data-bulk-row value="' + value + '" aria-label="Pilih baris">';
+                },
+            });
+            // Shift order indexes past the new first column
+            order = (order || []).map(function (o) { return [o[0] + 1, o[1]]; });
+        }
 
         $table.DataTable({
             processing: true,
@@ -21,7 +43,7 @@ $(function () {
             searchDelay: 500, // debounce search requests
             ajax: $table.data('ajax'),
             columns: columns,
-            order: $table.data('order'),
+            order: order,
             searching: $table.data('searching'),
             lengthChange: $table.data('length-change'),
             language: {

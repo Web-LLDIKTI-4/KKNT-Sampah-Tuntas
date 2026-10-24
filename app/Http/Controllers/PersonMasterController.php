@@ -4,7 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
+use App\Http\Requests\Admin\BulkSelectionRequest;
+use App\Http\Requests\Admin\DestroyPersonRequest;
+use App\Http\Requests\Admin\ExportSelectedRequest;
 use App\Http\Requests\Admin\ImportFileRequest;
+use App\Models\LokasiProgram;
+use App\Models\Satuanpendidikan;
+use App\Services\BulkDeletionService;
 use App\Support\ActionButtons;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -32,6 +38,9 @@ abstract class PersonMasterController extends Controller
     abstract protected function makeImport(): object;
 
     abstract protected function deleteRecord(Model $record): void;
+
+    // Object with download(Collection $rows, string $filename)
+    abstract protected function makeExport(): object;
 
     // Identity number column shown in the list, e.g. nim / nidn
     abstract protected function idNumberColumn(): string;
@@ -147,10 +156,10 @@ abstract class PersonMasterController extends Controller
         return $this->saved("{$import->imported} data ".$this->label().' berhasil diimpor.');
     }
 
-    public function destroy(Request $request)
+    public function destroy(DestroyPersonRequest $request)
     {
         $key = (new ($this->model()))->getKeyName();
-        $record = $this->model()::find($request->input($key));
+        $record = $this->model()::find($request->validated($key));
         if (! $record) {
             return $this->failed($this->label().' tidak ditemukan');
         }
@@ -164,5 +173,41 @@ abstract class PersonMasterController extends Controller
         }
 
         return $this->deleted();
+    }
+
+    public function bulkEdit()
+    {
+        return view($this->viewPrefix().'.bulk_edit', [
+            'perguruanTinggi' => Satuanpendidikan::orderBy('nm_lemb')->pluck('nm_lemb', 'npsn'),
+            'lokasiProgram' => LokasiProgram::orderBy('nama_lokasi')->pluck('nama_lokasi', 'id'),
+        ]);
+    }
+
+    // Same cascade as single destroy, one transaction per record
+    public function bulkDestroy(BulkSelectionRequest $request, BulkDeletionService $bulk)
+    {
+        $ids = $request->validated('ids');
+        $key = (new ($this->model()))->getKeyName();
+
+        return $bulk->run(
+            $this->model()::whereIn($key, $ids)->get(),
+            $ids,
+            $key,
+            fn (Model $record) => $this->deleteRecord($record),
+            fn (Model $record) => $record->nama.' ('.$record->{$this->idNumberColumn()}.')',
+        )->toResponse();
+    }
+
+    // Same query as the table; rows ordered as selected
+    public function exportSelected(ExportSelectedRequest $request)
+    {
+        $ids = $request->validated('ids');
+        $model = new ($this->model());
+        $key = $model->getKeyName();
+        $position = array_flip($ids);
+        $rows = $this->listQuery()->whereIn($model->getTable().'.'.$key, $ids)->get()
+            ->sortBy(fn ($row) => $position[$row->{$key}])->values();
+
+        return $this->makeExport()->download($rows, $this->viewPrefix().'_terpilih_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

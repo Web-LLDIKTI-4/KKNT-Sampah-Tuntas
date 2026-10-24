@@ -2,8 +2,12 @@
     <x-filter.ketua-kelompok />
 </x-filter.lokasi-status>
 
+<x-bulk-toolbar :edit-url="url('mahasiswa/bulk-edit')" :export-url="url('mahasiswa/export-selected')" :delete-url="url('mahasiswa/bulk-destroy')" />
+
 <x-table
     :ajax="route('mahasiswa.listdataserver')"
+    :selectable="auth()->user()?->role === 'admin'"
+    select-key="id_mahasiswa"
     :columns="[
         ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
         ['data' => 'nim', 'name' => 'nim', 'className' => 'text-center'],

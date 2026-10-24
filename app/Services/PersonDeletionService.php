@@ -21,6 +21,7 @@ use App\Models\RencanaKerja;
 use App\Models\Tugasakhir;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -29,6 +30,9 @@ use Illuminate\Support\Facades\Storage;
  */
 class PersonDeletionService
 {
+    // Leftover backup table of migration 2026_10_04_000004; checked once per instance
+    private ?bool $hasDedupBackup = null;
+
     public function __construct(private ProfilePhotoService $photos) {}
 
     public function deleteMahasiswa(Mahasiswa $mahasiswa): void
@@ -88,6 +92,9 @@ class PersonDeletionService
                 $model::where('email', $email)->delete();
             }
             Dplmentoring::where('email_mahasiswa', $email)->delete();
+            if ($this->hasDedupBackup ??= Schema::hasTable('kpi_capaian_dedup_backup')) {
+                DB::table('kpi_capaian_dedup_backup')->where('email', $email)->delete();
+            }
             // Tetap jalan walau baris master mahasiswa tidak ada
             $ids = array_unique([...$ids, ...Mahasiswa::where('email', $email)->pluck('id_mahasiswa')->all()]);
         }
