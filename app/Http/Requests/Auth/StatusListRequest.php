@@ -16,7 +16,7 @@ class StatusListRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'jenis' => ['required', 'in:mobilisasi,pelaksanaan,lokasi'],
+            'jenis' => ['required', 'in:mobilisasi,pelaksanaan,lokasi,ketua'],
             'status' => ['required', 'in:sudah,belum'],
             'q' => ['nullable', 'string', 'min:2', 'max:50'],
             'page' => ['nullable', 'integer', 'min:1', 'max:100000'],

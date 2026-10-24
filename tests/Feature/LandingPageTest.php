@@ -13,6 +13,7 @@ use App\Models\PendataanPemilahanSampah;
 use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
 use App\Services\PetaSebaranService;
+use App\Services\SebaranPtSummary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -331,17 +332,136 @@ class LandingPageTest extends TestCase
         $html = $response->getContent();
         $button = fn (string $jenis, string $status) => '/<button type="button" class="badge bg-label-(success|danger) status-badge-btn" data-jenis="'.$jenis.'" data-status="'.$status.'"[^>]*aria-controls="modalStatusList">/';
 
-        foreach ([['mobilisasi', 'sudah'], ['mobilisasi', 'belum'], ['pelaksanaan', 'sudah'], ['lokasi', 'belum']] as [$jenis, $status]) {
+        $response->assertViewHas('statusKetua', ['sudah' => 0, 'belum' => 1, 'total' => 1]);
+        foreach ([['mobilisasi', 'sudah'], ['mobilisasi', 'belum'], ['pelaksanaan', 'sudah'], ['lokasi', 'belum'], ['ketua', 'belum']] as [$jenis, $status]) {
             $this->assertMatchesRegularExpression($button($jenis, $status), $html, "$jenis/$status harus button");
         }
-        foreach ([['pelaksanaan', 'belum'], ['lokasi', 'sudah']] as [$jenis, $status]) {
+        foreach ([['pelaksanaan', 'belum'], ['lokasi', 'sudah'], ['ketua', 'sudah']] as [$jenis, $status]) {
             $this->assertDoesNotMatchRegularExpression('/data-jenis="'.$jenis.'" data-status="'.$status.'"/', $html, "$jenis/$status (0) bukan button");
         }
-        $this->assertSame(4, substr_count($html, 'status-badge-btn"'));
+        $this->assertSame(5, substr_count($html, 'status-badge-btn"'));
         $text = preg_replace('/\s+/', ' ', strip_tags($this->statusBlock($response)));
         $this->assertStringContainsString('Belum isi 0', $text);
 
         $response->assertSee('id="modalStatusList"', false)
             ->assertSee('data-url="'.route('login.status-list').'"', false);
+    }
+
+    // PT A: mhs ketua + mhs biasa; B: mhs tanpa ketua; C: hanya DPL; D: mhs+DPL tanpa lokasi/kodept (diabaikan)
+    private function seedStatusKetua(): array
+    {
+        $lokasi = LokasiProgram::factory()->create()->id;
+        [$a, $b, $c, $d] = Satuanpendidikan::factory()->count(4)->create()->all();
+        $ketua = Mahasiswa::factory()->create(['kodept' => $a->npsn, 'location_program' => $lokasi]);
+        Pjdesa::create(['email' => $ketua->email, 'id_desa' => Desa::factory()->create()->id_desa]);
+        Mahasiswa::factory()->create(['kodept' => $a->npsn, 'location_program' => $lokasi]);
+        Dpl::factory()->create(['kodept' => $a->npsn, 'location_program' => $lokasi]);
+        Mahasiswa::factory()->create(['kodept' => $b->npsn, 'location_program' => $lokasi]);
+        Dpl::factory()->create(['kodept' => $c->npsn, 'location_program' => $lokasi]);
+        $tanpaLokasi = Mahasiswa::factory()->create(['kodept' => $d->npsn]);
+        Pjdesa::create(['email' => $tanpaLokasi->email, 'id_desa' => Desa::factory()->create()->id_desa]);
+        Mahasiswa::factory()->create(['location_program' => $lokasi]);
+        Dpl::factory()->create(['kodept' => $d->npsn]);
+        Dpl::factory()->create(['location_program' => $lokasi]);
+
+        return [$a, $b, $c, $d];
+    }
+
+    private function sebaranStatusBlock($response): ?string
+    {
+        $html = $response->assertOk()->getContent();
+        $section = strpos($html, 'id="sebaran"');
+        $this->assertNotFalse($section);
+        $start = strpos($html, 'class="peserta-status"', $section);
+        $end = strpos($html, '</section>', $section);
+        if ($start === false || $start > $end) {
+            return null;
+        }
+
+        return substr($html, $start, strpos($html, '</dl>', $start) - $start);
+    }
+
+    public function test_status_ketua_counts_pt_with_pjdesa_mahasiswa_as_sudah(): void
+    {
+        $this->seedStatusKetua();
+
+        $this->assertSame(['sudah' => 1, 'belum' => 2, 'total' => 3], app(SebaranPtSummary::class)->statusKetua());
+    }
+
+    public function test_status_ketua_is_fresh_after_pjdesa_added(): void
+    {
+        [, $b] = $this->seedStatusKetua();
+        $this->get('/')->assertViewHas('statusKetua', ['sudah' => 1, 'belum' => 2, 'total' => 3]);
+
+        $mhs = Mahasiswa::where('kodept', $b->npsn)->firstOrFail();
+        Pjdesa::create(['email' => $mhs->email, 'id_desa' => Desa::factory()->create()->id_desa]);
+
+        $this->get('/')->assertViewHas('statusKetua', ['sudah' => 2, 'belum' => 1, 'total' => 3]);
+    }
+
+    private function ketuaItem(?string $block): string
+    {
+        $this->assertNotNull($block, 'Blok status sebaran tidak tampil');
+        $ketua = substr($block, strpos($block, 'PTS Set Ketua Kelompok'));
+
+        return substr($ketua, 0, strpos($ketua, '</div>'));
+    }
+
+    public function test_landing_ketua_badges_are_modal_buttons_when_count_positive(): void
+    {
+        $this->seedStatusKetua();
+
+        $response = $this->get('/')->assertViewHas('statusKetua', ['sudah' => 1, 'belum' => 2, 'total' => 3]);
+        $ketua = $this->ketuaItem($this->sebaranStatusBlock($response));
+        $text = preg_replace('/\s+/', ' ', strip_tags($ketua));
+        $this->assertStringContainsString('PTS Set Ketua Kelompok Sudah 1 Belum 2', $text);
+
+        $this->assertSame(2, substr_count($ketua, 'status-badge-btn"'));
+        $this->assertStringNotContainsString('<span class="badge', $ketua);
+        foreach (['sudah' => 'Sudah (1)', 'belum' => 'Belum (2)'] as $status => $title) {
+            $this->assertMatchesRegularExpression(
+                '/<button type="button" class="badge bg-label-(success|danger) status-badge-btn" data-jenis="ketua" data-status="'.$status.'"\s+data-title="PTS Set Ketua Kelompok - '.preg_quote($title, '/').'" aria-haspopup="dialog" aria-controls="modalStatusList">/',
+                $ketua,
+                "ketua/$status harus button"
+            );
+        }
+    }
+
+    public function test_landing_ketua_badge_is_static_span_when_count_zero(): void
+    {
+        Dpl::factory()->create(['kodept' => Satuanpendidikan::factory()->create()->npsn, 'location_program' => LokasiProgram::factory()->create()->id]);
+
+        $response = $this->get('/')->assertViewHas('statusKetua', ['sudah' => 0, 'belum' => 1, 'total' => 1]);
+        $ketua = $this->ketuaItem($this->sebaranStatusBlock($response));
+
+        $this->assertMatchesRegularExpression('/<span class="badge bg-label-success"><i class="ri-check-line" aria-hidden="true"><\/i> Sudah 0<\/span>/', $ketua);
+        $this->assertDoesNotMatchRegularExpression('/data-jenis="ketua" data-status="sudah"/', $ketua);
+        $this->assertMatchesRegularExpression('/data-jenis="ketua" data-status="belum"/', $ketua);
+        $this->assertSame(1, substr_count($ketua, 'status-badge-btn"'));
+    }
+
+    public function test_ketua_shown_without_lokasi_item_when_only_dpl(): void
+    {
+        Dpl::factory()->create(['kodept' => Satuanpendidikan::factory()->create()->npsn, 'location_program' => LokasiProgram::factory()->create()->id]);
+
+        $response = $this->get('/')
+            ->assertViewHas('statusLokasi', ['sudah' => 0, 'belum' => 0, 'total' => 0])
+            ->assertViewHas('statusKetua', ['sudah' => 0, 'belum' => 1, 'total' => 1]);
+        $text = preg_replace('/\s+/', ' ', strip_tags((string) $this->sebaranStatusBlock($response)));
+        $this->assertStringContainsString('PTS Set Ketua Kelompok Sudah 0 Belum 1', $text);
+        $this->assertStringNotContainsString('Mahasiswa Set Lokasi', $text);
+    }
+
+    public function test_ketua_item_hidden_when_total_zero(): void
+    {
+        // Hanya data tanpa location_program/kodept: tidak masuk sebaran
+        $pt = Satuanpendidikan::factory()->create()->npsn;
+        $mhs = Mahasiswa::factory()->create(['kodept' => $pt]);
+        Pjdesa::create(['email' => $mhs->email, 'id_desa' => Desa::factory()->create()->id_desa]);
+        Dpl::factory()->create(['location_program' => LokasiProgram::factory()->create()->id]);
+
+        $response = $this->get('/')->assertViewHas('statusKetua', ['sudah' => 0, 'belum' => 0, 'total' => 0]);
+        $response->assertDontSee('PTS Set Ketua Kelompok');
+        $this->assertNull($this->sebaranStatusBlock($response));
     }
 }

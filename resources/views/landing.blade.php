@@ -339,15 +339,26 @@
                         <p class="lp-kicker">SEBARAN PERGURUAN TINGGI</p>
                         <h2 class="lp-title" id="sebaranTitle">{{ $navItems['sebaran'] }}</h2>
                         <p class="lp-lead">Telusuri sebaran penugasan perguruan tinggi, mahasiswa, dan dosen pembimbing lapangan pada setiap wilayah pelaksanaan KKN Tematik Sampah Tuntas.</p>
-                        @if (($statusLokasi['total'] ?? 0) > 0)
+                        @if (($statusLokasi['total'] ?? 0) + ($statusKetua['total'] ?? 0) > 0)
                             <dl class="peserta-status">
-                                <div class="peserta-status-item">
-                                    <dt>Mahasiswa Set Lokasi</dt>
-                                    <dd>
-                                        @include('landing._status_badge', ['jenis' => 'lokasi', 'status' => 'sudah', 'title' => 'Mahasiswa Set Lokasi', 'label' => 'Sudah', 'count' => $statusLokasi['sudah'] ?? 0])
-                                        @include('landing._status_badge', ['jenis' => 'lokasi', 'status' => 'belum', 'title' => 'Mahasiswa Set Lokasi', 'label' => 'Belum', 'count' => $statusLokasi['belum'] ?? 0])
-                                    </dd>
-                                </div>
+                                @if (($statusLokasi['total'] ?? 0) > 0)
+                                    <div class="peserta-status-item">
+                                        <dt>Mahasiswa Set Lokasi</dt>
+                                        <dd>
+                                            @include('landing._status_badge', ['jenis' => 'lokasi', 'status' => 'sudah', 'title' => 'Mahasiswa Set Lokasi', 'label' => 'Sudah', 'count' => $statusLokasi['sudah'] ?? 0])
+                                            @include('landing._status_badge', ['jenis' => 'lokasi', 'status' => 'belum', 'title' => 'Mahasiswa Set Lokasi', 'label' => 'Belum', 'count' => $statusLokasi['belum'] ?? 0])
+                                        </dd>
+                                    </div>
+                                @endif
+                                @if (($statusKetua['total'] ?? 0) > 0)
+                                    <div class="peserta-status-item">
+                                        <dt>PTS Set Ketua Kelompok</dt>
+                                        <dd>
+                                            @include('landing._status_badge', ['jenis' => 'ketua', 'status' => 'sudah', 'title' => 'PTS Set Ketua Kelompok', 'label' => 'Sudah', 'count' => $statusKetua['sudah'] ?? 0])
+                                            @include('landing._status_badge', ['jenis' => 'ketua', 'status' => 'belum', 'title' => 'PTS Set Ketua Kelompok', 'label' => 'Belum', 'count' => $statusKetua['belum'] ?? 0])
+                                        </dd>
+                                    </div>
+                                @endif
                             </dl>
                         @endif
                     </div>
@@ -595,7 +606,7 @@
         </div>
     </div>
 
-    {{-- Modal daftar status (mobilisasi, pelaksanaan, set lokasi): paginasi & pencarian di server --}}
+    {{-- Modal daftar status (mobilisasi, pelaksanaan, set lokasi, ketua): paginasi & pencarian di server --}}
     <div class="modal fade" id="modalStatusList" tabindex="-1" aria-labelledby="modalStatusListTitle" aria-hidden="true"
         data-url="{{ route('login.status-list') }}">
         <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-sm-down">

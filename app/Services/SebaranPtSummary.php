@@ -12,6 +12,9 @@ class SebaranPtSummary
     // Mahasiswa (alias m) already set desa; shared by statusLokasi() and the landing list
     public const SUDAH_LOKASI_SQL = 'EXISTS (SELECT 1 FROM mahasiswa_lokasi ml WHERE ml.id_mahasiswa = m.id_mahasiswa AND ml.id_desa IS NOT NULL)';
 
+    // PT (alias pt) has a ketua kelompok: same join as jumlah_ketua_kelompok in DataPesertaSummary::all(); shared by statusKetua() and the landing list
+    public const SUDAH_KETUA_SQL = 'EXISTS (SELECT 1 FROM mahasiswa km JOIN pj_desa pd ON pd.email = km.email WHERE km.kodept = pt.kodept)';
+
     // Ikut versi peta: flush data mahasiswa/dpl ikut menyegarkan cache ini
     public function cached(): Collection
     {
@@ -85,6 +88,31 @@ class SebaranPtSummary
         $row = $this->lokasiBase()
             ->selectRaw('COUNT(*) as total')
             ->selectRaw('SUM(CASE WHEN '.self::SUDAH_LOKASI_SQL.' THEN 1 ELSE 0 END) as sudah')
+            ->first();
+
+        $total = (int) $row->total;
+        $sudah = (int) $row->sudah;
+
+        return ['sudah' => $sudah, 'belum' => $total - $sudah, 'total' => $total];
+    }
+
+    // Population of ketua status & list: distinct kodept of mahasiswa+DPL (UNION, like all()); use as subquery alias pt
+    public function ketuaPtBase(): Builder
+    {
+        return $this->lokasiBase()->select('m.kodept')
+            ->union(DB::table('dpl')->whereNotNull('location_program')->whereNotNull('kodept')->select('kodept'));
+    }
+
+    /**
+     * PT di sebaran (UNION mahasiswa+DPL seperti all()) yang sudah/belum punya ketua kelompok (pj_desa), tanpa cache.
+     *
+     * @return array{sudah: int, belum: int, total: int}
+     */
+    public function statusKetua(): array
+    {
+        $row = DB::query()->fromSub($this->ketuaPtBase(), 'pt')
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('SUM(CASE WHEN '.self::SUDAH_KETUA_SQL.' THEN 1 ELSE 0 END) as sudah')
             ->first();
 
         $total = (int) $row->total;

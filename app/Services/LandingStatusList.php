@@ -8,7 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-// Sudah/belum lists behind the landing status badges; populations match DataPesertaSummary::status() & SebaranPtSummary::statusLokasi()
+// Sudah/belum lists behind the landing status badges; populations match DataPesertaSummary::status() & SebaranPtSummary::statusLokasi()/statusKetua()
 class LandingStatusList
 {
     // Sortable response fields per jenis (validated in StatusListRequest)
@@ -16,6 +16,7 @@ class LandingStatusList
         'mobilisasi' => ['nim', 'nama', 'nama_pt', 'kecamatan', 'desa'],
         'pelaksanaan' => ['kode_pt', 'nama_pt'],
         'lokasi' => ['nim', 'nama', 'nama_pt', 'lokasi', 'kecamatan', 'desa'],
+        'ketua' => ['kode_pt', 'nama_pt', 'jumlah_ketua'],
     ];
 
     public function __construct(
@@ -32,6 +33,7 @@ class LandingStatusList
             'mobilisasi' => $this->mobilisasi($sudah, $like, $sort, $dir),
             'pelaksanaan' => $this->pelaksanaan($sudah, $like, $sort, $dir),
             'lokasi' => $this->lokasi($sudah, $like, $sort, $dir),
+            'ketua' => $this->ketua($sudah, $like, $sort, $dir),
         };
 
         // Page past the end is clamped to the last page
@@ -54,6 +56,11 @@ class LandingStatusList
                 'pelaksanaan' => [
                     'kode_pt' => (string) $row->kodept,
                     'nama_pt' => (string) ($row->nm_lemb ?? $row->kodept),
+                ],
+                'ketua' => [
+                    'kode_pt' => (string) $row->kodept,
+                    'nama_pt' => (string) ($row->nm_lemb ?? $row->kodept),
+                    'jumlah_ketua' => (int) $row->jumlah_ketua,
                 ],
                 'lokasi' => [
                     'nim' => $row->nim,
@@ -119,6 +126,36 @@ class LandingStatusList
             'kode_pt' => 'p.kodept',
             'nama_pt' => 'COALESCE(sp.nm_lemb, p.kodept)',
         ], $sort, $dir, 'nama_pt', 'p.kodept');
+    }
+
+    // PT rows, same population & condition as SebaranPtSummary::statusKetua()
+    private function ketua(bool $sudah, ?string $like, ?string $sort, string $dir): Builder
+    {
+        $query = DB::query()->fromSub($this->sebaran->ketuaPtBase(), 'pt')
+            ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', 'pt.kodept')
+            ->whereRaw(($sudah ? '' : 'NOT ').SebaranPtSummary::SUDAH_KETUA_SQL)
+            ->when($like, fn ($b) => $b->where(fn ($w) => $w->where('sp.nm_lemb', 'like', $like)->orWhere('pt.kodept', 'like', $like)))
+            ->select('pt.kodept', 'sp.nm_lemb');
+
+        // Same count as DataPesertaSummary::all() jumlah_ketua_kelompok; belum rows have none by SUDAH_KETUA_SQL
+        if ($sudah) {
+            $ketuaPerPt = DB::table('mahasiswa')
+                ->join('pj_desa', 'pj_desa.email', '=', 'mahasiswa.email')
+                ->whereNotNull('mahasiswa.kodept')
+                ->groupBy('mahasiswa.kodept')
+                ->selectRaw('mahasiswa.kodept, COUNT(DISTINCT mahasiswa.email) as total');
+            $query->leftJoinSub($ketuaPerPt, 'jk', 'jk.kodept', '=', 'pt.kodept')
+                ->addSelect(DB::raw('COALESCE(jk.total, 0) as jumlah_ketua'));
+        } else {
+            $query->addSelect(DB::raw('0 as jumlah_ketua'));
+        }
+
+        return $this->sorted($query, [
+            'kode_pt' => 'pt.kodept',
+            'nama_pt' => 'COALESCE(sp.nm_lemb, pt.kodept)',
+            // Belum: constant NULL, not literal 0 (MySQL reads ORDER BY 0 as a column position); ties fall to pt.kodept
+            'jumlah_ketua' => $sudah ? 'COALESCE(jk.total, 0)' : 'NULL',
+        ], $sort, $dir, 'nama_pt', 'pt.kodept');
     }
 
     // Deferred join: lokasi() pages narrow id rows, display columns are fetched for that page only

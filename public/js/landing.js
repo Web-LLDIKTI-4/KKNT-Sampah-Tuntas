@@ -533,10 +533,11 @@
       var statusColumns = {
         mobilisasi: [["NIM", "nim"], ["Nama Ketua", "nama"], ["PTS", "nama_pt"], ["Kecamatan", "kecamatan"], ["Desa", "desa"]],
         pelaksanaan: [["Kode PT", "kode_pt"], ["Nama PTS", "nama_pt"]],
-        lokasi: [["NIM", "nim"], ["Nama", "nama"], ["PTS", "nama_pt"], ["Lokasi Program", "lokasi"], ["Kecamatan", "kecamatan"], ["Desa", "desa"]]
+        lokasi: [["NIM", "nim"], ["Nama", "nama"], ["PTS", "nama_pt"], ["Lokasi Program", "lokasi"], ["Kecamatan", "kecamatan"], ["Desa", "desa"]],
+        ketua: [["Kode PT", "kode_pt"], ["Nama PTS", "nama_pt"], ["Ketua Kelompok", "jumlah_ketua"]]
       };
       // Kolom angka: rata tengah (header & sel)
-      var statusCentered = { nim: true, kode_pt: true };
+      var statusCentered = { nim: true, kode_pt: true, jumlah_ketua: true };
       var $statusMsg = $statusModal.find(".status-list-status");
       var $statusWrap = $statusModal.find(".status-list-wrap");
       var $statusTableWrap = $statusModal.find(".status-list-table");
@@ -551,6 +552,14 @@
       var statusXhr = null;
       var statusTimer = null;
       var statusLoaded = false;
+
+      // Kolom aktif; "Ketua Kelompok" hanya relevan untuk status sudah
+      var statusCols = function () {
+        var cols = statusColumns[statusState.jenis] || [];
+        return statusState.jenis === "ketua" && statusState.status === "belum"
+          ? cols.filter(function (col) { return col[1] !== "jumlah_ketua"; })
+          : cols;
+      };
 
       var statusNum = function (n) {
         return (Number(n) || 0).toLocaleString("id-ID");
@@ -618,7 +627,7 @@
       };
 
       var statusRender = function (res) {
-        var cols = statusColumns[statusState.jenis];
+        var cols = statusCols();
         var rows = Array.isArray(res.data) ? res.data : [];
         var meta = res.meta || {};
         var total = Number(meta.total) || 0;
@@ -755,7 +764,7 @@
         $statusTbody.empty();
         $statusNoResult.addClass("d-none").empty();
         $statusTableWrap.removeClass("d-none");
-        $statusHead.empty().append([["No"]].concat(statusColumns[jenis]).map(function (col) {
+        $statusHead.empty().append([["No"]].concat(statusCols()).map(function (col) {
           var $th = $('<th scope="col">').toggleClass("text-center", col[0] === "No" || statusCentered[col[1]] === true);
           if (!col[1]) {
             return $th.text(col[0])[0];

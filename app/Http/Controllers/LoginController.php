@@ -36,6 +36,7 @@ class LoginController extends Controller
             'statusPeserta' => $peserta->status($dataPeserta->pluck('kodept')),
             'sebaranPtList' => $sebaran->cached(),
             'statusLokasi' => $sebaran->statusLokasi(),
+            'statusKetua' => $sebaran->statusKetua(),
             'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]) + ['publik' => true],
             'panduanList' => $this->getPanduanPublik(),
         ] + $this->statistikPublik($rekap));
