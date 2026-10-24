@@ -468,4 +468,143 @@ class PicDlhTest extends TestCase
         $this->assertDatabaseHas('pic_dlh', ['id_pic_dlh' => $pic->id_pic_dlh]);
         $this->assertNull($pic->fresh()->location_program);
     }
+
+    public function test_admin_can_insert_without_kecamatan_stored_as_null(): void
+    {
+        $this->loginAs('admin');
+
+        $this->put('picdlh/insert', $this->payload('', ['nama' => 'Kosong']))->assertJson(['success' => true]);
+
+        $payload = $this->payload('', ['nama' => 'Tidak Dikirim']);
+        unset($payload['id_kecamatan']);
+        $this->put('picdlh/insert', $payload)->assertJson(['success' => true]);
+
+        foreach (['Kosong', 'Tidak Dikirim'] as $nama) {
+            $pic = Picdlh::where('nama', $nama)->firstOrFail();
+            $this->assertNull($pic->id_kecamatan, $nama);
+            $this->assertDatabaseHas('pic_dlh', ['id_pic_dlh' => $pic->id_pic_dlh, 'id_kecamatan' => null]);
+        }
+        $this->assertSame(0, Picdlh::where('id_kecamatan', '')->count());
+    }
+
+    public function test_admin_can_update_without_kecamatan_stored_as_null(): void
+    {
+        $this->loginAs('admin');
+        $pic = $this->makePic(['id_kecamatan' => null]);
+
+        $this->put('picdlh/update', $this->payload('', ['id_pic_dlh' => $pic->id_pic_dlh, 'nama' => 'Update Kosong']))
+            ->assertJson(['success' => true]);
+        $this->assertSame('Update Kosong', $pic->fresh()->nama);
+        $this->assertNull($pic->fresh()->id_kecamatan);
+
+        $payload = $this->payload('', ['id_pic_dlh' => $pic->id_pic_dlh, 'nama' => 'Update Tanpa Field']);
+        unset($payload['id_kecamatan']);
+        $this->put('picdlh/update', $payload)->assertJson(['success' => true]);
+        $this->assertSame('Update Tanpa Field', $pic->fresh()->nama);
+        $this->assertNull($pic->fresh()->id_kecamatan);
+        $this->assertSame(0, Picdlh::where('id_kecamatan', '')->count());
+    }
+
+    public function test_clearing_kecamatan_on_edit_sets_null(): void
+    {
+        $this->loginAs('admin');
+        $pic = $this->makePic();
+        $this->assertNotNull($pic->id_kecamatan);
+
+        $this->put('picdlh/update', $this->payload('', ['id_pic_dlh' => $pic->id_pic_dlh]))
+            ->assertJson(['success' => true]);
+
+        $this->assertNull($pic->fresh()->id_kecamatan);
+        $this->assertDatabaseHas('pic_dlh', ['id_pic_dlh' => $pic->id_pic_dlh, 'id_kecamatan' => null]);
+
+        // Setting it back to a valid kecamatan still works
+        $kecamatan = Kecamatan::factory()->create();
+        $this->put('picdlh/update', $this->payload($kecamatan->id_kecamatan, ['id_pic_dlh' => $pic->id_pic_dlh]))
+            ->assertJson(['success' => true]);
+        $this->assertSame($kecamatan->id_kecamatan, $pic->fresh()->id_kecamatan);
+    }
+
+    public function test_invalid_kecamatan_is_rejected_on_insert_and_update(): void
+    {
+        $this->loginAs('admin');
+        $pic = $this->makePic();
+        $original = $pic->id_kecamatan;
+
+        foreach (['00000000-0000-0000-0000-000000000000', 'bukan-uuid', str_repeat('a', 37), ['x'], "' OR 1=1 --"] as $value) {
+            $this->put('picdlh/insert', array_merge($this->payload(''), ['id_kecamatan' => $value]))
+                ->assertJson(['success' => false])
+                ->assertJsonValidationErrors('id_kecamatan', 'errors');
+
+            $this->put('picdlh/update', array_merge($this->payload('', ['id_pic_dlh' => $pic->id_pic_dlh]), ['id_kecamatan' => $value]))
+                ->assertJson(['success' => false])
+                ->assertJsonValidationErrors('id_kecamatan', 'errors');
+        }
+
+        $this->assertSame(1, Picdlh::count());
+        $this->assertSame($original, $pic->fresh()->id_kecamatan);
+    }
+
+    public function test_non_admin_cannot_insert_without_kecamatan(): void
+    {
+        foreach (['dpl', 'pt', 'kepala', 'mahasiswa', 'pemda'] as $role) {
+            $this->loginAs($role);
+
+            $insert = $this->put('picdlh/insert', $this->payload(''));
+            $this->assertContains($insert->getStatusCode(), [302, 403], $role);
+        }
+
+        $this->assertSame(0, Picdlh::count());
+    }
+
+    public function test_listdataserver_returns_rows_without_kecamatan(): void
+    {
+        $this->loginAs('admin');
+        $kecamatan = Kecamatan::factory()->create(['kecamatan' => 'Kecamatan Alfa']);
+        $this->makePic(['id_kecamatan' => $kecamatan->id_kecamatan, 'nama' => 'Dengan Kecamatan']);
+        $this->makePic(['id_kecamatan' => null, 'nama' => 'Tanpa Kecamatan']);
+
+        $response = $this->getJson(self::LIST_URL, self::AJAX)->assertOk()
+            ->assertJsonPath('recordsTotal', 2)
+            ->assertJsonCount(2, 'data');
+        $rows = collect($response->json('data'))->keyBy('nama');
+        $this->assertSame('Kecamatan Alfa', $rows['Dengan Kecamatan']['kecamatan']);
+        $this->assertSame('', $rows['Tanpa Kecamatan']['kecamatan']);
+
+        $columns = '&columns[0][data]=nama&columns[0][name]=nama&columns[0][searchable]=true&columns[0][orderable]=true'
+            .'&columns[1][data]=kecamatan&columns[1][name]=kecamatan&columns[1][searchable]=true&columns[1][orderable]=true';
+
+        foreach (['asc', 'desc'] as $dir) {
+            $this->getJson(self::LIST_URL.$columns.'&order[0][column]=1&order[0][dir]='.$dir, self::AJAX)
+                ->assertOk()->assertJsonCount(2, 'data');
+        }
+
+        $this->getJson(self::LIST_URL.$columns.'&search[value]=Tanpa', self::AJAX)
+            ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.nama', 'Tanpa Kecamatan');
+
+        $this->get('picdlh/listdata')->assertOk()
+            ->assertSee("{data: 'kecamatan', name: 'kecamatan', defaultContent: '-', render: function (value) { return value || '-'; }}", false);
+    }
+
+    public function test_tambah_and_edit_kecamatan_select_is_optional(): void
+    {
+        $this->loginAs('admin');
+        $kecamatan = Kecamatan::factory()->create();
+
+        $this->get('picdlh/tambah')->assertOk()
+            ->assertSee('<select name="id_kecamatan" class="form-control">', false)
+            ->assertDontSee('<select name="id_kecamatan" class="form-control" required>', false)
+            ->assertSeeInOrder(['name="id_kecamatan"', '<option value="">', 'value="'.$kecamatan->id_kecamatan.'"'], false);
+
+        $pic = $this->makePic(['id_kecamatan' => $kecamatan->id_kecamatan]);
+        $this->get('picdlh/edit/'.$pic->id_pic_dlh)->assertOk()
+            ->assertSee('<select name="id_kecamatan" class="form-control">', false)
+            ->assertDontSee('<select name="id_kecamatan" class="form-control" required>', false)
+            ->assertSeeInOrder(['name="id_kecamatan"', '<option value="">', 'value="'.$kecamatan->id_kecamatan.'" selected'], false);
+
+        // Null kecamatan: edit page renders and nothing is preselected
+        $plain = $this->makePic(['id_kecamatan' => null]);
+        $this->get('picdlh/edit/'.$plain->id_pic_dlh)->assertOk()
+            ->assertSeeInOrder(['name="id_kecamatan"', '<option value="">', 'value="'.$kecamatan->id_kecamatan.'"'], false)
+            ->assertDontSee('value="'.$kecamatan->id_kecamatan.'" selected', false);
+    }
 }

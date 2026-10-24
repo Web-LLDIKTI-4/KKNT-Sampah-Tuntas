@@ -8,11 +8,12 @@
                 <option value="{{ $lokasi->id }}">{{ $lokasi->nama_lokasi }}</option>
             @endforeach
         </select>
-        <label for="location_program">Lokasi Program / Kecamatan</label>
+        <label for="location_program">Lokasi Program</label>
         <div><span id="location_program_error" class="text-danger"></span></div>
     </div>
     <div class="form-group form-floating form-floating-outline mb-6">
-        <select name="id_kecamatan" class="form-control" required>
+        <select name="id_kecamatan" class="form-control">
+            <option value="">-- Pilih Kecamatan --</option>
             @foreach($kecamatan as $item)
                 <option value="{{ $item->id_kecamatan }}">{{ $item->kecamatan }}</option>
             @endforeach

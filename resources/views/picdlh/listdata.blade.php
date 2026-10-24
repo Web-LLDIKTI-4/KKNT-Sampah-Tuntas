@@ -36,7 +36,7 @@
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
             {data: 'lokasi_program_nama', name: 'lokasi_program_nama', defaultContent: '-', render: function (value) { return value || '-'; }},
-            {data: 'kecamatan', name: 'kecamatan'},
+            {data: 'kecamatan', name: 'kecamatan', defaultContent: '-', render: function (value) { return value || '-'; }},
             {data: 'nama', name: 'nama'},
             {data: 'kontak', name: 'kontak', className: 'text-center'},
             {data: 'keterangan', name: 'keterangan'},
