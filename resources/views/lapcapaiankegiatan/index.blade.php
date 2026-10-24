@@ -10,7 +10,7 @@
     </div>
     <div>
         <h5 class="mb-0">
-            <span class="align-middle">Capaian Key Performance Indicator (KPI)</span>
+            <span class="align-middle">Laporan Evaluasi Pendataan Sampah</span>
         </h5>
         <span>Data Evaluasi Pendataan Sampah</span>
     </div>

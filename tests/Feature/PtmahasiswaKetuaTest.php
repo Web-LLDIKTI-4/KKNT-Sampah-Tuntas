@@ -115,7 +115,7 @@ class PtmahasiswaKetuaTest extends TestCase
         $this->assertSame([$mhs->nama], array_column($res->json('data'), 'pjdesa'));
         $this->assertStringContainsString('Belum', $res->json('data.0.mobilisasi'));
 
-        // Ketua bisa mengisi capaian KPI
+        // Ketua bisa mengisi evaluasi pendataan sampah
         $this->actingAs($user);
         $this->put('capaiankegiatan/insert', $this->capaianPayload())->assertOk()->assertJson(['success' => true]);
         $this->assertSame($pj->id_pjdesa, CapaianKegiatan::where('email', $mhs->email)->sole()->id_pjdesa);
@@ -224,7 +224,7 @@ class PtmahasiswaKetuaTest extends TestCase
         $this->assertSame(0, CapaianKegiatan::count());
     }
 
-    // AC: cabut ditolak bila ada capaian KPI tahun ini
+    // AC: cabut ditolak bila ada evaluasi pendataan sampah tahun ini
     public function test_revoke_rejected_when_capaian_this_year(): void
     {
         $mhs = $this->mahasiswa($this->ptA, Desa::factory()->create());
@@ -237,7 +237,7 @@ class PtmahasiswaKetuaTest extends TestCase
         $this->loginPtA();
 
         $res = $this->cabut(['id_pjdesa' => $pj->id_pjdesa])->assertOk()->assertJson(['success' => false]);
-        $this->assertStringContainsString('ketua kelompok memiliki capaian KPI tahun ini', $res->json('message') ?? $res->json('error'));
+        $this->assertStringContainsString('ketua kelompok memiliki evaluasi pendataan sampah tahun ini', $res->json('message') ?? $res->json('error'));
 
         $this->assertDatabaseHas('pj_desa', ['id_pjdesa' => $pj->id_pjdesa]);
         $this->assertSame('pjdesa', User::where('email', $mhs->email)->value('akses'));

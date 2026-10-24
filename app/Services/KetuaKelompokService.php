@@ -51,7 +51,7 @@ class KetuaKelompokService
     public function revoke(Pjdesa $pjdesa): ?string
     {
         if (CapaianKegiatan::where('email', $pjdesa->email)->whereYear('bulan', now()->year)->exists()) {
-            return 'Tidak dapat dihapus karena ketua kelompok memiliki capaian KPI tahun ini';
+            return 'Tidak dapat dihapus karena ketua kelompok memiliki evaluasi pendataan sampah tahun ini';
         }
 
         DB::transaction(function () use ($pjdesa) {

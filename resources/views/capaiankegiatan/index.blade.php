@@ -8,7 +8,7 @@
 
 <x-page-header
     icon="ri-line-chart-line"
-    title="Capaian Key Performance Indicator (KPI)"
+    title="Evaluasi Pendataan Sampah"
     :subtitle="$desa ? 'Rekap sampah Kel. '.$desa->desa.', Kec. '.($desa->kecamatan?->kecamatan ?? '-').' dari Pendataan Sampah Penduduk.' : 'Rekap sampah dari Pendataan Sampah Penduduk.'" />
 
 {{-- Read-only: rekap dihitung otomatis dari Pendataan Sampah Penduduk --}}

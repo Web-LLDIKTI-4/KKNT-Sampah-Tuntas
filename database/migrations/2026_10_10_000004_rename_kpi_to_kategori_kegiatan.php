@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-// ADR 2026-10-10: "KPI" split into kategori kegiatan, capaian kegiatan, and pengurangan sampah.
+// ADR 2026-10-10: "Evaluasi Pendataan Sampah" split into kategori kegiatan, capaian kegiatan, and pengurangan sampah.
 return new class extends Migration
 {
     private const TABLES = [

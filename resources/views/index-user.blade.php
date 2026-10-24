@@ -171,7 +171,7 @@
                             <div class="d-flex justify-content-between align-items-start pb-3 card-widget-2">
                                 <div>
                                     <p class="mb-1">Evaluasi Pendataan Sampah</p>
-                                    <h4 class="mb-1">{{ $jumlahcapaiankegiatan }} <span class="fs-5">KPI</span></h4>
+                                    <h4 class="mb-1">{{ $jumlahcapaiankegiatan }} <span class="fs-5">Evaluasi Pendataan Sampah</span></h4>
                                     {{-- @php
                                         if($jumlahcapaiankegiatan == 0){
                                             $persenjumlahcapaiankegiatan = 0;

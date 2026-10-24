@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
-// URL lama sebelum rename KPI (ADR 2026-10-10) wajib redirect 301 ke URL baru
+// URL lama sebelum rename Evaluasi Pendataan Sampah (ADR 2026-10-10) wajib redirect 301 ke URL baru
 class LegacyKpiRedirectTest extends TestCase
 {
     use RefreshDatabase;
@@ -158,8 +158,8 @@ class LegacyKpiRedirectTest extends TestCase
         foreach (['kpi', 'kpicapaian', 'lapcapaiankpi', 'dashboardkpi'] as $lama) {
             $this->assertStringNotContainsString('href="'.url($lama).'"', $html, "$role: link lama $lama");
         }
-        // Label fitur "Evaluasi Pendataan Sampah" dipertahankan; menu lama KPI tidak boleh muncul
-        $this->assertDoesNotMatchRegularExpression('/>\s*[^<]*\b(Kelola|Dashboard) KPI\b[^<]*</', $html, "$role: label KPI lama");
+        // Label fitur "Evaluasi Pendataan Sampah" dipertahankan; menu lama Evaluasi Pendataan Sampah tidak boleh muncul
+        $this->assertDoesNotMatchRegularExpression('/>\s*[^<]*\b(Kelola|Dashboard) Evaluasi Pendataan Sampah\b[^<]*</', $html, "$role: label Evaluasi Pendataan Sampah lama");
     }
 
     public function test_route_baru_terdaftar_dengan_nama_baru(): void
