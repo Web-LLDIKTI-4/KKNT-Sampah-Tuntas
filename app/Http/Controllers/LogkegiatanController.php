@@ -13,6 +13,7 @@ use App\Services\LogHarianService;
 use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Yajra\DataTables\Facades\DataTables;
 
 class LogkegiatanController extends Controller
@@ -66,7 +67,12 @@ class LogkegiatanController extends Controller
 
     public function insert(LogHarianRequest $request, LogHarianService $logHarian)
     {
-        $logHarian->store($request->validated(), $request->user()->email);
+        try {
+            $logHarian->store($request->validated(), $request->user()->email);
+        } catch (ValidationException $e) {
+            // Batas lolos after() tapi penuh saat lock (race): format sama dengan AjaxFormRequest
+            return response()->json(['success' => false, 'message' => 'Data gagal disimpan!', 'errors' => $e->errors()]);
+        }
 
         return $this->saved('Log harian berhasil disimpan');
     }

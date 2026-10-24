@@ -7,16 +7,11 @@ $(function () {
             return; // hindari inisialisasi ganda
         }
 
-        // data-check: kolom boolean -> ikon centang, '-' bila false
-        var check = $table.data('check') || [];
-        var columnDefs = check.length ? [{ targets: check, render: function (data, type) {
-            if (type !== 'display') return data;
-            return (data === true || data === 1 || data === '1') ? '<i class="ri-check-line text-success" aria-label="Ya"></i>' : '-';
-        } }] : [];
-
-        // Opt-in column key: emptyBadge (null -> red badge)
+        // Opt-in column keys: emptyBadge (null -> red badge), lokasiStatus (kecamatan+desa check / x icon), boolIcon ([trueLabel, falseLabel])
         var columns = ($table.data('columns') || []).map(function (col) {
             if (col.emptyBadge) col.render = $.fn.dataTable.render.emptyBadge(col.emptyBadge);
+            if (col.lokasiStatus) col.render = $.fn.dataTable.render.lokasiStatus();
+            if (col.boolIcon) col.render = $.fn.dataTable.render.boolIcon(col.boolIcon[0], col.boolIcon[1]);
             return col;
         });
 
@@ -29,7 +24,6 @@ $(function () {
             order: $table.data('order'),
             searching: $table.data('searching'),
             lengthChange: $table.data('length-change'),
-            columnDefs: columnDefs,
             language: {
                 search: "",
                 searchPlaceholder: "Cari...",

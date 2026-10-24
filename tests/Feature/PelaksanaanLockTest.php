@@ -96,7 +96,7 @@ class PelaksanaanLockTest extends TestCase
     {
         $this->loginMahasiswa();
 
-        $this->assertLockedJson($this->put('logkegiatan/insert', ['ada_kegiatan_lain' => '1', 'deskripsi' => 'x'], self::AJAX));
+        $this->assertLockedJson($this->put('logkegiatan/insert', ['mode' => 'kegiatan', 'deskripsi' => 'x'], self::AJAX));
         $this->assertLockedJson($this->put('logkehadiran/insert', [], self::AJAX));
         $this->assertLockedJson($this->put('logbulanan/insert', [], self::AJAX));
         $this->assertLockedJson($this->put('capaiankegiatan/insert', [], self::AJAX));

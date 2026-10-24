@@ -13,6 +13,7 @@ class PicdlhRequest extends AjaxFormRequest
         return [
             'id_pic_dlh' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'uuid', 'exists:pic_dlh,id_pic_dlh'],
             'id_kecamatan' => ['required', 'string', 'max:36', 'exists:kecamatan,id_kecamatan'],
+            'location_program' => ['nullable', 'uuid', 'exists:lokasi_program,id'],
             'nama' => ['required', 'string', 'max:200'],
             'kontak' => ['required', 'string', 'max:50', 'regex:/^[0-9+\-\ ()]+$/D',
                 function (string $attribute, mixed $value, \Closure $fail) {
@@ -32,6 +33,8 @@ class PicdlhRequest extends AjaxFormRequest
             'id_pic_dlh.exists' => 'Data Kontak Pelaksana Program tidak ditemukan.',
             'id_kecamatan.required' => 'Kecamatan harus dipilih.',
             'id_kecamatan.exists' => 'Kecamatan tidak valid.',
+            'location_program.uuid' => 'Lokasi program tidak valid.',
+            'location_program.exists' => 'Lokasi program tidak valid.',
             'nama.required' => 'Nama harus diisi.',
             'nama.max' => 'Nama maksimal 200 karakter.',
             'kontak.required' => 'Nomor kontak harus diisi.',

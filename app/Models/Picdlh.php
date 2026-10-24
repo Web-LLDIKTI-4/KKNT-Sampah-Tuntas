@@ -26,4 +26,9 @@ class Picdlh extends Model
     {
         return $this->belongsTo(Kecamatan::class, 'id_kecamatan', 'id_kecamatan');
     }
+
+    public function lokasiProgram()
+    {
+        return $this->belongsTo(LokasiProgram::class, 'location_program', 'id');
+    }
 }

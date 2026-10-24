@@ -3,6 +3,7 @@
 namespace Tests\Feature\Master;
 
 use App\Models\Kecamatan;
+use App\Models\LokasiProgram;
 use App\Models\Picdlh;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -308,5 +309,163 @@ class PicDlhTest extends TestCase
 
         $this->assertDatabaseHas('kecamatan', ['id_kecamatan' => $pic->id_kecamatan]);
         $this->assertDatabaseHas('pic_dlh', ['id_pic_dlh' => $pic->id_pic_dlh]);
+    }
+
+    public function test_admin_can_insert_and_update_without_location_program(): void
+    {
+        $this->loginAs('admin');
+        $kecamatan = Kecamatan::factory()->create();
+
+        $this->put('picdlh/insert', $this->payload($kecamatan->id_kecamatan))
+            ->assertJson(['success' => true]);
+        $pic = Picdlh::where('id_kecamatan', $kecamatan->id_kecamatan)->firstOrFail();
+        $this->assertNull($pic->location_program);
+
+        $this->put('picdlh/update', $this->payload($kecamatan->id_kecamatan, [
+            'id_pic_dlh' => $pic->id_pic_dlh,
+            'location_program' => '',
+            'nama' => 'Nama Baru',
+        ]))->assertJson(['success' => true]);
+        $this->assertSame('Nama Baru', $pic->fresh()->nama);
+        $this->assertNull($pic->fresh()->location_program);
+    }
+
+    public function test_admin_can_insert_and_update_with_location_program(): void
+    {
+        $this->loginAs('admin');
+        $kecamatan = Kecamatan::factory()->create();
+        [$lokasiA, $lokasiB] = LokasiProgram::factory()->count(2)->create();
+
+        $this->put('picdlh/insert', $this->payload($kecamatan->id_kecamatan, ['location_program' => $lokasiA->id]))
+            ->assertJson(['success' => true]);
+        $pic = Picdlh::where('id_kecamatan', $kecamatan->id_kecamatan)->firstOrFail();
+        $this->assertSame($lokasiA->id, $pic->location_program);
+        $this->assertSame($lokasiA->nama_lokasi, $pic->lokasiProgram->nama_lokasi);
+
+        $this->put('picdlh/update', $this->payload($kecamatan->id_kecamatan, [
+            'id_pic_dlh' => $pic->id_pic_dlh,
+            'location_program' => $lokasiB->id,
+        ]))->assertJson(['success' => true]);
+        $this->assertSame($lokasiB->id, $pic->fresh()->location_program);
+
+        // Clearing the select resets the column to null
+        $this->put('picdlh/update', $this->payload($kecamatan->id_kecamatan, [
+            'id_pic_dlh' => $pic->id_pic_dlh,
+            'location_program' => null,
+        ]))->assertJson(['success' => true]);
+        $this->assertNull($pic->fresh()->location_program);
+    }
+
+    public function test_invalid_location_program_is_rejected(): void
+    {
+        $this->loginAs('admin');
+        $pic = $this->makePic();
+
+        foreach (['bukan-uuid', '00000000-0000-0000-0000-000000000000', (string) \Illuminate\Support\Str::uuid(), ['x'], "' OR 1=1 --"] as $value) {
+            $this->put('picdlh/insert', $this->payload($pic->id_kecamatan, ['location_program' => $value]))
+                ->assertJson(['success' => false])
+                ->assertJsonValidationErrors('location_program', 'errors');
+
+            $this->put('picdlh/update', $this->payload($pic->id_kecamatan, ['id_pic_dlh' => $pic->id_pic_dlh, 'location_program' => $value]))
+                ->assertJson(['success' => false])
+                ->assertJsonValidationErrors('location_program', 'errors');
+        }
+
+        $this->assertSame(1, Picdlh::count());
+        $this->assertNull($pic->fresh()->location_program);
+    }
+
+    public function test_tambah_and_edit_show_location_program_select(): void
+    {
+        $this->loginAs('admin');
+        $lokasiA = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Uji A']);
+        $lokasiB = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Uji <b>B</b>']);
+
+        $this->get('picdlh/tambah')->assertOk()
+            ->assertSee('Lokasi Program / Kecamatan')
+            ->assertSee('name="location_program"', false)
+            ->assertSee('value="'.$lokasiA->id.'"', false)
+            ->assertSee('Kota Uji A')
+            ->assertSee('Kota Uji &lt;b&gt;B&lt;/b&gt;', false)
+            ->assertDontSee('Kota Uji <b>B</b>', false)
+            ->assertDontSee('value="'.$lokasiA->id.'" selected', false);
+
+        $pic = $this->makePic(['location_program' => $lokasiB->id]);
+        $this->get('picdlh/edit/'.$pic->id_pic_dlh)->assertOk()
+            ->assertSee('Lokasi Program / Kecamatan')
+            ->assertSee('value="'.$lokasiB->id.'" selected', false)
+            ->assertDontSee('value="'.$lokasiA->id.'" selected', false);
+
+        // Null location_program: nothing preselected
+        $plain = $this->makePic();
+        $this->get('picdlh/edit/'.$plain->id_pic_dlh)->assertOk()
+            ->assertSee('value="'.$lokasiA->id.'"', false)
+            ->assertDontSee('value="'.$lokasiA->id.'" selected', false)
+            ->assertDontSee('value="'.$lokasiB->id.'" selected', false);
+    }
+
+    public function test_listdataserver_returns_and_searches_lokasi_program_nama(): void
+    {
+        $this->loginAs('admin');
+        $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Kabupaten Zeta']);
+        $this->makePic(['nama' => 'Dengan Lokasi', 'location_program' => $lokasi->id]);
+        $this->makePic(['nama' => 'Tanpa Lokasi']);
+
+        $rows = collect($this->getJson(self::LIST_URL, self::AJAX)->assertOk()->json('data'))->keyBy('nama');
+        $this->assertSame('Kabupaten Zeta', $rows['Dengan Lokasi']['lokasi_program_nama']);
+        $this->assertSame('', $rows['Tanpa Lokasi']['lokasi_program_nama']);
+
+        $columns = '&columns[0][data]=nama&columns[0][name]=nama&columns[0][searchable]=true&columns[0][orderable]=true'
+            .'&columns[1][data]=lokasi_program_nama&columns[1][name]=lokasi_program_nama&columns[1][searchable]=true&columns[1][orderable]=true';
+
+        // Global search by lokasi name
+        $this->getJson(self::LIST_URL.$columns.'&search[value]=Zeta', self::AJAX)
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.nama', 'Dengan Lokasi')
+            ->assertJsonPath('recordsFiltered', 1);
+
+        // Column search by lokasi name
+        $this->getJson(self::LIST_URL.$columns.'&columns[1][search][value]=Kabupaten', self::AJAX)
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.nama', 'Dengan Lokasi');
+
+        // Ordering by lokasi does not 500 (ambiguous column check)
+        $this->getJson(self::LIST_URL.$columns.'&order[0][column]=1&order[0][dir]=desc', self::AJAX)
+            ->assertOk()
+            ->assertJsonPath('data.0.nama', 'Dengan Lokasi');
+    }
+
+    public function test_non_admin_cannot_set_location_program(): void
+    {
+        $pic = $this->makePic();
+        $lokasi = LokasiProgram::factory()->create();
+
+        foreach (['dpl', 'pt', 'kepala', 'mahasiswa', 'pemda'] as $role) {
+            $this->loginAs($role);
+
+            $insert = $this->put('picdlh/insert', $this->payload($pic->id_kecamatan, ['location_program' => $lokasi->id]));
+            $this->assertContains($insert->getStatusCode(), [302, 403], $role);
+
+            $update = $this->put('picdlh/update', $this->payload($pic->id_kecamatan, ['id_pic_dlh' => $pic->id_pic_dlh, 'location_program' => $lokasi->id]));
+            $this->assertContains($update->getStatusCode(), [302, 403], $role);
+        }
+
+        $this->assertSame(1, Picdlh::count());
+        $this->assertNull($pic->fresh()->location_program);
+    }
+
+    public function test_deleting_lokasi_program_nulls_pic_location_program(): void
+    {
+        $this->loginAs('admin');
+        $lokasi = LokasiProgram::factory()->create();
+        $pic = $this->makePic(['location_program' => $lokasi->id]);
+
+        $this->put('lokasiprogram/destroy', ['id' => $lokasi->id])->assertJson(['success' => true]);
+
+        $this->assertDatabaseMissing('lokasi_program', ['id' => $lokasi->id]);
+        $this->assertDatabaseHas('pic_dlh', ['id_pic_dlh' => $pic->id_pic_dlh]);
+        $this->assertNull($pic->fresh()->location_program);
     }
 }

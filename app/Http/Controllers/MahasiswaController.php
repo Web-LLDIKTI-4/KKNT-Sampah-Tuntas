@@ -47,7 +47,8 @@ class MahasiswaController extends PersonMasterController
         return parent::listQuery()
             ->withExists('pjdesa as ketua_kelompok')
             ->withLatestLokasi()
-            ->lokasiStatus(request()->query('lokasi_status'));
+            ->lokasiStatus(request()->query('lokasi_status'))
+            ->ketuaKelompok(request()->query('ketua_kelompok'));
     }
 
     protected function extraOrderColumns(): array

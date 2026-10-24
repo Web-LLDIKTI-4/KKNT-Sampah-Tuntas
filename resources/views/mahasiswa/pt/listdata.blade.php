@@ -1,4 +1,6 @@
-<x-filter.lokasi-status />
+<x-filter.lokasi-status>
+    <x-filter.ketua-kelompok />
+</x-filter.lokasi-status>
 
 <x-table
     :ajax="route('ptmahasiswa.listdataserver')"
@@ -10,9 +12,9 @@
         ['data' => 'phone', 'name' => 'phone', 'className' => 'text-center'],
         ['data' => 'nm_lemb', 'name' => 'nm_lemb'],
         ['data' => 'location_program', 'name' => 'location_program'],
-        ['data' => 'ketua_status', 'name' => 'ketua_status', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
-        ['data' => 'nama_kecamatan', 'name' => 'nama_kecamatan', 'emptyBadge' => 'Belum diisi'],
-        ['data' => 'nama_desa', 'name' => 'nama_desa', 'emptyBadge' => 'Belum diisi'],
+        ['data' => 'ketua_kelompok', 'name' => 'ketua_kelompok', 'className' => 'text-center', 'orderable' => false, 'searchable' => false, 'boolIcon' => ['Ketua kelompok', 'Bukan ketua']],
+        ['data' => 'nama_kecamatan', 'name' => 'nama_kecamatan', 'className' => 'text-center', 'orderable' => false, 'lokasiStatus' => true],
+        ['data' => 'nama_desa', 'name' => 'nama_desa', 'visible' => false],
         ...(auth()->user()->role === 'pt'
             ? [['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'orderable' => false, 'searchable' => false]]
             : []),
@@ -27,8 +29,8 @@
             <th>Hp</th>
             <th>Perguruan Tinggi</th>
             <th>Lokasi Program KKN</th>
-            <th>Ketua Kelompok</th>
-            <th>Kecamatan</th>
+            <th>Status Ketua Kelompok</th>
+            <th>Status Set Lokasi</th>
             <th>Kelurahan/Desa</th>
             @if (auth()->user()->role === 'pt')
                 <th>Aksi</th>

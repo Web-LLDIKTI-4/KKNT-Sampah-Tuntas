@@ -35,7 +35,7 @@ class PtmahasiswaController extends Controller
 
         $whitelist = ['nim', 'nama', 'email', 'phone', 'nm_lemb', 'location_program'];
         $isPt = $request->user()->role === 'pt';
-        // Correlated subqueries (no pj_desa join: duplicate emails would multiply rows); same order keeps id/desa paired
+        // Correlated subquery (no pj_desa join: duplicate emails would multiply rows)
         $ketua = fn () => Pjdesa::whereColumn('pj_desa.email', 'mahasiswa.email')
             ->oldest('pj_desa.created_at')->orderBy('pj_desa.id_pjdesa')->limit(1);
         // Joins replace eager loads: npsn is unique and lokasi_program.id is PK, so no duplicate rows
@@ -43,13 +43,11 @@ class PtmahasiswaController extends Controller
             ->leftJoin('ref_satuanpendidikan as sp', 'sp.npsn', '=', 'mahasiswa.kodept')
             ->leftJoin('lokasi_program as lp', 'lp.id', '=', 'mahasiswa.location_program')
             ->select('mahasiswa.id_mahasiswa', 'mahasiswa.nim', 'mahasiswa.nama', 'mahasiswa.email', 'mahasiswa.phone', 'sp.nm_lemb', 'lp.nama_lokasi')
-            ->addSelect([
-                'ketua_id' => $ketua()->select('pj_desa.id_pjdesa'),
-                'ketua_desa' => $ketua()->join('desa', 'desa.id_desa', '=', 'pj_desa.id_desa')->select('desa.desa'),
-            ])
+            ->addSelect(['ketua_id' => $ketua()->select('pj_desa.id_pjdesa')])
             ->when($isPt, fn ($q) => $q->withExists(['user as punya_akun' => fn ($u) => $u->where('role', 'mahasiswa')]))
             ->withLatestLokasi()
             ->lokasiStatus($request->query('lokasi_status'))
+            ->ketuaKelompok($request->query('ketua_kelompok'))
             ->when(! $this->hasClientOrder([...$whitelist, ...array_keys(Mahasiswa::LOKASI_COLUMNS)]), fn ($q) => $q->orderBy('mahasiswa.nama')->orderBy('mahasiswa.id_mahasiswa'));
 
         $dataTable = DataTables::eloquent($query)
@@ -61,11 +59,8 @@ class PtmahasiswaController extends Controller
             ->orderColumn('nm_lemb', 'sp.nm_lemb $1')
             ->filterColumn('location_program', fn ($q, $k) => $q->where('lp.nama_lokasi', 'like', $this->likeContains($k)))
             ->orderColumn('location_program', 'lp.nama_lokasi $1')
-            ->addColumn('ketua_kelompok', fn ($row) => $row->ketua_id !== null)
-            ->addColumn('ketua_status', fn ($row) => $row->ketua_id
-                ? '<span class="badge bg-label-success">Ketua – '.e($row->ketua_desa ?? '-').'</span>'
-                : '-');
-        $rawColumns = ['ketua_status'];
+            ->addColumn('ketua_kelompok', fn ($row) => $row->ketua_id !== null);
+        $rawColumns = [];
 
         if ($isPt) {
             $dataTable->addColumn('action', fn ($row) => view('mahasiswa.pt._aksi-ketua', ['row' => $row])->render());

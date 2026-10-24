@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Master\PicdlhRequest;
 use App\Models\Kecamatan;
+use App\Models\LokasiProgram;
 use App\Models\Picdlh;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
@@ -34,11 +35,12 @@ class PicdlhController extends Controller
         $this->sanitizeDataTablesInput();
 
         $canManage = $this->canManage();
-        $whitelist = ['kecamatan', 'nama', 'kontak', 'keterangan'];
+        $whitelist = ['kecamatan', 'lokasi_program_nama', 'nama', 'kontak', 'keterangan'];
 
         $query = Picdlh::query()
             ->leftJoin('kecamatan', 'kecamatan.id_kecamatan', '=', 'pic_dlh.id_kecamatan')
-            ->select('pic_dlh.id_pic_dlh', 'kecamatan.kecamatan as kecamatan', 'pic_dlh.nama', 'pic_dlh.kontak', 'pic_dlh.keterangan')
+            ->leftJoin('lokasi_program', 'lokasi_program.id', '=', 'pic_dlh.location_program')
+            ->select('pic_dlh.id_pic_dlh', 'kecamatan.kecamatan as kecamatan', 'lokasi_program.nama_lokasi as lokasi_program_nama', 'pic_dlh.nama', 'pic_dlh.kontak', 'pic_dlh.keterangan')
             // Default order only when the client sends none (yajra appends user order after base order)
             ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q
                 ->orderBy('kecamatan.kecamatan')
@@ -54,12 +56,15 @@ class PicdlhController extends Controller
             ->addIndexColumn()
             ->whitelist($whitelist)
             ->editColumn('kecamatan', fn (Picdlh $row) => $row->kecamatan ?? '')
+            ->editColumn('lokasi_program_nama', fn (Picdlh $row) => $row->lokasi_program_nama ?? '')
             ->editColumn('keterangan', fn (Picdlh $row) => Picdlh::KETERANGAN[$row->keterangan] ?? $row->keterangan)
             ->filterColumn('kecamatan', fn ($query, $keyword) => $query->where('kecamatan.kecamatan', 'like', $this->likeContains($keyword)))
+            ->filterColumn('lokasi_program_nama', fn ($query, $keyword) => $query->where('lokasi_program.nama_lokasi', 'like', $this->likeContains($keyword)))
             ->filterColumn('nama', fn ($query, $keyword) => $query->where('pic_dlh.nama', 'like', $this->likeContains($keyword)))
             ->filterColumn('kontak', fn ($query, $keyword) => $query->where('pic_dlh.kontak', 'like', $this->likeContains($keyword)))
             ->filterColumn('keterangan', fn ($query, $keyword) => $query->where('pic_dlh.keterangan', 'like', $this->likeContains($keyword)))
             ->orderColumn('kecamatan', 'kecamatan.kecamatan $1')
+            ->orderColumn('lokasi_program_nama', 'lokasi_program.nama_lokasi $1')
             ->orderColumn('nama', 'pic_dlh.nama $1')
             ->orderColumn('kontak', 'pic_dlh.kontak $1')
             ->orderColumn('keterangan', self::KETERANGAN_ORDER.' $1')
@@ -80,6 +85,7 @@ class PicdlhController extends Controller
         return view('picdlh.tambah', [
             'kecamatan' => Kecamatan::orderBy('kecamatan')->get(),
             'keterangan' => Picdlh::KETERANGAN,
+            'lokasiProgram' => LokasiProgram::orderBy('nama_lokasi')->get(['id', 'nama_lokasi']),
         ]);
     }
 
@@ -87,7 +93,7 @@ class PicdlhController extends Controller
     {
         abort_unless($this->canManage(), 403);
 
-        Picdlh::create($request->safe()->only('id_kecamatan', 'nama', 'kontak', 'keterangan'));
+        Picdlh::create($request->safe()->only('id_kecamatan', 'location_program', 'nama', 'kontak', 'keterangan'));
 
         return $this->saved();
     }
@@ -101,6 +107,7 @@ class PicdlhController extends Controller
             'data' => Picdlh::findOrFail($id_pic_dlh),
             'kecamatan' => Kecamatan::orderBy('kecamatan')->get(),
             'keterangan' => Picdlh::KETERANGAN,
+            'lokasiProgram' => LokasiProgram::orderBy('nama_lokasi')->get(['id', 'nama_lokasi']),
         ]);
     }
 
@@ -109,7 +116,7 @@ class PicdlhController extends Controller
         abort_unless($this->canManage(), 403);
 
         Picdlh::findOrFail($request->validated('id_pic_dlh'))
-            ->update($request->safe()->only('id_kecamatan', 'nama', 'kontak', 'keterangan'));
+            ->update($request->safe()->only('id_kecamatan', 'location_program', 'nama', 'kontak', 'keterangan'));
 
         return $this->saved();
     }

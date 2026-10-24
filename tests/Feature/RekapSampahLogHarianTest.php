@@ -282,7 +282,7 @@ class RekapSampahLogHarianTest extends TestCase
             'organik_kg' => 1,
             'anorganik_kg' => 1,
             'residu_kg' => 1,
-            'ada_kegiatan_lain' => '0',
+            'mode' => 'pendataan',
         ];
 
         $this->put('logkegiatan/insert', $payload)->assertJson(['success' => true]);

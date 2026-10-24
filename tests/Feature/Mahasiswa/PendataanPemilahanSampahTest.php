@@ -44,7 +44,7 @@ class PendataanPemilahanSampahTest extends TestCase
         // Create hanya lewat Log Harian
         $this->get('pendataanpemilahan/tambah')->assertNotFound();
         $this->put('pendataanpemilahan/insert', $this->payload())->assertNotFound();
-        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0']))->assertJson(['success' => true]);
+        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan']))->assertJson(['success' => true]);
         $data = PendataanPemilahanSampah::where('email', $user->email)->firstOrFail();
         $this->assertTrue(Str::isUuid($data->id_pendataan));
         $this->assertSame('Budi Santoso', $data->nama_kepala_keluarga);
@@ -67,20 +67,21 @@ class PendataanPemilahanSampahTest extends TestCase
     {
         $this->loginAs('mahasiswa');
 
-        $this->put('logkegiatan/insert', [])
+        $this->put('logkegiatan/insert', [])->assertJsonValidationErrors(['tanggal', 'mode'], 'errors');
+        $this->put('logkegiatan/insert', ['mode' => 'pendataan'])
             ->assertJsonValidationErrors([
                 'tanggal', 'nama_kepala_keluarga', 'jumlah_anggota_keluarga', 'alamat_rumah', 'rt', 'rw',
                 'memilah', 'organik_kg', 'anorganik_kg', 'residu_kg',
             ], 'errors');
         $this->put('logkegiatan/insert', $this->payload([
-            'ada_kegiatan_lain' => '0',
+            'mode' => 'pendataan',
             'tanggal' => today()->addDay()->toDateString(),
             'rt' => '1/2',
             'memilah' => 'mungkin',
             'organik_kg' => -1,
             'jumlah_anggota_keluarga' => 1.5,
         ]))->assertJsonValidationErrors(['tanggal', 'rt', 'memilah', 'organik_kg', 'jumlah_anggota_keluarga'], 'errors');
-        $this->put('logkegiatan/insert', $this->payload(['ada_kegiatan_lain' => '0', 'jumlah_anggota_keluarga' => 0]))
+        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan', 'jumlah_anggota_keluarga' => 0]))
             ->assertJsonValidationErrors(['jumlah_anggota_keluarga' => 'Minimal 1 orang.'], 'errors');
     }
 

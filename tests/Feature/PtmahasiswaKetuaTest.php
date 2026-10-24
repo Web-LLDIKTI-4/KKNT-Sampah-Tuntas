@@ -293,7 +293,7 @@ class PtmahasiswaKetuaTest extends TestCase
         $this->cabut(['id_pjdesa' => (string) Str::uuid()])->assertStatus(429);
     }
 
-    // AC: kolom ketua_status + action untuk PT, escape nama/desa
+    // AC: kolom ketua_kelompok (boolean, ikon via boolIcon) + action untuk PT, escape nama/desa
     public function test_pt_listdataserver_columns_and_escaping(): void
     {
         config(['app.debug' => false]);
@@ -312,7 +312,7 @@ class PtmahasiswaKetuaTest extends TestCase
 
         $k = $this->rowOf($rows, $ketuaMhs);
         $this->assertTrue($k['ketua_kelompok']);
-        $this->assertStringContainsString('Ketua – '.e('Desa <b>"y'), $k['ketua_status']);
+        $this->assertArrayNotHasKey('ketua_status', $k);
         $this->assertStringContainsString('Cabut Ketua', $k['action']);
         $this->assertStringContainsString('data-id-value="'.$pj->id_pjdesa.'"', $k['action']);
         $this->assertStringContainsString(route('ptmahasiswa.cabutketua'), $k['action']);
@@ -320,7 +320,7 @@ class PtmahasiswaKetuaTest extends TestCase
 
         $c = $this->rowOf($rows, $calon);
         $this->assertFalse($c['ketua_kelompok']);
-        $this->assertSame('-', $c['ketua_status']);
+        $this->assertArrayNotHasKey('ketua_status', $c);
         $this->assertStringContainsString('Jadikan Ketua', $c['action']);
         $this->assertStringContainsString('btn-confirm-put', $c['action']);
         $this->assertStringContainsString('data-id-value="'.$calon->id_mahasiswa.'"', $c['action']);
@@ -333,7 +333,7 @@ class PtmahasiswaKetuaTest extends TestCase
         $this->assertStringNotContainsString('<b>"', implode('', array_column($rows, 'action')));
     }
 
-    // AC: kepala/pemda tidak mendapat kolom action, tetap dapat ketua_status
+    // AC: kepala/pemda tidak mendapat kolom action, tetap dapat ketua_kelompok
     public function test_kepala_and_pemda_have_no_action_column(): void
     {
         $this->ketua($this->mahasiswa($this->ptA, Desa::factory()->create()));
@@ -346,7 +346,8 @@ class PtmahasiswaKetuaTest extends TestCase
             foreach ($rows as $row) {
                 $this->assertArrayNotHasKey('action', $row, $role);
                 $this->assertArrayNotHasKey('punya_akun', $row, $role);
-                $this->assertArrayHasKey('ketua_status', $row, $role);
+                $this->assertIsBool($row['ketua_kelompok'], $role);
+                $this->assertArrayNotHasKey('ketua_status', $row, $role);
             }
 
             $html = $this->get('ptmahasiswa/listdata')->assertOk()->getContent();

@@ -136,4 +136,41 @@
             return empty ? '<span class="badge bg-danger">' + escapeText(label) + '</span>' : escapeText(data);
         };
     };
+
+    // Shared check / x icon (title attr escaped by jQuery)
+    function statusIcon(ok, label) {
+        return $('<i>', {
+            'class': ok ? 'ri-checkbox-circle-fill text-success' : 'ri-close-circle-fill text-danger',
+            title: label,
+            'aria-label': label,
+        }).prop('outerHTML');
+    }
+
+    // Render (row-based): kecamatan & desa filled -> green check, else red x; detail in title (attr escaped by jQuery)
+    $.fn.dataTable.render.lokasiStatus = function () {
+        var decode = function (value) {
+            var decoder = document.createElement('textarea');
+            decoder.innerHTML = value === null || value === undefined ? '' : String(value);
+            return decoder.value;
+        };
+        return function (data, type, row) {
+            if (type !== 'display') return data;
+            var kecamatan = decode(row.nama_kecamatan);
+            var desa = decode(row.nama_desa);
+            var missing = [];
+            if (kecamatan === '') missing.push('Kecamatan');
+            if (desa === '') missing.push('Kelurahan/Desa');
+            var label = missing.length ? missing.join(' dan ') + ' belum diisi' : 'Kecamatan: ' + kecamatan + ', Desa: ' + desa;
+            return statusIcon(!missing.length, label);
+        };
+    };
+
+    // Render: truthy -> green check, else red x; labels used as title/aria-label
+    $.fn.dataTable.render.boolIcon = function (trueLabel, falseLabel) {
+        return function (data, type) {
+            if (type !== 'display') return data;
+            var on = data === true || data === 1 || data === '1';
+            return statusIcon(on, on ? trueLabel : falseLabel);
+        };
+    };
 })(jQuery);

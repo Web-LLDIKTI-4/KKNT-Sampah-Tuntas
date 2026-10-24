@@ -53,6 +53,16 @@ class Mahasiswa extends Model
         };
     }
 
+    // ketua_kelompok filter: '1' = has pj_desa row (same source as list column), '0' = none; other values ignored
+    public function scopeKetuaKelompok(Builder $query, mixed $value): Builder
+    {
+        return match ($value) {
+            '1' => $query->whereHas('pjdesa'),
+            '0' => $query->whereDoesntHave('pjdesa'),
+            default => $query,
+        };
+    }
+
     // "Lokasi set" rows: shared definition for withLatestLokasi() & lokasiStatus()
     private static function lokasiWithDesa(): QueryBuilder
     {

@@ -10,4 +10,5 @@
             <option value="sudah">Sudah set</option>
         </select>
     </div>
+    {{ $slot }}
 </div>

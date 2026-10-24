@@ -161,7 +161,6 @@ class LokasiStatusColumnTest extends TestCase
 
         $cases = [
             'nama_desa' => ['Desa Alfa', 'Desa Bravo', 'Desa Charlie'],
-            'nama_kecamatan' => ['Kec Alfa', 'Kec Bravo', 'Kec Charlie'],
         ];
         foreach ($cases as $data => $asc) {
             $index = $this->columnIndex($columns, $data);
@@ -170,6 +169,13 @@ class LokasiStatusColumnTest extends TestCase
                 $got = $this->fetch('mahasiswa/listdataserver', $this->dtParams($columns, ['order' => [['column' => $index, 'dir' => $dir]]]))->json('data.*.'.$data);
                 $this->assertSame($expected, $got, "order {$data} {$dir}");
             }
+        }
+
+        // Status Set Lokasi (nama_kecamatan) sengaja tidak orderable; order manual tetap tanpa error
+        $index = $this->columnIndex($columns, 'nama_kecamatan');
+        $this->assertFalse($columns[$index]['orderable'], 'nama_kecamatan tidak orderable');
+        foreach (['asc', 'desc'] as $dir) {
+            $this->assertCount(3, $this->fetch('mahasiswa/listdataserver', $this->dtParams($columns, ['order' => [['column' => $index, 'dir' => $dir]]]))->json('data'));
         }
     }
 
@@ -221,7 +227,7 @@ class LokasiStatusColumnTest extends TestCase
         $this->loginAs('admin');
 
         $cases = [
-            'mahasiswa/listdata' => ['nama_kecamatan' => 'Kecamatan', 'nama_desa' => 'Kelurahan/Desa'],
+            'mahasiswa/listdata' => ['nama_kecamatan' => 'Status Set Lokasi', 'nama_desa' => 'Kelurahan/Desa'],
             'dpl/listdata' => [],
         ];
         foreach ($cases as $url => $newColumns) {
@@ -238,9 +244,10 @@ class LokasiStatusColumnTest extends TestCase
                 $this->assertSame($label, trim($ths[$i]->textContent), "{$url}: header {$data}");
             }
             if ($url === 'mahasiswa/listdata') {
-                $this->assertSame([7], json_decode($table->getAttribute('data-check'), true));
+                $this->assertFalse($table->hasAttribute('data-check'));
                 $this->assertSame('ketua_kelompok', $columns[7]['data']);
-                $this->assertSame('Ketua Kelompok', trim($ths[7]->textContent));
+                $this->assertSame(['Ketua kelompok', 'Bukan ketua'], $columns[7]['boolIcon']);
+                $this->assertSame('Status Ketua Kelompok', trim($ths[7]->textContent));
             } else {
                 // Data DPL kembali ke kolom semula
                 $this->assertSame(['DT_RowIndex', 'nidn', 'nama', 'email', 'phone', 'nm_lemb', 'location_program', 'action'], array_column($columns, 'data'));
@@ -373,11 +380,17 @@ class LokasiStatusColumnTest extends TestCase
             $this->assertSame($all, collect($this->ptRows()->json('data'))->pluck('email')->sort()->values()->all(), "{$role} melihat semua");
             $this->assertSame([$belum->email], collect($this->ptRows(['lokasi_status' => 'belum'])->json('data'))->pluck('email')->all(), "{$role} belum");
 
-            foreach (['nama_desa' => ['Desa Ptasing', 'Desa Ptbaru'], 'nama_kecamatan' => ['Kec Ptasing', 'Kec Ptbaru']] as $data => $asc) {
+            foreach (['nama_desa' => ['Desa Ptasing', 'Desa Ptbaru']] as $data => $asc) {
                 $index = $this->columnIndex($columns, $data);
                 $params = fn (string $dir) => $this->dtParams($columns, ['lokasi_status' => 'sudah', 'order' => [['column' => $index, 'dir' => $dir]]]);
                 $this->assertSame($asc, $this->fetch('ptmahasiswa/listdataserver', $params('asc'))->json('data.*.'.$data), "{$role} {$data} asc");
                 $this->assertSame(array_reverse($asc), $this->fetch('ptmahasiswa/listdataserver', $params('desc'))->json('data.*.'.$data), "{$role} {$data} desc");
+            }
+            // Status Set Lokasi (nama_kecamatan) sengaja tidak orderable; order manual tetap tanpa error
+            $index = $this->columnIndex($columns, 'nama_kecamatan');
+            $this->assertFalse($columns[$index]['orderable'], "{$role} nama_kecamatan tidak orderable");
+            foreach (['asc', 'desc'] as $dir) {
+                $this->assertCount(2, $this->fetch('ptmahasiswa/listdataserver', $this->dtParams($columns, ['lokasi_status' => 'sudah', 'order' => [['column' => $index, 'dir' => $dir]]]))->json('data'), "{$role} {$dir}");
             }
             auth()->logout();
         }
@@ -478,13 +491,14 @@ class LokasiStatusColumnTest extends TestCase
         $columns = json_decode($table->getAttribute('data-columns'), true);
         $ths = array_map(fn ($th) => trim($th->textContent), iterator_to_array($xpath->query('./thead/tr/th', $table)));
         $this->assertCount(count($columns), $ths, 'PT: jumlah th == columns');
-        $this->assertSame('Kecamatan', $ths[$this->columnIndex($columns, 'nama_kecamatan')]);
+        $this->assertSame('Status Set Lokasi', $ths[$this->columnIndex($columns, 'nama_kecamatan')]);
         $this->assertSame('Kelurahan/Desa', $ths[$this->columnIndex($columns, 'nama_desa')]);
         $this->assertSame('Aksi', end($ths), 'PT punya kolom Aksi terakhir');
         $this->assertSame('action', end($columns)['data']);
         $this->assertFalse($table->hasAttribute('data-check'));
-        $this->assertSame('ketua_status', $columns[7]['data']);
-        $this->assertSame('Ketua Kelompok', $ths[7]);
+        $this->assertSame('ketua_kelompok', $columns[7]['data']);
+        $this->assertSame(['Ketua kelompok', 'Bukan ketua'], $columns[7]['boolIcon']);
+        $this->assertSame('Status Ketua Kelompok', $ths[7]);
 
         foreach (['kepala', 'pemda'] as $role) {
             $this->loginAs($role);
@@ -495,7 +509,8 @@ class LokasiStatusColumnTest extends TestCase
             $this->assertCount(count($columns), $ths, "{$role}: jumlah th == columns");
             $this->assertNotContains('Aksi', $ths, "{$role} tidak punya kolom Aksi");
             $this->assertNotContains('action', array_column($columns, 'data'), $role);
-            $this->assertSame('ketua_status', $columns[7]['data'], $role);
+            $this->assertSame('ketua_kelompok', $columns[7]['data'], $role);
+            $this->assertSame(['Ketua kelompok', 'Bukan ketua'], $columns[7]['boolIcon'], $role);
         }
 
         $this->loginAs('dpl');

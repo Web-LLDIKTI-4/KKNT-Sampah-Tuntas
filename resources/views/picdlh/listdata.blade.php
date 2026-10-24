@@ -4,6 +4,7 @@
             <x-slot:thead>
                 <tr>
                     <th width="1">No</th>
+                    <th>Lokasi Program</th>
                     <th>Kecamatan</th>
                     <th>Nama</th>
                     <th>Kontak</th>
@@ -34,6 +35,7 @@
         },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', className: 'text-center', orderable: false, searchable: false},
+            {data: 'lokasi_program_nama', name: 'lokasi_program_nama', defaultContent: '-', render: function (value) { return value || '-'; }},
             {data: 'kecamatan', name: 'kecamatan'},
             {data: 'nama', name: 'nama'},
             {data: 'kontak', name: 'kontak', className: 'text-center'},

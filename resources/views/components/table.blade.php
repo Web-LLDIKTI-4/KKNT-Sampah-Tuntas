@@ -6,8 +6,6 @@
     'order' => [[0, 'asc']],
     'searching' => true,
     'lengthChange' => true,
-    // Index kolom boolean yang ditampilkan sebagai ikon centang
-    'check' => [],
 ])
 
 <table
@@ -19,7 +17,6 @@
     data-order='@json($order)'
     data-searching="{{ $searching ? 'true' : 'false' }}"
     data-length-change="{{ $lengthChange ? 'true' : 'false' }}"
-    @if($check) data-check='@json($check)' @endif
 >
     <thead class="text-center">
         {{ $thead ?? '' }}

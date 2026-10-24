@@ -1,31 +1,42 @@
 <form id="form-tambah" method="post" action="{{ url('logkegiatan/insert') }}" data-ajax-form>
     @csrf
     @method('PUT')
-    @include('pendataanpemilahan._fields')
     <fieldset class="mb-6">
-        <legend class="form-label fs-6 mb-2">Apakah ada kegiatan lain? <span class="text-danger">*</span></legend>
+        <legend class="form-label fs-6 mb-2">Anda mau mengisi pendataan sampah atau log harian? <span class="text-danger">*</span></legend>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="ada_kegiatan_lain" id="ada-kegiatan-lain-ya" value="1" required>
-            <label class="form-check-label" for="ada-kegiatan-lain-ya">Ya</label>
+            <input class="form-check-input" type="radio" name="mode" id="mode-pendataan" value="pendataan" required>
+            <label class="form-check-label" for="mode-pendataan">Pendataan Sampah</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="ada_kegiatan_lain" id="ada-kegiatan-lain-tidak" value="0">
-            <label class="form-check-label" for="ada-kegiatan-lain-tidak">Tidak</label>
+            <input class="form-check-input" type="radio" name="mode" id="mode-kegiatan" value="kegiatan">
+            <label class="form-check-label" for="mode-kegiatan">Log Harian / Kegiatan</label>
         </div>
-        <div><span id="ada_kegiatan_lain_error" class="text-danger"></span></div>
+        {{-- Also shows input limit errors keyed on mode --}}
+        <div><span id="mode_error" class="text-danger"></span></div>
     </fieldset>
+    {{-- Shared by both modes --}}
+    <div id="tanggal-field" class="form-group form-floating form-floating-outline mb-6 d-none">
+        <input type="date" name="tanggal" class="form-control form-control-sm" required max="{{ date('Y-m-d') }}">
+        <label>Tanggal <span class="text-danger">*</span></label>
+        <span id="tanggal_error" class="text-danger"></span>
+    </div>
     {{-- Disabled fieldset: inputs skip validation and are not submitted --}}
+    <fieldset id="pendataan-fields" class="d-none" disabled>
+        @include('pendataanpemilahan._fields', ['withTanggal' => false])
+    </fieldset>
     <fieldset id="log-kegiatan-fields" class="d-none" disabled>
-        <h6 class="mb-4">Kegiatan Lain</h6>
         @include('logkegiatan.mahasiswa._fields', ['withTanggal' => false])
     </fieldset>
-    <x-button.save formId="form-tambah">
+    <x-button.save formId="form-tambah" disabled>
         Simpan
     </x-button.save>
 </form>
 <script>
-    $('#form-tambah').on('change', 'input[name="ada_kegiatan_lain"]', function () {
-        var show = this.value === '1';
-        $('#log-kegiatan-fields').toggleClass('d-none', !show).prop('disabled', !show);
+    $('#form-tambah').on('change', 'input[name="mode"]', function () {
+        var pendataan = this.value === 'pendataan';
+        $('#tanggal-field').removeClass('d-none');
+        $('#pendataan-fields').toggleClass('d-none', !pendataan).prop('disabled', !pendataan);
+        $('#log-kegiatan-fields').toggleClass('d-none', pendataan).prop('disabled', pendataan);
+        $('#btnSubmit_form-tambah').prop('disabled', false);
     });
 </script>
