@@ -5,7 +5,7 @@
         <legend class="form-label fs-6 mb-2">Anda mau mengisi pendataan sampah atau log harian? <span class="text-danger">*</span></legend>
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="radio" name="mode" id="mode-pendataan" value="pendataan" required>
-            <label class="form-check-label" for="mode-pendataan">Pendataan Sampah</label>
+            <label class="form-check-label" for="mode-pendataan">Pendataan Sampah Penduduk</label>
         </div>
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="radio" name="mode" id="mode-kegiatan" value="kegiatan">
