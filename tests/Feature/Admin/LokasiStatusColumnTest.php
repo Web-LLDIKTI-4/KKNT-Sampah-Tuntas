@@ -80,12 +80,11 @@ class LokasiStatusColumnTest extends TestCase
         ]);
     }
 
-    // Admin view dropped the Kelurahan/Desa column; endpoint still serves nama_desa, so append it for server-contract checks
+    // Admin view shows Kecamatan & Kelurahan/Desa as separate columns
     private function adminColumnsWithDesa(): array
     {
         $columns = $this->viewColumns('mahasiswa/listdata');
-        $this->assertNotContains('nama_desa', array_column($columns, 'data'), 'Kolom nama_desa sudah dihapus dari view admin');
-        array_splice($columns, -1, 0, [['data' => 'nama_desa', 'name' => 'nama_desa', 'visible' => false]]);
+        $this->assertContains('nama_desa', array_column($columns, 'data'), 'Kolom nama_desa tampil di view admin');
 
         return $columns;
     }
@@ -170,6 +169,7 @@ class LokasiStatusColumnTest extends TestCase
         $columns = $this->adminColumnsWithDesa();
 
         $cases = [
+            'nama_kecamatan' => ['Kec Alfa', 'Kec Bravo', 'Kec Charlie'],
             'nama_desa' => ['Desa Alfa', 'Desa Bravo', 'Desa Charlie'],
         ];
         foreach ($cases as $data => $asc) {
@@ -179,13 +179,6 @@ class LokasiStatusColumnTest extends TestCase
                 $got = $this->fetch('mahasiswa/listdataserver', $this->dtParams($columns, ['order' => [['column' => $index, 'dir' => $dir]]]))->json('data.*.'.$data);
                 $this->assertSame($expected, $got, "order {$data} {$dir}");
             }
-        }
-
-        // Status Set Lokasi (nama_kecamatan) sengaja tidak orderable; order manual tetap tanpa error
-        $index = $this->columnIndex($columns, 'nama_kecamatan');
-        $this->assertFalse($columns[$index]['orderable'], 'nama_kecamatan tidak orderable');
-        foreach (['asc', 'desc'] as $dir) {
-            $this->assertCount(3, $this->fetch('mahasiswa/listdataserver', $this->dtParams($columns, ['order' => [['column' => $index, 'dir' => $dir]]]))->json('data'));
         }
     }
 
@@ -202,7 +195,11 @@ class LokasiStatusColumnTest extends TestCase
 
         $emails = fn (TestResponse $r) => collect($r->json('data'))->pluck('email')->all();
 
-        // nama_kecamatan from the view as is; nama_desa via the appended column (server contract)
+        // Both columns come from the view and are searchable
+        $viewColumns = $this->viewColumns('mahasiswa/listdata');
+        foreach (['nama_kecamatan', 'nama_desa'] as $data) {
+            $this->assertTrue($viewColumns[$this->columnIndex($viewColumns, $data)]['searchable'] ?? true, "{$data} harus searchable");
+        }
         foreach (['nama_desa' => ['Qxbaru', 'Qxlama', true], 'nama_kecamatan' => ['Qkbaru', 'Qklama', false]] as $data => [$latest, $old, $withDesa]) {
             $this->assertSame([$target->email], $emails($this->mahasiswaRows([], [$data => $latest], $withDesa)), "column search {$data} terbaru");
             $this->assertSame([], $emails($this->mahasiswaRows([], [$data => $old], $withDesa)), "column search {$data} lama tidak boleh cocok");
@@ -240,7 +237,7 @@ class LokasiStatusColumnTest extends TestCase
         $this->loginAs('admin');
 
         $cases = [
-            'mahasiswa/listdata' => ['nama_kecamatan' => 'Status Set Lokasi'],
+            'mahasiswa/listdata' => ['nama_kecamatan' => 'Kecamatan', 'nama_desa' => 'Kelurahan/Desa'],
             'dpl/listdata' => [],
         ];
         foreach ($cases as $url => $newColumns) {
@@ -257,9 +254,11 @@ class LokasiStatusColumnTest extends TestCase
                 $this->assertSame($label, trim($ths[$i]->textContent), "{$url}: header {$data}");
             }
             if ($url === 'mahasiswa/listdata') {
-                // Kelurahan/Desa removed from the admin table (PT view keeps it)
-                $this->assertNotContains('nama_desa', array_column($columns, 'data'));
-                $this->assertNotContains('Kelurahan/Desa', array_map(fn ($th) => trim($th->textContent), $ths));
+                $this->assertNotContains('Status Set Lokasi', array_map(fn ($th) => trim($th->textContent), $ths));
+                $this->assertSame(['nama_kecamatan', 'nama_desa', 'action'], array_slice(array_column($columns, 'data'), -3));
+                $this->assertSame('Kecamatan belum diisi', $columns[$this->columnIndex($columns, 'nama_kecamatan')]['emptyIcon']);
+                $this->assertSame('Kelurahan/Desa belum diisi', $columns[$this->columnIndex($columns, 'nama_desa')]['emptyIcon']);
+                $this->assertArrayNotHasKey('lokasiStatus', $columns[$this->columnIndex($columns, 'nama_kecamatan')]);
                 $this->assertSame('id_mahasiswa', $table->getAttribute('data-select-key'));
                 $this->assertFalse($table->hasAttribute('data-check'));
                 $this->assertSame('ketua_kelompok', $columns[7]['data']);
@@ -274,13 +273,15 @@ class LokasiStatusColumnTest extends TestCase
             }
         }
 
-        // emptyBadge hanya di tabel mahasiswa (admin, PT, mentoring); ratioOf (kolom DPL) sudah dihapus total
-        $emptyBadgeViews = ['mahasiswa/listdata.blade.php', 'mahasiswa/pt/listdata.blade.php', 'mentoring/listdata.blade.php'];
+        // emptyIcon hanya di tabel mahasiswa (admin, PT, mentoring); emptyBadge/lokasiStatus tak dipakai view lagi; ratioOf dihapus total
+        $emptyIconViews = ['mahasiswa/listdata.blade.php', 'mahasiswa/pt/listdata.blade.php', 'mentoring/listdata.blade.php'];
         foreach (File::allFiles(resource_path('views')) as $file) {
             $rel = str_replace(resource_path('views').'/', '', $file->getPathname());
-            $this->assertStringNotContainsString('ratioOf', $file->getContents(), $rel);
-            if (! in_array($rel, $emptyBadgeViews, true)) {
-                $this->assertStringNotContainsString('emptyBadge', $file->getContents(), $rel);
+            $this->assertDoesNotMatchRegularExpression('/ratioOf|emptyBadge|lokasiStatus/', $file->getContents(), $rel);
+            if (in_array($rel, $emptyIconViews, true)) {
+                $this->assertStringContainsString('emptyIcon', $file->getContents(), $rel);
+            } else {
+                $this->assertStringNotContainsString('emptyIcon', $file->getContents(), $rel);
             }
         }
         foreach (['table-init.js', 'datatables-global.js'] as $js) {
@@ -396,17 +397,12 @@ class LokasiStatusColumnTest extends TestCase
             $this->assertSame($all, collect($this->ptRows()->json('data'))->pluck('email')->sort()->values()->all(), "{$role} melihat semua");
             $this->assertSame([$belum->email], collect($this->ptRows(['lokasi_status' => 'belum'])->json('data'))->pluck('email')->all(), "{$role} belum");
 
-            foreach (['nama_desa' => ['Desa Ptasing', 'Desa Ptbaru']] as $data => $asc) {
+            foreach (['nama_kecamatan' => ['Kec Ptasing', 'Kec Ptbaru'], 'nama_desa' => ['Desa Ptasing', 'Desa Ptbaru']] as $data => $asc) {
+                $this->assertTrue($columns[$this->columnIndex($columns, $data)]['orderable'] ?? true, "{$role} {$data} harus orderable");
                 $index = $this->columnIndex($columns, $data);
                 $params = fn (string $dir) => $this->dtParams($columns, ['lokasi_status' => 'sudah', 'order' => [['column' => $index, 'dir' => $dir]]]);
                 $this->assertSame($asc, $this->fetch('ptmahasiswa/listdataserver', $params('asc'))->json('data.*.'.$data), "{$role} {$data} asc");
                 $this->assertSame(array_reverse($asc), $this->fetch('ptmahasiswa/listdataserver', $params('desc'))->json('data.*.'.$data), "{$role} {$data} desc");
-            }
-            // Status Set Lokasi (nama_kecamatan) sengaja tidak orderable; order manual tetap tanpa error
-            $index = $this->columnIndex($columns, 'nama_kecamatan');
-            $this->assertFalse($columns[$index]['orderable'], "{$role} nama_kecamatan tidak orderable");
-            foreach (['asc', 'desc'] as $dir) {
-                $this->assertCount(2, $this->fetch('ptmahasiswa/listdataserver', $this->dtParams($columns, ['lokasi_status' => 'sudah', 'order' => [['column' => $index, 'dir' => $dir]]]))->json('data'), "{$role} {$dir}");
             }
             auth()->logout();
         }
@@ -507,8 +503,13 @@ class LokasiStatusColumnTest extends TestCase
         $columns = json_decode($table->getAttribute('data-columns'), true);
         $ths = array_map(fn ($th) => trim($th->textContent), iterator_to_array($xpath->query('./thead/tr/th', $table)));
         $this->assertCount(count($columns), $ths, 'PT: jumlah th == columns');
-        $this->assertSame('Status Set Lokasi', $ths[$this->columnIndex($columns, 'nama_kecamatan')]);
+        $this->assertSame('Kecamatan', $ths[$this->columnIndex($columns, 'nama_kecamatan')]);
         $this->assertSame('Kelurahan/Desa', $ths[$this->columnIndex($columns, 'nama_desa')]);
+        foreach (['nama_kecamatan' => 'Kecamatan belum diisi', 'nama_desa' => 'Kelurahan/Desa belum diisi'] as $data => $label) {
+            $col = $columns[$this->columnIndex($columns, $data)];
+            $this->assertSame($label, $col['emptyIcon'], "PT {$data} emptyIcon");
+            $this->assertTrue($col['visible'] ?? true, "PT {$data} tampil");
+        }
         $this->assertSame('Aksi', end($ths), 'PT punya kolom Aksi terakhir');
         $this->assertSame('action', end($columns)['data']);
         $this->assertFalse($table->hasAttribute('data-check'));
@@ -523,6 +524,8 @@ class LokasiStatusColumnTest extends TestCase
             $columns = json_decode($table->getAttribute('data-columns'), true);
             $ths = array_map(fn ($th) => trim($th->textContent), iterator_to_array($xpath->query('./thead/tr/th', $table)));
             $this->assertCount(count($columns), $ths, "{$role}: jumlah th == columns");
+            $this->assertSame('Kecamatan', $ths[$this->columnIndex($columns, 'nama_kecamatan')], $role);
+            $this->assertSame('Kelurahan/Desa', $ths[$this->columnIndex($columns, 'nama_desa')], $role);
             $this->assertNotContains('Aksi', $ths, "{$role} tidak punya kolom Aksi");
             $this->assertNotContains('action', array_column($columns, 'data'), $role);
             $this->assertSame('ketua_kelompok', $columns[7]['data'], $role);
@@ -530,11 +533,19 @@ class LokasiStatusColumnTest extends TestCase
         }
 
         $this->loginAs('dpl');
-        $xpath = $this->xpathOf($this->get('dplmentoring/listdata')->assertOk()->getContent());
+        $html = $this->get('dplmentoring/listdata')->assertOk()->getContent();
+        $xpath = $this->xpathOf($html);
         $filterOk($xpath, 'mentoring/listdata');
         $ths = array_map(fn ($th) => trim($th->textContent), iterator_to_array($xpath->query('//table[@id="dataTable"]/thead/tr/th')));
-        $this->assertContains('Kecamatan', $ths);
-        $this->assertContains('Kelurahan/Desa', $ths);
+        // Mentoring columns are inline JS (not data-columns): count active `{data: ...}` entries
+        preg_match('/columns:\s*\[(.*?)\]\s*,\s*\/\/ Menambahkan/s', $html, $m);
+        $this->assertNotEmpty($m, 'DPL: konfigurasi columns ditemukan');
+        preg_match_all('/^\s*\{data:\s*\'([^\']+)\'/m', $m[1], $jsCols);
+        $this->assertCount(count($jsCols[1]), $ths, 'DPL: jumlah th == columns');
+        $this->assertSame('Kecamatan', $ths[array_search('nama_kecamatan', $jsCols[1], true)]);
+        $this->assertSame('Kelurahan/Desa', $ths[array_search('nama_desa', $jsCols[1], true)]);
+        $this->assertStringContainsString("render: \$.fn.dataTable.render.emptyIcon('Kecamatan belum diisi')", $m[1]);
+        $this->assertStringContainsString("render: \$.fn.dataTable.render.emptyIcon('Kelurahan/Desa belum diisi')", $m[1]);
     }
 
     public function test_listing_routes_are_admin_only(): void

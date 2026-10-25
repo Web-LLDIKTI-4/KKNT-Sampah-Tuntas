@@ -7,9 +7,10 @@ $(function () {
             return; // hindari inisialisasi ganda
         }
 
-        // Opt-in column keys: emptyBadge (null -> red badge), lokasiStatus (kecamatan+desa check / x icon), boolIcon ([trueLabel, falseLabel])
+        // Opt-in column keys: emptyBadge (null -> red badge), emptyIcon (null -> red x icon), lokasiStatus (kecamatan+desa check / x icon), boolIcon ([trueLabel, falseLabel])
         var columns = ($table.data('columns') || []).map(function (col) {
             if (col.emptyBadge) col.render = $.fn.dataTable.render.emptyBadge(col.emptyBadge);
+            if (col.emptyIcon) col.render = $.fn.dataTable.render.emptyIcon(col.emptyIcon);
             if (col.lokasiStatus) col.render = $.fn.dataTable.render.lokasiStatus();
             if (col.boolIcon) col.render = $.fn.dataTable.render.boolIcon(col.boolIcon[0], col.boolIcon[1]);
             return col;

@@ -146,6 +146,15 @@
         }).prop('outerHTML');
     }
 
+    // Render: null/empty -> red x icon (label as title), otherwise escaped text
+    $.fn.dataTable.render.emptyIcon = function (label) {
+        return function (data, type) {
+            var empty = data === null || data === undefined || data === '';
+            if (type !== 'display') return empty ? '' : data;
+            return empty ? statusIcon(false, label) : escapeText(data);
+        };
+    };
+
     // Render (row-based): kecamatan & desa filled -> green check, else red x; detail in title (attr escaped by jQuery)
     $.fn.dataTable.render.lokasiStatus = function () {
         var decode = function (value) {

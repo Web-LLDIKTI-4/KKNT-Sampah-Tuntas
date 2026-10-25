@@ -397,16 +397,24 @@ class BulkActionsTest extends TestCase
         $a = Mahasiswa::factory()->create(['nim' => '5001', 'kodept' => $sp->npsn]);
         $b = Mahasiswa::factory()->create(['nim' => '5002']);
         $c = Mahasiswa::factory()->create(['nim' => '5003']);
+        $d = Mahasiswa::factory()->create(['nim' => '5004']);
+        $desa = Desa::factory()->create(['desa' => 'Desa Ekspor']);
+        Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $a->id_mahasiswa, 'id_desa' => $desa->id_desa]);
+        Mahasiswa_lokasi::create(['tahun' => (int) date('Y'), 'id_mahasiswa' => $d->id_mahasiswa, 'id_desa' => Desa::factory()->create(['desa' => 'Desa Yatim', 'id_kecamatan' => null])->id_desa]);
 
-        $rows = $this->exportedRows('mahasiswa/export-selected', [$c->id_mahasiswa, $a->id_mahasiswa], 'Data Mahasiswa', 'mahasiswa_terpilih_');
+        $rows = $this->exportedRows('mahasiswa/export-selected', [$c->id_mahasiswa, $a->id_mahasiswa, $d->id_mahasiswa], 'Data Mahasiswa', 'mahasiswa_terpilih_');
         $header = array_shift($rows);
 
         $this->assertSame(
-            ['No.', 'NIM', 'Nama', 'Email', 'HP', 'Perguruan Tinggi', 'Lokasi Program KKN', 'Status Ketua Kelompok', 'Status Set Lokasi', 'Kelurahan/Desa'],
+            ['No.', 'NIM', 'Nama', 'Email', 'HP', 'Perguruan Tinggi', 'Lokasi Program KKN', 'Status Ketua Kelompok', 'Kecamatan', 'Kelurahan/Desa'],
             $header
         );
-        $this->assertSame(['5003', '5001'], array_column($rows, 1));
+        $this->assertSame(['5003', '5001', '5004'], array_column($rows, 1));
         $this->assertSame($sp->nm_lemb, $rows[1][5]);
+        // Tanpa lokasi -> "Belum diisi" di kedua kolom; terisi -> nama
+        $this->assertSame(['Belum diisi', 'Belum diisi'], array_slice($rows[0], 8, 2));
+        $this->assertSame([$desa->kecamatan->kecamatan, 'Desa Ekspor'], array_slice($rows[1], 8, 2));
+        $this->assertSame(['Belum diisi', 'Desa Yatim'], array_slice($rows[2], 8, 2));
         $this->assertNotContains($b->email, array_column($rows, 3));
     }
 
@@ -598,12 +606,14 @@ class BulkActionsTest extends TestCase
         }
     }
 
-    public function test_admin_mahasiswa_table_drops_desa_column_but_pt_view_keeps_it(): void
+    public function test_admin_and_pt_mahasiswa_tables_show_kecamatan_and_desa_columns(): void
     {
         $this->loginAs('admin');
         [, $ths, $columns] = $this->datatableMarkup('mahasiswa/listdata');
-        $this->assertNotContains('Kelurahan/Desa', $ths);
-        $this->assertNotContains('nama_desa', array_column($columns, 'data'));
+        $this->assertContains('Kecamatan', $ths);
+        $this->assertContains('Kelurahan/Desa', $ths);
+        $this->assertNotContains('Status Set Lokasi', $ths);
+        $this->assertContains('nama_desa', array_column($columns, 'data'));
         // Checkbox th + column are added in pairs by table-init.js
         $this->assertSame(count($ths) + 1, count($columns) + 1);
         $this->assertSame('Aksi', end($ths));
@@ -612,6 +622,7 @@ class BulkActionsTest extends TestCase
         $this->loginAs('pt', ['email' => Satuanpendidikan::factory()->create()->npsn]);
         [$table, $ths, $columns] = $this->datatableMarkup('ptmahasiswa/listdata');
         $this->assertFalse($table->hasAttribute('data-select-key'));
+        $this->assertContains('Kecamatan', $ths);
         $this->assertContains('Kelurahan/Desa', $ths);
         $this->assertContains('nama_desa', array_column($columns, 'data'));
         $this->assertCount(count($ths), $columns);

@@ -13,8 +13,8 @@
         ['data' => 'nm_lemb', 'name' => 'nm_lemb'],
         ['data' => 'location_program', 'name' => 'location_program'],
         ['data' => 'ketua_kelompok', 'name' => 'ketua_kelompok', 'className' => 'text-center', 'orderable' => false, 'searchable' => false, 'boolIcon' => ['Ketua kelompok', 'Bukan ketua']],
-        ['data' => 'nama_kecamatan', 'name' => 'nama_kecamatan', 'className' => 'text-center', 'orderable' => false, 'lokasiStatus' => true],
-        ['data' => 'nama_desa', 'name' => 'nama_desa', 'visible' => false],
+        ['data' => 'nama_kecamatan', 'name' => 'nama_kecamatan', 'emptyIcon' => 'Kecamatan belum diisi'],
+        ['data' => 'nama_desa', 'name' => 'nama_desa', 'emptyIcon' => 'Kelurahan/Desa belum diisi'],
         ...(auth()->user()->role === 'pt'
             ? [['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'orderable' => false, 'searchable' => false]]
             : []),
@@ -30,7 +30,7 @@
             <th>Perguruan Tinggi</th>
             <th>Lokasi Program KKN</th>
             <th>Status Ketua Kelompok</th>
-            <th>Status Set Lokasi</th>
+            <th>Kecamatan</th>
             <th>Kelurahan/Desa</th>
             @if (auth()->user()->role === 'pt')
                 <th>Aksi</th>

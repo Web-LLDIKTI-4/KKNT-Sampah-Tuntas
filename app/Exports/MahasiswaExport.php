@@ -26,8 +26,8 @@ class MahasiswaExport
             XlsxStreamer::column('Perguruan Tinggi', fn ($row) => $row->nm_lemb ?? 'Belum Terdata', 40),
             XlsxStreamer::column('Lokasi Program KKN', fn ($row) => $row->nama_lokasi ?? 'Belum Terdata', 30),
             XlsxStreamer::column('Status Ketua Kelompok', fn ($row) => $row->ketua_kelompok ? 'Ya' : 'Tidak', 14),
-            XlsxStreamer::column('Status Set Lokasi', fn ($row) => $row->nama_kecamatan && $row->nama_desa ? 'Sudah' : 'Belum', 14),
-            XlsxStreamer::column('Kelurahan/Desa', 'nama_desa', 25),
+            XlsxStreamer::column('Kecamatan', fn ($row) => $row->nama_kecamatan ?? 'Belum diisi', 25),
+            XlsxStreamer::column('Kelurahan/Desa', fn ($row) => $row->nama_desa ?? 'Belum diisi', 25),
         ];
     }
 }
