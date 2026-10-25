@@ -144,7 +144,7 @@ class CapaianKegiatanController extends Controller
     public function export(Request $request, PenguranganSampahService $sampah)
     {
         $user = $request->user();
-        $file = 'capaian_kegiatan_'.date('Y-m-d_H-i-s').'.xlsx';
+        $file = 'evaluasi_pendataan_sampah_'.date('Y-m-d_H-i-s').'.xlsx';
 
         // Non-mahasiswa (pt): same export & scope as lapcapaiankegiatan
         if ($user->role !== 'mahasiswa') {

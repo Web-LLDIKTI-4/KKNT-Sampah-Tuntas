@@ -4,8 +4,8 @@
     <input type="hidden" name="id_capaian" value="{{$data->id_capaian}}">
     <div class="form-group form-floating form-floating-outline mb-6">
         <input type="date" name="bulan" required max="{{ now()->toDateString() }}" value="{{ $data->bulan ? \Illuminate\Support\Carbon::parse($data->bulan)->format('Y-m-d') : '' }}" class="form-control form-control-sm">
-        <label>Tanggal Capaian</label>
-        <div class="form-text">Capaian disimpan per bulan (1 capaian per bulan).</div>
+        <label>Tanggal Laporan</label>
+        <div class="form-text">Laporan disimpan per bulan (1 laporan per bulan).</div>
         <span id="bulan_error" class="text-danger"></span>
     </div>
 
@@ -40,7 +40,7 @@
                     ],
                 ];
             @endphp
-            
+
             @foreach($statusCapaian as $item)
                 <option value="{{$item['status']}}" @if($data->status_capaian == $item['status']) selected @endif>{{$item['label']}}</option>
             @endforeach
@@ -55,4 +55,3 @@
     <hr>
     <x-button.save formId="form-ubah">Simpan</x-button.save>
 </form>
-    

@@ -1,4 +1,4 @@
-<?php  
+<?php
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
@@ -13,11 +13,11 @@ use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Facades\DataTables;
 
 class LapcapaiankegiatanController extends Controller
-{    
+{
     use HandlesDataTablesOrder;
 
     public function index()
-    {  
+    {
         return view('lapcapaiankegiatan.index');
     }
     public function listdata()
@@ -50,7 +50,7 @@ class LapcapaiankegiatanController extends Controller
                 ->rawColumns(['lokasi', 'tautan', 'status_capaian'])
                 ->make(true);
         }
-        
+
     }
 
     // Also used by CapaianKegiatanController::export for non-mahasiswa roles
@@ -59,7 +59,7 @@ class LapcapaiankegiatanController extends Controller
         $this->sanitizeDataTablesInput();
         $query = $this->dataTablesExportQuery($this->table($request), 'capaian_kegiatan.id_capaian');
 
-        return (new XlsxStreamer('Laporan Capaian Kegiatan', [
+        return (new XlsxStreamer('Laporan Evaluasi Pendataan Sampah', [
             XlsxStreamer::column('Bulan', fn ($row) => $row->bulan ? Carbon::parse($row->bulan)->translatedFormat('F Y') : null, 14),
             XlsxStreamer::column('Lokasi Kegiatan', fn ($row) => implode(', ', array_filter([
                 $row->pjdesa?->mahasiswa?->user?->locationProgram?->nama_lokasi,
@@ -75,7 +75,7 @@ class LapcapaiankegiatanController extends Controller
             XlsxStreamer::column('Tautan', 'tautan', 30),
         ]))
             ->info(['Kata kunci' => $request->input('search.value')])
-            ->download('capaian_kegiatan_'.date('Y-m-d_H-i-s').'.xlsx', $query->lazy(1000));
+            ->download('evaluasi_pendataan_sampah_'.date('Y-m-d_H-i-s').'.xlsx', $query->lazy(1000));
     }
 
     // Call after sanitizeDataTablesInput(); scope, search & order shared by list and export

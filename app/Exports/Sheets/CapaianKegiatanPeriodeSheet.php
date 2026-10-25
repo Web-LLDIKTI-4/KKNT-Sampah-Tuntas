@@ -17,7 +17,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 /**
- * Export mahasiswa: tabel Data Sampah (format RekapLldiktiSheet) lalu tabel Capaian Kegiatan (kolom tabel UI); periode jadi kolom Bulan.
+ * Export mahasiswa: tabel Data Sampah (format RekapLldiktiSheet) lalu tabel Evaluasi Pendataan Sampah (kolom tabel UI); periode jadi kolom Bulan.
  */
 class CapaianKegiatanPeriodeSheet extends SafeValueBinder implements WithCustomValueBinder, FromArray, WithTitle, WithEvents, WithStrictNullComparison
 {
@@ -47,7 +47,7 @@ class CapaianKegiatanPeriodeSheet extends SafeValueBinder implements WithCustomV
 
     public function title(): string
     {
-        return 'Capaian Kegiatan';
+        return 'Evaluasi Pendataan Sampah';
     }
 
     public function array(): array
@@ -76,7 +76,7 @@ class CapaianKegiatanPeriodeSheet extends SafeValueBinder implements WithCustomV
         $tambah(['']); // pemisah; [] kosong dibuang Maatwebsite
 
         // Tabel bawah: kolom & urutan sama dengan tabel UI capaiankegiatan
-        $this->subJudul[] = $tambah(['Capaian Kegiatan']);
+        $this->subJudul[] = $tambah(['Evaluasi Pendataan Sampah']);
         $awal = $tambah(self::HEADER_CAPAIAN);
         foreach ($this->capaian->values() as $i => $item) {
             $tambah($this->barisCapaian($i + 1, $item));

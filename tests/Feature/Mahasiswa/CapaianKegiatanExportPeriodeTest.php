@@ -64,7 +64,7 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
         Excel::matchByRegex();
         $this->get($url)->assertOk();
         $hasil = null;
-        Excel::assertDownloaded('/^capaian_kegiatan_.+\.xlsx$/', function ($e) use ($class, &$hasil) {
+        Excel::assertDownloaded('/^evaluasi_pendataan_sampah_.+\.xlsx$/', function ($e) use ($class, &$hasil) {
             $hasil = $e;
 
             return $e instanceof $class;
@@ -105,7 +105,7 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
 
         // Tabel capaian kegiatan: pemisah(5) judul(6) header(7) data(8); kolom sama dengan UI
         $this->assertNull($ws->getCell('A5')->getValue());
-        $this->assertSame('Capaian Kegiatan', $ws->getCell('A6')->getValue());
+        $this->assertSame('Evaluasi Pendataan Sampah', $ws->getCell('A6')->getValue());
         $this->assertSame(
             ['No', 'Bulan', 'Lokasi Kegiatan', 'Permasalahan', 'Solusi', 'Kebutuhan Dukungan', 'Tindak Lanjut', 'Tautan'],
             $ws->rangeToArray('A7:H7')[0],
@@ -138,7 +138,7 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
         $this->assertSame('#,##0', $ws->getStyle('D3')->getNumberFormat()->getFormatCode());
         $this->assertSame('#,##0.00', $ws->getStyle('G3')->getNumberFormat()->getFormatCode());
         $this->assertSame('thin', $ws->getStyle('L4')->getBorders()->getBottom()->getBorderStyle());
-        $this->assertSame('Capaian Kegiatan', $ws->getTitle());
+        $this->assertSame('Evaluasi Pendataan Sampah', $ws->getTitle());
     }
 
     public function test_tabel_sampah_merge_bulan_dan_kecamatan_seperti_rekap_lldikti(): void
@@ -219,7 +219,7 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
 
         $ws = $this->render($this->exportDari('capaiankegiatan/export', CapaianKegiatanPeriodeSheet::class));
 
-        // Data Sampah(1) header(2) kosong(3) pemisah(4) Capaian Kegiatan(5) header(6) data(7)
+        // Data Sampah(1) header(2) kosong(3) pemisah(4) Evaluasi Pendataan Sampah(5) header(6) data(7)
         $this->assertSame(DataType::TYPE_STRING, $ws->getCell('D7')->getDataType());
         $this->assertSame($formula, $ws->getCell('D7')->getValue());
         $this->assertSame(DataType::TYPE_STRING, $ws->getCell('H7')->getDataType());
@@ -252,7 +252,7 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
     private function streamed(string $url): Worksheet
     {
         $response = $this->get($url)->assertOk();
-        $this->assertMatchesRegularExpression('/filename=capaian_kegiatan_.+\.xlsx$/', $response->headers->get('Content-Disposition'));
+        $this->assertMatchesRegularExpression('/filename=evaluasi_pendataan_sampah_.+\.xlsx$/', $response->headers->get('Content-Disposition'));
         $path = tempnam(sys_get_temp_dir(), 'capkeg').'.xlsx';
         file_put_contents($path, $response->streamedContent());
         $ws = IOFactory::load($path)->getActiveSheet();
@@ -268,7 +268,7 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
         $headings = ['No.', 'Bulan', 'Lokasi Kegiatan', 'PJ Desa', 'Desa', 'Permasalahan', 'Solusi', 'Kebutuhan Dukungan', 'Tindak Lanjut', 'Tautan'];
         $this->loginAs('pt');
         $ws = $this->streamed('capaiankegiatan/export');
-        $this->assertSame('Laporan Capaian Kegiatan', (string) $ws->getCell('A1')->getValue());
+        $this->assertSame('Laporan Evaluasi Pendataan Sampah', (string) $ws->getCell('A1')->getValue());
         $this->assertSame($headings, $ws->rangeToArray('A3:J3')[0]);
 
         foreach (['admin', 'dpl', 'pt', 'kepala', 'pemda'] as $role) {
