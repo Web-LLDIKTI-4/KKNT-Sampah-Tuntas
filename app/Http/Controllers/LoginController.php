@@ -208,7 +208,7 @@ class LoginController extends Controller
     {
         return Cache::remember(Faq::PUBLIC_CACHE_KEY, now()->addMinutes(10), fn () => Faq::query()
             ->orderBy('id')
-            ->get(['id', 'pertanyaan', 'jawaban']));
+            ->get(['id', 'pertanyaan', 'jawaban', 'answer_type', 'answer_image']));
     }
 
     // Halaman publik: di-cache per kombinasi filter agar query berat tidak jalan di setiap kunjungan

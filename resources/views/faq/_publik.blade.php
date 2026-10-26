@@ -12,7 +12,15 @@
                 </button>
             </h3>
             <div id="faq-{{ $faq->id }}" class="accordion-collapse collapse" aria-labelledby="faq-{{ $faq->id }}-head">
-                <div class="accordion-body faq-answer">{{ $faq->jawaban }}</div>
+                <div class="accordion-body faq-answer">
+                    @if ($faq->hasText())
+                        <div class="faq-answer-text">{{ $faq->jawaban }}</div>
+                    @endif
+                    @if ($faq->hasImage())
+                        <img src="{{ $faq->answer_image_url }}" alt="{{ $faq->pertanyaan }}"
+                            class="faq-answer-img" loading="lazy" decoding="async">
+                    @endif
+                </div>
             </div>
         </div>
     @endforeach

@@ -537,7 +537,7 @@
                             <div>
                                 <p class="lp-kicker">FAQ</p>
                                 <h2 class="lp-title" id="faqTitle">{{ $navItems['faq'] }}</h2>
-                                <p class="lp-lead">Jawaban singkat atas pertanyaan yang paling sering muncul seputar KKN Tematik Sampah Tuntas.</p>
+                                <p class="lp-lead">Pertanyaan Umum dan jawaban terkait program KKN Tematik Sampah Tuntas.</p>
                             </div>
                         </div>
                         <div data-reveal>

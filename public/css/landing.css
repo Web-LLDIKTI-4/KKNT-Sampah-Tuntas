@@ -1346,8 +1346,24 @@ body.lp {
     font-size: 0.925rem;
     line-height: 1.65;
     color: var(--lp-muted);
-    white-space: pre-line;
     overflow-wrap: anywhere;
+}
+
+.faq-answer-text {
+    white-space: pre-line;
+}
+
+.faq-answer-img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--lp-line);
+    border-radius: calc(var(--lp-radius) * 0.75);
+    background: var(--lp-bg-alt);
+}
+
+.faq-answer-text + .faq-answer-img {
+    margin-top: 0.9rem;
 }
 
 @media (min-width: 992px) {

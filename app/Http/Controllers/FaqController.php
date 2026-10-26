@@ -10,13 +10,14 @@ use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Admin\FaqRequest;
 use App\Models\Faq;
+use App\Services\FaqService;
 use App\Support\ActionButtons;
 
 class FaqController extends Controller
 {
     use HandlesDataTablesOrder, RespondsWithJson;
 
-    private const FIELDS = ['pertanyaan', 'jawaban'];
+    private const FIELDS = ['pertanyaan', 'jawaban', 'answer_type'];
 
     public function index()
     {
@@ -35,14 +36,14 @@ class FaqController extends Controller
 
         $whitelist = ['pertanyaan', 'jawaban'];
         $query = Faq::query()
-            ->select(['id', 'pertanyaan', 'jawaban'])
+            ->select(['id', 'pertanyaan', 'jawaban', 'answer_type', 'answer_image'])
             ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q->orderBy('id'));
 
         return DataTables::eloquent($query)
             ->addIndexColumn()
             ->whitelist($whitelist)
             ->editColumn('pertanyaan', fn (Faq $row) => '<div class="text-wrap">'.e($row->pertanyaan).'</div>')
-            ->editColumn('jawaban', fn (Faq $row) => '<div class="text-wrap">'.nl2br(e($row->jawaban)).'</div>')
+            ->editColumn('jawaban', fn (Faq $row) => $this->jawabanCell($row))
             ->addColumn('action', fn (Faq $row) => ActionButtons::make(
                 urlEdit: url('faq/edit/'.$row->id),
                 urlDelete: url('faq/destroy'),
@@ -59,9 +60,9 @@ class FaqController extends Controller
         return view('faq.tambah');
     }
 
-    public function insert(FaqRequest $request)
+    public function insert(FaqRequest $request, FaqService $service)
     {
-        Faq::create($request->safe()->only(self::FIELDS));
+        $service->save(new Faq, $request->safe()->only(self::FIELDS), $request->file('answer_image'));
 
         return $this->saved();
     }
@@ -71,14 +72,14 @@ class FaqController extends Controller
         return view('faq.edit', ['faq' => Faq::findOrFail($id)]);
     }
 
-    public function update(FaqRequest $request)
+    public function update(FaqRequest $request, FaqService $service)
     {
-        Faq::findOrFail($request->validated('id'))->update($request->safe()->only(self::FIELDS));
+        $service->save(Faq::findOrFail($request->validated('id')), $request->safe()->only(self::FIELDS), $request->file('answer_image'));
 
         return $this->saved();
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request, FaqService $service)
     {
         $faq = $this->findFaqByInput($request->input('id'));
         if (! $faq) {
@@ -86,9 +87,20 @@ class FaqController extends Controller
         }
 
         Gate::authorize('delete', $faq);
-        $faq->delete();
+        $service->delete($faq);
 
         return $this->deleted();
+    }
+
+    // Jawaban teks (escaped) + label bila FAQ punya gambar
+    private function jawabanCell(Faq $row): string
+    {
+        $html = nl2br(e((string) $row->jawaban));
+        if ($row->hasImage()) {
+            $html .= ($html !== '' ? '<br>' : '').'<em class="text-muted">[Gambar]</em>';
+        }
+
+        return '<div class="text-wrap">'.$html.'</div>';
     }
 
     // Input array/non-digit ditolak agar find() tidak mengembalikan Collection
