@@ -45,10 +45,16 @@
         Simpan
     </x-button.save>
 </form>
+<style>
+    .select2-container--default .select2-lokasi-desa .select2-results > .select2-results__options {
+        max-height: min(400px, 60vh);
+    }
+</style>
 <script>
 $(function(){
     $('.select2').select2({
-       dropdownParent: $('#modalku')
+       dropdownParent: $('#modalku'),
+       dropdownCssClass: 'select2-lokasi-desa'
     });
 
     $("#form-lokasi").on("submit",function(){

@@ -32,7 +32,8 @@ class FormLokasiCountTest extends TestCase
 
         $this->get('mhsprofile/formlokasi')
             ->assertOk()
-            ->assertSee('4 kecamatan, 4 desa dimuat');
+            ->assertSee('4 kecamatan, 4 desa dimuat')
+            ->assertSee('select2-lokasi-desa');
     }
 
     public function test_count_text_shows_zero_desa_when_only_empty_kecamatan(): void
