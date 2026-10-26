@@ -27,6 +27,9 @@
             @endif
             </select>
             <label>Pilih Kelurahan/Desa</label>
+            <small class="form-text text-muted">
+                {{ $desa?->count() ?? 0 }} kecamatan, {{ $desa?->sum(fn ($item) => $item->desa->count()) ?? 0 }} desa dimuat
+            </small>
         </div>
         <div class="form-group col-md-2 form-floating form-floating-outline">
             <select name="tahun" class="form-control" required data-no-search>
