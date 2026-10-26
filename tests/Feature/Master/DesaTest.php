@@ -5,7 +5,12 @@ namespace Tests\Feature\Master;
 use App\Models\Desa;
 use App\Models\Desaprofile;
 use App\Models\Kecamatan;
+use App\Models\Mahasiswa_lokasi;
+use App\Models\PenguranganSampah;
+use App\Models\Pjdesa;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class DesaTest extends TestCase
@@ -232,5 +237,128 @@ class DesaTest extends TestCase
             ->assertRedirect(route('home'));
         $this->assertSame('%', $desa->fresh()->satuan_baseline);
         $this->assertEquals(10.0, (float) $desa->fresh()->baseline);
+    }
+
+    // Legacy rows were created before HasUuids, so id_desa may be non-UUID
+    private function legacyDesa(string $id): string
+    {
+        DB::table('desa')->insert([
+            'id_desa' => $id,
+            'id_kecamatan' => Kecamatan::factory()->create()->id_kecamatan,
+            'desa' => 'Legacy '.$id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $id;
+    }
+
+    public function test_destroy_deletes_uuid_desa(): void
+    {
+        $this->loginAs('admin');
+        $desa = Desa::factory()->create();
+        $this->assertTrue(Str::isUuid($desa->id_desa));
+
+        $this->put('desa/destroy', ['id_desa' => $desa->id_desa])->assertOk()
+            ->assertJson(['success' => true, 'message' => 'Data berhasil dihapus']);
+        $this->assertDatabaseMissing('desa', ['id_desa' => $desa->id_desa]);
+    }
+
+    public function test_destroy_deletes_legacy_non_uuid_desa(): void
+    {
+        foreach (['admin' => 'desa-lama-01', 'pemda' => '17'] as $role => $id) {
+            $this->loginAs($role);
+            $this->legacyDesa($id);
+            $keep = Desa::factory()->create();
+
+            $this->put('desa/destroy', ['id_desa' => $id])->assertOk()->assertJson(['success' => true]);
+            $this->assertDatabaseMissing('desa', ['id_desa' => $id]);
+            $this->assertDatabaseHas('desa', ['id_desa' => $keep->id_desa]);
+        }
+    }
+
+    public function test_destroy_unknown_id_returns_json_not_found(): void
+    {
+        $this->loginAs('admin');
+        $desa = Desa::factory()->create();
+
+        foreach ([(string) Str::uuid(), 'tidak-ada', '99999'] as $id) {
+            $this->put('desa/destroy', ['id_desa' => $id])->assertNotFound()
+                ->assertExactJson(['success' => false, 'message' => 'Data tidak ditemukan!']);
+        }
+        $this->assertDatabaseHas('desa', ['id_desa' => $desa->id_desa]);
+    }
+
+    public function test_destroy_rejects_array_or_empty_id_without_server_error(): void
+    {
+        $this->loginAs('admin');
+        $desa = Desa::factory()->create();
+        $legacy = $this->legacyDesa('desa-lama-02');
+
+        $payloads = [
+            ['id_desa' => [$desa->id_desa]],
+            ['id_desa' => [$desa->id_desa, $legacy]],
+            ['id_desa' => ['x' => [$desa->id_desa]]],
+            ['id_desa' => ''],
+            ['id_desa' => '   '],
+            ['id_desa' => null],
+            [],
+        ];
+        foreach ($payloads as $payload) {
+            $this->put('desa/destroy', $payload)->assertNotFound()->assertJson(['success' => false]);
+        }
+        $this->putJson('desa/destroy', ['id_desa' => [$desa->id_desa]])->assertNotFound()->assertJson(['success' => false]);
+
+        $this->assertDatabaseHas('desa', ['id_desa' => $desa->id_desa]);
+        $this->assertDatabaseHas('desa', ['id_desa' => $legacy]);
+    }
+
+    public function test_destroy_rejects_desa_with_related_data(): void
+    {
+        $this->loginAs('admin');
+        $related = [
+            'profil desa' => fn (string $id) => Desaprofile::factory()->create(['id_desa' => $id]),
+            'pj desa' => fn (string $id) => Pjdesa::create(['email' => 'pj@example.test', 'id_desa' => $id]),
+            'lokasi mahasiswa' => fn (string $id) => Mahasiswa_lokasi::create(['tahun' => now()->year, 'id_mahasiswa' => (string) Str::uuid(), 'id_desa' => $id]),
+            'pengurangan sampah' => fn (string $id) => PenguranganSampah::create([
+                'id_sampah' => (string) Str::uuid(),
+                'email' => 'ketua-'.Str::random(8).'@example.test',
+                'id_desa' => $id,
+                'bulan' => now()->startOfMonth()->toDateString(),
+                'jml_rw' => 1, 'jml_penduduk' => 1, 'jml_rumah' => 1, 'jml_rumah_memilah' => 0,
+                'timbulan' => 0, 'organik_sumber' => 0, 'organik_dlh' => 0,
+                'anorganik_sumber' => 0, 'pengurangan' => 0, 'belum_terkelola' => 0,
+            ]),
+        ];
+
+        foreach ($related as $label => $attach) {
+            foreach ([Desa::factory()->create()->id_desa, $this->legacyDesa('lama-'.Str::slug($label))] as $id) {
+                $attach($id);
+                $this->put('desa/destroy', ['id_desa' => $id])->assertOk()
+                    ->assertJson(['success' => false, 'error' => 'Data gagal dihapus karena terkait dengan data lain']);
+                $this->assertDatabaseHas('desa', ['id_desa' => $id]);
+            }
+        }
+    }
+
+    public function test_destroy_is_restricted_to_admin_and_pemda(): void
+    {
+        $desa = Desa::factory()->create();
+        $legacy = $this->legacyDesa('desa-lama-03');
+
+        $this->put('desa/destroy', ['id_desa' => $legacy])->assertRedirect(route('login'));
+
+        $this->loginAs('kepala');
+        $this->put('desa/destroy', ['id_desa' => $desa->id_desa])->assertForbidden();
+        $this->put('desa/destroy', ['id_desa' => $legacy])->assertForbidden();
+
+        foreach (['pt', 'dpl', 'mahasiswa'] as $role) {
+            $this->loginAs($role);
+            $this->put('desa/destroy', ['id_desa' => $desa->id_desa])->assertRedirect(route('home'));
+            $this->put('desa/destroy', ['id_desa' => $legacy])->assertRedirect(route('home'));
+        }
+
+        $this->assertDatabaseHas('desa', ['id_desa' => $desa->id_desa]);
+        $this->assertDatabaseHas('desa', ['id_desa' => $legacy]);
     }
 }

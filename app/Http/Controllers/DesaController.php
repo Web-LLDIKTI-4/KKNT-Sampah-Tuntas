@@ -13,7 +13,6 @@ use App\Models\Mahasiswa_lokasi;
 use App\Models\Pjdesa;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 class DesaController extends Controller
@@ -90,8 +89,8 @@ class DesaController extends Controller
     public function destroy(Request $request)
     {
         $id = $request->input('id_desa');
-        // Non-string/non-uuid id would make find() return a Collection
-        $desa = Str::isUuid($id) ? Desa::find($id) : null;
+        // Array input would make find() return a Collection; legacy ids may be non-UUID
+        $desa = is_string($id) && $id !== '' ? Desa::find($id) : null;
         if (! $desa) {
             return $this->notFound();
         }

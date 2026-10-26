@@ -10,7 +10,6 @@ use App\Models\LokasiProgram;
 use App\Models\Picdlh;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 class PicdlhController extends Controller
@@ -101,7 +100,6 @@ class PicdlhController extends Controller
     public function edit(string $id_pic_dlh)
     {
         abort_unless($this->canManage(), 403);
-        abort_unless(Str::isUuid($id_pic_dlh), 404);
 
         return view('picdlh.edit', [
             'data' => Picdlh::findOrFail($id_pic_dlh),
@@ -126,8 +124,8 @@ class PicdlhController extends Controller
         abort_unless($this->canManage(), 403);
 
         $id = $request->input('id_pic_dlh');
-        // Non-string/non-uuid id would make find() return a Collection
-        $pic = Str::isUuid($id) ? Picdlh::find($id) : null;
+        // Array input would make find() return a Collection; legacy ids may be non-UUID
+        $pic = is_string($id) && $id !== '' ? Picdlh::find($id) : null;
         if (! $pic) {
             return $this->notFound();
         }

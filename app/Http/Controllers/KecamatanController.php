@@ -10,7 +10,6 @@ use App\Models\Kecamatan;
 use App\Models\Picdlh;
 use App\Support\ActionButtons;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 class KecamatanController extends Controller
@@ -78,8 +77,8 @@ class KecamatanController extends Controller
     public function destroy(Request $request)
     {
         $id = $request->input('id_kecamatan');
-        // Non-string/non-uuid id would make find() return a Collection
-        $kecamatan = Str::isUuid($id) ? Kecamatan::find($id) : null;
+        // Array input would make find() return a Collection; legacy ids may be non-UUID
+        $kecamatan = is_string($id) && $id !== '' ? Kecamatan::find($id) : null;
         if (! $kecamatan) {
             return $this->notFound();
         }

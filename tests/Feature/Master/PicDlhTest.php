@@ -6,6 +6,8 @@ use App\Models\Kecamatan;
 use App\Models\LokasiProgram;
 use App\Models\Picdlh;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class PicDlhTest extends TestCase
@@ -606,5 +608,87 @@ class PicDlhTest extends TestCase
         $this->get('picdlh/edit/'.$plain->id_pic_dlh)->assertOk()
             ->assertSeeInOrder(['name="id_kecamatan"', '<option value="">', 'value="'.$kecamatan->id_kecamatan.'"'], false)
             ->assertDontSee('value="'.$kecamatan->id_kecamatan.'" selected', false);
+    }
+
+    // Defensive: rows inserted outside Eloquent may carry a non-UUID id_pic_dlh
+    private function legacyPic(string $id): string
+    {
+        DB::table('pic_dlh')->insert([
+            'id_pic_dlh' => $id,
+            'id_kecamatan' => Kecamatan::factory()->create()->id_kecamatan,
+            'nama' => 'Legacy '.$id,
+            'kontak' => '081234567890',
+            'keterangan' => 'ketua',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $id;
+    }
+
+    public function test_destroy_deletes_legacy_non_uuid_pic(): void
+    {
+        $this->loginAs('admin');
+        $id = $this->legacyPic('pic-lama-01');
+        $keep = $this->makePic();
+
+        $this->put('picdlh/destroy', ['id_pic_dlh' => $id])->assertOk()
+            ->assertJson(['success' => true, 'message' => 'Data berhasil dihapus']);
+        $this->assertDatabaseMissing('pic_dlh', ['id_pic_dlh' => $id]);
+        $this->assertDatabaseHas('pic_dlh', ['id_pic_dlh' => $keep->id_pic_dlh]);
+    }
+
+    public function test_destroy_unknown_array_or_empty_id_returns_json_not_found(): void
+    {
+        $this->loginAs('admin');
+        $pic = $this->makePic();
+
+        $payloads = [
+            ['id_pic_dlh' => (string) Str::uuid()],
+            ['id_pic_dlh' => 'tidak-ada'],
+            ['id_pic_dlh' => '99999'],
+            ['id_pic_dlh' => [$pic->id_pic_dlh]],
+            ['id_pic_dlh' => ['x' => [$pic->id_pic_dlh]]],
+            ['id_pic_dlh' => ''],
+            ['id_pic_dlh' => null],
+            [],
+        ];
+        foreach ($payloads as $payload) {
+            $this->put('picdlh/destroy', $payload)->assertNotFound()
+                ->assertExactJson(['success' => false, 'message' => 'Data tidak ditemukan!']);
+        }
+        $this->assertDatabaseHas('pic_dlh', ['id_pic_dlh' => $pic->id_pic_dlh]);
+    }
+
+    public function test_edit_non_uuid_or_unknown_id_returns_404_and_legacy_renders(): void
+    {
+        $this->loginAs('admin');
+
+        foreach ([(string) Str::uuid(), 'tidak-ada', '99999', 'a%20b'] as $id) {
+            $this->get('picdlh/edit/'.$id)->assertNotFound();
+        }
+
+        $legacy = $this->legacyPic('pic-lama-02');
+        $this->get('picdlh/edit/'.$legacy)->assertOk()->assertSee('Legacy pic-lama-02');
+    }
+
+    public function test_destroy_and_edit_still_require_manage_permission(): void
+    {
+        $pic = $this->makePic();
+        $legacy = $this->legacyPic('pic-lama-03');
+
+        $this->put('picdlh/destroy', ['id_pic_dlh' => $legacy])->assertRedirect(route('login'));
+
+        // kepala & pemda are blocked earlier by KepalaReadOnly (403)
+        foreach (['dpl' => 302, 'pt' => 302, 'mahasiswa' => 302, 'kepala' => 403, 'pemda' => 403] as $role => $status) {
+            $this->loginAs($role);
+            foreach ([$pic->id_pic_dlh, $legacy, 'tidak-ada'] as $id) {
+                $this->put('picdlh/destroy', ['id_pic_dlh' => $id])->assertStatus($status);
+                $this->get('picdlh/edit/'.$id)->assertRedirect(route('home'));
+            }
+        }
+
+        $this->assertDatabaseHas('pic_dlh', ['id_pic_dlh' => $pic->id_pic_dlh]);
+        $this->assertDatabaseHas('pic_dlh', ['id_pic_dlh' => $legacy]);
     }
 }

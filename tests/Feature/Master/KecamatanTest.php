@@ -4,7 +4,10 @@ namespace Tests\Feature\Master;
 
 use App\Models\Desa;
 use App\Models\Kecamatan;
+use App\Models\Picdlh;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class KecamatanTest extends TestCase
@@ -157,5 +160,117 @@ class KecamatanTest extends TestCase
 
         $this->put('kecamatan/insert', ['kecamatan' => 'Coblong'])->assertRedirect(route('home'));
         $this->assertDatabaseMissing('kecamatan', ['kecamatan' => 'Coblong']);
+    }
+
+    // Legacy rows were created before HasUuids, so id_kecamatan may be non-UUID
+    private function legacyKecamatan(string $id): string
+    {
+        DB::table('kecamatan')->insert([
+            'id_kecamatan' => $id,
+            'kecamatan' => 'Legacy '.$id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $id;
+    }
+
+    public function test_destroy_deletes_uuid_kecamatan(): void
+    {
+        $this->loginAs('admin');
+        $kecamatan = Kecamatan::factory()->create();
+        $this->assertTrue(Str::isUuid($kecamatan->id_kecamatan));
+
+        $this->put('kecamatan/destroy', ['id_kecamatan' => $kecamatan->id_kecamatan])->assertOk()
+            ->assertJson(['success' => true, 'message' => 'Data berhasil dihapus']);
+        $this->assertDatabaseMissing('kecamatan', ['id_kecamatan' => $kecamatan->id_kecamatan]);
+    }
+
+    public function test_destroy_deletes_legacy_non_uuid_kecamatan(): void
+    {
+        foreach (['admin' => 'kec-lama-01', 'pemda' => '17'] as $role => $id) {
+            $this->loginAs($role);
+            $this->legacyKecamatan($id);
+            $keep = Kecamatan::factory()->create();
+
+            $this->put('kecamatan/destroy', ['id_kecamatan' => $id])->assertOk()->assertJson(['success' => true]);
+            $this->assertDatabaseMissing('kecamatan', ['id_kecamatan' => $id]);
+            $this->assertDatabaseHas('kecamatan', ['id_kecamatan' => $keep->id_kecamatan]);
+        }
+    }
+
+    public function test_destroy_unknown_id_returns_json_not_found(): void
+    {
+        $this->loginAs('admin');
+        $kecamatan = Kecamatan::factory()->create();
+
+        foreach ([(string) Str::uuid(), 'tidak-ada', '99999'] as $id) {
+            $this->put('kecamatan/destroy', ['id_kecamatan' => $id])->assertNotFound()
+                ->assertExactJson(['success' => false, 'message' => 'Data tidak ditemukan!']);
+        }
+        $this->assertDatabaseHas('kecamatan', ['id_kecamatan' => $kecamatan->id_kecamatan]);
+    }
+
+    public function test_destroy_rejects_array_or_empty_id_without_server_error(): void
+    {
+        $this->loginAs('admin');
+        $kecamatan = Kecamatan::factory()->create();
+        $legacy = $this->legacyKecamatan('kec-lama-02');
+
+        $payloads = [
+            ['id_kecamatan' => [$kecamatan->id_kecamatan]],
+            ['id_kecamatan' => [$kecamatan->id_kecamatan, $legacy]],
+            ['id_kecamatan' => ['x' => [$kecamatan->id_kecamatan]]],
+            ['id_kecamatan' => ''],
+            ['id_kecamatan' => '   '],
+            ['id_kecamatan' => null],
+            [],
+        ];
+        foreach ($payloads as $payload) {
+            $this->put('kecamatan/destroy', $payload)->assertNotFound()->assertJson(['success' => false]);
+        }
+        $this->putJson('kecamatan/destroy', ['id_kecamatan' => [$kecamatan->id_kecamatan]])->assertNotFound()->assertJson(['success' => false]);
+
+        $this->assertDatabaseHas('kecamatan', ['id_kecamatan' => $kecamatan->id_kecamatan]);
+        $this->assertDatabaseHas('kecamatan', ['id_kecamatan' => $legacy]);
+    }
+
+    public function test_destroy_rejects_kecamatan_with_related_data(): void
+    {
+        $this->loginAs('admin');
+        $related = [
+            'desa' => fn (string $id) => Desa::factory()->create(['id_kecamatan' => $id]),
+            'pic' => fn (string $id) => Picdlh::create(['id_kecamatan' => $id, 'nama' => 'Budi', 'kontak' => '081234567890', 'keterangan' => 'ketua']),
+        ];
+
+        foreach ($related as $label => $attach) {
+            foreach ([Kecamatan::factory()->create()->id_kecamatan, $this->legacyKecamatan('lama-'.$label)] as $id) {
+                $attach($id);
+                $this->put('kecamatan/destroy', ['id_kecamatan' => $id])->assertOk()
+                    ->assertJson(['success' => false, 'error' => 'Data gagal dihapus karena terkait dengan data lain']);
+                $this->assertDatabaseHas('kecamatan', ['id_kecamatan' => $id]);
+            }
+        }
+    }
+
+    public function test_destroy_is_restricted_to_admin_and_pemda(): void
+    {
+        $kecamatan = Kecamatan::factory()->create();
+        $legacy = $this->legacyKecamatan('kec-lama-03');
+
+        $this->put('kecamatan/destroy', ['id_kecamatan' => $legacy])->assertRedirect(route('login'));
+
+        $this->loginAs('kepala');
+        $this->put('kecamatan/destroy', ['id_kecamatan' => $kecamatan->id_kecamatan])->assertForbidden();
+        $this->put('kecamatan/destroy', ['id_kecamatan' => $legacy])->assertForbidden();
+
+        foreach (['pt', 'dpl', 'mahasiswa'] as $role) {
+            $this->loginAs($role);
+            $this->put('kecamatan/destroy', ['id_kecamatan' => $kecamatan->id_kecamatan])->assertRedirect(route('home'));
+            $this->put('kecamatan/destroy', ['id_kecamatan' => $legacy])->assertRedirect(route('home'));
+        }
+
+        $this->assertDatabaseHas('kecamatan', ['id_kecamatan' => $kecamatan->id_kecamatan]);
+        $this->assertDatabaseHas('kecamatan', ['id_kecamatan' => $legacy]);
     }
 }
