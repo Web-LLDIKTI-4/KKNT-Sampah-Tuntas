@@ -43,6 +43,7 @@ use App\Http\Controllers\DplfreeformController;
 
 use App\Http\Controllers\KecamatanController;
 use App\Http\Controllers\PanduanController;
+use App\Http\Controllers\FaqController;
 use App\Http\Controllers\PanduanPublikController;
 use App\Http\Controllers\PelaksanaanKknController;
 use App\Http\Controllers\RencanaKerjaController;
@@ -274,6 +275,18 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admevaluasikegiatan/pertanyaanevaluasiserver', [AdmevaluasikegiatanController::class, 'pertanyaanevaluasiserver'])->name('admevaluasikegiatan.pertanyaanevaluasiserver');
     Route::put('admevaluasikegiatan/pertanyaanevaluasi/destroy', [AdmevaluasikegiatanController::class, 'destroy'])->name('admevaluasikegiatan.pertanyaanevaluasi.destroy');
 
+});
+
+// FAQ: policy (403 untuk non-admin), sengaja di luar group role:admin yang me-redirect
+Route::middleware(['auth', 'can:viewAny,'.\App\Models\Faq::class])->group(function () {
+    Route::get('faq', [FaqController::class, 'index'])->name('faq.index');
+    Route::get('faq/listdata', [FaqController::class, 'listdata'])->name('faq.listdata');
+    Route::get('faq/listdataserver', [FaqController::class, 'listdataserver'])->name('faq.listdataserver');
+    Route::get('faq/tambah', [FaqController::class, 'tambah'])->name('faq.tambah');
+    Route::put('faq/insert', [FaqController::class, 'insert'])->middleware('throttle:sensitive')->name('faq.insert');
+    Route::get('faq/edit/{id}', [FaqController::class, 'edit'])->whereNumber('id')->name('faq.edit');
+    Route::put('faq/update', [FaqController::class, 'update'])->middleware('throttle:sensitive')->name('faq.update');
+    Route::put('faq/destroy', [FaqController::class, 'destroy'])->middleware('throttle:sensitive')->name('faq.destroy');
 });
 
 // Master wilayah: admin & pemda dapat mengelola kecamatan dan desa

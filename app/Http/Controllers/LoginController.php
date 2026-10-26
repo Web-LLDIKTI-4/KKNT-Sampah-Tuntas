@@ -10,6 +10,7 @@ use App\Http\Requests\Auth\PetaSebaranRequest;
 use App\Http\Requests\Auth\StatusListRequest;
 use App\Models\PenguranganSampah;
 use App\Models\LokasiProgram;
+use App\Models\Faq;
 use App\Models\Panduan;
 use App\Services\DataPesertaSummary;
 use App\Services\LandingStatusList;
@@ -39,6 +40,7 @@ class LoginController extends Controller
             'statusKetua' => $sebaran->statusKetua(),
             'laporan' => $this->laporanData($sampah, ['bulan' => null, 'id_kecamatan' => null, 'id_desa' => null, 'klaster' => null]) + ['publik' => true],
             'panduanList' => $this->getPanduanPublik(),
+            'faqList' => $this->getFaqPublik(),
         ] + $this->statistikPublik($rekap));
     }
 
@@ -199,6 +201,14 @@ class LoginController extends Controller
             ->where('is_aktif', true)
             ->latest('updated_at')
             ->get(['id_panduan', 'judul', 'deskripsi', 'nama_file', 'ukuran', 'mime', 'updated_at']));
+    }
+
+    // Cache di-forget oleh hook model Faq setiap ada perubahan
+    private function getFaqPublik()
+    {
+        return Cache::remember(Faq::PUBLIC_CACHE_KEY, now()->addMinutes(10), fn () => Faq::query()
+            ->orderBy('id')
+            ->get(['id', 'pertanyaan', 'jawaban']));
     }
 
     // Halaman publik: di-cache per kombinasi filter agar query berat tidak jalan di setiap kunjungan

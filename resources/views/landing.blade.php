@@ -5,6 +5,7 @@
     $statusLokasi ??= [];
     $sebaranPtList ??= collect();
     $panduanList ??= collect();
+    $faqList ??= collect();
     $fmt = fn ($v) => number_format((int) $v, 0, ',', '.');
     $stats = [
         ['value' => $jumlahMahasiswa ?? 0, 'label' => 'Mahasiswa', 'icon' => 'ri-group-line'],
@@ -23,6 +24,9 @@
         'peta' => 'Jejak Aksi Mahasiswa di Setiap Wilayah',
         'dokumen' => 'Panduan dan Dokumen Program',
     ];
+    if ($faqList->isNotEmpty()) {
+        $navItems['faq'] = 'Pertanyaan Umum';
+    }
 @endphp
 <!doctype html>
 <html lang="id" class="light-style layout-wide" dir="ltr" data-theme="theme-default" data-assets-path="{{ asset('assets') }}/" data-style="light">
@@ -523,6 +527,26 @@
                 </div>
             </div>
         </section>
+
+        {{-- FAQ --}}
+        @if ($faqList->isNotEmpty())
+            <section class="lp-section" id="faq" tabindex="-1" aria-labelledby="faqTitle">
+                <div class="container-xxl">
+                    <div class="faq-layout">
+                        <div class="lp-head" data-reveal>
+                            <div>
+                                <p class="lp-kicker">FAQ</p>
+                                <h2 class="lp-title" id="faqTitle">{{ $navItems['faq'] }}</h2>
+                                <p class="lp-lead">Jawaban singkat atas pertanyaan yang paling sering muncul seputar KKN Tematik Sampah Tuntas.</p>
+                            </div>
+                        </div>
+                        <div data-reveal>
+                            @include('faq._publik', ['faqList' => $faqList])
+                        </div>
+                    </div>
+                </div>
+            </section>
+        @endif
     </main>
 
     <footer class="lp-footer">

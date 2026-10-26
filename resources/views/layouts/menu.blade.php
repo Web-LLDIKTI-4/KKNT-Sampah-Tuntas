@@ -145,6 +145,13 @@
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dokumen
                                         </a>
                                     </li>
+                                    @can('viewAny', App\Models\Faq::class)
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('faq') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> FAQ
+                                        </a>
+                                    </li>
+                                    @endcan
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('rencanakerja') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja

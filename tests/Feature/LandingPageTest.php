@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Desa;
 use App\Models\Dpl;
+use App\Models\Faq;
 use App\Models\Kecamatan;
 use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
@@ -463,5 +464,56 @@ class LandingPageTest extends TestCase
         $response = $this->get('/')->assertViewHas('statusKetua', ['sudah' => 0, 'belum' => 0, 'total' => 0]);
         $response->assertDontSee('PTS Set Ketua Kelompok');
         $this->assertNull($this->sebaranStatusBlock($response));
+    }
+
+    public function test_faq_section_and_nav_hidden_when_no_faq(): void
+    {
+        $this->get('/')->assertOk()
+            ->assertViewHas('faqList', fn ($list) => $list->isEmpty())
+            ->assertDontSee('id="faq"', false)
+            ->assertDontSee('href="#faq"', false)
+            ->assertDontSee('Pertanyaan yang Sering Diajukan');
+    }
+
+    public function test_faq_section_and_nav_shown_as_collapsed_accordion_in_creation_order(): void
+    {
+        Faq::factory()->create(['pertanyaan' => 'Pertanyaan pertama?', 'jawaban' => "Baris satu\nBaris dua"]);
+        Faq::factory()->create(['pertanyaan' => 'Pertanyaan kedua?']);
+
+        $response = $this->get('/')->assertOk()
+            ->assertSee('href="#faq"', false)
+            ->assertSee('id="faq"', false)
+            ->assertSee('Pertanyaan yang Sering Diajukan')
+            ->assertSeeInOrder(['id="dokumen"', 'id="faq"', '<footer'], false)
+            ->assertSeeInOrder(['Pertanyaan pertama?', 'Pertanyaan kedua?'])
+            ->assertSee('<div class="accordion-body faq-answer">Baris satu'."\n".'Baris dua</div>', false)
+            ->assertDontSee('accordion-collapse collapse show', false);
+
+        $this->assertSame(2, substr_count($response->getContent(), 'aria-expanded="false"'));
+        $this->assertStringContainsString('white-space: pre-line', (string) file_get_contents(public_path('css/landing.css')));
+    }
+
+    public function test_faq_html_is_escaped_on_landing(): void
+    {
+        Faq::factory()->create(['pertanyaan' => '<script>alert(1)</script>', 'jawaban' => '<img src=x onerror=alert(2)>']);
+
+        $this->get('/')->assertOk()
+            ->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false)
+            ->assertSee('&lt;img src=x onerror=alert(2)&gt;', false)
+            ->assertDontSee('<script>alert(1)</script>', false)
+            ->assertDontSee('<img src=x onerror=alert(2)>', false);
+    }
+
+    public function test_faq_list_is_cached_and_refreshed_after_model_change(): void
+    {
+        $faq = Faq::factory()->create(['pertanyaan' => 'Lama?']);
+        $this->get('/')->assertOk()->assertSee('Lama?');
+        $this->assertTrue(Cache::has(Faq::PUBLIC_CACHE_KEY));
+
+        $faq->update(['pertanyaan' => 'Baru?']);
+        $this->get('/')->assertOk()->assertSee('Baru?')->assertDontSee('Lama?');
+
+        $faq->delete();
+        $this->get('/')->assertOk()->assertDontSee('Baru?')->assertDontSee('id="faq"', false);
     }
 }

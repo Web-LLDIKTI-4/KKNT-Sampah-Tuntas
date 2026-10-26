@@ -1269,6 +1269,109 @@ body.lp {
     color: #8b8ea8;
 }
 
+/* ---------- FAQ (faq._publik) ---------- */
+.faq-layout {
+    display: grid;
+    gap: 0.5rem 3rem;
+}
+
+.faq-accordion {
+    --bs-accordion-bg: var(--lp-bg);
+    --bs-accordion-border-color: var(--lp-line);
+    --bs-accordion-btn-focus-box-shadow: 0 0 0 3px rgba(var(--lp-primary-rgb), 0.35);
+    --bs-accordion-active-bg: var(--lp-bg);
+    --bs-accordion-active-color: var(--lp-primary-dark);
+    overflow: hidden;
+    border: 1px solid var(--lp-line);
+    border-radius: var(--lp-radius);
+    box-shadow: 0 10px 30px rgba(20, 24, 70, 0.05);
+}
+
+.faq-accordion .faq-item {
+    border: 0;
+    border-bottom: 1px solid var(--lp-line);
+    border-radius: 0;
+}
+
+.faq-accordion .faq-item:last-child {
+    border-bottom: 0;
+}
+
+.faq-question {
+    gap: 0.85rem;
+    align-items: flex-start;
+    padding: 1rem 1.1rem;
+    font-size: 0.975rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--lp-ink);
+    box-shadow: none;
+}
+
+.faq-question:not(.collapsed) {
+    box-shadow: none;
+}
+
+.faq-question::after {
+    align-self: center;
+}
+
+.faq-question-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.faq-num {
+    flex: 0 0 auto;
+    min-width: 2rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 8px;
+    background: rgba(var(--lp-primary-rgb), 0.1);
+    color: var(--lp-primary-dark);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.6;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.faq-question:not(.collapsed) .faq-num {
+    background: var(--lp-primary);
+    color: #fff;
+}
+
+.faq-answer {
+    padding: 0 1.1rem 1.1rem calc(1.1rem + 2rem + 0.85rem);
+    font-size: 0.925rem;
+    line-height: 1.65;
+    color: var(--lp-muted);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+@media (min-width: 992px) {
+    .faq-layout {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+        align-items: start;
+    }
+
+    .faq-layout .lp-head {
+        position: sticky;
+        top: calc(var(--lp-nav-h) + 1.5rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .faq-accordion .accordion-collapse.collapsing {
+        transition: none;
+    }
+
+    .faq-question::after {
+        transition: none;
+    }
+}
+
 /* ---------- Footer ---------- */
 .lp-footer {
     padding: 2.5rem 0 1.5rem;
