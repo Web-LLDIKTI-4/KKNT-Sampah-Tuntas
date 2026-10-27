@@ -23,7 +23,7 @@ class RencanaKerjaController extends Controller
 {
     use HandlesDataTablesOrder, RespondsWithJson;
 
-    private const METADATA_FIELDS = ['judul', 'tahun', 'keterangan'];
+    private const METADATA_FIELDS = ['judul', 'keterangan'];
 
     public function index(Request $request)
     {
@@ -39,7 +39,7 @@ class RencanaKerjaController extends Controller
         Gate::authorize('viewAny', RencanaKerja::class);
 
         return view('rencanakerja.listdata', [
-            'showPt' => $request->user()->role !== 'pt',
+            'showPt' => in_array($request->user()->role, RencanaKerja::ALL_PT_ROLES, true),
         ]);
     }
 
@@ -62,10 +62,10 @@ class RencanaKerjaController extends Controller
             ->editColumn('created_at', fn (RencanaKerja $row) => $this->renderUploadedCell($row))
             ->addColumn('action', fn (RencanaKerja $row) => $this->renderActionCell($user, $row))
             // Hanya kolom tampil yang boleh dicari/diurutkan (cegah blind search ke uploader.*, file_path)
-            ->whitelist(['pt.nm_lemb', 'judul', 'tahun', 'nama_file', 'created_at'])
+            ->whitelist(['pt.nm_lemb', 'judul', 'nama_file', 'created_at'])
             ->rawColumns(['judul', 'file', 'created_at', 'action'])
             // Jangan kirim path internal storage & data mentah lain ke browser
-            ->only(['DT_RowIndex', 'pt', 'judul', 'tahun', 'file', 'created_at', 'action'])
+            ->only(['DT_RowIndex', 'pt', 'judul', 'file', 'created_at', 'action'])
             ->make(true);
     }
 

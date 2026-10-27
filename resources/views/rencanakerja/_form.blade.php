@@ -1,21 +1,11 @@
 @php
     $fieldPrefix = $rencanaKerja ? 'rencanakerja-ubah-' : 'rencanakerja-tambah-';
     $maxUploadLabel = \App\Support\FileSize::format($maxUploadBytes);
-    $tahunMax = (int) date('Y') + 1;
-    $tahunTerpilih = (int) ($rencanaKerja->tahun ?? date('Y'));
 @endphp
 <div class="row g-4">
-    <div class="col-md-8">
+    <div class="col-12">
         <label class="form-label" for="{{ $fieldPrefix }}judul">Judul <span class="text-danger">*</span></label>
         <input type="text" id="{{ $fieldPrefix }}judul" name="judul" class="form-control" required maxlength="200" value="{{ $rencanaKerja->judul ?? '' }}">
-    </div>
-    <div class="col-md-4">
-        <label class="form-label" for="{{ $fieldPrefix }}tahun">Tahun <span class="text-danger">*</span></label>
-        <select id="{{ $fieldPrefix }}tahun" name="tahun" class="form-select" required>
-            @for ($tahun = $tahunMax; $tahun >= 2020; $tahun--)
-                <option value="{{ $tahun }}" @selected($tahun === $tahunTerpilih)>{{ $tahun }}</option>
-            @endfor
-        </select>
     </div>
     <div class="col-12">
         <label class="form-label" for="{{ $fieldPrefix }}keterangan">Keterangan <small class="text-body-secondary">(opsional)</small></label>

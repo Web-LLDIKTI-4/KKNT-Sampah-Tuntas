@@ -15,8 +15,11 @@ class RencanaKerja extends Model
     // File disimpan privat; akses hanya lewat route download
     public const DISK = 'local';
 
-    // Role yang boleh melihat daftar; pt hanya miliknya, sisanya semua PT
+    // Role yang boleh melihat daftar
     public const VIEWER_ROLES = ['admin', 'pt', 'kepala', 'pemda', 'dpl', 'mahasiswa'];
+
+    // Role yang melihat semua PT; role viewer lain hanya PT sendiri (ptKodept)
+    public const ALL_PT_ROLES = ['admin', 'kepala', 'pemda'];
 
     protected $table = 'rencana_kerja';
     protected $primaryKey = 'id_rencana_kerja';
@@ -26,7 +29,6 @@ class RencanaKerja extends Model
     // kodept & uploaded_by sengaja tidak fillable: diisi server, cegah mass assignment
     protected $fillable = [
         'judul',
-        'tahun',
         'keterangan',
         'file_path',
         'nama_file',
@@ -35,7 +37,6 @@ class RencanaKerja extends Model
     ];
 
     protected $casts = [
-        'tahun' => 'integer',
         'ukuran' => 'integer',
     ];
 
@@ -50,11 +51,14 @@ class RencanaKerja extends Model
 
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
-        if ($user->role === 'pt') {
-            return $query->where('kodept', $user->email);
+        if (in_array($user->role, self::ALL_PT_ROLES, true)) {
+            return $query;
         }
 
-        return in_array($user->role, self::VIEWER_ROLES, true) ? $query : $query->whereRaw('1 = 0');
+        $kodept = in_array($user->role, self::VIEWER_ROLES, true) ? $user->ptKodept() : null;
+
+        // Fail-closed: tanpa kodept tidak ada data
+        return $kodept === null ? $query->whereRaw('1 = 0') : $query->where('kodept', $kodept);
     }
 
     public function pt()

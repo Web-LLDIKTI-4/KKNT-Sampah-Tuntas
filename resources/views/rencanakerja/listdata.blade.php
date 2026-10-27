@@ -9,7 +9,6 @@
                         <th>Perguruan Tinggi</th>
                     @endif
                     <th>Judul</th>
-                    <th>Tahun</th>
                     <th>File</th>
                     <th>Diunggah</th>
                     @if ($canAct)
@@ -28,7 +27,6 @@
         {data: 'pt', name: 'pt.nm_lemb'},
         @endif
         {data: 'judul', name: 'judul'},
-        {data: 'tahun', name: 'tahun', className: 'text-center'},
         {data: 'file', name: 'nama_file'},
         {data: 'created_at', name: 'created_at', className: 'text-center', searchable: false},
         @if ($canAct)

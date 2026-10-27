@@ -1,0 +1,67 @@
+<?php
+
+namespace App\Http\Requests\Pt;
+
+use App\Http\Requests\AjaxFormRequest;
+use App\Models\RealisasiKerja;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Validation\Rule;
+
+class RealisasiKerjaRequest extends AjaxFormRequest
+{
+    public const MAX_KILOBYTES = 10240;
+
+    // Hanya PDF agar semua dokumen bisa dilihat inline di browser
+    public const ALLOWED_EXTENSIONS = ['pdf'];
+
+    // Update diotorisasi di controller per record (Policy), insert dicek di sini
+    public function authorize(): bool
+    {
+        return $this->isUpdate() || (bool) $this->user()?->can('create', RealisasiKerja::class);
+    }
+
+    public function rules(): array
+    {
+        return [
+            'id_realisasi_kerja' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'string', 'uuid'],
+            'judul' => ['required', 'string', 'max:200'],
+            'keterangan' => ['nullable', 'string', 'max:2000'],
+            'file' => [
+                $this->isUpdate() ? 'nullable' : 'required',
+                'file',
+                'mimes:'.implode(',', self::ALLOWED_EXTENSIONS),
+                'max:'.self::MAX_KILOBYTES,
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'id_realisasi_kerja.required' => 'Data realisasi kerja tidak valid.',
+            'id_realisasi_kerja.uuid' => 'Data realisasi kerja tidak valid.',
+            'judul.required' => 'Judul realisasi kerja harus diisi.',
+            'judul.max' => 'Judul maksimal 200 karakter.',
+            'keterangan.max' => 'Keterangan maksimal 2000 karakter.',
+            'file.required' => 'Dokumen realisasi kerja harus diunggah.',
+            'file.uploaded' => $this->describeFailedUpload(),
+            'file.file' => 'Dokumen realisasi kerja gagal diunggah.',
+            'file.mimes' => 'Format file harus PDF.',
+            'file.max' => 'Ukuran file maksimal 10MB.',
+        ];
+    }
+
+    // Penyebab tersering: file melebihi upload_max_filesize php.ini (lebih kecil dari batas aplikasi)
+    private function describeFailedUpload(): string
+    {
+        $uploadedFile = $this->files->get('file');
+        $errorCode = $uploadedFile instanceof UploadedFile ? $uploadedFile->getError() : null;
+
+        if (in_array($errorCode, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
+            return 'Ukuran file melebihi batas upload server ('.ini_get('upload_max_filesize')
+                .'). Kecilkan file atau minta admin server menaikkan batas upload.';
+        }
+
+        return 'Dokumen realisasi kerja gagal diunggah, silakan coba lagi.';
+    }
+}

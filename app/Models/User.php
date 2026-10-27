@@ -96,6 +96,19 @@ class User extends Authenticatable
         return in_array($this->role, ['kepala', 'pemda'], true);
     }
 
+    // Kode PT milik user: pt = email (npsn), dpl/mahasiswa = kodept profil, role lain null
+    public function ptKodept(): ?string
+    {
+        $kodept = match ($this->role) {
+            'pt' => $this->email,
+            'dpl' => $this->dpl?->kodept,
+            'mahasiswa' => $this->mahasiswa?->kodept,
+            default => null,
+        };
+
+        return blank($kodept) ? null : (string) $kodept;
+    }
+
     // Mahasiswa/DPL terkunci bila PT-nya belum mengisi pelaksanaan KKN
     public function isLockedByPelaksanaan(): bool
     {

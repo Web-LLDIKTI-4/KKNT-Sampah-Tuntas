@@ -17,6 +17,7 @@ use App\Models\Mahasiswa_lokasi;
 use App\Models\Nilaikonversi;
 use App\Models\PenguranganSampah;
 use App\Models\Pjdesa;
+use App\Models\RealisasiKerja;
 use App\Models\RencanaKerja;
 use App\Models\Satuanpendidikan;
 use App\Models\Tugasakhir;
@@ -211,6 +212,50 @@ class UserManagementTest extends TestCase
         $this->assertDatabaseMissing('evaluasi_kegiatan_jawaban', ['user' => $sp->npsn]);
         $this->assertModelExists($sp);
         $this->assertModelExists($mhs);
+    }
+
+    public function test_deleting_pt_removes_realisasi_kerja_and_files(): void
+    {
+        $this->loginAs('admin');
+        $sp = Satuanpendidikan::factory()->create();
+        $otherSp = Satuanpendidikan::factory()->create();
+        $user = User::factory()->role('pt')->create(['email' => $sp->npsn]);
+        $realisasi = RealisasiKerja::factory()->forPt($sp->npsn)->count(2)->create(['uploaded_by' => $user->id]);
+        $otherRealisasi = RealisasiKerja::factory()->forPt($otherSp->npsn)->create();
+        foreach ([...$realisasi, $otherRealisasi] as $row) {
+            Storage::disk(RealisasiKerja::DISK)->put($row->file_path, 'pdf');
+        }
+
+        $this->put('user/destroy', ['id' => $user->id])->assertJson(['success' => true]);
+
+        $this->assertModelMissing($user);
+        foreach ($realisasi as $row) {
+            $this->assertModelMissing($row);
+            Storage::disk(RealisasiKerja::DISK)->assertMissing($row->file_path);
+        }
+        $this->assertModelExists($otherRealisasi);
+        Storage::disk(RealisasiKerja::DISK)->assertExists($otherRealisasi->file_path);
+        $this->assertModelExists($sp);
+    }
+
+    public function test_failed_pt_deletion_keeps_realisasi_kerja_and_files(): void
+    {
+        $this->loginAs('admin');
+        $sp = Satuanpendidikan::factory()->create();
+        $user = User::factory()->role('pt')->create(['email' => $sp->npsn]);
+        $realisasi = RealisasiKerja::factory()->forPt($sp->npsn)->create();
+        Storage::disk(RealisasiKerja::DISK)->put($realisasi->file_path, 'pdf');
+        DB::listen(function ($query) {
+            if (preg_match('/^delete from [`"]users[`"]/', $query->sql)) {
+                throw new RuntimeException('boom');
+            }
+        });
+
+        $this->put('user/destroy', ['id' => $user->id])->assertJson(['success' => false]);
+
+        $this->assertModelExists($user);
+        $this->assertModelExists($realisasi);
+        Storage::disk(RealisasiKerja::DISK)->assertExists($realisasi->file_path);
     }
 
     public function test_deleting_kepala_and_pemda_removes_account_only(): void

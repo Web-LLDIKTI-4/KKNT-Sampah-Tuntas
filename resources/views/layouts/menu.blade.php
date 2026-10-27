@@ -158,6 +158,11 @@
                                         </a>
                                     </li>
                                     <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('realisasikerja') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Realisasi Kerja
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('pelaksanaankkn') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Waktu Pelaksanan KKN PTS
                                         </a>
@@ -295,6 +300,11 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('realisasikerja') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Realisasi Kerja
+                                    </a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('desaprofile') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Profil Kelurahan/Desa
                                     </a>
@@ -416,6 +426,11 @@
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('rencanakerja') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('realisasikerja') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Realisasi Kerja
                                     </a>
                                 </li>
                                 @if (Auth::user()->isPemantau())
@@ -588,6 +603,11 @@
                                 <li class="nav-item">
                                     <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('rencanakerja') }}">
                                         <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rencana Kerja
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('realisasikerja') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Realisasi Kerja
                                     </a>
                                 </li>
                                 <li class="nav-item">

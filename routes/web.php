@@ -47,6 +47,7 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\PanduanPublikController;
 use App\Http\Controllers\PelaksanaanKknController;
 use App\Http\Controllers\RencanaKerjaController;
+use App\Http\Controllers\RealisasiKerjaController;
 use App\Http\Controllers\DesaController;
 use App\Http\Controllers\PjdesaController;
 use App\Http\Controllers\DesaprofileController;
@@ -406,6 +407,19 @@ Route::middleware(['auth', 'role:admin,pt,kepala,pemda,dpl,mahasiswa', 'user.gua
     Route::put('rencanakerja/update', [RencanaKerjaController::class, 'update'])->middleware('throttle:sensitive')->name('rencanakerja.update');
     Route::put('rencanakerja/destroy', [RencanaKerjaController::class, 'destroy'])->middleware('throttle:sensitive')->name('rencanakerja.destroy');
     Route::get('rencanakerja/view/{id_rencana_kerja}', [RencanaKerjaController::class, 'view'])->whereUuid('id_rencana_kerja')->name('rencanakerja.view');
+});
+
+// Realisasi Kerja PT: pt kelola miliknya, admin edit/hapus semua, role lain lihat; aksi dijaga RealisasiKerjaPolicy
+Route::middleware(['auth', 'role:admin,pt,kepala,pemda,dpl,mahasiswa', 'user.guard'])->group(function () {
+    Route::get('realisasikerja', [RealisasiKerjaController::class, 'index'])->name('realisasikerja');
+    Route::get('realisasikerja/listdata', [RealisasiKerjaController::class, 'listdata'])->name('realisasikerja.listdata');
+    Route::get('realisasikerja/listdataserver', [RealisasiKerjaController::class, 'listdataserver'])->name('realisasikerja.listdataserver');
+    Route::get('realisasikerja/tambah', [RealisasiKerjaController::class, 'tambah'])->name('realisasikerja.tambah');
+    Route::put('realisasikerja/insert', [RealisasiKerjaController::class, 'insert'])->middleware('throttle:sensitive')->name('realisasikerja.insert');
+    Route::get('realisasikerja/edit/{id_realisasi_kerja}', [RealisasiKerjaController::class, 'edit'])->whereUuid('id_realisasi_kerja')->name('realisasikerja.edit');
+    Route::put('realisasikerja/update', [RealisasiKerjaController::class, 'update'])->middleware('throttle:sensitive')->name('realisasikerja.update');
+    Route::put('realisasikerja/destroy', [RealisasiKerjaController::class, 'destroy'])->middleware('throttle:sensitive')->name('realisasikerja.destroy');
+    Route::get('realisasikerja/view/{id_realisasi_kerja}', [RealisasiKerjaController::class, 'view'])->whereUuid('id_realisasi_kerja')->name('realisasikerja.view');
 });
 
 // Pelaksanaan KKN: PT kelola miliknya (dicari dari email login, tanpa id dari klien); aksi dijaga PelaksanaanKknPolicy

@@ -12,13 +12,20 @@ class RencanaKerjaPolicy
         return in_array($user->role, RencanaKerja::VIEWER_ROLES, true);
     }
 
+    // Konsisten dengan RencanaKerja::scopeVisibleTo
     public function view(User $user, RencanaKerja $rencanaKerja): bool
     {
-        if ($user->role === 'pt') {
-            return $this->isOwner($user, $rencanaKerja);
+        if (! $this->viewAny($user)) {
+            return false;
         }
 
-        return $this->viewAny($user);
+        if (in_array($user->role, RencanaKerja::ALL_PT_ROLES, true)) {
+            return true;
+        }
+
+        $kodept = $user->ptKodept();
+
+        return $kodept !== null && $rencanaKerja->kodept === $kodept;
     }
 
     public function create(User $user): bool

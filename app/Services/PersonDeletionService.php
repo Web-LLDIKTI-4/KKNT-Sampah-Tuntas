@@ -18,6 +18,7 @@ use App\Models\Mahasiswa_lokasi;
 use App\Models\Nilaikonversi;
 use App\Models\Pjdesa;
 use App\Models\RencanaKerja;
+use App\Models\RealisasiKerja;
 use App\Models\Tugasakhir;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -70,6 +71,9 @@ class PersonDeletionService
         $files = $user->role === 'pt'
             ? RencanaKerja::where('kodept', $user->email)->pluck('file_path')->filter()->all()
             : [];
+        $realisasiFiles = $user->role === 'pt'
+            ? RealisasiKerja::where('kodept', $user->email)->pluck('file_path')->filter()->all()
+            : [];
 
         DB::transaction(function () use ($user) {
             match ($user->role) {
@@ -81,7 +85,7 @@ class PersonDeletionService
             $this->deleteAccount($user);
         });
 
-        $this->afterCommit($user, $files);
+        $this->afterCommit($user, $files, $realisasiFiles);
     }
 
     // Email null dilewati: where('email', null) = whereNull, bisa menghapus data orang lain
@@ -124,6 +128,7 @@ class PersonDeletionService
     {
         // Mass delete: hook deleting model tidak jalan, file dihapus setelah commit
         RencanaKerja::where('kodept', $kodept)->delete();
+        RealisasiKerja::where('kodept', $kodept)->delete();
         Evaluasikegiatanjawaban::where('user', $kodept)->delete();
     }
 
@@ -134,13 +139,16 @@ class PersonDeletionService
         User::whereKey($user->id)->delete();
     }
 
-    private function afterCommit(?User $user, array $files = []): void
+    private function afterCommit(?User $user, array $files = [], array $realisasiFiles = []): void
     {
         if ($user) {
             $this->photos->delete($user);
         }
         if ($files) {
             Storage::disk(RencanaKerja::DISK)->delete($files);
+        }
+        if ($realisasiFiles) {
+            Storage::disk(RealisasiKerja::DISK)->delete($realisasiFiles);
         }
         PenguranganSampah::forgetPublicCache();
         PetaSebaranService::flushCache();

@@ -14,8 +14,6 @@ class RencanaKerjaRequest extends AjaxFormRequest
     // Hanya PDF agar semua dokumen bisa dilihat inline di browser
     public const ALLOWED_EXTENSIONS = ['pdf'];
 
-    public const MIN_TAHUN = 2020;
-
     // Update diotorisasi di controller per record (Policy), insert dicek di sini
     public function authorize(): bool
     {
@@ -27,7 +25,6 @@ class RencanaKerjaRequest extends AjaxFormRequest
         return [
             'id_rencana_kerja' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'string', 'uuid'],
             'judul' => ['required', 'string', 'max:200'],
-            'tahun' => ['required', 'integer', 'between:'.self::MIN_TAHUN.','.(now()->year + 1)],
             'keterangan' => ['nullable', 'string', 'max:2000'],
             'file' => [
                 $this->isUpdate() ? 'nullable' : 'required',
@@ -45,9 +42,6 @@ class RencanaKerjaRequest extends AjaxFormRequest
             'id_rencana_kerja.uuid' => 'Data rencana kerja tidak valid.',
             'judul.required' => 'Judul rencana kerja harus diisi.',
             'judul.max' => 'Judul maksimal 200 karakter.',
-            'tahun.required' => 'Tahun harus diisi.',
-            'tahun.integer' => 'Tahun tidak valid.',
-            'tahun.between' => 'Tahun harus antara '.self::MIN_TAHUN.' dan '.(now()->year + 1).'.',
             'keterangan.max' => 'Keterangan maksimal 2000 karakter.',
             'file.required' => 'Dokumen rencana kerja harus diunggah.',
             'file.uploaded' => $this->describeFailedUpload(),

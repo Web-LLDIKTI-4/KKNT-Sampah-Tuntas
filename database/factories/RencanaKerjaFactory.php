@@ -22,7 +22,6 @@ class RencanaKerjaFactory extends Factory
         return [
             'kodept' => fn () => Satuanpendidikan::factory()->create()->npsn,
             'judul' => $judul,
-            'tahun' => (int) now()->format('Y'),
             'keterangan' => fake()->optional()->paragraph(),
             'file_path' => 'rencana-kerja/'.Str::uuid().'.pdf',
             'nama_file' => Str::slug($judul).'.pdf',

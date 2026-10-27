@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 /**
  * 1 rencana kerja tahun berjalan per PT simulasi, diunggah akun PT, beserta file PDF dummy di disk RencanaKerja::DISK.
- * Kunci: kodept + tahun + judul; file yang hilang dibuat ulang.
+ * Kunci: kodept + judul; file yang hilang dibuat ulang.
  * Jalankan: php artisan db:seed --class=RencanaKerjaSeeder
  * Prasyarat: PerguruanTinggiSeeder
  */
@@ -35,10 +35,9 @@ class RencanaKerjaSeeder extends Seeder
             $judul = 'Rencana Kerja KKNT '.$tahun.' – '.$pt->nm_lemb;
             $isiPdf = $this->pdfMini($judul);
 
-            $rencana = RencanaKerja::where(['kodept' => $pt->npsn, 'tahun' => $tahun, 'judul' => $judul])->first()
+            $rencana = RencanaKerja::where(['kodept' => $pt->npsn, 'judul' => $judul])->first()
                 ?? RencanaKerja::factory()->forPt($pt->npsn)->create([
                     'judul' => $judul,
-                    'tahun' => $tahun,
                     'file_path' => self::FOLDER.'/'.Str::uuid().'.pdf',
                     'nama_file' => Str::slug($judul).'.pdf',
                     'ukuran' => strlen($isiPdf),
