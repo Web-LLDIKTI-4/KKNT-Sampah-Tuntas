@@ -84,10 +84,10 @@ class MahasiswaEditTest extends TestCase
         $this->loginAs('admin');
         $mahasiswa = Mahasiswa::factory()->create();
 
-        $html = $this->getJson('mahasiswa/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
-            ->assertOk()->json('data.0.action');
-
-        $this->assertStringContainsString(url('mahasiswa/edit/'.$mahasiswa->id_mahasiswa), $html);
+        // Edit button is built client-side: edit prefix from the view + row key from the JSON
+        $this->getJson('mahasiswa/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()->assertJsonPath('data.0.id_mahasiswa', $mahasiswa->id_mahasiswa);
+        $this->get('mahasiswa/listdata')->assertOk()->assertSee('"edit":'.json_encode(url('mahasiswa/edit').'/'), false);
     }
 
     public function test_admin_can_update_mahasiswa_and_email_is_unchanged_when_has_account(): void

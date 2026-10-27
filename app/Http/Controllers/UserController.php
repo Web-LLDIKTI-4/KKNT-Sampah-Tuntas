@@ -27,7 +27,6 @@ use App\Services\BulkUpdateService;
 use App\Services\PersonDeletionService;
 use App\Services\PetaSebaranService;
 use App\Services\UserAccountService;
-use App\Support\ActionButtons;
 use App\Support\LikeKeyword;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Cache;
@@ -102,18 +101,6 @@ class UserController extends Controller
                 $row->role === 'pt' && $row->pt => $row->pt->nm_lemb,
                 default => '-',
             })
-            ->addColumn('action', fn (User $row) => ActionButtons::make(
-                urlEdit: url(match ($row->role) {
-                    'kepala', 'pemda' => 'user/edituserkepala/',
-                    'pt' => 'user/edituserpt/',
-                    default => 'user/edit/',
-                }.$row->id),
-                urlDelete: url('user/destroy'),
-                idValue: $row->id,
-                confirm: $row->akses === 'pjdesa'
-                    ? 'User ini ketua kelompok. Evaluasi Pendataan Sampah dan data pengurangan sampah kelompok/desa ikut terhapus. Lanjutkan? Tindakan ini tidak dapat dibatalkan.'
-                    : 'Hapus user ini beserta SEMUA datanya? Tindakan ini tidak dapat dibatalkan.',
-            ))
             // Escaped LIKE so % _ \ are matched literally
             ->filterColumn('email', fn ($q, $k) => $q->where('users.email', 'like', LikeKeyword::contains($k)))
             ->filterColumn('name', fn ($q, $k) => $q->where('users.name', 'like', LikeKeyword::contains($k)))
@@ -123,8 +110,8 @@ class UserController extends Controller
             ->orderColumn('id_number', fn ($q, $dir) => $q->orderByRaw('('.self::ID_NUMBER_SQL.') '.$dir))
             ->filterColumn('pt_name', fn ($q, $k) => $q->whereRaw('('.self::PT_NAME_SQL.') LIKE ?', [LikeKeyword::contains($k)]))
             ->orderColumn('pt_name', fn ($q, $dir) => $q->orderByRaw('('.self::PT_NAME_SQL.') '.$dir))
+            // Action buttons render client-side from id/role/akses (columns.actions in user/list)
             ->removeColumn('mahasiswa', 'dpl', 'pt')
-            ->rawColumns(['action'])
             ->whitelist($whitelist);
 
         return $this->makeWithTieBreaker($dataTable, 'users.id');
@@ -345,8 +332,8 @@ class UserController extends Controller
         // Same length/term cap as the table's global search
         $filters['q'] = $this->limitDataTablesSearch($filters['q'] ?? null);
         $export = new UserExport($filters);
-        // Absent length = all rows (backward compatible links)
-        $rows = $this->dataTablesPageRows($export->orderedQuery(), (int) ($filters['start'] ?? 0), (int) ($filters['length'] ?? -1));
+        // Always all filtered rows, streamed in chunks (page/length ignored)
+        $rows = $export->orderedQuery()->lazy(1000);
 
         return response()->streamDownload(fn () => $export->writeTo('php://output', $rows), 'users_'.date('Y-m-d_H-i-s').'.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

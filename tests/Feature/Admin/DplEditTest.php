@@ -66,10 +66,10 @@ class DplEditTest extends TestCase
         $this->loginAs('admin');
         $dpl = Dpl::factory()->create();
 
-        $html = $this->getJson('dpl/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
-            ->assertOk()->json('data.0.action');
-
-        $this->assertStringContainsString(url('dpl/edit/'.$dpl->id_dpl), $html);
+        // Edit button is built client-side: edit prefix from the view + row key from the JSON
+        $this->getJson('dpl/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()->assertJsonPath('data.0.id_dpl', $dpl->id_dpl);
+        $this->get('dpl/listdata')->assertOk()->assertSee('"edit":'.json_encode(url('dpl/edit').'/'), false);
     }
 
     public function test_admin_can_update_dpl_and_email_is_unchanged_when_dpl_has_account(): void

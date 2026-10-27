@@ -13,7 +13,8 @@
         ['data' => 'phone', 'name' => 'phone', 'className' => 'text-center'],
         ['data' => 'nm_lemb', 'name' => 'nm_lemb'],
         ['data' => 'location_program', 'name' => 'location_program'],
-        ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'searchable' => false],
+        ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'orderable' => false, 'searchable' => false,
+            'actions' => ['idField' => 'id_dpl', 'edit' => url('dpl/edit').'/', 'delete' => url('dpl/destroy')]],
     ]"
 
 >

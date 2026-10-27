@@ -71,7 +71,7 @@ class LoginController extends Controller
     {
         $filter = $request->filter();
 
-        return response()->json(Cache::remember('login.peta.v6.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1).'.'.Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0').'.'.$filter['tahun'].'.'.($filter['kodept'] ?? 'all'), now()->addMinutes(10), fn () => $peta->sebaran($filter)));
+        return response()->json(Cache::remember('login.peta.v7.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1).'.'.Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0').'.'.$filter['tahun'].'.'.($filter['kodept'] ?? 'all'), now()->addMinutes(10), fn () => $peta->sebaran($filter)));
     }
 
     // Detail peserta per PT untuk modal tab Data Peserta (tidak disamarkan, sesuai keputusan pemilik)

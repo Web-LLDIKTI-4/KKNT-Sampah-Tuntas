@@ -19,7 +19,7 @@ use Illuminate\Testing\TestResponse;
 use Tests\Concerns\ReadsXlsx;
 use Tests\TestCase;
 
-// Page length 10/25/50/100/500/All + export of the table's current view (DPL, Mahasiswa, Pengguna)
+// Page length 10/25/50/100/500/All + export of all rows matching the table's view (DPL, Mahasiswa, Pengguna)
 class TableViewExportTest extends TestCase
 {
     use ReadsXlsx;
@@ -85,42 +85,40 @@ class TableViewExportTest extends TestCase
         $this->assertCount(2, $this->listServer('dpl', ['length' => -1, 'search' => ['value' => 'Kembar']])->json('data'));
     }
 
-    // ---- Export = rows shown ----
+    // ---- Export = all rows of the view (page/length ignored) ----
 
-    public function test_export_row_count_follows_length_and_start_matches_table_page(): void
+    public function test_export_ignores_length_and_start_and_returns_all_rows(): void
     {
         $this->loginAs('admin');
         $this->seedRows(25);
 
         foreach (array_keys(self::COLUMNS) as $module) {
-            $this->assertCount(10, $this->exportRows($module, ['length' => 10]), "$module length=10");
-            $this->assertCount(25, $this->exportRows($module, ['length' => 50]), "$module length=50");
+            $all = $this->tableEmails($module, ['length' => -1]);
+            $this->assertCount(25, $all, $module);
 
-            // Page 2 of the table (duplicate names -> tie-breaker must match too)
-            $page2 = $this->exportEmails($module, ['start' => 10, 'length' => 10]);
-            $this->assertSame($this->tableEmails($module, ['start' => 10, 'length' => 10]), $page2, "$module page 2");
-            $this->assertCount(10, $page2);
-
-            // Last partial page
-            $this->assertSame($this->tableEmails($module, ['start' => 20, 'length' => 10]), $this->exportEmails($module, ['start' => 20, 'length' => 10]), "$module page 3");
-
-            // All: every filtered row, start ignored
-            $all = $this->exportEmails($module, ['start' => 10, 'length' => -1]);
-            $this->assertSame($this->tableEmails($module, ['length' => -1]), $all, "$module all");
-            $this->assertCount(25, $all);
-
-            // No length (legacy link) = all
-            $this->assertCount(25, $this->exportRows($module), "$module no length");
+            // Legacy links may still carry start/length (even invalid ones); same order incl. tie-breaker
+            foreach ([[], ['length' => 10], ['start' => 10, 'length' => 10], ['start' => 100, 'length' => 10], ['length' => 50], ['length' => -1], ['length' => 7], ['length' => 'abc'], ['start' => -1]] as $params) {
+                $this->assertSame($all, $this->exportEmails($module, $params), "$module ".json_encode($params));
+            }
         }
     }
 
-    public function test_export_start_beyond_rows_returns_empty_sheet(): void
+    public function test_export_returns_all_filtered_rows_despite_length_10(): void
     {
         $this->loginAs('admin');
-        $this->seedRows(5);
+        $this->seedRows(25);
 
-        foreach (array_keys(self::COLUMNS) as $module) {
-            $this->assertSame([], $this->exportRows($module, ['start' => 100, 'length' => 10]), $module);
+        foreach ([
+            ['dpl', ['q' => 'Nama']],
+            ['mahasiswa', ['q' => 'Nama']],
+            ['mahasiswa', ['lokasi_status' => 'sudah']],
+            ['user', ['q' => 'Nama']],
+            ['user', ['role' => 'kepala', 'order_col' => 'email', 'order_dir' => 'desc']],
+        ] as [$module, $params]) {
+            $label = $module.' '.json_encode($params);
+            $table = $this->tableEmails($module, $this->asTableParams($module, $params) + ['length' => -1]);
+            $this->assertGreaterThan(10, count($table), $label);
+            $this->assertSame($table, $this->exportEmails($module, $params + ['start' => 0, 'length' => 10]), $label);
         }
     }
 
@@ -140,9 +138,8 @@ class TableViewExportTest extends TestCase
                 $label = $module.' '.json_encode($params);
                 $table = $this->tableEmails($module, $this->asTableParams($module, $params) + ['length' => -1]);
                 $this->assertSame($table, $this->exportEmails($module, $params + ['length' => -1]), $label);
-                // Same view, paged
-                $tablePage = $this->tableEmails($module, $this->asTableParams($module, $params) + ['start' => 5, 'length' => 10]);
-                $this->assertSame($tablePage, $this->exportEmails($module, $params + ['start' => 5, 'length' => 10]), $label.' paged');
+                // Table paged -> export still all rows
+                $this->assertSame($table, $this->exportEmails($module, $params + ['start' => 5, 'length' => 10]), $label.' paged');
             }
             $this->assertCount(2, $this->exportRows($module, ['q' => 'Kembar']), $module.' q');
         }
@@ -200,7 +197,7 @@ class TableViewExportTest extends TestCase
             $all = $this->exportEmails('user', $filters + ['length' => -1]);
             $this->assertCount($count, $all, json_encode($filters));
             $this->assertSame($this->tableEmails('user', $filters + ['length' => -1]), $all, json_encode($filters));
-            $this->assertSame($this->tableEmails('user', $filters + ['start' => 1, 'length' => 10]), $this->exportEmails('user', $filters + ['start' => 1, 'length' => 10]), json_encode($filters).' start=1');
+            $this->assertSame($all, $this->exportEmails('user', $filters + ['start' => 1, 'length' => 10]), json_encode($filters).' start=1');
         }
     }
 
@@ -212,12 +209,6 @@ class TableViewExportTest extends TestCase
         $invalid = [
             ['order_dir' => 'up'],
             ['order_dir' => 'asc; drop'],
-            ['length' => 7],
-            ['length' => 1000],
-            ['length' => 'abc'],
-            ['length' => -2],
-            ['start' => -1],
-            ['start' => 'x'],
             ['q' => str_repeat('a', 101)],
             ['order_col' => str_repeat('a', 51)],
         ];
@@ -242,7 +233,7 @@ class TableViewExportTest extends TestCase
 
         foreach (array_keys(self::COLUMNS) as $module) {
             foreach ([10, 25, 50, 100, 500, -1] as $length) {
-                $this->xlsxFromResponse($this->get("$module/export?length=$length&order_dir=desc"));
+                $this->assertCount(2, $this->exportRows($module, ['length' => $length, 'order_dir' => 'desc']), "$module length=$length");
             }
         }
     }

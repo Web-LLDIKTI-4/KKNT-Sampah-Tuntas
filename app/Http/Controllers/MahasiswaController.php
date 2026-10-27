@@ -79,11 +79,6 @@ class MahasiswaController extends PersonMasterController
         $this->deletion->deleteMahasiswa($record);
     }
 
-    protected function editUrl(Model $record): ?string
-    {
-        return url('mahasiswa/edit/'.$record->id_mahasiswa);
-    }
-
     public function edit(string $id)
     {
         $mahasiswa = Mahasiswa::findOrFail($id);

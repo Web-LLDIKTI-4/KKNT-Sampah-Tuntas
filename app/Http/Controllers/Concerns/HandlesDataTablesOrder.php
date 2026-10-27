@@ -174,14 +174,6 @@ trait HandlesDataTablesOrder
         ]);
     }
 
-    // Rows of the table's current page; -1 streams all filtered rows in chunks (start ignored, as DataTables sends 0)
-    protected function dataTablesPageRows(Builder $query, int $start, int $length): iterable
-    {
-        return $length === -1
-            ? $query->lazy(1000)
-            : $query->offset($start)->limit($length)->get();
-    }
-
     // Same key tie-breaker as dataTablesExportQuery(), appended after yajra's ordering so table pages match the export
     protected function makeWithTieBreaker(QueryDataTable $dataTable, string $tieBreaker): JsonResponse
     {

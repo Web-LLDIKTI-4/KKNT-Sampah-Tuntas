@@ -20,7 +20,8 @@
         ['data' => 'ketua_kelompok', 'name' => 'ketua_kelompok', 'className' => 'text-center', 'orderable' => false, 'searchable' => false, 'boolIcon' => ['Ketua kelompok', 'Bukan ketua']],
         ['data' => 'nama_kecamatan', 'name' => 'nama_kecamatan', 'emptyIcon' => 'Kecamatan belum diisi'],
         ['data' => 'nama_desa', 'name' => 'nama_desa', 'emptyIcon' => 'Kelurahan/Desa belum diisi'],
-        ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'searchable' => false],
+        ['data' => 'action', 'name' => 'action', 'className' => 'text-center', 'orderable' => false, 'searchable' => false,
+            'actions' => ['idField' => 'id_mahasiswa', 'edit' => url('mahasiswa/edit').'/', 'delete' => url('mahasiswa/destroy')]],
     ]"
 >
     <x-slot:thead>

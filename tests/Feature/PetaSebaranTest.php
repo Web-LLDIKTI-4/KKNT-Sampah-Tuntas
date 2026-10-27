@@ -216,6 +216,29 @@ class PetaSebaranTest extends TestCase
         $this->assertSame([null], array_values(array_unique(array_column($lalu->json('kecamatan'), 'persen_pengurangan'))));
     }
 
+    public function test_kecamatan_diurutkan_berdasarkan_nama_tanpa_peduli_persen_dan_huruf_besar(): void
+    {
+        $tahun = (int) date('Y');
+        $lp = LokasiProgram::factory()->create(['koefisien_timbulan_sampah' => 1])->id;
+        $desa = [];
+        foreach (['Kec Zeta', 'kec beta', 'Kec Alfa'] as $i => $nama) {
+            $kec = Kecamatan::factory()->create(['kecamatan' => $nama]);
+            $desa[$nama] = Desa::factory()->create(['id_kecamatan' => $kec->id_kecamatan, 'latitude' => -6.1 - $i / 10, 'longitude' => 107.1]);
+        }
+        $this->logSampah($this->penempatan($desa['Kec Zeta'], $tahun, 1, ['location_program' => $lp]), $tahun.'-03-10', 50);
+        $this->logSampah($this->penempatan($desa['Kec Alfa'], $tahun, 1, ['location_program' => $lp]), $tahun.'-03-10', 10);
+        $this->penempatan($desa['kec beta'], $tahun, 1, ['location_program' => $lp]);
+
+        $res = $this->getJson(route('login.peta'))->assertOk()
+            ->assertJsonPath('kecamatan', [
+                ['kecamatan' => 'Kec Alfa', 'persen_pengurangan' => 10],
+                ['kecamatan' => 'kec beta', 'persen_pengurangan' => null],
+                ['kecamatan' => 'Kec Zeta', 'persen_pengurangan' => 50],
+            ]);
+        // Harus JSON array, bukan object ber-key id_kecamatan
+        $this->assertTrue(array_is_list(json_decode($res->getContent())->kecamatan));
+    }
+
     public function test_desa_tanpa_koordinat_masuk_belum_dipetakan_dan_tidak_digambar(): void
     {
         $tahun = (int) date('Y');

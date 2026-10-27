@@ -98,7 +98,9 @@ class PemdaRoleTest extends TestCase
 
         $this->get('user/edituserkepala/'.$pemda->id)->assertOk()->assertSee('value="pemda" selected', false);
         $rows = $this->getJson('user/listdataserver?draw=1&start=0&length=10', ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->json('data');
-        $this->assertStringContainsString('user/edituserkepala/'.$pemda->id, collect($rows)->pluck('action')->implode(''));
+        // Edit button is built client-side: role picks the edituserkepala prefix configured in user/list
+        $this->assertSame('pemda', collect($rows)->firstWhere('id', $pemda->id)['role']);
+        $this->get('user/listdata')->assertOk()->assertSee('"pemda":'.json_encode(url('user/edituserkepala').'/'), false);
 
         $this->put('user/updateuserkepala', ['id' => $pemda->id, 'name' => 'Pemda Baru', 'email' => 'pemda@pps.test', 'role' => 'kepala'])
             ->assertJson(['success' => true]);

@@ -7,12 +7,13 @@ $(function () {
             return; // hindari inisialisasi ganda
         }
 
-        // Opt-in column keys: emptyBadge (null -> red badge), emptyIcon (null -> red x icon), lokasiStatus (kecamatan+desa check / x icon), boolIcon ([trueLabel, falseLabel])
+        // Opt-in column keys: emptyBadge (null -> red badge), emptyIcon (null -> red x icon), lokasiStatus (kecamatan+desa check / x icon), boolIcon ([trueLabel, falseLabel]), actions (edit/delete buttons)
         var columns = ($table.data('columns') || []).map(function (col) {
             if (col.emptyBadge) col.render = $.fn.dataTable.render.emptyBadge(col.emptyBadge);
             if (col.emptyIcon) col.render = $.fn.dataTable.render.emptyIcon(col.emptyIcon);
             if (col.lokasiStatus) col.render = $.fn.dataTable.render.lokasiStatus();
             if (col.boolIcon) col.render = $.fn.dataTable.render.boolIcon(col.boolIcon[0], col.boolIcon[1]);
+            if (col.actions) col.render = $.fn.dataTable.render.actions(col.actions);
             return col;
         });
         var order = $table.data('order');
@@ -42,9 +43,8 @@ $(function () {
 
         // Opt-in page lengths (data-page-lengths); -1 is labelled "Semua"
         var pageLengths = $table.data('page-lengths');
-        var lengthMenu = Array.isArray(pageLengths) ? [pageLengths, pageLengths.map(function (n) { return n === -1 ? 'Semua' : n; })] : $.fn.dataTable.defaults.lengthMenu;
 
-        $table.DataTable({
+        var options = {
             processing: true,
             serverSide: true,
             searchDelay: 500, // debounce search requests
@@ -53,13 +53,17 @@ $(function () {
             order: order,
             searching: $table.data('searching'),
             lengthChange: $table.data('length-change'),
-            lengthMenu: lengthMenu,
             language: {
                 search: "",
                 searchPlaceholder: "Cari...",
                 zeroRecords: "Tidak ada data yang tersedia",
                 infoEmpty: "Tidak ada data yang ditemukan",
             },
-        });
+        };
+        // Omit lengthMenu entirely without the attribute so DataTables keeps its own default
+        if (Array.isArray(pageLengths)) {
+            options.lengthMenu = [pageLengths, pageLengths.map(function (n) { return n === -1 ? 'Semua' : n; })];
+        }
+        $table.DataTable(options);
     });
 });

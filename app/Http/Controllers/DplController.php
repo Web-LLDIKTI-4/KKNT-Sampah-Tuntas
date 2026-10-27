@@ -54,11 +54,6 @@ class DplController extends PersonMasterController
         $this->deletion->deleteDpl($record);
     }
 
-    protected function editUrl(Model $record): ?string
-    {
-        return url('dpl/edit/'.$record->id_dpl);
-    }
-
     public function edit(string $id)
     {
         $dpl = Dpl::findOrFail($id);

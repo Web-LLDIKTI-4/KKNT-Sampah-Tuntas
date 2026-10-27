@@ -3,13 +3,10 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-// Export of the DPL/Mahasiswa table's current view (search, filters, order, page)
+// Export of all DPL/Mahasiswa rows matching the table's search, filters and order
 class TableExportRequest extends FormRequest
 {
-    public const LENGTHS = [10, 25, 50, 100, 500, -1];
-
     public function authorize(): bool
     {
         return $this->user()?->role === 'admin';
@@ -29,8 +26,6 @@ class TableExportRequest extends FormRequest
     public static function pageRules(): array
     {
         return [
-            'start' => ['nullable', 'integer', 'min:0'],
-            'length' => ['nullable', 'integer', Rule::in(self::LENGTHS)],
             'q' => ['nullable', 'string', 'max:100'],
             'order_col' => ['nullable', 'string', 'max:50'],
             'order_dir' => ['nullable', 'in:asc,desc'],

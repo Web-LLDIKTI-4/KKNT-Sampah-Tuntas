@@ -163,12 +163,9 @@ class PetaSebaranService
                 'jumlah_belum_dipetakan' => count($belumDipetakan),
             ],
             'desa' => $desa,
-            // Persen DESC (null di akhir), lalu nama
+            // Nama kecamatan A-Z (case-insensitive)
             'kecamatan' => collect($kecamatan)
-                ->sortBy([
-                    fn ($a, $b) => ($b['persen_pengurangan'] ?? -INF) <=> ($a['persen_pengurangan'] ?? -INF),
-                    fn ($a, $b) => strcmp($a['kecamatan'], $b['kecamatan']),
-                ])
+                ->sortBy('kecamatan', SORT_NATURAL | SORT_FLAG_CASE)
                 ->values()
                 ->all(),
         ];

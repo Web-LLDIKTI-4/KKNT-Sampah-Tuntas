@@ -12,7 +12,6 @@ use App\Http\Requests\Admin\TableExportRequest;
 use App\Models\LokasiProgram;
 use App\Models\Satuanpendidikan;
 use App\Services\BulkDeletionService;
-use App\Support\ActionButtons;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -66,7 +65,7 @@ abstract class PersonMasterController extends Controller
         return $this->makeWithTieBreaker($this->table(), $model->getTable().'.'.$model->getKeyName());
     }
 
-    // Export the table's current view: same search, filters, order and page as listdataserver
+    // Export every row matching the table's search, filters and order (page/length ignored)
     public function export(TableExportRequest $request)
     {
         $params = $request->validated();
@@ -74,9 +73,8 @@ abstract class PersonMasterController extends Controller
         $this->sanitizeDataTablesInput(true);
         $model = new ($this->model());
         $query = $this->dataTablesExportQuery($this->table(), $model->getTable().'.'.$model->getKeyName());
-        $rows = $this->dataTablesPageRows($query, (int) ($params['start'] ?? 0), (int) ($params['length'] ?? -1));
 
-        return $this->makeExport()->downloadTable($rows, $this->viewPrefix().'_'.date('Y-m-d_H-i-s').'.xlsx', ['Kata kunci' => $params['q'] ?? null]);
+        return $this->makeExport()->downloadTable($query->lazy(1000), $this->viewPrefix().'_'.date('Y-m-d_H-i-s').'.xlsx', ['Kata kunci' => $params['q'] ?? null]);
     }
 
     protected function whitelistColumns(): array
@@ -87,7 +85,6 @@ abstract class PersonMasterController extends Controller
     protected function table(): EloquentDataTable
     {
         $model = new ($this->model());
-        $key = $model->getKeyName();
         $whitelist = $this->whitelistColumns();
 
         $query = $this->listQuery()
@@ -102,13 +99,8 @@ abstract class PersonMasterController extends Controller
             ->orderColumn('nm_lemb', 'sp.nm_lemb $1')
             ->filterColumn('location_program', fn ($q, $k) => $q->where('lp.nama_lokasi', 'like', $this->likeContains($k)))
             ->orderColumn('location_program', 'lp.nama_lokasi $1')
-            ->addColumn('action', fn ($row) => ActionButtons::make(
-                urlEdit: $this->editUrl($row),
-                urlDelete: url($this->viewPrefix().'/destroy'),
-                idField: $key,
-                idValue: $row->{$key},
-            ))
-            ->rawColumns(['action'])
+            // nama_lokasi duplicates location_program; action buttons render client-side (columns.actions)
+            ->removeColumn('nama_lokasi')
             ->whitelist($whitelist);
 
         return $this->customizeDataTable($dataTable);
@@ -123,12 +115,6 @@ abstract class PersonMasterController extends Controller
     protected function customizeDataTable(EloquentDataTable $dataTable): EloquentDataTable
     {
         return $dataTable;
-    }
-
-    // Tombol edit hanya muncul bila subclass mengembalikan URL
-    protected function editUrl(Model $record): ?string
-    {
-        return null;
     }
 
     // Joins replace eager loads: npsn is unique and lokasi_program.id is PK, so no duplicate rows

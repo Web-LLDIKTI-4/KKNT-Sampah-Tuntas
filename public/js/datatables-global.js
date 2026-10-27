@@ -94,7 +94,7 @@
             $link.data('export-base', base);
         }
         var $table = $($link.attr('data-export-table'));
-        // Opt-in data-export-state: send current view (start/length/q/order + table filters) instead of full ajax params
+        // Opt-in data-export-state: send q/order + table filters (all rows) instead of full ajax params
         if ($link.is('[data-export-state]')) {
             $link.attr('href', exportStateUrl(base, $table));
             return;
@@ -121,8 +121,6 @@
         var orderCol = orderMeta && orderMeta.bSortable ? api.column(order[0]).dataSrc() : null;
         if (typeof orderCol !== 'string' || orderCol === '') orderCol = null;
         var params = {
-            start: api.page.info().start,
-            length: api.page.len(),
             q: String(api.search() || '').trim().slice(0, 100),
             order_col: orderCol || '',
             order_dir: orderCol ? (order[1] === 'desc' ? 'desc' : 'asc') : '',
@@ -215,6 +213,48 @@
             if (type !== 'display') return data;
             var on = data === true || data === 1 || data === '1';
             return statusIcon(on, on ? trueLabel : falseLabel);
+        };
+    };
+
+    // Row values arrive HTML-escaped by yajra; decode only when needed (fast path for ids)
+    function decodeCell(value) {
+        var text = value === null || value === undefined ? '' : String(value);
+        if (text.indexOf('&') === -1) return text;
+        var decoder = document.createElement('textarea');
+        decoder.innerHTML = text;
+        return decoder.value;
+    }
+
+    function escapeAttr(value) {
+        return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    // by = {field, map}: map[row[field]] overrides the fallback
+    function pickBy(fallback, by, row) {
+        if (!by) return fallback;
+        var key = decodeCell(row[by.field]);
+        return Object.prototype.hasOwnProperty.call(by.map, key) ? by.map[key] : fallback;
+    }
+
+    // Render (row-based): edit/delete buttons, same markup as <x-action-data>; opts {idField, edit (URL prefix), editBy, delete, confirm, confirmBy}
+    $.fn.dataTable.render.actions = function (opts) {
+        var idField = opts.idField || 'id';
+        return function (data, type, row) {
+            if (type !== 'display') return '';
+            var id = decodeCell(row[idField]);
+            var edit = pickBy(opts.edit, opts.editBy, row);
+            var html = '<div class="d-flex justify-content-center gap-2">';
+            if (edit) {
+                html += '<a href="#modalku" data-bs-toggle="modal" data-src="' + escapeAttr(edit + encodeURIComponent(id))
+                    + '" class="modalButton btn-action-edit" title="Ubah Data"><i class="ri-edit-box-line"></i></a>';
+            }
+            if (opts['delete'] && id !== '') {
+                html += '<button type="button" class="btn-action-delete btn-delete" title="Hapus Data" data-url="' + escapeAttr(opts['delete'])
+                    + '" data-id-field="' + escapeAttr(idField) + '" data-id-value="' + escapeAttr(id)
+                    + '" data-confirm="' + escapeAttr(pickBy(opts.confirm || 'Anda yakin ingin menghapus data ini?', opts.confirmBy, row))
+                    + '"><i class="ri-delete-bin-3-line"></i></button>';
+            }
+            return html + '</div>';
         };
     };
 })(jQuery);
