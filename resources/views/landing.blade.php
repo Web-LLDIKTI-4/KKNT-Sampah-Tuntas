@@ -25,7 +25,7 @@
         'dokumen' => 'Panduan dan Dokumen Program',
     ];
     if ($faqList->isNotEmpty()) {
-        $navItems['faq'] = 'PUSAT INFORMASI (FAQ)';
+        $navItems['faq'] = 'Pusat Informasi (FAQ)';
     }
 @endphp
 <!doctype html>
@@ -538,7 +538,7 @@
                                 <p class="lp-kicker">FAQ</p>
                                 <h2 class="lp-title" id="faqTitle">{{ $navItems['faq'] }}</h2>
                                 <p class="lp-lead">Ada Pertanyaan Seputar PROGRAM GRADASI : KKNT Sampah Tuntas ? <br />
-                                Temukan jawaban atas berbagai pertanyaan mengenai persyaratan, mekanisme, dan pelaksanaan KKN Tematik Sampah Tuntas.</p>
+                                Temukan jawaban atas berbagai pertanyaan mengenai persyaratan, mekanisme, dan pelaksanaan program.</p>
                             </div>
                         </div>
                         <div data-reveal>

@@ -4,6 +4,7 @@
     :ajax="route('dpl.listdataserver')"
     :selectable="auth()->user()?->role === 'admin'"
     select-key="id_dpl"
+    :page-lengths="[10, 25, 50, 100, 500, -1]"
     :columns="[
         ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
         ['data' => 'nidn', 'name' => 'nidn', 'className' => 'text-center'],

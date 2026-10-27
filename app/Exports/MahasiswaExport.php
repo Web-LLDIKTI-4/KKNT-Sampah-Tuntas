@@ -16,6 +16,14 @@ class MahasiswaExport
             ->download($filename, $rows);
     }
 
+    // Table's current view; rows may be a LazyCollection (streamed)
+    public function downloadTable(iterable $rows, string $filename, array $info = []): StreamedResponse
+    {
+        return (new XlsxStreamer('Data Mahasiswa', $this->columns()))
+            ->info($info)
+            ->download($filename, $rows);
+    }
+
     private function columns(): array
     {
         return [

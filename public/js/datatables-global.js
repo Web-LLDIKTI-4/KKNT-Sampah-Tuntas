@@ -94,6 +94,11 @@
             $link.data('export-base', base);
         }
         var $table = $($link.attr('data-export-table'));
+        // Opt-in data-export-state: send current view (start/length/q/order + table filters) instead of full ajax params
+        if ($link.is('[data-export-state]')) {
+            $link.attr('href', exportStateUrl(base, $table));
+            return;
+        }
         var params = $table.length && $.fn.DataTable.isDataTable($table) ? $table.DataTable().ajax.params() : null;
         if (!params) {
             $link.attr('href', base);
@@ -105,6 +110,36 @@
         delete params.length;
         $link.attr('href', base + (base.indexOf('?') === -1 ? '?' : '&') + $.param(params));
     });
+
+    function exportStateUrl(base, $table) {
+        var url = new URL(base, window.location.origin);
+        if (!$table.length || !$.fn.DataTable.isDataTable($table)) return url.toString();
+        var api = $table.DataTable();
+        var order = api.order()[0];
+        var orderMeta = order ? api.settings()[0].aoColumns[order[0]] : null;
+        // Only orderable columns with a data name (skip DT_RowIndex / select column)
+        var orderCol = orderMeta && orderMeta.bSortable ? api.column(order[0]).dataSrc() : null;
+        if (typeof orderCol !== 'string' || orderCol === '') orderCol = null;
+        var params = {
+            start: api.page.info().start,
+            length: api.page.len(),
+            q: String(api.search() || '').trim().slice(0, 100),
+            order_col: orderCol || '',
+            order_dir: orderCol ? (order[1] === 'desc' ? 'desc' : 'asc') : '',
+        };
+        // Carry filters baked into the ajax URL (e.g. user role/kodept) since the button lives outside the partial
+        new URL(api.ajax.url(), window.location.origin).searchParams.forEach(function (value, key) {
+            if (!(key in params)) params[key] = value;
+        });
+        tableFilters($table[0].id).each(function () {
+            params[$(this).attr('data-table-filter')] = $(this).val();
+        });
+        $.each(params, function (key, value) {
+            url.searchParams.delete(key);
+            if (value !== '' && value !== null && value !== undefined) url.searchParams.set(key, value);
+        });
+        return url.toString();
+    }
 
     // Opt-in filter: <select data-table-filter="param" data-table-target="#tableId"> is sent as ajax param
     function tableFilters(tableId) {

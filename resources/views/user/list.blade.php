@@ -4,6 +4,7 @@
     id="dataTable-user"
     :selectable="auth()->user()?->role === 'admin'"
     select-key="id"
+    :page-lengths="[10, 25, 50, 100, 500, -1]"
     :ajax="route('user.listdataserver', $filters)"
     :columns="[
         ['data' => 'DT_RowIndex', 'name' => 'DT_RowIndex', 'className' => 'text-center', 'orderable' => false, 'searchable' => false],
@@ -28,16 +29,3 @@
     </x-slot:thead>
 </x-table>
 </div>
-
-<x-button.export id="btn-export-user" url="{{ route('user.export', $filters) }}" />
-<script>
-// Append current DataTable search keyword as `q` (instance may be recreated on filter change)
-$('#btn-export-user').on('click', function () {
-    var $table = $('#dataTable-user');
-    var keyword = $.fn.DataTable.isDataTable($table) ? String($table.DataTable().search() || '').trim().slice(0, 100) : '';
-    var url = new URL(this.href, window.location.origin);
-    url.searchParams.delete('q');
-    if (keyword) url.searchParams.set('q', keyword);
-    this.href = url.toString();
-});
-</script>

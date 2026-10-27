@@ -188,6 +188,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('dpl/bulk-edit', [DplController::class, 'bulkEdit']);
     Route::put('dpl/bulk-update', [DplController::class, 'bulkUpdate'])->middleware('throttle:sensitive');
     Route::put('dpl/bulk-destroy', [DplController::class, 'bulkDestroy'])->middleware('throttle:sensitive');
+    Route::get('dpl/export', [DplController::class, 'export'])->middleware('throttle:3,1')->name('dpl.export');
     Route::post('dpl/export-selected', [DplController::class, 'exportSelected'])->middleware('throttle:3,1')->name('dpl.export-selected');
 
     Route::get('mahasiswa', [MahasiswaController::class, 'index']);
@@ -201,6 +202,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('mahasiswa/bulk-edit', [MahasiswaController::class, 'bulkEdit']);
     Route::put('mahasiswa/bulk-update', [MahasiswaController::class, 'bulkUpdate'])->middleware('throttle:sensitive');
     Route::put('mahasiswa/bulk-destroy', [MahasiswaController::class, 'bulkDestroy'])->middleware('throttle:sensitive');
+    Route::get('mahasiswa/export', [MahasiswaController::class, 'export'])->middleware('throttle:3,1')->name('mahasiswa.export');
     Route::post('mahasiswa/export-selected', [MahasiswaController::class, 'exportSelected'])->middleware('throttle:3,1')->name('mahasiswa.export-selected');
 
     Route::get('kategori-kegiatan', [KategoriKegiatanController::class, 'index']);

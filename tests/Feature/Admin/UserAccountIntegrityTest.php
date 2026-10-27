@@ -308,7 +308,8 @@ class UserAccountIntegrityTest extends TestCase
         $this->loginAs('admin');
         User::factory()->role('kepala')->count(105)->create();
 
-        foreach (['-1' => 100, '5000' => 100, '0' => 100, '25' => 25] as $length => $expected) {
+        // -1 = all; invalid/oversized fall back to the 500 cap
+        foreach (['-1' => 105, '5000' => 105, '0' => 105, '25' => 25] as $length => $expected) {
             $response = $this->listServer(['length' => $length])->assertOk();
             $this->assertCount($expected, $response->json('data'), "length={$length}");
             $this->assertSame(105, $response->json('recordsTotal'));

@@ -8,6 +8,7 @@
     'lengthChange' => true,
     'selectable' => false,
     'selectKey' => 'id',
+    'pageLengths' => null,
 ])
 
 <table
@@ -20,6 +21,7 @@
     data-searching="{{ $searching ? 'true' : 'false' }}"
     data-length-change="{{ $lengthChange ? 'true' : 'false' }}"
     @if ($selectable) data-select-key="{{ $selectKey }}" @endif
+    @if ($pageLengths) data-page-lengths='@json($pageLengths)' @endif
 >
     <thead class="text-center">
         {{ $thead ?? '' }}

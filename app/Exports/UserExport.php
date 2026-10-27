@@ -11,6 +11,14 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserExport
 {
+    // Same expressions as the table's id_number / pt_name columns (search & sort)
+    private const ID_NUMBER = "(case u.role when 'mahasiswa' then m.nim when 'dpl' then d.nidn end)";
+
+    private const PT_NAME = "(case u.role when 'mahasiswa' then coalesce(nullif(sp.nm_lemb, ''), m.kodept)
+        when 'dpl' then coalesce(nullif(sp.nm_lemb, ''), d.kodept) when 'pt' then sp.nm_lemb end)";
+
+    private const SORTABLE = ['email' => 'u.email', 'name' => 'u.name', 'role' => 'u.role', 'id_number' => self::ID_NUMBER, 'pt_name' => self::PT_NAME];
+
     public function __construct(private array $filters = []) {}
 
     // Filter sama dengan User::scopeManaged(), diproses per chunk agar hemat memori
@@ -48,9 +56,8 @@ class UserExport
     private function applySearch(Builder $query, string $keyword): void
     {
         $terms = preg_split('/ +/', trim($keyword), -1, PREG_SPLIT_NO_EMPTY);
-        $idNumber = "(case u.role when 'mahasiswa' then m.nim when 'dpl' then d.nidn end)";
-        $ptName = "(case u.role when 'mahasiswa' then coalesce(nullif(sp.nm_lemb, ''), m.kodept)
-            when 'dpl' then coalesce(nullif(sp.nm_lemb, ''), d.kodept) when 'pt' then sp.nm_lemb end)";
+        $idNumber = self::ID_NUMBER;
+        $ptName = self::PT_NAME;
 
         foreach ($terms as $term) {
             $like = LikeKeyword::contains($term);
@@ -62,12 +69,23 @@ class UserExport
         }
     }
 
-    // Streams XLSX row by row so memory stays constant
-    public function writeTo(string $path): void
+    // Streams XLSX row by row so memory stays constant; rows from orderedQuery() (lazy for "All")
+    public function writeTo(string $path, iterable $rows): void
     {
         (new XlsxStreamer('Data Pengguna', $this->columns()))
             ->info($this->filterInfo())
-            ->writeTo($path, $this->query()->lazyById(1000, 'u.id', 'id'));
+            ->writeTo($path, $rows);
+    }
+
+    // Table order (default name asc; unknown order_col falls back); id tie-breaker matches the table & keeps chunks stable
+    public function orderedQuery(): Builder
+    {
+        $column = self::SORTABLE[$this->filters['order_col'] ?? ''] ?? null;
+        // Unknown column -> default name asc, ignoring order_dir
+        $direction = $column && ($this->filters['order_dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+        $column ??= 'u.name';
+
+        return $this->query()->orderByRaw($column.' '.$direction)->orderBy('u.id');
     }
 
     // Selected rows only, in the given order (ids capped by BulkSelectionRequest)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Concerns;
 
 use App\Support\LikeKeyword;
 use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\InputBag;
 use Yajra\DataTables\Facades\DataTables;
 use Yajra\DataTables\QueryDataTable;
@@ -17,6 +18,9 @@ trait HandlesDataTablesOrder
     protected int $maxDataTablesSearchTerms = 10;
 
     protected int $maxDataTablesLength = 100;
+
+    // Page size cap for tables offering 500 / "All" (-1)
+    protected int $maxDataTablesLargeLength = 500;
 
     // Call after sanitizeDataTablesInput(); pass the endpoint whitelist so orders yajra will drop don't count
     protected function hasClientOrder(array $allowed = []): bool
@@ -43,7 +47,8 @@ trait HandlesDataTablesOrder
     }
 
     // Normalize columns/search/order so yajra never hits TypeError or array-offset errors on malformed payloads
-    protected function sanitizeDataTablesInput(): void
+    // $largePages: allow up to $maxDataTablesLargeLength and -1 ("All", no paging)
+    protected function sanitizeDataTablesInput(bool $largePages = false): void
     {
         $request = request();
         // GET/HEAD endpoints only read the query string; a JSON body would bypass max_input_vars
@@ -64,9 +69,10 @@ trait HandlesDataTablesOrder
         $length = $request->input('length');
         // Missing/non-numeric -> DataTables default 10; -1, 0 or oversized -> max
         $length = is_numeric($length) ? (int) $length : 10;
+        $maxLength = $largePages ? $this->maxDataTablesLargeLength : $this->maxDataTablesLength;
         $merge = [
             'start' => is_numeric($start) ? max(0, (int) $start) : 0,
-            'length' => $length >= 1 && $length <= $this->maxDataTablesLength ? $length : $this->maxDataTablesLength,
+            'length' => ($largePages && $length === -1) || ($length >= 1 && $length <= $maxLength) ? $length : $maxLength,
         ];
         $named = [];
 
@@ -154,5 +160,33 @@ trait HandlesDataTablesOrder
             ->setFilteredRecords(0)
             ->getFilteredQuery()
             ->orderBy($tieBreaker);
+    }
+
+    // Maps export params (q, order_col, order_dir) onto DataTables input so the table's own search/order applies
+    protected function useExportAsDataTablesInput(array $params, array $columns): void
+    {
+        $orderIndex = array_search($params['order_col'] ?? null, $columns, true);
+
+        request()->merge([
+            'columns' => array_map(fn ($column) => ['data' => $column, 'name' => $column, 'searchable' => 'true', 'orderable' => 'true'], $columns),
+            'search' => ['value' => $params['q'] ?? null],
+            'order' => $orderIndex === false ? [] : [['column' => $orderIndex, 'dir' => $params['order_dir'] ?? 'asc']],
+        ]);
+    }
+
+    // Rows of the table's current page; -1 streams all filtered rows in chunks (start ignored, as DataTables sends 0)
+    protected function dataTablesPageRows(Builder $query, int $start, int $length): iterable
+    {
+        return $length === -1
+            ? $query->lazy(1000)
+            : $query->offset($start)->limit($length)->get();
+    }
+
+    // Same key tie-breaker as dataTablesExportQuery(), appended after yajra's ordering so table pages match the export
+    protected function makeWithTieBreaker(QueryDataTable $dataTable, string $tieBreaker): JsonResponse
+    {
+        $dataTable->prepareQuery()->getQuery()->orderBy($tieBreaker);
+
+        return $dataTable->make(true);
     }
 }

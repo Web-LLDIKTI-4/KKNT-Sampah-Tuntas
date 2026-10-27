@@ -13,6 +13,7 @@ use App\Http\Requests\Admin\ExportSelectedRequest;
 use App\Http\Requests\Admin\KepalaUserRequest;
 use App\Http\Requests\Admin\PtUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Http\Requests\Admin\UserExportRequest;
 use App\Http\Requests\Admin\UserFilterRequest;
 use App\Models\Dpl;
 use App\Models\LokasiProgram;
@@ -42,8 +43,6 @@ class UserController extends Controller
     use HandlesDataTablesOrder, RespondsWithJson;
 
     private const PT_FILTER_CACHE = 'user.filter.perguruan_tinggi';
-
-    private const MAX_PAGE_LENGTH = 100;
 
     private const CONCURRENT_CREATE = 'Sebagian akun baru saja dibuat oleh proses lain. Muat ulang daftar lalu coba lagi.';
 
@@ -82,19 +81,15 @@ class UserController extends Controller
     public function listdataserver(UserFilterRequest $request)
     {
         abort_unless($request->ajax(), 404);
-        $this->sanitizeDataTablesInput();
-        // Cap page size on the app request yajra reads; -1 ("all") and oversized pages fall back to the max
-        if (request()->has('length')) {
-            $length = is_numeric(request()->input('length')) ? (int) request()->input('length') : 10;
-            request()->merge(['length' => $length < 1 || $length > self::MAX_PAGE_LENGTH ? self::MAX_PAGE_LENGTH : $length]);
-        }
+        // Allows 500 and -1 ("All"); oversized pages fall back to the max
+        $this->sanitizeDataTablesInput(true);
         $whitelist = ['email', 'name', 'id_number', 'pt_name', 'role'];
 
         $query = User::managed($request->validated())
             ->select(['users.id', 'users.email', 'users.name', 'users.role', 'users.akses'])
             ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q->orderBy('users.name'));
 
-        return DataTables::eloquent($query)
+        $dataTable = DataTables::eloquent($query)
             ->addIndexColumn()
             ->addColumn('id_number', fn (User $row) => match (true) {
                 $row->role === 'mahasiswa' && $row->mahasiswa => $row->mahasiswa->nim,
@@ -130,8 +125,9 @@ class UserController extends Controller
             ->orderColumn('pt_name', fn ($q, $dir) => $q->orderByRaw('('.self::PT_NAME_SQL.') '.$dir))
             ->removeColumn('mahasiswa', 'dpl', 'pt')
             ->rawColumns(['action'])
-            ->whitelist($whitelist)
-            ->make(true);
+            ->whitelist($whitelist);
+
+        return $this->makeWithTieBreaker($dataTable, 'users.id');
     }
 
     public function getdatamember()
@@ -343,14 +339,16 @@ class UserController extends Controller
         return $this->deleted();
     }
 
-    public function export(UserFilterRequest $request)
+    public function export(UserExportRequest $request)
     {
         $filters = $request->validated();
         // Same length/term cap as the table's global search
         $filters['q'] = $this->limitDataTablesSearch($filters['q'] ?? null);
         $export = new UserExport($filters);
+        // Absent length = all rows (backward compatible links)
+        $rows = $this->dataTablesPageRows($export->orderedQuery(), (int) ($filters['start'] ?? 0), (int) ($filters['length'] ?? -1));
 
-        return response()->streamDownload(fn () => $export->writeTo('php://output'), 'users_'.date('Y-m-d_H-i-s').'.xlsx', [
+        return response()->streamDownload(fn () => $export->writeTo('php://output', $rows), 'users_'.date('Y-m-d_H-i-s').'.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }

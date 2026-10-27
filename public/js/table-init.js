@@ -40,6 +40,10 @@ $(function () {
             $table.data('columns', columns).data('order', order);
         }
 
+        // Opt-in page lengths (data-page-lengths); -1 is labelled "Semua"
+        var pageLengths = $table.data('page-lengths');
+        var lengthMenu = Array.isArray(pageLengths) ? [pageLengths, pageLengths.map(function (n) { return n === -1 ? 'Semua' : n; })] : $.fn.dataTable.defaults.lengthMenu;
+
         $table.DataTable({
             processing: true,
             serverSide: true,
@@ -49,6 +53,7 @@ $(function () {
             order: order,
             searching: $table.data('searching'),
             lengthChange: $table.data('length-change'),
+            lengthMenu: lengthMenu,
             language: {
                 search: "",
                 searchPlaceholder: "Cari...",

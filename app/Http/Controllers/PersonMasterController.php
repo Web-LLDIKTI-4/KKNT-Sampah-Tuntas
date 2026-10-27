@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\BulkSelectionRequest;
 use App\Http\Requests\Admin\DestroyPersonRequest;
 use App\Http\Requests\Admin\ExportSelectedRequest;
 use App\Http\Requests\Admin\ImportFileRequest;
+use App\Http\Requests\Admin\TableExportRequest;
 use App\Models\LokasiProgram;
 use App\Models\Satuanpendidikan;
 use App\Services\BulkDeletionService;
@@ -39,7 +40,7 @@ abstract class PersonMasterController extends Controller
 
     abstract protected function deleteRecord(Model $record): void;
 
-    // Object with download(Collection $rows, string $filename)
+    // Object with download(Collection $rows, string $filename) and downloadTable(iterable $rows, string $filename, array $info)
     abstract protected function makeExport(): object;
 
     // Identity number column shown in the list, e.g. nim / nidn
@@ -59,10 +60,35 @@ abstract class PersonMasterController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $this->sanitizeDataTablesInput();
+        $this->sanitizeDataTablesInput(true);
+        $model = new ($this->model());
+
+        return $this->makeWithTieBreaker($this->table(), $model->getTable().'.'.$model->getKeyName());
+    }
+
+    // Export the table's current view: same search, filters, order and page as listdataserver
+    public function export(TableExportRequest $request)
+    {
+        $params = $request->validated();
+        $this->useExportAsDataTablesInput($params, [...$this->whitelistColumns(), ...$this->extraOrderColumns()]);
+        $this->sanitizeDataTablesInput(true);
+        $model = new ($this->model());
+        $query = $this->dataTablesExportQuery($this->table(), $model->getTable().'.'.$model->getKeyName());
+        $rows = $this->dataTablesPageRows($query, (int) ($params['start'] ?? 0), (int) ($params['length'] ?? -1));
+
+        return $this->makeExport()->downloadTable($rows, $this->viewPrefix().'_'.date('Y-m-d_H-i-s').'.xlsx', ['Kata kunci' => $params['q'] ?? null]);
+    }
+
+    protected function whitelistColumns(): array
+    {
+        return [$this->idNumberColumn(), 'nama', 'email', 'phone', 'nm_lemb', 'location_program'];
+    }
+
+    protected function table(): EloquentDataTable
+    {
         $model = new ($this->model());
         $key = $model->getKeyName();
-        $whitelist = [$this->idNumberColumn(), 'nama', 'email', 'phone', 'nm_lemb', 'location_program'];
+        $whitelist = $this->whitelistColumns();
 
         $query = $this->listQuery()
             ->when(! $this->hasClientOrder([...$whitelist, ...$this->extraOrderColumns()]), fn ($q) => $q->orderBy($model->getTable().'.nama'));
@@ -85,7 +111,7 @@ abstract class PersonMasterController extends Controller
             ->rawColumns(['action'])
             ->whitelist($whitelist);
 
-        return $this->customizeDataTable($dataTable)->make(true);
+        return $this->customizeDataTable($dataTable);
     }
 
     // Subquery-alias columns sorted via orderColumn(); kept out of whitelist so they never hit raw WHERE

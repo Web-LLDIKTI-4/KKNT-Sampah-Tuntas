@@ -12,6 +12,7 @@
         </x-button>
         <x-button modal="{{ url('user/adduserkepala') }}" variant="info" title="Tambah Pengguna Kepala/Pemda" icon="ri-user-add-fill">Tambah Pengguna Kepala/Pemda
         </x-button>
+        <x-button.export id="btn-export-user" url="{{ route('user.export') }}" table="#dataTable-user" data-export-state />
     </div>
     <div class="card-body">
         <div class="d-flex flex-column flex-md-row gap-3 mb-4">
