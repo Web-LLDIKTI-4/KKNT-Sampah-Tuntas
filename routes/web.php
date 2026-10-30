@@ -455,6 +455,8 @@ Route::middleware(['auth', 'role:dpl,pt,kepala,pemda'])->group(function () {
     Route::get('dplmentoring', [DplmentoringController::class, 'index']);
     Route::get('dplmentoring/listdata', [DplmentoringController::class, 'listdata'])->name('dplmentoring.listdata');
     Route::get('dplmentoring/listdataserver', [DplmentoringController::class, 'listdataserver'])->name('dplmentoring.listdataserver');
+    // Export mahasiswa bimbingan: khusus dpl (scope ofDpl)
+    Route::get('dplmentoring/export', [DplmentoringController::class, 'export'])->middleware(['role:dpl', 'throttle:3,1'])->name('dplmentoring.export');
     Route::get('dplmentoring/tambah', [DplmentoringController::class, 'tambah']);
     Route::put('dplmentoring/insert', [DplmentoringController::class, 'insert']);
     Route::put('dplmentoring/destroy/{id_mentoring}', [DplmentoringController::class, 'destroy']);

@@ -22,6 +22,10 @@
         </x-datatable>
     </div>
 </div>
+
+@if (Auth::user()->role === 'dpl')
+<x-button.export url="{{ route('dplmentoring.export') }}" table="#dataTable" />
+@endif
 <script type="text/javascript">
     $(function () {
         var table = $('#dataTable').DataTable({
@@ -47,9 +51,9 @@
                 {data: 'nama_kecamatan', name: 'nama_kecamatan', render: $.fn.dataTable.render.emptyIcon('Kecamatan belum diisi')},
                 {data: 'nama_desa', name: 'nama_desa', render: $.fn.dataTable.render.emptyIcon('Kelurahan/Desa belum diisi')},
                 {data: 'action', name: 'action', className: 'text-center', orderable: false, searchable: false},
-                {data: 'rekapnilai', name: 'rekapnilai', className: 'text-center'},
+                {data: 'rekapnilai', name: 'rekapnilai', className: 'text-center', orderable: false, searchable: false},
                 // {data: 'nilai_freeform', name: 'nilai_freeform', className: 'text-center'},
-                {data: 'tugasakhir', name: 'tugasakhir', className: 'text-center'},
+                {data: 'tugasakhir', name: 'tugasakhir', className: 'text-center', orderable: false, searchable: false},
             ],
             // Menambahkan opsi untuk mencegah escape HTML oleh DataTables
             decodeEntities: false
