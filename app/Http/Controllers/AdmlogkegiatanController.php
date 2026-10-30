@@ -35,7 +35,7 @@ class AdmlogkegiatanController extends StudentLogReportController
             ->editColumn('tanggal', fn ($row) => Carbon::parse($row->tanggal)->format('d-m-Y'))
             ->filterColumn('tanggal', fn ($q, $k) => $this->filterTanggal($q, $k))
             ->addColumn('nama_kategori', fn ($row) => $row->kategoriKegiatan->nama_kategori ?? '')
-            ->filterColumn('nama_kategori', fn ($q, $k) => $q->whereHas('kategoriKegiatan', fn ($kategori) => $kategori->where('nama_kategori', 'like', $this->likeContains($k))))
+            ->filterColumn('nama_kategori', fn ($q, $k) => $this->whereRelatedLike($q, 'kategoriKegiatan', 'nama_kategori', $k))
             ->editColumn('deskripsi', fn ($row) => HtmlSanitizer::clean($row->deskripsi))
             ->addColumn('tautan', fn ($row) => HtmlSanitizer::link($row->tautan, 'Lihat bukti'))
             ->rawColumns(['deskripsi', 'tautan']);

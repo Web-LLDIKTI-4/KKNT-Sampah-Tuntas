@@ -75,10 +75,10 @@ class AdmfreeformController extends Controller
 
         // id_mahasiswa & npsn are unique keys, so the scalar subqueries return at most one row
         return DataTables::eloquent($query)
-            ->filterColumn('nim', fn ($q, $k) => $q->whereHas('mahasiswa', fn ($m) => $m->where('nim', 'like', $this->likeContains($k))))
-            ->filterColumn('nama', fn ($q, $k) => $q->whereHas('mahasiswa', fn ($m) => $m->where('nama', 'like', $this->likeContains($k))))
-            ->filterColumn('prodi', fn ($q, $k) => $q->whereHas('mahasiswa', fn ($m) => $m->where('prodi', 'like', $this->likeContains($k))))
-            ->filterColumn('nm_lemb', fn ($q, $k) => $q->whereHas('mahasiswa.sp', fn ($sp) => $sp->where('nm_lemb', 'like', $this->likeContains($k))))
+            ->filterColumn('nim', fn ($q, $k) => $this->whereRelatedLike($q, 'mahasiswa', 'nim', $k))
+            ->filterColumn('nama', fn ($q, $k) => $this->whereRelatedLike($q, 'mahasiswa', 'nama', $k))
+            ->filterColumn('prodi', fn ($q, $k) => $this->whereRelatedLike($q, 'mahasiswa', 'prodi', $k))
+            ->filterColumn('nm_lemb', fn ($q, $k) => $this->whereRelatedLike($q, 'mahasiswa.sp', 'nm_lemb', $k))
             ->orderColumn('nim', fn ($q, $order) => $q->orderBy($mahasiswa('nim'), $order))
             ->orderColumn('nama', fn ($q, $order) => $q->orderBy($mahasiswa('nama'), $order))
             ->orderColumn('prodi', fn ($q, $order) => $q->orderBy($mahasiswa('prodi'), $order))

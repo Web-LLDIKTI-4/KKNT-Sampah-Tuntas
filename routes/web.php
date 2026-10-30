@@ -390,7 +390,7 @@ Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function ()
 Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function () {
     Route::get('lapcapaiankegiatan', [LapcapaiankegiatanController::class, 'index']);
     Route::get('lapcapaiankegiatan/listdata', [LapcapaiankegiatanController::class, 'listdata'])->name('lapcapaiankegiatan.listdata');
-    Route::get('lapcapaiankegiatan/listdataserver', [LapcapaiankegiatanController::class, 'listdataserver'])->name('lapcapaiankegiatan.listdataserver');
+    Route::get('lapcapaiankegiatan/listdataserver', [LapcapaiankegiatanController::class, 'listdataserver'])->middleware('throttle:60,1')->name('lapcapaiankegiatan.listdataserver');
     Route::get('lapcapaiankegiatan/export', [LapcapaiankegiatanController::class, 'export'])->middleware('throttle:3,1');
 });
 

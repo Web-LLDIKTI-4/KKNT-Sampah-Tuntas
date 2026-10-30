@@ -53,7 +53,7 @@ class PtpjdesaController extends Controller
             ->addColumn('mobilisasi', fn (Pjdesa $row) => view('pjdesa._mobilisasi-badge', ['status' => $row->status_mobilisasi])->render())
             ->filterColumn('kecamatan', fn ($q, $k) => $q->where('kecamatan.kecamatan', 'like', $this->likeContains($k)))
             ->filterColumn('desa', fn ($q, $k) => $q->where('desa.desa', 'like', $this->likeContains($k)))
-            ->filterColumn('pjdesa', fn ($q, $k) => $q->whereHas('mahasiswa', fn ($m) => $m->where('nama', 'like', $this->likeContains($k))))
+            ->filterColumn('pjdesa', fn ($q, $k) => $this->whereRelatedLike($q, 'mahasiswa', 'nama', $k))
             ->orderColumn('kecamatan', 'kecamatan.kecamatan $1')
             ->orderColumn('desa', 'desa.desa $1')
             // mahasiswa.email tidak unik: subquery deterministik

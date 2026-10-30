@@ -81,7 +81,7 @@ abstract class StudentLogReportController extends Controller
             ->orderColumn('nama_mahasiswa', 'nama $1')
             ->filterColumn('email', fn ($q, $k) => $q->where('email', 'like', $this->likeContains($k)))
             ->orderColumn('email', 'email $1')
-            ->filterColumn('nm_lemb', fn ($q, $k) => $q->whereHas('sp', fn ($sp) => $sp->where('nm_lemb', 'like', $this->likeContains($k))))
+            ->filterColumn('nm_lemb', fn ($q, $k) => $this->whereRelatedLike($q, 'sp', 'nm_lemb', $k))
             ->orderColumn('nm_lemb', fn ($q, $order) => $q->orderBy(
                 Satuanpendidikan::select('nm_lemb')->whereColumn('npsn', 'mahasiswa.kodept')->orderBy('id_sp')->limit(1),
                 $order

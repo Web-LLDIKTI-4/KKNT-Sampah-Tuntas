@@ -8,6 +8,7 @@ use App\Models\Mahasiswa;
 use App\Models\Pjdesa;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
@@ -109,5 +110,88 @@ class LapcapaiankegiatanTest extends TestCase
         // regex=true is forced off: '[' becomes a LIKE match instead of a REGEXP error
         $this->datatable('&columns[2][data]=permasalahan&columns[2][name]=permasalahan&columns[2][searchable]=true&columns[2][search][value]=%5B&columns[2][search][regex]=true')
             ->assertJsonCount(0, 'data');
+    }
+
+    // Batasi waktu SELECT di sesi test: regresi DoS gagal cepat, bukan mengunci DB (query 712)
+    private function limitSelectTime(): void
+    {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+        str_contains(DB::selectOne('select version() as v')->v, 'MariaDB')
+            ? DB::statement('SET SESSION max_statement_time = 5')
+            : DB::statement('SET SESSION max_execution_time = 5000');
+    }
+
+    // Query data (ber-limit) milik tabel capaian yang dijalankan selama $callback
+    private function capturedDataSql(callable $callback): array
+    {
+        $queries = [];
+        DB::listen(function ($query) use (&$queries) {
+            if (str_contains($query->sql, 'from `capaian_kegiatan`') && str_contains($query->sql, 'limit')) {
+                $queries[] = ['sql' => $query->sql, 'bindings' => $query->bindings];
+            }
+        });
+        $callback();
+
+        return end($queries) ?: $this->fail('Query data tidak tertangkap');
+    }
+
+    public function test_old_stall_payload_finishes_fast_without_exists(): void
+    {
+        $this->loginAs('admin');
+        $this->capaian('Andi Ketua');
+        $this->limitSelectTime();
+
+        // Payload query 712: column search + global 2500 term pada kolom relasi pjdesa
+        $start = microtime(true);
+        $query = $this->capturedDataSql(fn () => $this->datatable('&columns[0][search][value]='.str_repeat('a+', 2500).'&search[value]='.str_repeat('a+', 2500)));
+        $this->assertLessThan(2, microtime(true) - $start);
+
+        // 1 column search + maks 4 term global, masing-masing 2 hop NO_SEMIJOIN; tidak ada EXISTS
+        $this->assertSame(2 * 5, substr_count($query['sql'], 'NO_SEMIJOIN'));
+        $this->assertStringNotContainsStringIgnoringCase('exists', $query['sql']);
+    }
+
+    public function test_bypass_payload_caps_terms_column_searches_and_dedups(): void
+    {
+        $this->loginAs('admin');
+        $this->capaian('Andi Ketua');
+        $this->limitSelectTime();
+
+        $col = fn ($i, $data, $search = '') => "&columns[$i][data]=$data&columns[$i][name]=$data&columns[$i][searchable]=true&columns[$i][orderable]=true&columns[$i][search][value]=$search";
+        $payload = $col(1, 'password', 'pw').$col(2, 'pjdesa', 'dupkolom').$col(3, 'permasalahan', 'cs2').$col(4, 'solusi', 'cs3').$col(5, 'kendala', 'cs4')
+            .'&columns[0][search][value]=cs1&search[value]='.implode('+', array_map(fn ($i) => "term$i", range(1, 10)))
+            .'&order[0][column]=2&order[0][dir]=desc';
+
+        $start = microtime(true);
+        $query = $this->capturedDataSql(fn () => $this->datatable($payload)->assertJsonCount(0, 'data'));
+        $this->assertLessThan(2, microtime(true) - $start);
+
+        $bindings = implode('|', $query['bindings']);
+        // Column search aktif maks 3: pjdesa (cs1), password (pw, dibuang yajra), permasalahan (cs2); sisanya dikosongkan
+        foreach (['%cs1%', '%cs2%'] as $kept) {
+            $this->assertStringContainsString($kept, $bindings);
+        }
+        foreach (['cs3', 'cs4', 'pw', 'dupkolom'] as $dropped) {
+            $this->assertStringNotContainsString($dropped, $bindings);
+        }
+        // Term global = 5 - 3 column search = 2
+        $this->assertStringContainsString('%term2%', $bindings);
+        $this->assertStringNotContainsString('term3', $bindings);
+        // Kolom duplikat dibuang; order kolom duplikat dipetakan ke pjdesa pertama
+        $this->assertSame(2 * 3, substr_count($query['sql'], 'NO_SEMIJOIN'));
+        $this->assertStringContainsString('m.nama FROM pj_desa', $query['sql']);
+        $this->assertStringNotContainsString('password', $query['sql']);
+    }
+
+    public function test_listdataserver_is_throttled_after_60_requests_per_minute(): void
+    {
+        $this->loginAs('admin');
+
+        foreach (range(1, 60) as $i) {
+            $this->getJson('lapcapaiankegiatan/listdataserver?draw=1&start=0&length=1', ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+        }
+        $this->getJson('lapcapaiankegiatan/listdataserver?draw=1&start=0&length=1', ['X-Requested-With' => 'XMLHttpRequest'])->assertStatus(429);
     }
 }

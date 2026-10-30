@@ -9,6 +9,7 @@ use App\Models\Mahasiswa;
 use App\Models\PendataanPemilahanSampah;
 use App\Models\Satuanpendidikan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -136,5 +137,40 @@ class StudentLogReportGroupingTest extends TestCase
             $this->grouping('admlogkegiatan', ['search' => ['value' => $keyword, 'regex' => 'false']])
                 ->assertJsonPath('recordsFiltered', 0);
         }
+    }
+
+    // Regression DoS: kolom relasi bertitik tanpa whitelist jadi whereHas otomatis yajra; term tetap dibatasi
+    public function test_dotted_relation_column_with_ten_terms_stays_fast(): void
+    {
+        $this->loginAs('admin');
+        $this->seedStudents();
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement(str_contains(DB::selectOne('select version() as v')->v, 'MariaDB')
+                ? 'SET SESSION max_statement_time = 5' : 'SET SESSION max_execution_time = 5000');
+        }
+
+        $sql = [];
+        DB::listen(function ($query) use (&$sql) {
+            if (str_contains($query->sql, 'from `mahasiswa`') && str_contains($query->sql, 'limit')) {
+                $sql[] = $query->sql.' | '.implode('|', $query->bindings);
+            }
+        });
+        $columns = [];
+        foreach (['sp.nm_lemb', 'sp.nm_lemb'] as $i => $c) {
+            $columns[$i] = ['data' => $c, 'name' => $c, 'searchable' => 'true', 'orderable' => 'true'];
+        }
+
+        $start = microtime(true);
+        $this->getJson('admlogkegiatan/listdatagrouping?'.http_build_query([
+            'draw' => 1, 'start' => 0, 'length' => 10, 'columns' => $columns,
+            'search' => ['value' => implode(' ', array_map(fn ($i) => "Zebra$i", range(1, 10))), 'regex' => 'false'],
+        ]), $this->ajax)->assertOk()->assertJsonMissingPath('error')->assertJsonPath('recordsFiltered', 0);
+        $this->assertLessThan(2, microtime(true) - $start);
+
+        // Kolom duplikat dibuang, maks 5 term -> tepat 5 EXISTS ke ref_satuanpendidikan
+        $this->assertNotEmpty($sql);
+        $this->assertSame(5, substr_count(strtolower(end($sql)), 'exists'));
+        $this->assertStringContainsString('%zebra5%', end($sql));
+        $this->assertStringNotContainsString('zebra6', end($sql));
     }
 }

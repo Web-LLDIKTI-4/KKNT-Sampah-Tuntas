@@ -115,16 +115,16 @@ class DplmentoringController extends Controller
             ->when(! $this->hasClientOrder($whitelist), fn ($q) => $q->oldest('dpl_mentoring.created_at'));
 
         $dataTable = DataTables::eloquent($query)->whitelist($whitelist)
-            ->filterColumn('nm_lemb', fn ($q, $k) => $q->whereHas('mahasiswa.sp', fn ($sp) => $sp->where('nm_lemb', 'like', $this->likeContains($k))))
+            ->filterColumn('nm_lemb', fn ($q, $k) => $this->whereRelatedLike($q, 'mahasiswa.sp', 'nm_lemb', $k))
             ->orderColumn('nm_lemb', fn ($q, $order) => $q->orderBy($this->menteeValue(
                 Satuanpendidikan::select('nm_lemb')->whereColumn('npsn', 'mahasiswa.kodept')->orderBy('npsn')->limit(1)
             ), $order));
-        // Relation-derived columns: search via whereHas, sort via correlated subquery
+        // Relation-derived columns: search via IN subquery, sort via correlated subquery
         $columns = ['nim' => 'mahasiswa.nim', 'nama' => 'mahasiswa.nama', 'prodi' => 'mahasiswa.prodi']
             + array_map(Mahasiswa::latestLokasi(...), Mahasiswa::LOKASI_COLUMNS);
         foreach ($columns as $alias => $column) {
             $dataTable
-                ->filterColumn($alias, fn ($q, $k) => $q->whereHas('mahasiswa', fn ($m) => $m->where($column, 'like', $this->likeContains($k))))
+                ->filterColumn($alias, fn ($q, $k) => $this->whereRelatedLike($q, 'mahasiswa', $column, $k))
                 ->orderColumn($alias, fn ($q, $order) => $q->orderBy($this->menteeValue($column), $order));
         }
 

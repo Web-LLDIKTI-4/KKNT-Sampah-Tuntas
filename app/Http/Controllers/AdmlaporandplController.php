@@ -55,12 +55,12 @@ class AdmlaporandplController extends Controller
                     return $row->sp->nm_lemb ?? 'Nama Perguruan Tinggi Tidak Tersedia';
                 })
                 ->addColumn('count_log', fn ($row) => $row->count_log)
-                ->filterColumn('nama_dpl', fn ($q, $k) => $q->whereHas('user', fn ($u) => $u->where('name', 'like', $this->likeContains($k))))
+                ->filterColumn('nama_dpl', fn ($q, $k) => $this->whereRelatedLike($q, 'user', 'name', $k))
                 ->orderColumn('nama_dpl', fn ($q, $order) => $q->orderBy(
                     User::select('name')->whereColumn('users.email', 'dpl.email')->orderBy('id')->limit(1),
                     $order
                 ))
-                ->filterColumn('nama_pt', fn ($q, $k) => $q->whereHas('sp', fn ($sp) => $sp->where('nm_lemb', 'like', $this->likeContains($k))))
+                ->filterColumn('nama_pt', fn ($q, $k) => $this->whereRelatedLike($q, 'sp', 'nm_lemb', $k))
                 ->orderColumn('nama_pt', fn ($q, $order) => $q->orderBy(
                     Satuanpendidikan::select('nm_lemb')->whereColumn('npsn', 'dpl.kodept')->orderBy('id_sp')->limit(1),
                     $order

@@ -37,9 +37,9 @@ trait BuildsTugasakhirTable
 
         // Map relation-derived columns so search & sort don't error
         return DataTables::eloquent($query)
-            ->filterColumn('nim', fn ($q, $k) => $q->whereHas('mahasiswa', fn ($m) => $m->where('nim', 'like', $this->likeContains($k))))
-            ->filterColumn('nama', fn ($q, $k) => $q->whereHas('mahasiswa', fn ($m) => $m->where('nama', 'like', $this->likeContains($k))))
-            ->filterColumn('nm_lemb', fn ($q, $k) => $q->whereHas('mahasiswa.sp', fn ($sp) => $sp->where('nm_lemb', 'like', $this->likeContains($k))))
+            ->filterColumn('nim', fn ($q, $k) => $this->whereRelatedLike($q, 'mahasiswa', 'nim', $k))
+            ->filterColumn('nama', fn ($q, $k) => $this->whereRelatedLike($q, 'mahasiswa', 'nama', $k))
+            ->filterColumn('nm_lemb', fn ($q, $k) => $this->whereRelatedLike($q, 'mahasiswa.sp', 'nm_lemb', $k))
             ->orderColumn('nim', fn ($q, $order) => $q->orderBy($this->mahasiswaSubquery('nim'), $order))
             ->orderColumn('nama', fn ($q, $order) => $q->orderBy($this->mahasiswaSubquery('nama'), $order))
             ->orderColumn('nm_lemb', fn ($q, $order) => $q->orderBy(

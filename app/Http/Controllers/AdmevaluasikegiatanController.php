@@ -48,7 +48,7 @@ class AdmevaluasikegiatanController extends Controller
             ->addColumn('nm_lemb', fn ($row) => $row->nm_lemb ?? 'Tidak ada')
             ->filterColumn('kodept', fn ($q, $k) => $q->where('evaluasi_kegiatan_jawaban.kodept', 'like', $this->likeContains($k)))
             ->filterColumn('nm_lemb', fn ($q, $k) => $q->where('sp.nm_lemb', 'like', $this->likeContains($k)))
-            ->filterColumn('pertanyaan', fn ($q, $k) => $q->whereHas('evaluasikegiatan', fn ($e) => $e->where('pertanyaan', 'like', $this->likeContains($k))))
+            ->filterColumn('pertanyaan', fn ($q, $k) => $this->whereRelatedLike($q, 'evaluasikegiatan', 'pertanyaan', $k))
             ->filterColumn('jawaban', fn ($q, $k) => $q->where('evaluasi_kegiatan_jawaban.jawaban', 'like', $this->likeContains($k)))
             ->orderColumn('kodept', 'evaluasi_kegiatan_jawaban.kodept $1')
             ->orderColumn('nm_lemb', 'sp.nm_lemb $1')

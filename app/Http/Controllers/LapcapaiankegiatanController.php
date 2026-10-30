@@ -100,7 +100,7 @@ class LapcapaiankegiatanController extends Controller
 
         // Kolom turunan: search/order dipetakan ke relasi agar tidak jadi "Unknown column"
         return DataTables::eloquent($query)
-            ->filterColumn('pjdesa', fn ($q, $keyword) => $q->whereHas('pjdesa.mahasiswa', fn ($m) => $m->where('nama', 'like', $this->likeContains($keyword))))
+            ->filterColumn('pjdesa', fn ($q, $keyword) => $this->whereRelatedLike($q, 'pjdesa.mahasiswa', 'nama', $keyword))
             ->orderColumn('pjdesa', '(SELECT m.nama FROM pj_desa pj JOIN mahasiswa m ON m.email = pj.email WHERE pj.email = capaian_kegiatan.email ORDER BY m.id_mahasiswa DESC LIMIT 1) $1')
             ->whitelist($whitelist);
     }
