@@ -25,6 +25,7 @@ Homestead.yaml
 Thumbs.db
 .claude
 docs
+.flyenv
 
 # tenfold
 /.tenfold/
@@ -35,3 +36,9 @@ docs
 /.claude/agents/designer.md
 /.claude/agents/tech-lead.md
 /.claude/agents/product-manager.md
+
+/.claude/settings.local.json
+/.claude/agents/database.md
+/.claude/agents/qa.md
+/.claude/agents/chairman.md
+/.claude/agents/backend.md

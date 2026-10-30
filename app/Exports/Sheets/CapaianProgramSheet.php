@@ -2,9 +2,11 @@
 
 namespace App\Exports\Sheets;
 
+use App\Exports\Concerns\SafeValueBinder;
 use App\Models\PenguranganSampah;
 use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -16,7 +18,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  * Capaian Program (dashboard admin): lokasi (biru) -> kecamatan (kuning) -> kelurahan; 1 baris kosong antar lokasi.
  * Kolom: Nama | Pengurangan Timbulan Sampah (%) | Klaster. Data dari PenguranganSampahService::capaianProgram().
  */
-class CapaianProgramSheet implements FromArray, WithTitle, WithEvents, WithStrictNullComparison
+class CapaianProgramSheet extends SafeValueBinder implements FromArray, WithCustomValueBinder, WithEvents, WithStrictNullComparison, WithTitle
 {
     // Biru gelap agar teks putih kontras
     public const FILL_LOKASI = '4472C4';

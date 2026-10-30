@@ -350,13 +350,17 @@ Route::middleware(['auth', 'role:admin,kepala,pemda'])->group(function () {
     Route::get('admevaluasikegiatan/listdataserver', [AdmevaluasikegiatanController::class, 'listdataserver'])->name('admevaluasikegiatan.listdataserver');
 });
 
+// Sync & tambah master Perguruan Tinggi (PDDIKTI): admin only
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::put('perguruantinggi/getdata', [PerguruantinggiController::class, 'getdata'])->middleware('throttle:sensitive');
+    Route::get('perguruantinggi/tambah', [PerguruantinggiController::class, 'tambah']);
+    Route::put('perguruantinggi/insert', [PerguruantinggiController::class, 'insert'])->middleware('throttle:sensitive');
+});
+
 Route::middleware(['auth', 'role:dpl,admin,pt,kepala,pemda'])->group(function () {
     Route::get('perguruantinggi', [PerguruantinggiController::class, 'index']);
     Route::get('perguruantinggi/listdata', [PerguruantinggiController::class, 'listdata'])->name('perguruantinggi.listdata');
     Route::get('perguruantinggi/listdataserver', [PerguruantinggiController::class, 'listdataserver'])->name('perguruantinggi.listdataserver');;
-    Route::put('perguruantinggi/getdata', [PerguruantinggiController::class, 'getdata'])->middleware('throttle:sensitive');
-    Route::get('perguruantinggi/tambah', [PerguruantinggiController::class, 'tambah']);
-    Route::put('perguruantinggi/insert', [PerguruantinggiController::class, 'insert'])->middleware('throttle:sensitive');
 
     Route::get('admlogkegiatan', [AdmlogkegiatanController::class, 'index']);
     Route::get('admlogkegiatan/listdatagroup', [AdmlogkegiatanController::class, 'listdatagroup'])->name('admlogkegiatan.listdatagroup');

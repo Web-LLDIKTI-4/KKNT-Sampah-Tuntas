@@ -8,6 +8,11 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class KodeptRequest extends AjaxFormRequest
 {
+    public function authorize(): bool
+    {
+        return $this->user()?->role === 'admin';
+    }
+
     public function rules(): array
     {
         return [

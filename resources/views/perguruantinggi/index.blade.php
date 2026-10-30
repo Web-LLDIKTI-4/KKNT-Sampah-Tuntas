@@ -3,6 +3,8 @@
 @section('container')
 <x-page-header subtitle="Daftar {{ $__env->yieldContent('title') }}" />
 <div class="card">
+    {{-- Sync & add actions are admin-only (route role:admin) --}}
+    @if (Auth::user()->role === 'admin')
     <div class="card-header">
         <div class="d-flex flex-wrap gap-2">
             <form id="form-tambah" method="post" action="{{ url('perguruantinggi/getdata') }}">
@@ -13,6 +15,7 @@
             <x-button modal="{{ url('perguruantinggi/tambah') }}" title="Tambah Perguruan Tinggi" icon="ri-play-list-add-line">Tambah Perguruan Tinggi</x-button>
         </div>
     </div>
+    @endif
     <div class="card-body">
         <p id="resultcontent">Loading data...</p>
     </div>
@@ -20,6 +23,7 @@
 <script>
     $(function(){
         loadPartial('#resultcontent', "{{ url('perguruantinggi/listdata') }}");
+        @if (Auth::user()->role === 'admin')
 
         $("#form-tambah").on("submit",function(){       
         var action = $(this).attr("action");
@@ -111,6 +115,7 @@
         });
         return false;
     });
+        @endif
 })
 </script>
 @stop 
