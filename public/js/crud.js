@@ -115,6 +115,12 @@
                     $(resultTarget).html(ret);
                     return;
                 }
+                // Server ends the session (e.g. own password change): notify then go to login
+                if (ret.redirect) {
+                    toastr.success(ret.message);
+                    setTimeout(function () { window.location.href = ret.redirect; }, 1500);
+                    return;
+                }
                 if (ret.success) {
                     // Server boleh menentukan jenis toast, mis. import yang sebagian barisnya gagal
                     var toastType = ['success', 'warning', 'error', 'info'].indexOf(ret.toast) >= 0 ? ret.toast : 'success';
@@ -138,7 +144,11 @@
             },
             error: function (xhr) {
                 var ret = xhr.responseJSON || {};
-                if (xhr.status === 419) {
+                if (xhr.status === 401) {
+                    // Session rejected (e.g. password changed on another device): reload lands on login
+                    toastr.error(ret.message || 'Sesi berakhir, silakan login kembali.');
+                    setTimeout(function () { window.location.reload(); }, 1500);
+                } else if (xhr.status === 419) {
                     toastr.error('Sesi berakhir, silakan muat ulang halaman.');
                 } else if (xhr.status === 413) {
                     // 413 bisa datang dari web server (HTML, tanpa JSON) sebelum mencapai Laravel

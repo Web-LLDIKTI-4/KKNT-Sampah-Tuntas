@@ -114,7 +114,7 @@ class AuthTest extends TestCase
         $this->put('setting/update', ['plama' => 'Rahasia123', 'pbaru' => 'pendek', 'pbaruulangi' => 'pendek'])
             ->assertJsonValidationErrors('pbaru', 'errors');
 
-        $this->put('setting/update', ['plama' => 'Rahasia123', 'pbaru' => 'Baru12345', 'pbaruulangi' => 'Baru12345'])
+        $this->putJson('setting/update', ['plama' => 'Rahasia123', 'pbaru' => 'Baru12345', 'pbaruulangi' => 'Baru12345'])
             ->assertJson(['success' => true]);
         $this->assertTrue(Hash::check('Baru12345', $user->fresh()->password));
     }

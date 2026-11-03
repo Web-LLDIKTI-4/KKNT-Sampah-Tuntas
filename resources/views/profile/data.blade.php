@@ -366,16 +366,16 @@
                         @csrf
                         @method('PUT')
                         <div class="form-group form-floating form-floating-outline mb-6 mt-5">
-                            <input type="text" name="plama" class="form-control">
+                            <input type="password" name="plama" class="form-control" autocomplete="current-password">
                             <label for="plama">Masukkan Kata Sandi Lama</label>
                         </div>
                         <div class="row">
                           <div class="form-group form-floating form-floating-outline col-12 col-md mb-6">
-                              <input type="password" name="pbaru" class="form-control">
+                              <input type="password" name="pbaru" class="form-control" autocomplete="new-password">
                               <label for="pbaru">Kata Sandi Baru</label>
                           </div>
                           <div class="form-group form-floating form-floating-outline col-12 col-md mb-6">
-                          <input type="password" name="pbaruulangi" class="form-control">
+                          <input type="password" name="pbaruulangi" class="form-control" autocomplete="new-password">
                               <label for="pbaruulangi">Ulangi Kata Sandi Baru</label>
                           </div>
                         </div>
@@ -520,7 +520,11 @@ $(function(){
                 btnLoading($("#btnSubmit_" + id), false);	
             },
             success:function(ret){
-                if(ret.success == true){
+                if(ret.redirect){
+                  // Password changed: session ended server-side, go to login
+                  toastr.success(ret.message);
+                  setTimeout(function(){ window.location.href = ret.redirect; }, 1500);
+                }else if(ret.success == true){
                   toastr.success(ret.message)		
                 }else{
                     if (ret.hasOwnProperty('errors')) {
