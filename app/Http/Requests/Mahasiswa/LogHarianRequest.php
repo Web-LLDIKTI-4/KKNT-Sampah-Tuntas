@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Mahasiswa;
 
-use App\Services\LogHarianService;
 use Illuminate\Support\Arr;
 
 /**
@@ -20,21 +19,6 @@ class LogHarianRequest extends LogkegiatanRequest
         return ['mode' => ['required', 'in:pendataan,kegiatan'], 'tanggal' => $dataRules['tanggal']]
             + array_map($prefix('pendataan'), Arr::except($dataRules, ['tanggal']))
             + array_map($prefix('kegiatan'), Arr::except(parent::rules(), ['id_log', 'tanggal']));
-    }
-
-    // Status kehadiran (parent) + batas isian per rolling window (gabungan dua tabel)
-    public function after(): array
-    {
-        return [...parent::after(), function ($validator) {
-            if ($validator->errors()->has('mode')) {
-                return;
-            }
-            $service = app(LogHarianService::class);
-            $minutes = $service->minutesUntilAvailable($this->user()->email);
-            if ($minutes > 0) {
-                $validator->errors()->add('mode', $service->limitMessage($minutes));
-            }
-        }];
     }
 
     public function messages(): array

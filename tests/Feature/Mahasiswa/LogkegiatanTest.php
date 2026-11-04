@@ -8,7 +8,6 @@ use App\Models\PendataanPemilahanSampah;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use App\Models\Kehadiran;
 use App\Services\LogHarianService;
 use Tests\TestCase;
@@ -387,97 +386,6 @@ class LogkegiatanTest extends TestCase
         $this->assertNull($log->organik_kg);
     }
 
-    public function test_log_limit_is_5_per_30_minutes_combined_across_both_tables(): void
-    {
-        $user = $this->loginAs('mahasiswa');
-        $this->freezeSecond();
-        $start = now()->copy();
-        $limitMsg = fn (int $menit) => 'Batas input tercapai (maksimal 5 isian per 30 menit). Coba lagi sekitar '.$menit.' menit lagi.';
-
-        // Dibuat di luar window tidak dihitung
-        PendataanPemilahanSampah::factory()->count(5)->create(['email' => $user->email, 'created_at' => $start->copy()->subMinutes(31)]);
-        Logkegiatan::factory()->count(5)->create(['email' => $user->email, 'created_at' => $start->copy()->subMinutes(31)]);
-
-        // 3 pendataan (tanggal mundur tetap dihitung dari created_at) + 2 kegiatan
-        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan', 'tanggal' => today()->subDays(2)->toDateString()]))->assertJson(['success' => true]);
-        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan']))->assertJson(['success' => true]);
-        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan']))->assertJson(['success' => true]);
-        $this->put('logkegiatan/insert', $this->payload(['deskripsi' => '<p>Ke-4</p>']))->assertJson(['success' => true]);
-        $this->put('logkegiatan/insert', $this->payload(['deskripsi' => '<p>Ke-5</p>']))->assertJson(['success' => true]);
-
-        // Isian ke-6 ditolak di kedua mode
-        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan']))
-            ->assertJsonValidationErrors(['mode' => $limitMsg(30)], 'errors');
-        $this->put('logkegiatan/insert', $this->payload(['deskripsi' => '<p>Ke-6</p>']))
-            ->assertJsonValidationErrors(['mode' => $limitMsg(30)], 'errors');
-        $this->assertSame(8, PendataanPemilahanSampah::where('email', $user->email)->count());
-        $this->assertSame(7, Logkegiatan::where('email', $user->email)->count());
-
-        $this->travelTo($start->copy()->addMinutes(10));
-        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan']))
-            ->assertJsonValidationErrors(['mode' => $limitMsg(20)], 'errors');
-
-        // Setelah 30 menit boleh input lagi
-        $this->travelTo($start->copy()->addMinutes(30));
-        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan']))
-            ->assertJson(['success' => true])->assertJsonMissingPath('errors');
-    }
-
-    public function test_log_limit_window_is_rolling(): void
-    {
-        $user = $this->loginAs('mahasiswa');
-        $this->freezeSecond();
-        $start = now()->copy();
-        $limitMsg = fn (int $menit) => 'Batas input tercapai (maksimal 5 isian per 30 menit). Coba lagi sekitar '.$menit.' menit lagi.';
-
-        PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'created_at' => $start->copy()->subMinutes(20)]);
-        Logkegiatan::factory()->count(2)->create(['email' => $user->email]);
-        PendataanPemilahanSampah::factory()->count(2)->create(['email' => $user->email]);
-
-        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan']))
-            ->assertJsonValidationErrors(['mode' => $limitMsg(10)], 'errors');
-
-        // Isian tertua keluar dari window -> satu slot terbuka, lalu penuh lagi
-        $this->travelTo($start->copy()->addMinutes(11));
-        $this->put('logkegiatan/insert', $this->payload())->assertJson(['success' => true])->assertJsonMissingPath('errors');
-        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan']))
-            ->assertJsonValidationErrors(['mode' => $limitMsg(19)], 'errors');
-        $this->assertSame(3, Logkegiatan::where('email', $user->email)->count());
-    }
-
-    public function test_service_store_rechecks_limit_and_throws_on_mode_when_window_full(): void
-    {
-        $user = $this->loginAs('mahasiswa');
-        $this->freezeSecond();
-        PendataanPemilahanSampah::factory()->count(3)->create(['email' => $user->email]);
-        Logkegiatan::factory()->count(2)->create(['email' => $user->email]);
-
-        // Bypass FormRequest: service tetap menolak (anti race)
-        foreach (['pendataan', 'kegiatan'] as $mode) {
-            try {
-                app(LogHarianService::class)->store($this->payload(['mode' => $mode]), $user->email);
-                $this->fail('ValidationException tidak dilempar untuk mode '.$mode);
-            } catch (ValidationException $e) {
-                $this->assertSame(['mode' => ['Batas input tercapai (maksimal 5 isian per 30 menit). Coba lagi sekitar 30 menit lagi.']], $e->errors());
-            }
-        }
-
-        $this->assertSame(3, PendataanPemilahanSampah::where('email', $user->email)->count());
-        $this->assertSame(2, Logkegiatan::where('email', $user->email)->count());
-    }
-
-    public function test_log_limit_of_other_student_does_not_affect_user(): void
-    {
-        PendataanPemilahanSampah::factory()->count(LogHarianService::MAX_LOG_PER_WINDOW)->create(['email' => 'lain@pps.test']);
-        Logkegiatan::factory()->count(LogHarianService::MAX_LOG_PER_WINDOW)->create(['email' => 'lain@pps.test']);
-        $user = $this->loginAs('mahasiswa');
-
-        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan']))->assertJson(['success' => true]);
-        $this->put('logkegiatan/insert', $this->payload())->assertJson(['success' => true]);
-        $this->assertSame(1, PendataanPemilahanSampah::where('email', $user->email)->count());
-        $this->assertSame(1, Logkegiatan::where('email', $user->email)->count());
-    }
-
     public function test_daily_log_weight_max_is_inclusive_on_insert(): void
     {
         $user = $this->loginAs('mahasiswa');
@@ -496,17 +404,38 @@ class LogkegiatanTest extends TestCase
         $this->assertSame(1, PendataanPemilahanSampah::where('email', $user->email)->count());
     }
 
-    public function test_daily_log_update_is_throttled_at_30_per_minute(): void
+    public function test_mahasiswa_can_submit_more_than_five_logs_in_a_row_without_limit(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+
+        for ($i = 1; $i <= 8; $i++) {
+            $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan', 'nama_kepala_keluarga' => 'KK '.$i]))
+                ->assertOk()->assertJson(['success' => true])->assertJsonMissingPath('errors');
+            $this->put('logkegiatan/insert', $this->payload(['deskripsi' => '<p>Kegiatan '.$i.'</p>']))
+                ->assertOk()->assertJson(['success' => true])->assertJsonMissingPath('errors');
+        }
+
+        $this->assertSame(8, PendataanPemilahanSampah::where('email', $user->email)->count());
+        $this->assertSame(8, Logkegiatan::where('email', $user->email)->count());
+    }
+
+    public function test_daily_log_insert_and_update_are_not_throttled(): void
     {
         $user = $this->loginAs('mahasiswa');
         $own = Logkegiatan::factory()->create(['email' => $user->email, 'tanggal' => today()->subDay()->toDateString()]);
 
-        for ($i = 1; $i <= 30; $i++) {
+        for ($i = 1; $i <= 35; $i++) {
             $this->put('logkegiatan/update', $this->payload(['id_log' => $own->id_log, 'tanggal' => $own->tanggal, 'deskripsi' => '<p>Ubah '.$i.'</p>']))
                 ->assertOk();
         }
-        $this->put('logkegiatan/update', $this->payload(['id_log' => $own->id_log, 'tanggal' => $own->tanggal, 'deskripsi' => '<p>Ubah 31</p>']))
-            ->assertStatus(429);
-        $this->assertSame('<p>Ubah 30</p>', $own->fresh()->deskripsi);
+        $this->assertSame('<p>Ubah 35</p>', $own->fresh()->deskripsi);
+
+        $this->put('logkegiatan/insert', $this->payload(['deskripsi' => '<p>Setelah 35 update</p>']))
+            ->assertOk()->assertJson(['success' => true]);
+
+        // Validasi & kepemilikan tetap berlaku setelah hit berulang
+        $this->put('logkegiatan/insert', $this->payload(['mode' => 'tidak-valid']))->assertJsonValidationErrors('mode', 'errors');
+        $other = Logkegiatan::factory()->create(['email' => 'lain@pps.test', 'tanggal' => today()->subDay()->toDateString()]);
+        $this->put('logkegiatan/update', $this->payload(['id_log' => $other->id_log, 'tanggal' => $other->tanggal]))->assertNotFound();
     }
 }

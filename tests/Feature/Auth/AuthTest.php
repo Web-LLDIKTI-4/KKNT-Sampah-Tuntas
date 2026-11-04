@@ -118,4 +118,37 @@ class AuthTest extends TestCase
             ->assertJson(['success' => true]);
         $this->assertTrue(Hash::check('Baru12345', $user->fresh()->password));
     }
+
+    public function test_login_route_throttle_is_still_active(): void
+    {
+        $this->makeUser();
+
+        for ($i = 1; $i <= 30; $i++) {
+            $this->assertNotSame(429, $this->put('login', ['username' => 'x'.$i.'@pps.test', 'password' => 'salah'])->status());
+        }
+        $this->put('login', ['username' => 'admin@pps.test', 'password' => 'Rahasia123'])->assertStatus(429);
+        $this->assertGuest();
+    }
+
+    public function test_login_token_throttle_is_still_active(): void
+    {
+        for ($i = 1; $i <= 30; $i++) {
+            $this->getJson('login/token')->assertOk();
+        }
+        $this->getJson('login/token')->assertStatus(429);
+    }
+
+    public function test_password_change_throttle_is_still_active(): void
+    {
+        $user = $this->makeUser();
+        $this->actingAs($user);
+
+        for ($i = 1; $i <= 10; $i++) {
+            $this->put('setting/update', ['plama' => 'salah', 'pbaru' => 'Baru12345', 'pbaruulangi' => 'Baru12345'])
+                ->assertJsonPath('errors.plama.0', 'Kata sandi lama salah!');
+        }
+        $this->putJson('setting/update', ['plama' => 'Rahasia123', 'pbaru' => 'Baru12345', 'pbaruulangi' => 'Baru12345'])
+            ->assertStatus(429);
+        $this->assertTrue(Hash::check('Rahasia123', $user->fresh()->password));
+    }
 }

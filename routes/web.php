@@ -127,16 +127,16 @@ Route::middleware('auth')->group(function () {
     Route::get('profile/getPoto', [ProfileController::class, 'getPoto'])->name('profile.getPoto');
     Route::get('profile/uploadpoto', [ProfileController::class, 'uploadpoto'])->name('profile.uploadpoto');
     Route::put('profile/prosesuploadpoto', [ProfileController::class, 'prosesuploadpoto'])->middleware('throttle:sensitive');
-    Route::put('profile/update', [ProfileController::class, 'update'])->middleware('throttle:sensitive');
+    Route::put('profile/update', [ProfileController::class, 'update']);
 
     Route::get('mhsprofile', [MhsprofileController::class, 'index'])->name('mhsprofile');
     Route::get('mhsprofile/data', [MhsprofileController::class, 'data']);
     Route::get('mhsprofile/getPoto', [MhsprofileController::class, 'getPoto'])->name('mhsprofile.getPoto');
     Route::get('mhsprofile/uploadpoto', [MhsprofileController::class, 'uploadpoto'])->name('mhsprofile.uploadpoto');
     Route::put('mhsprofile/prosesuploadpoto', [MhsprofileController::class, 'prosesuploadpoto'])->middleware('throttle:sensitive');
-    Route::put('mhsprofile/update', [MhsprofileController::class, 'update'])->middleware('throttle:sensitive');
+    Route::put('mhsprofile/update', [MhsprofileController::class, 'update']);
     Route::get('mhsprofile/formlokasi', [MhsprofileController::class, 'formlokasi']);
-    Route::put('mhsprofile/setlokasi', [MhsprofileController::class, 'setlokasi'])->middleware('throttle:sensitive');
+    Route::put('mhsprofile/setlokasi', [MhsprofileController::class, 'setlokasi']);
 
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 });
@@ -174,7 +174,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('user/updateuserkepala', [UserController::class, 'updateuserkepala'])->middleware('throttle:sensitive');
     Route::get('user/export', [UserController::class, 'export'])->middleware('throttle:3,1')->name('user.export');
     Route::get('user/bulk-edit', [UserController::class, 'bulkEdit']);
-    Route::put('user/bulk-update', [UserController::class, 'bulkUpdate'])->middleware('throttle:sensitive');
+    Route::put('user/bulk-update', [UserController::class, 'bulkUpdate']);
     Route::put('user/bulk-destroy', [UserController::class, 'bulkDestroy'])->middleware('throttle:sensitive');
     Route::post('user/export-selected', [UserController::class, 'exportSelected'])->middleware('throttle:3,1')->name('user.export-selected');
 
@@ -185,9 +185,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('dpl/prosesimport', [DplController::class, 'prosesimport'])->middleware('throttle:sensitive');
     Route::put('dpl/destroy', [DplController::class, 'destroy'])->middleware('throttle:sensitive');
     Route::get('dpl/edit/{id}', [DplController::class, 'edit'])->whereUuid('id');
-    Route::put('dpl/update', [DplController::class, 'update'])->middleware('throttle:sensitive');
+    Route::put('dpl/update', [DplController::class, 'update']);
     Route::get('dpl/bulk-edit', [DplController::class, 'bulkEdit']);
-    Route::put('dpl/bulk-update', [DplController::class, 'bulkUpdate'])->middleware('throttle:sensitive');
+    Route::put('dpl/bulk-update', [DplController::class, 'bulkUpdate']);
     Route::put('dpl/bulk-destroy', [DplController::class, 'bulkDestroy'])->middleware('throttle:sensitive');
     Route::get('dpl/export', [DplController::class, 'export'])->middleware('throttle:3,1')->name('dpl.export');
     Route::post('dpl/export-selected', [DplController::class, 'exportSelected'])->middleware('throttle:3,1')->name('dpl.export-selected');
@@ -199,9 +199,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('mahasiswa/prosesimport', [MahasiswaController::class, 'prosesimport'])->middleware('throttle:sensitive');
     Route::put('mahasiswa/destroy', [MahasiswaController::class, 'destroy'])->middleware('throttle:sensitive');
     Route::get('mahasiswa/edit/{id}', [MahasiswaController::class, 'edit'])->whereUuid('id');
-    Route::put('mahasiswa/update', [MahasiswaController::class, 'update'])->middleware('throttle:sensitive');
+    Route::put('mahasiswa/update', [MahasiswaController::class, 'update']);
     Route::get('mahasiswa/bulk-edit', [MahasiswaController::class, 'bulkEdit']);
-    Route::put('mahasiswa/bulk-update', [MahasiswaController::class, 'bulkUpdate'])->middleware('throttle:sensitive');
+    Route::put('mahasiswa/bulk-update', [MahasiswaController::class, 'bulkUpdate']);
     Route::put('mahasiswa/bulk-destroy', [MahasiswaController::class, 'bulkDestroy'])->middleware('throttle:sensitive');
     Route::get('mahasiswa/export', [MahasiswaController::class, 'export'])->middleware('throttle:3,1')->name('mahasiswa.export');
     Route::post('mahasiswa/export-selected', [MahasiswaController::class, 'exportSelected'])->middleware('throttle:3,1')->name('mahasiswa.export-selected');
@@ -248,9 +248,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('panduan/listdata', [PanduanController::class, 'listdata'])->name('panduan.listdata');
     Route::get('panduan/listdataserver', [PanduanController::class, 'listdataserver'])->name('panduan.listdataserver');
     Route::get('panduan/tambah', [PanduanController::class, 'tambah']);
-    Route::put('panduan/insert', [PanduanController::class, 'insert'])->middleware('throttle:sensitive');
+    Route::put('panduan/insert', [PanduanController::class, 'insert']);
     Route::get('panduan/edit/{id_panduan}', [PanduanController::class, 'edit'])->whereUuid('id_panduan');
-    Route::put('panduan/update', [PanduanController::class, 'update'])->middleware('throttle:sensitive');
+    Route::put('panduan/update', [PanduanController::class, 'update']);
     Route::put('panduan/destroy', [PanduanController::class, 'destroy']);
     Route::get('panduan/download/{id_panduan}', [PanduanController::class, 'download'])->whereUuid('id_panduan')->name('panduan.download');
 
@@ -286,9 +286,9 @@ Route::middleware(['auth', 'can:viewAny,'.\App\Models\Faq::class])->group(functi
     Route::get('faq/listdata', [FaqController::class, 'listdata'])->name('faq.listdata');
     Route::get('faq/listdataserver', [FaqController::class, 'listdataserver'])->name('faq.listdataserver');
     Route::get('faq/tambah', [FaqController::class, 'tambah'])->name('faq.tambah');
-    Route::put('faq/insert', [FaqController::class, 'insert'])->middleware('throttle:sensitive')->name('faq.insert');
+    Route::put('faq/insert', [FaqController::class, 'insert'])->name('faq.insert');
     Route::get('faq/edit/{id}', [FaqController::class, 'edit'])->whereNumber('id')->name('faq.edit');
-    Route::put('faq/update', [FaqController::class, 'update'])->middleware('throttle:sensitive')->name('faq.update');
+    Route::put('faq/update', [FaqController::class, 'update'])->name('faq.update');
     Route::put('faq/destroy', [FaqController::class, 'destroy'])->middleware('throttle:sensitive')->name('faq.destroy');
 });
 
@@ -406,9 +406,9 @@ Route::middleware(['auth', 'role:admin,pt,kepala,pemda,dpl,mahasiswa', 'user.gua
     Route::get('rencanakerja/listdata', [RencanaKerjaController::class, 'listdata'])->name('rencanakerja.listdata');
     Route::get('rencanakerja/listdataserver', [RencanaKerjaController::class, 'listdataserver'])->name('rencanakerja.listdataserver');
     Route::get('rencanakerja/tambah', [RencanaKerjaController::class, 'tambah'])->name('rencanakerja.tambah');
-    Route::put('rencanakerja/insert', [RencanaKerjaController::class, 'insert'])->middleware('throttle:sensitive')->name('rencanakerja.insert');
+    Route::put('rencanakerja/insert', [RencanaKerjaController::class, 'insert'])->name('rencanakerja.insert');
     Route::get('rencanakerja/edit/{id_rencana_kerja}', [RencanaKerjaController::class, 'edit'])->whereUuid('id_rencana_kerja')->name('rencanakerja.edit');
-    Route::put('rencanakerja/update', [RencanaKerjaController::class, 'update'])->middleware('throttle:sensitive')->name('rencanakerja.update');
+    Route::put('rencanakerja/update', [RencanaKerjaController::class, 'update'])->name('rencanakerja.update');
     Route::put('rencanakerja/destroy', [RencanaKerjaController::class, 'destroy'])->middleware('throttle:sensitive')->name('rencanakerja.destroy');
     Route::get('rencanakerja/view/{id_rencana_kerja}', [RencanaKerjaController::class, 'view'])->whereUuid('id_rencana_kerja')->name('rencanakerja.view');
 });
@@ -419,16 +419,16 @@ Route::middleware(['auth', 'role:admin,pt,kepala,pemda,dpl,mahasiswa', 'user.gua
     Route::get('realisasikerja/listdata', [RealisasiKerjaController::class, 'listdata'])->name('realisasikerja.listdata');
     Route::get('realisasikerja/listdataserver', [RealisasiKerjaController::class, 'listdataserver'])->name('realisasikerja.listdataserver');
     Route::get('realisasikerja/tambah', [RealisasiKerjaController::class, 'tambah'])->name('realisasikerja.tambah');
-    Route::put('realisasikerja/insert', [RealisasiKerjaController::class, 'insert'])->middleware('throttle:sensitive')->name('realisasikerja.insert');
+    Route::put('realisasikerja/insert', [RealisasiKerjaController::class, 'insert'])->name('realisasikerja.insert');
     Route::get('realisasikerja/edit/{id_realisasi_kerja}', [RealisasiKerjaController::class, 'edit'])->whereUuid('id_realisasi_kerja')->name('realisasikerja.edit');
-    Route::put('realisasikerja/update', [RealisasiKerjaController::class, 'update'])->middleware('throttle:sensitive')->name('realisasikerja.update');
+    Route::put('realisasikerja/update', [RealisasiKerjaController::class, 'update'])->name('realisasikerja.update');
     Route::put('realisasikerja/destroy', [RealisasiKerjaController::class, 'destroy'])->middleware('throttle:sensitive')->name('realisasikerja.destroy');
     Route::get('realisasikerja/view/{id_realisasi_kerja}', [RealisasiKerjaController::class, 'view'])->whereUuid('id_realisasi_kerja')->name('realisasikerja.view');
 });
 
 // Pelaksanaan KKN: PT kelola miliknya (dicari dari email login, tanpa id dari klien); aksi dijaga PelaksanaanKknPolicy
 Route::middleware(['auth', 'role:pt'])->group(function () {
-    Route::put('pelaksanaankkn/simpan', [PelaksanaanKknController::class, 'simpan'])->middleware('throttle:sensitive')->name('pelaksanaankkn.simpan');
+    Route::put('pelaksanaankkn/simpan', [PelaksanaanKknController::class, 'simpan'])->name('pelaksanaankkn.simpan');
     Route::put('pelaksanaankkn/destroy', [PelaksanaanKknController::class, 'destroy'])->middleware('throttle:sensitive')->name('pelaksanaankkn.destroy');
 });
 
@@ -514,9 +514,9 @@ Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
     Route::get('logkegiatan/listdata', [LogkegiatanController::class, 'listdata'])->name('logkegiatan.listdata');
     Route::get('logkegiatan/listdataserver', [LogkegiatanController::class, 'listdataserver'])->name('logkegiatan.listdataserver');
     Route::get('logkegiatan/tambah', [LogkegiatanController::class, 'tambah']);
-    Route::put('logkegiatan/insert', [LogkegiatanController::class, 'insert'])->middleware('throttle:30,1');
+    Route::put('logkegiatan/insert', [LogkegiatanController::class, 'insert']);
     Route::get('logkegiatan/edit/{id_log}', [LogkegiatanController::class, 'edit']);
-    Route::put('logkegiatan/update', [LogkegiatanController::class, 'update'])->middleware('throttle:30,1');
+    Route::put('logkegiatan/update', [LogkegiatanController::class, 'update']);
     Route::put('logkegiatan/destroy', [LogkegiatanController::class, 'destroy']);
 });
 
@@ -525,9 +525,9 @@ Route::middleware(['auth', 'role:mahasiswa,pt', 'user.guard'])->group(function (
     Route::get('capaiankegiatan/listdata', [CapaianKegiatanController::class, 'listdata'])->name('capaiankegiatan.listdata');
     Route::get('capaiankegiatan/listdataserver', [CapaianKegiatanController::class, 'listdataserver'])->name('capaiankegiatan.listdataserver');
     Route::get('capaiankegiatan/tambah', [CapaianKegiatanController::class, 'tambah']);
-    Route::put('capaiankegiatan/insert', [CapaianKegiatanController::class, 'insert'])->middleware('throttle:sensitive');
+    Route::put('capaiankegiatan/insert', [CapaianKegiatanController::class, 'insert']);
     Route::get('capaiankegiatan/edit/{id_capaian}', [CapaianKegiatanController::class, 'edit']);
-    Route::put('capaiankegiatan/update', [CapaianKegiatanController::class, 'update'])->middleware('throttle:sensitive');
+    Route::put('capaiankegiatan/update', [CapaianKegiatanController::class, 'update']);
     Route::put('capaiankegiatan/destroy', [CapaianKegiatanController::class, 'destroy'])->middleware('throttle:sensitive');
     Route::get('capaiankegiatan/export', [CapaianKegiatanController::class, 'export'])->middleware('throttle:3,1');
 
@@ -566,7 +566,7 @@ Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
     // Route::get('pendataanpemilahan/tambah', [PendataanPemilahanSampahController::class, 'tambah']);
     // Route::put('pendataanpemilahan/insert', [PendataanPemilahanSampahController::class, 'insert']);
     Route::get('pendataanpemilahan/edit/{id_pendataan}', [PendataanPemilahanSampahController::class, 'edit']);
-    Route::put('pendataanpemilahan/update', [PendataanPemilahanSampahController::class, 'update'])->middleware('throttle:30,1');
+    Route::put('pendataanpemilahan/update', [PendataanPemilahanSampahController::class, 'update']);
     Route::put('pendataanpemilahan/destroy', [PendataanPemilahanSampahController::class, 'destroy']);
     Route::get('pendataanpemilahan/export', [PendataanPemilahanSampahController::class, 'export'])->middleware('throttle:3,1')->name('pendataanpemilahan.export');
 });
@@ -612,7 +612,7 @@ Route::middleware(['auth', 'role:pt'])->group(function () {
     Route::get('ptpjdesa/listdata', [PtpjdesaController::class, 'listdata'])->name('ptpjdesa.listdata');
     Route::get('ptpjdesa/listdataserver', [PtpjdesaController::class, 'listdataserver'])->name('ptpjdesa.listdataserver');
     Route::get('ptpjdesa/edit/{id_pjdesa}', [PtpjdesaController::class, 'edit'])->whereUuid('id_pjdesa')->name('ptpjdesa.edit');
-    Route::put('ptpjdesa/update', [PtpjdesaController::class, 'update'])->middleware('throttle:sensitive')->name('ptpjdesa.update');
+    Route::put('ptpjdesa/update', [PtpjdesaController::class, 'update'])->name('ptpjdesa.update');
     Route::put('ptmahasiswa/setketua', [PtmahasiswaController::class, 'setKetua'])->middleware('throttle:sensitive')->name('ptmahasiswa.setketua');
     Route::put('ptmahasiswa/cabutketua', [PtmahasiswaController::class, 'cabutKetua'])->middleware('throttle:sensitive')->name('ptmahasiswa.cabutketua');
 });

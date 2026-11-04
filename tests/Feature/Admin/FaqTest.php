@@ -291,18 +291,6 @@ class FaqTest extends TestCase
         $this->get('/')->assertOk()->assertDontSee('Versi dua?')->assertDontSee('id="faq"', false);
     }
 
-    public function test_write_routes_are_throttled_per_user(): void
-    {
-        $this->loginAs('admin');
-
-        for ($i = 0; $i < 10; $i++) {
-            $this->put('faq/insert', $this->payload())->assertOk();
-        }
-        $this->put('faq/insert', $this->payload())->assertStatus(429);
-
-        $this->assertDatabaseCount('faqs', 10);
-    }
-
     // Form dikirim POST + _method=PUT (multipart)
     private function submit(string $uri, array $data)
     {
@@ -575,5 +563,23 @@ class FaqTest extends TestCase
         $to = strpos($haystack, $end, $from);
 
         return substr($haystack, $from, $to === false ? null : $to - $from);
+    }
+
+    public function test_insert_and_update_are_not_throttled_and_do_not_consume_sensitive_bucket(): void
+    {
+        $this->loginAs('admin');
+
+        for ($i = 1; $i <= 15; $i++) {
+            $this->put('faq/insert', $this->payload(['pertanyaan' => 'Pertanyaan '.$i.'?']))->assertOk()->assertJson(['success' => true]);
+        }
+        $faq = Faq::firstOrFail();
+        for ($i = 1; $i <= 15; $i++) {
+            $this->put('faq/update', $this->payload(['id' => $faq->id, 'pertanyaan' => 'Ubah '.$i.'?']))->assertOk()->assertJson(['success' => true]);
+        }
+        $this->assertDatabaseCount('faqs', 15);
+        $this->assertSame('Ubah 15?', $faq->fresh()->pertanyaan);
+
+        // Destroy masih ber-throttle:sensitive, bucket-nya belum terpakai oleh insert/update
+        $this->put('faq/destroy', ['id' => $faq->id])->assertOk()->assertJson(['success' => true]);
     }
 }

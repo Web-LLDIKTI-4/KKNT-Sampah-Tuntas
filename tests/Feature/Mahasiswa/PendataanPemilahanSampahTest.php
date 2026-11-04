@@ -386,17 +386,21 @@ class PendataanPemilahanSampahTest extends TestCase
         $this->assertEquals($max, $data->fresh()->residu_kg);
     }
 
-    public function test_update_is_throttled_at_30_per_minute(): void
+    public function test_update_is_not_throttled(): void
     {
         $user = $this->loginAs('mahasiswa');
         $data = PendataanPemilahanSampah::factory()->create(['email' => $user->email, 'tanggal' => today()->toDateString()]);
 
-        for ($i = 1; $i <= 30; $i++) {
+        for ($i = 1; $i <= 35; $i++) {
             $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $data->id_pendataan, 'nama_kepala_keluarga' => 'KK '.$i]))
                 ->assertOk();
         }
-        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $data->id_pendataan, 'nama_kepala_keluarga' => 'KK 31']))
-            ->assertStatus(429);
-        $this->assertSame('KK 30', $data->fresh()->nama_kepala_keluarga);
+        $this->assertSame('KK 35', $data->fresh()->nama_kepala_keluarga);
+
+        // Validasi & kepemilikan tetap berlaku setelah hit berulang
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $data->id_pendataan, 'rt' => '1']))
+            ->assertJsonValidationErrors('rt', 'errors');
+        $other = PendataanPemilahanSampah::factory()->create(['email' => 'lain@pps.test', 'tanggal' => today()->toDateString()]);
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $other->id_pendataan]))->assertNotFound();
     }
 }
