@@ -79,6 +79,14 @@
                                             <span data-i18n="Pricing">Data Mahasiswa</span>
                                         </a>
                                     </li>
+                                    @can('manage', App\Models\Dplmentoring::class)
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('admmentoring.index') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i>
+                                            <span data-i18n="Pricing">Bimbingan Mahasiswa</span>
+                                        </a>
+                                    </li>
+                                    @endcan
                                     <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ url('user') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i>

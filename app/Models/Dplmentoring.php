@@ -17,6 +17,10 @@ class Dplmentoring extends Model
     {
         return $this->hasOne(Mahasiswa::class,'email','email_mahasiswa');
     }
+    public function dpl()
+    {
+        return $this->hasOne(Dpl::class, 'email', 'email_dpl');
+    }
     public function tugasakhir()
     {
         return $this->hasOne(Tugasakhir::class,'email','email_mahasiswa');

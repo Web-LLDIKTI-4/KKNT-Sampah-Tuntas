@@ -12,13 +12,13 @@ use App\Models\Logbulanan;
 use App\Models\Mahasiswa;
 use App\Models\Nilaikonversi;
 use App\Models\Satuanpendidikan;
+use App\Services\MentoringAssignmentService;
 use App\Support\ActionButtons;
 use App\Support\HtmlSanitizer;
 use App\Support\XlsxStreamer;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -141,18 +141,18 @@ class DplmentoringController extends Controller
             ->limit(1);
     }
 
-    public function tambah(Request $request)
+    public function tambah(Request $request, MentoringAssignmentService $service)
     {
         abort_unless($request->user()->role === 'dpl', 403);
         $kodept = $request->user()->dpl?->kodept;
         $data = $kodept
-            ? Mahasiswa::with(['sp', 'locationProgram'])->where('kodept', $kodept)->whereDoesntHave('dplmentoring')->get()
+            ? $service->candidates($kodept)->with(['sp', 'locationProgram'])->get()
             : collect();
 
         return view('mentoring.tambah', ['data' => $data, 'kodeptMissing' => ! $kodept]);
     }
 
-    public function insert(MentoringInsertRequest $request)
+    public function insert(MentoringInsertRequest $request, MentoringAssignmentService $service)
     {
         $emails = $request->validated('createuser');
 
@@ -162,21 +162,7 @@ class DplmentoringController extends Controller
             return response()->json(['error' => 'Lengkapi kampus di profil DPL terlebih dahulu']);
         }
 
-        $eligible = Mahasiswa::whereIn('email', $emails)
-            ->where('kodept', $kodept)
-            ->whereDoesntHave('dplmentoring')
-            ->pluck('email');
-
-        // Single atomic insert; duplicates skipped via unique email_mahasiswa
-        $now = now();
-        $rows = $eligible->map(fn ($email) => [
-            'id_mentoring' => (string) Str::uuid(),
-            'email_mahasiswa' => $email,
-            'email_dpl' => $request->user()->email,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ])->all();
-        $inserted = $rows ? Dplmentoring::insertOrIgnore($rows) : 0;
+        $inserted = $service->assign($request->user()->email, $kodept, $emails);
 
         return response()->json(['success' => $inserted.' mahasiswa berhasil ditambahkan']);
     }

@@ -34,6 +34,7 @@ use App\Http\Controllers\PendataanPemilahanSampahController;
 use App\Http\Controllers\AdmlogkegiatanController;
 use App\Http\Controllers\AdmlogkehadiranController;
 use App\Http\Controllers\AdmlogbulananController;
+use App\Http\Controllers\AdmmentoringController;
 
 use App\Http\Controllers\DplController;
 use App\Http\Controllers\DpllaporanController;
@@ -290,6 +291,17 @@ Route::middleware(['auth', 'can:viewAny,'.\App\Models\Faq::class])->group(functi
     Route::get('faq/edit/{id}', [FaqController::class, 'edit'])->whereNumber('id')->name('faq.edit');
     Route::put('faq/update', [FaqController::class, 'update'])->name('faq.update');
     Route::put('faq/destroy', [FaqController::class, 'destroy'])->middleware('throttle:sensitive')->name('faq.destroy');
+});
+
+// Admin mentoring: policy (403 untuk non-admin), sengaja di luar group role:admin yang me-redirect
+Route::middleware(['auth', 'can:manage,'.\App\Models\Dplmentoring::class])->group(function () {
+    Route::get('admmentoring', [AdmmentoringController::class, 'index'])->name('admmentoring.index');
+    Route::get('admmentoring/listdata', [AdmmentoringController::class, 'listdata'])->name('admmentoring.listdata');
+    Route::get('admmentoring/listdataserver', [AdmmentoringController::class, 'listdataserver'])->name('admmentoring.listdataserver');
+    Route::get('admmentoring/tambah', [AdmmentoringController::class, 'tambah'])->name('admmentoring.tambah');
+    Route::get('admmentoring/kandidat/{id_dpl}', [AdmmentoringController::class, 'kandidat'])->whereUuid('id_dpl')->name('admmentoring.kandidat');
+    Route::put('admmentoring/insert', [AdmmentoringController::class, 'insert'])->name('admmentoring.insert');
+    Route::put('admmentoring/destroy', [AdmmentoringController::class, 'destroy'])->middleware('throttle:sensitive')->name('admmentoring.destroy');
 });
 
 // Master wilayah: admin & pemda dapat mengelola kecamatan dan desa
