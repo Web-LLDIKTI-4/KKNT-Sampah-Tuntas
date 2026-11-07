@@ -166,6 +166,19 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col border-bottom">
+                        <div class="d-flex justify-content-between align-items-start pb-3 card-widget-2">
+                            <div>
+                            <p class="mb-1"><a href="{{ route('pendataanpemilahan.index') }}" class="text-body">Pendataan Sampah Penduduk</a></p>
+                            <h4 class="mb-1">{{ $jumlahpendataanpemilahan }} <span class="fs-5">Data</span></h4>
+                            </div>
+                            <div class="avatar me-lg-6">
+                            <span class="avatar-initial rounded text-heading">
+                                <i class="ri-recycle-line ri-26px"></i>
+                            </span>
+                            </div>
+                        </div>
+                    </div>
                     @if(Auth::user()->akses === "pjdesa")
                         <div class="col border-bottom">
                             <div class="d-flex justify-content-between align-items-start pb-3 card-widget-2">

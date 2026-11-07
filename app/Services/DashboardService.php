@@ -12,6 +12,7 @@ use App\Models\Logkegiatan;
 use App\Models\Mahasiswa;
 use App\Models\Nilaikonversi;
 use App\Models\PelaksanaanKkn;
+use App\Models\PendataanPemilahanSampah;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -35,6 +36,8 @@ class DashboardService
             'jumlahlogbulanan' => Logbulanan::where('email', $email)->distinct()->count('bulan'),
             'jumlahlogkegiatan' => Logkegiatan::where('email', $email)->whereNotNull('deskripsi')->distinct()->count('tanggal'),
             'kehadiran' => Kehadiran::where('email', $email)->whereDate('tanggal', today())->first(),
+            // Jumlah entri per jenis pendataan; scope sama dengan listdataserver modulnya
+            'jumlahpendataanpemilahan' => PendataanPemilahanSampah::ownedBy($user)->count(),
         ] + $this->common();
     }
 
