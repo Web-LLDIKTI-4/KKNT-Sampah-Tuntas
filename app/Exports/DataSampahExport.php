@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Services\PenguranganSampahService;
+use App\Support\UnbufferedCursor;
 use App\Support\XlsxStreamer;
 use Generator;
 use Illuminate\Support\Carbon;
@@ -10,7 +11,7 @@ use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Data Sampah detail per log (stream, lazy chunk): judul Lokasi Program, baris log,
+ * Data Sampah detail per log (stream satu pass, UnbufferedCursor): judul Lokasi Program, baris log,
  * Subtotal Minggu (PEMDA), Subtotal Bulan, Total Lokasi. Subtotal dari dataSampahSubtotal() (cache).
  * Filter sudah di-scope controller (PT dikunci kodept).
  */
@@ -52,7 +53,7 @@ class DataSampahExport
         $lokasi = $bulan = $minggu = null;
         $idLokasi = $kodeBulan = $noMinggu = null;
 
-        foreach ($this->sampah->dataSampahQuery($this->filter)->lazy(1000) as $r) {
+        foreach (UnbufferedCursor::each($this->sampah->dataSampahQuery($this->filter)) as $r) {
             if ($idLokasi === null || $idLokasi !== (string) $r->lokasi_id) {
                 yield from $this->tutup($lokasi, $bulan, $minggu);
                 $idLokasi = (string) $r->lokasi_id;

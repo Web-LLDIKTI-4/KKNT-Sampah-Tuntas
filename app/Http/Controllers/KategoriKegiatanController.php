@@ -101,7 +101,7 @@ class KategoriKegiatanController extends Controller
     public function export(Request $request)
     {
         $this->sanitizeDataTablesInput();
-        $rows = $this->dataTablesExportQuery($this->table(), 'kategori_kegiatan.id_kategori')->lazy(1000);
+        $rows = $this->dataTablesExportQuery($this->table(), 'kategori_kegiatan.id_kategori')->lazy(self::EXPORT_CHUNK);
 
         return (new XlsxStreamer('Data Kategori Kegiatan', [
             XlsxStreamer::column('Kategori Kegiatan', 'nama_kategori', 50),

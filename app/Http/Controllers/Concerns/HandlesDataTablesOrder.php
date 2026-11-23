@@ -18,6 +18,9 @@ use Yajra\DataTables\QueryDataTable;
 
 trait HandlesDataTablesOrder
 {
+    // Rows per lazy() chunk for table exports: fewer re-runs of the OFFSET query, memory grows linearly per chunk
+    protected const EXPORT_CHUNK = 5000;
+
     protected int $maxDataTablesColumns = 50;
 
     protected int $maxDataTablesSearchLength = 100;

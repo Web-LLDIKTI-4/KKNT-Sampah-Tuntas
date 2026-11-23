@@ -59,7 +59,7 @@ class PelaksanaanKknController extends Controller
     {
         Gate::authorize('viewAny', PelaksanaanKkn::class);
         $this->sanitizeDataTablesInput();
-        $rows = $this->dataTablesExportQuery($this->table(), 'kodept')->lazy(1000);
+        $rows = $this->dataTablesExportQuery($this->table(), 'kodept')->lazy(self::EXPORT_CHUNK);
 
         return (new PelaksanaanKknExport($rows, $sebaran->lokasiPerPt(), $request->input('search.value')))
             ->download('pelaksanaan_kkn_'.date('Y-m-d_H-i-s').'.xlsx');

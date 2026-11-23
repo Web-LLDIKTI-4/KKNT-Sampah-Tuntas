@@ -45,7 +45,7 @@ class AdmlogkegiatanController extends StudentLogReportController
     protected function exportFor(string $email)
     {
         $this->sanitizeDataTablesInput();
-        $rows = $this->dataTablesExportQuery($this->detailTable($email), 'logkegiatan.id_log')->lazy(1000);
+        $rows = $this->dataTablesExportQuery($this->detailTable($email), 'logkegiatan.id_log')->lazy(self::EXPORT_CHUNK);
 
         return (new XlsxStreamer('Log Aktivitas Mahasiswa', [
             XlsxStreamer::column('Tanggal', 'tanggal', 12, 'date'),

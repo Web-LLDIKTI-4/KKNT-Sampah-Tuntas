@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\Mahasiswa;
 use App\Models\User;
+use App\Support\UnbufferedCursor;
 use App\Support\XlsxStreamer;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
@@ -28,19 +29,19 @@ class LogKehadiranLengkapExport
                 $q->whereBetween('k.tanggal', [$awal->toDateString(), $awal->copy()->endOfMonth()->toDateString()]);
             })
             ->orderBy('k.tanggal')->orderBy('m.nama')->orderBy('k.id_kehadiran')
-            // Joined PKs keep lazy() paging stable when legacy joins duplicate a row
+            // Joined PKs keep the order deterministic when legacy joins duplicate a row
             ->orderBy('m.id_mahasiswa')->orderBy('sp.id_sp')
             ->select('k.email', 'k.tanggal', 'k.status_kehadiran', 'k.waktu_masuk', 'k.waktu_pulang', 'm.nama', 'm.nim', 'm.phone', 'sp.nm_lemb');
     }
 
     public function download(string $filename): StreamedResponse
     {
-        return $this->streamer()->download($filename, $this->query()->lazy(1000));
+        return $this->streamer()->download($filename, UnbufferedCursor::each($this->query()));
     }
 
     public function writeTo(string $path): void
     {
-        $this->streamer()->writeTo($path, $this->query()->lazy(1000));
+        $this->streamer()->writeTo($path, UnbufferedCursor::each($this->query()));
     }
 
     private function streamer(): XlsxStreamer

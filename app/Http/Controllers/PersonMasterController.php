@@ -74,7 +74,7 @@ abstract class PersonMasterController extends Controller
         $model = new ($this->model());
         $query = $this->dataTablesExportQuery($this->table(), $model->getTable().'.'.$model->getKeyName());
 
-        return $this->makeExport()->downloadTable($query->lazy(1000), $this->viewPrefix().'_'.date('Y-m-d_H-i-s').'.xlsx', ['Kata kunci' => $params['q'] ?? null]);
+        return $this->makeExport()->downloadTable($query->lazy(self::EXPORT_CHUNK), $this->viewPrefix().'_'.date('Y-m-d_H-i-s').'.xlsx', ['Kata kunci' => $params['q'] ?? null]);
     }
 
     protected function whitelistColumns(): array

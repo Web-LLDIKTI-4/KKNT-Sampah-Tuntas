@@ -42,6 +42,7 @@ class PenguranganSampahService
 
         return $pilihan ?? $pj->id_desa;
     }
+
     // Persentase & pengurangan selalu dihitung server, nilai dari klien diabaikan
     public static function hitung(array $data): array
     {
@@ -319,17 +320,17 @@ class PenguranganSampahService
             ->map(fn (Collection $rows, $lokasi) => (object) [
                 'id_lokasi' => $lokasi,
                 'nama_lokasi' => $namaLokasi[$lokasi] ?? 'Tanpa Lokasi Program',
-                'kecamatan' => $rows->unique('id_kecamatan')->sortBy('kecamatan')->map(fn ($r) => (object) [
+                'kecamatan' => $this->sortByCapaian($rows->unique('id_kecamatan')->map(fn ($r) => (object) [
                     'id_kecamatan' => $r->id_kecamatan,
                     'kecamatan' => $r->kecamatan,
                     'persen' => $persenKecamatan[$r->id_kecamatan]->persen_pengurangan ?? null,
-                ])->values(),
+                ]), 'kecamatan'),
             ])
-            ->sortBy('nama_lokasi')->values();
+            ->values();
 
         $dataDesa = $idDesa ? $penempatan->where('id_desa', $idDesa) : collect();
         $kelurahan = $idKecamatan
-            ? $penempatan->where('id_kecamatan', $idKecamatan)->unique('id_desa')->sortBy('desa')
+            ? $this->sortByCapaian($penempatan->where('id_kecamatan', $idKecamatan)->unique('id_desa')
                 ->map(fn ($r) => (object) [
                     'id_desa' => $r->id_desa,
                     'desa' => $r->desa,
@@ -338,7 +339,7 @@ class PenguranganSampahService
                     'persen' => $persenDesa[$r->id_desa]->persen_pengurangan ?? null,
                     'persen_ketaatan' => $persenDesa[$r->id_desa]->persen_ketaatan ?? null,
                     'persen_pengelolaan' => $persenDesa[$r->id_desa]->persen_pengelolaan ?? null,
-                ])->values()
+                ]), 'desa')
             : collect();
 
         return [
@@ -377,7 +378,8 @@ class PenguranganSampahService
         $data['params']['klaster'] = $klaster;
         $data['total_keseluruhan'] = $data['total'];
 
-        $data['kecamatan'] = $data['kecamatan']->map(function ($lokasi) use ($persenLokasi, $cocok) {
+        // Persen grup lokasi baru ada di sini, jadi urutan grup ditetapkan setelah diisi; filter klaster menjaga urutan
+        $data['kecamatan'] = $this->sortByCapaian($data['kecamatan']->map(function ($lokasi) use ($persenLokasi, $cocok) {
             $lokasi->persen = $persenLokasi[$lokasi->id_lokasi]->persen_pengurangan ?? null;
             $lokasi->klaster = PenguranganSampah::klaster($lokasi->persen);
             $lokasi->kecamatan = $lokasi->kecamatan
@@ -385,7 +387,7 @@ class PenguranganSampahService
                 ->filter(fn ($r) => $cocok($r->klaster))->values();
 
             return $lokasi;
-        })->filter(fn ($lokasi) => $lokasi->kecamatan->isNotEmpty())->values();
+        }), 'nama_lokasi')->filter(fn ($lokasi) => $lokasi->kecamatan->isNotEmpty())->values();
 
         $data['kelurahan'] = $data['kelurahan']
             ->each(fn ($r) => $r->klaster = PenguranganSampah::klaster($r->persen))
@@ -403,7 +405,7 @@ class PenguranganSampahService
         $phone = $emailKetua->isEmpty() ? collect()
             : DB::table('mahasiswa')->whereIn('email', $emailKetua)->whereNotNull('phone')->pluck('phone', 'email');
 
-        $data['kelompok'] = $data['kelompok']
+        $data['kelompok'] = $this->sortByCapaian($data['kelompok'], 'nama_pt', 'persen_pt')
             // Hanya kolom yang dirender partial publik (tanpa email/nama_ketua) sebelum di-cache
             ->map(fn ($r) => (object) [
                 'kodept' => $r->kodept,
@@ -458,13 +460,14 @@ class PenguranganSampahService
         $klaster = $data['params']['klaster'];
         $persenDesa = $bulan ? $this->totalPer('desa', ['bulan' => $bulan]) : collect();
 
-        $kelurahan = $this->penempatanData(null)
-            ->unique(fn ($r) => $r->location_program.'|'.$r->id_desa)->sortBy('desa')
+        // Urutan sama dengan tabel kelurahan di layar (sortByCapaian); groupBy menjaga urutan dalam grup
+        $kelurahan = $this->sortByCapaian($this->penempatanData(null)
+            ->unique(fn ($r) => $r->location_program.'|'.$r->id_desa)
             ->map(function ($r) use ($persenDesa) {
                 $persen = $persenDesa[$r->id_desa]->persen_pengurangan ?? null;
 
                 return (object) ['kunci' => $r->location_program.'|'.$r->id_kecamatan, 'desa' => $r->desa, 'persen' => $persen, 'klaster' => PenguranganSampah::klaster($persen)];
-            })
+            }), 'desa')
             ->filter(fn ($r) => ! $klaster || $r->klaster === $klaster)
             ->groupBy('kunci');
 
@@ -562,8 +565,18 @@ class PenguranganSampahService
                 'persen' => $persen,
                 'capaian' => $capaian->whereIn('email', $rows->pluck('email')->all())->values(),
             ];
-        })->sortBy('nama_pt')->values();
+        })->values();
     }
+
+    // Urutan default tabel capaian: persen tertinggi dulu, persen null di akhir, seri → nama (natural, case-insensitive)
+    private function sortByCapaian(Collection $rows, string $nameKey, string $persenKey = 'persen'): Collection
+    {
+        return $rows->sort(fn ($a, $b) => ($a->{$persenKey} === null) <=> ($b->{$persenKey} === null)
+            ?: $b->{$persenKey} <=> $a->{$persenKey}
+            ?: strnatcasecmp((string) $a->{$nameKey}, (string) $b->{$nameKey})
+        )->values();
+    }
+
     // Satu baris per log: bulan (Y-m-01), kelurahan mahasiswa, kunci rumah (kelurahan|bulan|alamat)
     private function query(array $filter): Builder
     {

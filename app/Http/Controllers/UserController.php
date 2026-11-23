@@ -333,7 +333,7 @@ class UserController extends Controller
         $filters['q'] = $this->limitDataTablesSearch($filters['q'] ?? null);
         $export = new UserExport($filters);
         // Always all filtered rows, streamed in chunks (page/length ignored)
-        $rows = $export->orderedQuery()->lazy(1000);
+        $rows = $export->orderedQuery()->lazy(self::EXPORT_CHUNK);
 
         return response()->streamDownload(fn () => $export->writeTo('php://output', $rows), 'users_'.date('Y-m-d_H-i-s').'.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

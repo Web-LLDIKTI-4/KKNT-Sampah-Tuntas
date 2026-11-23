@@ -81,7 +81,7 @@ class DplmentoringController extends Controller
             ->addSelect(['avg_nilai_bulanan' => Logbulanan::selectRaw('avg(nilai)')
                 ->whereColumn('logkegiatan_bulanan.email', 'dpl_mentoring.email_mahasiswa')
                 ->whereIn('nilai', PenilaianLogbulananRequest::PILIHAN_NILAI)])
-            ->lazy(1000);
+            ->lazy(self::EXPORT_CHUNK);
         $status = ['belum' => 'Belum set', 'sudah' => 'Sudah set'][$request->query('lokasi_status')] ?? null;
 
         return (new XlsxStreamer('Data Mahasiswa Bimbingan', [

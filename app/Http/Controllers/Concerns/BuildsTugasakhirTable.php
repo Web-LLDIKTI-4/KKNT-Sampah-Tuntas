@@ -65,7 +65,7 @@ trait BuildsTugasakhirTable
             XlsxStreamer::column('Nilai', 'nilai_dpl', 8, 'number'),
         ]))
             ->info(['Kata kunci' => $request->input('search.value')])
-            ->download($filename, $query->lazy(1000));
+            ->download($filename, $query->lazy(self::EXPORT_CHUNK));
     }
 
     // Deterministic single-row lookup of a mahasiswa column for ordering

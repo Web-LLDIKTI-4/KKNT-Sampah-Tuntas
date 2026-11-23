@@ -75,7 +75,7 @@ class LapcapaiankegiatanController extends Controller
             XlsxStreamer::column('Tautan', 'tautan', 30),
         ]))
             ->info(['Kata kunci' => $request->input('search.value')])
-            ->download('evaluasi_pendataan_sampah_'.date('Y-m-d_H-i-s').'.xlsx', $query->lazy(1000));
+            ->download('evaluasi_pendataan_sampah_'.date('Y-m-d_H-i-s').'.xlsx', $query->lazy(self::EXPORT_CHUNK));
     }
 
     // Call after sanitizeDataTablesInput(); scope, search & order shared by list and export

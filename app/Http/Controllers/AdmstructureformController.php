@@ -62,7 +62,7 @@ class AdmstructureformController extends Controller
             XlsxStreamer::column('Nilai Akhir', fn ($row) => self::nilaiAkhir($row), 11),
         ]))
             ->info(['Kata kunci' => $request->input('search.value')])
-            ->download('structure_form_'.date('Y-m-d_H-i-s').'.xlsx', $query->lazy(1000));
+            ->download('structure_form_'.date('Y-m-d_H-i-s').'.xlsx', $query->lazy(self::EXPORT_CHUNK));
     }
 
     // Shared by list & export so filter/search/order are identical

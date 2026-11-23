@@ -226,10 +226,11 @@ class CapaianPublikTest extends TestCase
         $fmt = fn ($p) => PenguranganSampah::formatPersen($p).'</td>';
         $header = ['Kelurahan/Desa<i class="ri-arrow-up-down-line"', 'Baseline</th>', '>Ketaatan Pemilahan (%)<i class="ri-arrow-up-down-line"',
             '>Pengelolaan Sampah (%)<i class="ri-arrow-up-down-line"', '>Penurunan Timbulan Sampah (%)<i class="ri-arrow-up-down-line"', 'Klaster<i class="ri-arrow-up-down-line"'];
+        // Urut default: persen penurunan tertinggi dulu, persen null di akhir
         $baris = [
-            'Desa Bulan Lain</a>', '-</td>', '-</td>', '-</td>', '-</td>', '- </td>',
             'Desa Nol</a>', '-</td>', '100,00%</td>', '-</td>', $fmt($kel['Desa Nol']->persen),
             'Desa Taat</a>', '-</td>', '66,67%</td>', '28,57%</td>', $fmt($kel['Desa Taat']->persen),
+            'Desa Bulan Lain</a>', '-</td>', '-</td>', '-</td>', '-</td>', '- </td>',
         ];
 
         $cek = function ($res) use ($header, $baris) {
@@ -409,14 +410,14 @@ class CapaianPublikTest extends TestCase
 
         $sheet = new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan]));
         $rows = $sheet->array();
-        // Lokasi (urut nama) -> kecamatan -> kelurahan; 1 baris kosong hanya antar lokasi; persen pecahan, klaster >= 20 hijau, < 0 merah
+        // Lokasi (urut persen tertinggi) -> kecamatan -> kelurahan; 1 baris kosong hanya antar lokasi; persen pecahan, klaster >= 20 hijau, < 0 merah
         $this->assertSame(['Nama', 'Pengurangan Timbulan Sampah (%)', 'Klaster'], $rows[1]);
         $this->assertSame([
-            ['Kabupaten Beta', 0.05, 'Kuning'], ['Kec Beta', 0.05, 'Kuning'], ['Desa Dua', 0.05, 'Kuning'], [null, null, null],
             ['Kota Alfa', 0.2, 'Hijau'], ['Kec Alfa', 0.2, 'Hijau'],
-            ['Desa Satu', 0.25, 'Hijau'], ['Desa Tiga', 0.15, 'Kuning'],
+            ['Desa Satu', 0.25, 'Hijau'], ['Desa Tiga', 0.15, 'Kuning'], [null, null, null],
+            ['Kabupaten Beta', 0.05, 'Kuning'], ['Kec Beta', 0.05, 'Kuning'], ['Desa Dua', 0.05, 'Kuning'],
         ], array_slice($rows, 2));
-        $this->assertSame([3 => 'lokasi', 4 => 'kecamatan', 7 => 'lokasi', 8 => 'kecamatan'], $sheet->jenisBaris());
+        $this->assertSame([3 => 'lokasi', 4 => 'kecamatan', 8 => 'lokasi', 9 => 'kecamatan'], $sheet->jenisBaris());
         $this->wilayahMinus();
 
         // Fill warna di file xlsx asli
@@ -432,8 +433,8 @@ class CapaianPublikTest extends TestCase
         $this->assertSame('FFFF00', $ws->getStyle('A4')->getFill()->getStartColor()->getRGB());
         $this->assertNotSame('FFFFFF', $ws->getStyle('A4')->getFont()->getColor()->getRGB());
         $this->assertSame(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_NONE, $ws->getStyle('A5')->getFill()->getFillType());
-        $this->assertSame(PenguranganSampah::KLASTER['kuning']['rgb'], $ws->getStyle('C5')->getFill()->getStartColor()->getRGB());
-        $this->assertSame(PenguranganSampah::KLASTER['hijau']['rgb'], $ws->getStyle('C9')->getFill()->getStartColor()->getRGB());
+        $this->assertSame(PenguranganSampah::KLASTER['hijau']['rgb'], $ws->getStyle('C5')->getFill()->getStartColor()->getRGB());
+        $this->assertSame(PenguranganSampah::KLASTER['kuning']['rgb'], $ws->getStyle('C6')->getFill()->getStartColor()->getRGB());
         $this->assertSame(PenguranganSampah::KLASTER['kuning']['rgb'], $ws->getStyle('C10')->getFill()->getStartColor()->getRGB());
         // Lokasi Minus (-10%) setelah sekat: baris 12 lokasi, 13 kecamatan, 14 kelurahan merah
         $this->assertSame(['Desa Minus', -0.1, 'Merah'], [$ws->getCell('A14')->getValue(), $ws->getCell('B14')->getValue(), $ws->getCell('C14')->getValue()]);
@@ -448,9 +449,9 @@ class CapaianPublikTest extends TestCase
         $this->assertSame('-', $wsTanpa->getCell('C5')->getValue());
         $this->assertSame(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_NONE, $wsTanpa->getStyle('C5')->getFill()->getFillType());
         $this->assertSame('0.00%', $ws->getStyle('B5')->getNumberFormat()->getFormatCode());
-        // Baris sekat antar lokasi (6): merge A:C, tanpa border
-        $this->assertContains('A6:C6', array_values($ws->getMergeCells()));
-        foreach (['A6', 'B6', 'C6'] as $sel) {
+        // Baris sekat antar lokasi (7): merge A:C, tanpa border
+        $this->assertContains('A7:C7', array_values($ws->getMergeCells()));
+        foreach (['A7', 'B7', 'C7'] as $sel) {
             $b = $ws->getStyle($sel)->getBorders();
             foreach ([$b->getTop(), $b->getBottom(), $b->getLeft(), $b->getRight()] as $sisi) {
                 $this->assertSame(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_NONE, $sisi->getBorderStyle(), $sel);
@@ -827,7 +828,7 @@ class CapaianPublikTest extends TestCase
         $merahLagi = $sampah->drilldownPublik(['kodept' => $this->d['pt_merah']->npsn] + $f);
 
         $this->assertSame(['Kabupaten Beta'], $merah['kecamatan']->pluck('nama_lokasi')->all());
-        $this->assertSame(['Kabupaten Beta', 'Kota Alfa'], $semua['kecamatan']->pluck('nama_lokasi')->all());
+        $this->assertSame(['Kota Alfa', 'Kabupaten Beta'], $semua['kecamatan']->pluck('nama_lokasi')->all());
         $this->assertSame(['Kabupaten Beta'], $merahLagi['kecamatan']->pluck('nama_lokasi')->all());
         // capaianProgram setelah filter PT tetap semua kelurahan
         $this->assertCount(3, $sampah->capaianProgram(['bulan' => null])['kelurahan']->flatten());
@@ -1048,6 +1049,101 @@ class CapaianPublikTest extends TestCase
             $this->assertCount(1, $rows, $query);
             $this->assertTrue($rows[0]->hasAttribute('data-sort-fixed'), "Baris empty-state harus data-sort-fixed: {$query}");
         }
+    }
+
+    /**
+     * Fixture urutan default (persen DESC, null akhir, seri -> nama natural case-insensitive); urutan nama selalu berbeda.
+     * Lokasi Zeta (36,67%) di atas Kota Alfa (20%) & Kabupaten Beta (5%).
+     * Kec Zulu 42% > Kec Able 10% > Kec Aaa (hanya data bulan lain, null).
+     * Kec Zulu: Desa Zenit 50% > Desa 2 = desa 10 = 30% (seri) > Desa Akhir (null).
+     * PTS Desa Zenit: Univ Z 90% > Univ 9 = univ 10 = 30% (seri) > Univ Kosong (ketua tanpa data, null).
+     */
+    private function wilayahUrutan(): void
+    {
+        $lain = now()->subMonths(2)->format('Y-m');
+        $this->d['lokasiZ'] = $lokasi = LokasiProgram::factory()->create(['nama_lokasi' => 'Lokasi Zeta', 'koefisien_timbulan_sampah' => 1]);
+        foreach (['kecZulu' => 'Kec Zulu', 'kecAble' => 'Kec Able', 'kecAaa' => 'Kec Aaa'] as $key => $nama) {
+            $this->d[$key] = Kecamatan::factory()->create(['kecamatan' => $nama]);
+        }
+        $desa = fn (string $kec, string $nama) => Desa::factory()->create(['id_kecamatan' => $this->d[$kec]->id_kecamatan, 'desa' => $nama]);
+        $this->d['desaZenit'] = $desa('kecZulu', 'Desa Zenit');
+
+        $this->ketua('z', 'Univ Z', $lokasi, $this->d['desaZenit'], 90);
+        $this->ketua('n10', 'univ 10', $lokasi, $this->d['desaZenit'], 30);
+        $this->ketua('n9', 'Univ 9', $lokasi, $this->d['desaZenit'], 30);
+        $this->ketua('zkosong', 'Univ Kosong', $lokasi, $this->d['desaZenit'], null);
+
+        $pt = Satuanpendidikan::factory()->create(['nm_lemb' => 'Univ Urut']);
+        $this->pengisi($pt, $lokasi, $desa('kecZulu', 'desa 10'), $this->bulan, 30);
+        $this->pengisi($pt, $lokasi, $desa('kecZulu', 'Desa 2'), $this->bulan, 30);
+        $this->pengisi($pt, $lokasi, $desa('kecZulu', 'Desa Akhir'), $lain, 80);
+        $this->pengisi($pt, $lokasi, $desa('kecAble', 'Desa Able'), $this->bulan, 10);
+        $this->pengisi($pt, $lokasi, $desa('kecAaa', 'Desa Lama'), $lain, 70);
+    }
+
+    public function test_capaian_lokasi_and_kecamatan_default_order_by_persen_desc_null_last(): void
+    {
+        $this->wilayahUrutan();
+        $lokasi = $this->publik()['kecamatan'];
+
+        $this->assertSame(['Lokasi Zeta', 'Kota Alfa', 'Kabupaten Beta'], $lokasi->pluck('nama_lokasi')->all());
+        $this->assertEqualsWithDelta(36.67, $lokasi[0]->persen, 0.01);
+        $zeta = $lokasi[0]->kecamatan;
+        $this->assertSame(['Kec Zulu', 'Kec Able', 'Kec Aaa'], $zeta->pluck('kecamatan')->all());
+        $this->assertEquals([42.0, 10.0], $zeta->take(2)->pluck('persen')->map(fn ($p) => round((float) $p, 2))->all());
+        $this->assertNull($zeta[2]->persen);
+
+        // Urutan render sama (header grup lokasi = th, baris kecamatan = td[2])
+        $xpath = $this->xpathOf($this->get('login/laporan')->assertOk()->getContent());
+        $tabel = $this->findTable($xpath, self::SORT_KECAMATAN);
+        $render = array_map(fn ($tr) => $xpath->evaluate('normalize-space((./th[1]|./td[2])[1])', $tr), $this->bodyRows($xpath, $tabel));
+        $this->assertSame(['Lokasi Zeta', 'Kec Zulu', 'Kec Able', 'Kec Aaa', 'Kota Alfa', 'Kec Alfa', 'Kabupaten Beta', 'Kec Beta'], $render);
+    }
+
+    public function test_capaian_kelurahan_default_order_tie_by_natural_case_insensitive_name_and_null_last(): void
+    {
+        $this->wilayahUrutan();
+        $kelurahan = $this->publik(['id_kecamatan' => $this->d['kecZulu']->id_kecamatan])['kelurahan'];
+
+        // strcmp: Desa 2 < Desa Akhir < Desa Zenit < desa 10; strcasecmp: desa 10 < Desa 2
+        $this->assertSame(['Desa Zenit', 'Desa 2', 'desa 10', 'Desa Akhir'], $kelurahan->pluck('desa')->all());
+        $this->assertEquals([50.0, 30.0, 30.0], $kelurahan->take(3)->pluck('persen')->map(fn ($p) => round((float) $p, 2))->all());
+        $this->assertNull($kelurahan[3]->persen);
+
+        $xpath = $this->xpathOf($this->get('login/laporan?kecamatan='.$this->d['kecZulu']->id_kecamatan)->assertOk()->getContent());
+        $tabel = $this->findTable($xpath, self::SORT_KELURAHAN);
+        $render = array_map(fn ($tr) => $xpath->evaluate('normalize-space(./td[2])', $tr), $this->bodyRows($xpath, $tabel, '[td[1][@data-sort-no]]'));
+        $this->assertSame(['Desa Zenit', 'Desa 2', 'desa 10', 'Desa Akhir'], $render);
+    }
+
+    public function test_capaian_pts_default_order_by_persen_pt_tie_by_name_and_null_last(): void
+    {
+        $this->wilayahUrutan();
+        $kelompok = $this->publik(['id_kecamatan' => $this->d['kecZulu']->id_kecamatan, 'id_desa' => $this->d['desaZenit']->id_desa])['kelompok'];
+
+        $this->assertSame(['Univ Z', 'Univ 9', 'univ 10', 'Univ Kosong'], $kelompok->pluck('nama_pt')->all());
+        $this->assertEquals([90.0, 30.0, 30.0], $kelompok->take(3)->pluck('persen_pt')->map(fn ($p) => round((float) $p, 2))->all());
+        $this->assertNull($kelompok[3]->persen_pt);
+
+        $xpath = $this->xpathOf($this->get('login/laporan?kecamatan='.$this->d['kecZulu']->id_kecamatan.'&desa='.$this->d['desaZenit']->id_desa)->assertOk()->getContent());
+        $tabel = $this->findTable($xpath, self::SORT_PTS);
+        $render = array_map(fn ($tr) => $xpath->evaluate('normalize-space(./td[2])', $tr), $this->bodyRows($xpath, $tabel, '[not(@data-sort-follow)]'));
+        $this->assertSame(['Univ Z', 'Univ 9', 'univ 10', 'Univ Kosong'], $render);
+    }
+
+    public function test_export_capaian_program_rows_follow_capaian_default_order(): void
+    {
+        $this->wilayahUrutan();
+        $rows = (new CapaianProgramSheet(app(PenguranganSampahService::class)->capaianProgram(['bulan' => $this->bulan])))->array();
+
+        $this->assertSame([
+            'Lokasi Zeta', 'Kec Zulu', 'Desa Zenit', 'Desa 2', 'desa 10', 'Desa Akhir', 'Kec Able', 'Desa Able', 'Kec Aaa', 'Desa Lama', null,
+            'Kota Alfa', 'Kec Alfa', 'Desa Satu', 'Desa Tiga', null,
+            'Kabupaten Beta', 'Kec Beta', 'Desa Dua',
+        ], array_column(array_slice($rows, 2), 0));
+        $baris = collect(array_slice($rows, 2))->filter(fn ($r) => $r[0])->keyBy(0);
+        $this->assertSame(['Desa Akhir', '-', '-'], $baris['Desa Akhir']);
+        $this->assertSame(['Kec Aaa', '-', '-'], $baris['Kec Aaa']);
     }
 
     public function test_public_export_writes_formula_like_names_as_text(): void
