@@ -395,16 +395,18 @@
 
       var renderPesertaDetail = function () {
         var keyword = String($detailSearch.val() || "").toLowerCase().trim();
-        var limit = parseInt($detailLimit.val(), 10) || 10;
+        // 0 = semua data
+        var limit = parseInt($detailLimit.val(), 10) || 0;
         var total = detailRows.length;
         var matched = keyword === "" ? detailRows : detailRows.filter(function (row) {
           return row.search.indexOf(keyword) !== -1;
         });
         var count = matched.length;
-        var pages = Math.max(1, Math.ceil(count / limit));
+        var perPage = limit > 0 ? limit : Math.max(count, 1);
+        var pages = Math.max(1, Math.ceil(count / perPage));
         detailPage = Math.min(Math.max(1, detailPage), pages);
-        var start = (detailPage - 1) * limit;
-        var end = Math.min(start + limit, count);
+        var start = (detailPage - 1) * perPage;
+        var end = Math.min(start + perPage, count);
 
         $detailTbody.empty().append(matched.slice(start, end).map(function (row, i) {
           var $tr = $("<tr>").append($('<td class="text-center">').text(start + i + 1));
@@ -723,7 +725,8 @@
           jenis: statusState.jenis,
           status: statusState.status,
           page: statusState.page,
-          per_page: $statusLimit.val() === "25" ? 25 : 10
+          // 0 = semua (dibatasi server, LandingStatusList::MAX_ALL)
+          per_page: ["10", "25", "0"].indexOf($statusLimit.val()) !== -1 ? Number($statusLimit.val()) : 10
         };
         if (statusState.q !== "") {
           params.q = statusState.q;

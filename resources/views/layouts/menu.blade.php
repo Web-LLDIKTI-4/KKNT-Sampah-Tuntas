@@ -215,6 +215,11 @@
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rekap Data Sampah
                                         </a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('capaian-kpi') }}">
+                                            <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI Kelurahan/Desa
+                                        </a>
+                                    </li>
                                     {{-- <li class="nav-item">
                                         <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboard-pengurangan-sampah') }}">
                                             <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard Pengurangan Sampah
@@ -528,6 +533,13 @@
                                     <i class="menu-icon tf-icons ri-circle-line me-2"></i> Rekap Data Sampah
                                 </a>
                             </li>
+                            @if (Auth::user()->isPemantau())
+                                <li class="nav-item">
+                                    <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('capaian-kpi') }}">
+                                        <i class="menu-icon tf-icons ri-circle-line me-2"></i> Capaian KPI Kelurahan/Desa
+                                    </a>
+                                </li>
+                            @endif
                             {{-- <li class="nav-item">
                                 <a class="nav-link mega-dropdown-link d-flex align-items-center" href="{{ route('dashboard-pengurangan-sampah') }}">
                                     <i class="menu-icon tf-icons ri-circle-line me-2"></i> Dashboard Pengurangan Sampah

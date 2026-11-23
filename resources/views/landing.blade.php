@@ -603,6 +603,7 @@
                                     <option value="25">25</option>
                                     <option value="50">50</option>
                                     <option value="100">100</option>
+                                    <option value="0">Semua</option>
                                 </select>
                                 <span>data</span>
                             </label>
@@ -649,6 +650,7 @@
                                 <select id="statusListLimit" class="form-select form-select-sm" data-no-search>
                                     <option value="10" selected>10</option>
                                     <option value="25">25</option>
+                                    <option value="0">Semua</option>
                                 </select>
                                 <span>data</span>
                             </label>

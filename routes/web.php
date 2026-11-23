@@ -77,6 +77,7 @@ use App\Http\Controllers\PtpjdesaController;
 use App\Http\Controllers\PicpjController;
 
 use App\Http\Controllers\SaranController;
+use App\Http\Controllers\CapaianKpiController;
 
 Route::get('/', [LoginController::class, 'landing'])->middleware('throttle:peta')->name('landing');
 
@@ -454,6 +455,9 @@ Route::middleware(['auth', 'role:admin,kepala,pemda'])->group(function () {
 
 Route::middleware(['auth', 'role:admin,kepala,pemda'])->group(function () {
     Route::get('rekapsampah/export', [RekapsampahController::class, 'export'])->middleware('throttle:3,1')->name('rekapsampah.export');
+    Route::get('capaian-kpi', [CapaianKpiController::class, 'index'])->name('capaian-kpi');
+    Route::get('capaian-kpi/export', [CapaianKpiController::class, 'export'])->middleware('throttle:3,1')->name('capaian-kpi.export');
+    Route::get('capaian-kpi/detail', [CapaianKpiController::class, 'detail'])->middleware('throttle:60,1')->name('capaian-kpi.detail');
 });
 
 // Export Capaian Program (Laporan Kegiatan dashboard): khusus admin

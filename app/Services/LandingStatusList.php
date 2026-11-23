@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\DB;
 // Sudah/belum lists behind the landing status badges; populations match DataPesertaSummary::status() & SebaranPtSummary::statusLokasi()/statusKetua()
 class LandingStatusList
 {
+    // Batas baris untuk per_page 0 ("Semua"): endpoint publik, cegah tarik seluruh data dalam satu request
+    public const MAX_ALL = 1000;
+
     // Sortable response fields per jenis (validated in StatusListRequest)
     public const SORT_FIELDS = [
         'mobilisasi' => ['nim', 'nama', 'nama_pt', 'kecamatan', 'desa'],
@@ -36,8 +39,9 @@ class LandingStatusList
             'ketua' => $this->ketua($sudah, $like, $sort, $dir),
         };
 
-        // Page past the end is clamped to the last page
+        // Page past the end is clamped to the last page; per_page 0 = semua (maks MAX_ALL per halaman)
         $total = $query->getCountForPagination();
+        $perPage = $perPage > 0 ? $perPage : min(max($total, 1), self::MAX_ALL);
         $page = min($page, max(1, (int) ceil($total / $perPage)));
         $items = $total > 0 ? $query->forPage($page, $perPage)->get() : collect();
         if ($jenis === 'lokasi') {

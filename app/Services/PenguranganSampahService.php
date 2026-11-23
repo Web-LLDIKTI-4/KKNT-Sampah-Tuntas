@@ -9,6 +9,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Rekap sampah dari Pendataan Sampah Penduduk, per bulan + kelurahan.
@@ -20,6 +21,9 @@ use Illuminate\Support\Facades\DB;
  */
 class PenguranganSampahService
 {
+    // Nilai filter bulan untuk "Semua Bulan"
+    public const SEMUA_BULAN = 'semua';
+
     // Memo penempatanData() per kodept
     private array $penempatanData = [];
 
@@ -96,14 +100,19 @@ class PenguranganSampahService
      */
     public function totalPer(string $kolom, array $filter): Collection
     {
-        $kolom = ['kecamatan' => 'd.id_kecamatan', 'desa' => 's.id_desa', 'kodept' => 's.kodept', 'lokasi' => 's.location_program'][$kolom];
+        // desa_pt: kunci gabungan "id_desa|kodept"
+        $kolom = (array) [
+            'kecamatan' => 'd.id_kecamatan', 'desa' => 's.id_desa', 'kodept' => 's.kodept', 'lokasi' => 's.location_program',
+            'desa_pt' => ['s.id_desa', 's.kodept'],
+        ][$kolom];
 
-        return $this->withPenurunan($this->withJumlah($this->query($filter)))
-            ->whereNotNull($kolom)
-            ->groupBy($kolom)
-            ->selectRaw("$kolom as kunci")
-            ->get()
-            ->keyBy('kunci')
+        $query = $this->withPenurunan($this->withJumlah($this->query($filter)))->groupBy($kolom);
+        foreach ($kolom as $i => $k) {
+            $query->whereNotNull($k)->selectRaw("$k as kunci$i");
+        }
+
+        return $query->get()
+            ->keyBy(fn ($row) => implode('|', array_map(fn ($i) => $row->{'kunci'.$i}, array_keys($kolom))))
             ->map(fn ($row) => $this->isiPenurunan($this->isiPersen($row)));
     }
 
@@ -438,6 +447,7 @@ class PenguranganSampahService
             'solusi' => $c?->solusi,
             'kendala' => $c?->kendala,
             'status_capaian' => $c?->status_capaian,
+            'bulan' => $c?->bulan,
             'nama_ketua' => $kelompok->ketua_email[$email] ?? '-',
             'phone' => ($phone[$email] ?? null) ?: null,
         ];
@@ -490,6 +500,152 @@ class PenguranganSampahService
         ])->sortByDesc('persen');
     }
 
+    /**
+     * Capaian KPI per kelurahan pada bulan terpilih (default bulan terakhir berdata; 'semua' = semua bulan) + PT di tiap kelurahan.
+     * Daftar sama dengan drilldown(): kelurahan berdata; PT = PT berdata ∪ PT berketua di kelurahan itu.
+     * Mahasiswa/DPL/persen semua kelurahan dihitung sekaligus (tanpa query per kelurahan).
+     */
+    public function capaianKpiKelurahan(?string $bulan): array
+    {
+        $semua = $bulan === self::SEMUA_BULAN;
+        $bulan = $semua ? null : ($bulan ?: $this->bulanTerakhir());
+        $hasil = ['bulan' => $semua ? self::SEMUA_BULAN : $bulan, 'bulanList' => collect(), 'kelurahan' => collect()];
+        $penempatan = $this->penempatanData(null);
+        $idDesa = $penempatan->pluck('id_desa')->unique()->values();
+        if ($idDesa->isEmpty()) {
+            return $hasil;
+        }
+
+        // Tanpa bulan terpilih & bukan "semua" = belum ada data, persen kosong
+        $adaPersen = $semua || $bulan;
+        $persenDesa = $adaPersen ? $this->totalPer('desa', ['bulan' => $bulan]) : collect();
+        $persenPt = $adaPersen ? $this->totalPer('desa_pt', ['bulan' => $bulan]) : collect();
+        $namaLokasi = DB::table('lokasi_program')->pluck('nama_lokasi', 'id');
+        $dataPerDesa = $penempatan->whereNotNull('kodept')->groupBy('id_desa');
+        $ketua = $this->penempatanKetua(null)->whereIn('id_desa', $idDesa->all());
+        $ketuaPerDesa = $ketua->groupBy('id_desa');
+
+        $kodept = $penempatan->pluck('kodept')->concat($ketua->pluck('kodept'))->filter()->unique()->values();
+        $namaPt = DB::table('ref_satuanpendidikan')->whereIn('npsn', $kodept)->pluck('nm_lemb', 'npsn');
+        $dpl = $this->dplPerLokasi($kodept);
+        $mahasiswa = DB::table('mahasiswa as m')
+            ->join('mahasiswa_lokasi as ml', 'ml.id_mahasiswa', '=', 'm.id_mahasiswa')
+            ->where('ml.tahun', now()->year)->whereIn('ml.id_desa', $idDesa)
+            ->whereNotNull('m.kodept')
+            ->groupBy('ml.id_desa', 'm.kodept')
+            ->selectRaw('ml.id_desa, m.kodept, COUNT(*) as jumlah')
+            ->get()->keyBy(fn ($r) => $r->id_desa.'|'.$r->kodept);
+
+        $kelurahan = $penempatan->unique('id_desa')->map(function ($r) use ($persenDesa, $persenPt, $namaLokasi, $dataPerDesa, $ketuaPerDesa, $namaPt, $dpl, $mahasiswa) {
+            $data = $dataPerDesa[$r->id_desa] ?? collect();
+            $ketua = $ketuaPerDesa[$r->id_desa] ?? collect();
+            $persen = $persenDesa[$r->id_desa]->persen_pengurangan ?? null;
+
+            $pt = $data->pluck('kodept')->concat($ketua->pluck('kodept'))->unique()->map(function ($kode) use ($r, $data, $ketua, $persenPt, $namaPt, $dpl, $mahasiswa) {
+                $kunci = $r->id_desa.'|'.$kode;
+                $persenPtDesa = $persenPt[$kunci]->persen_pengurangan ?? null;
+
+                return (object) [
+                    'kodept' => $kode,
+                    'nama_pt' => $namaPt[$kode] ?? $kode,
+                    'jumlah_mahasiswa' => (int) ($mahasiswa[$kunci]->jumlah ?? 0),
+                    'jumlah_dpl' => self::jumlahDpl($dpl, $kode, $data->where('kodept', $kode)->pluck('location_program')->concat($ketua->where('kodept', $kode)->pluck('location_program'))),
+                    'persen' => $persenPtDesa,
+                    'klaster' => PenguranganSampah::klaster($persenPtDesa),
+                ];
+            });
+
+            return (object) [
+                'id_desa' => $r->id_desa,
+                'kab_kota' => $namaLokasi[$r->location_program] ?? null,
+                'kecamatan' => $r->kecamatan,
+                'desa' => $r->desa,
+                'baseline' => $r->baseline !== null ? (float) $r->baseline : null,
+                'satuan_baseline' => $r->satuan_baseline ?? '%',
+                'persen_ketaatan' => $persenDesa[$r->id_desa]->persen_ketaatan ?? null,
+                'persen' => $persen,
+                'klaster' => PenguranganSampah::klaster($persen),
+                'pt' => $this->sortByCapaian($pt, 'nama_pt'),
+            ];
+        });
+
+        return ['bulanList' => $this->bulanList(), 'kelurahan' => $this->sortByCapaian($kelurahan, 'desa')] + $hasil;
+    }
+
+    /**
+     * Cari (kab/kota, kecamatan, kelurahan, nama PT; kelurahan tampil utuh) lalu urutkan hasil capaianKpiKelurahan().
+     * Sort: nama (kab_kota|kecamatan|desa) atau klaster (Hijau → Merah, tie persen lalu nama); kosong selalu di akhir.
+     * Tanpa sort: urutan bawaan (persen tertinggi dulu).
+     */
+    public function saringKpiKelurahan(Collection $kelurahan, ?string $cari, ?string $sort, string $dir = 'asc'): Collection
+    {
+        if ($cari = trim((string) $cari)) {
+            $kelurahan = $kelurahan->filter(fn ($r) => Str::contains(
+                collect([$r->kab_kota, $r->kecamatan, $r->desa])->concat($r->pt->pluck('nama_pt'))->implode("\n"), $cari, true
+            ));
+        }
+        if (! $sort) {
+            return $kelurahan->values();
+        }
+
+        $arah = $dir === 'desc' ? -1 : 1;
+        $peringkat = array_flip(array_keys(PenguranganSampah::KLASTER));
+        $nilai = $sort === 'klaster'
+            ? fn ($r) => $peringkat[$r->klaster] ?? null
+            : fn ($r) => ($r->{$sort} ?? '') === '' ? null : $r->{$sort};
+
+        return $kelurahan->sort(function ($a, $b) use ($sort, $arah, $nilai) {
+            [$x, $y] = [$nilai($a), $nilai($b)];
+            if (($x === null) !== ($y === null)) {
+                return $x === null ? 1 : -1;
+            }
+            $banding = $sort === 'klaster' ? $x <=> $y : strnatcasecmp((string) $x, (string) $y);
+
+            return $arah * $banding
+                ?: ($sort === 'klaster' ? $b->persen <=> $a->persen : 0)
+                ?: strnatcasecmp((string) $a->desa, (string) $b->desa);
+        })->values();
+    }
+
+    /**
+     * Detail capaian PT di satu kelurahan (modal Capaian KPI): baris sama dengan detail PTS laporan publik,
+     * disaring bulan ('semua' = semua bulan); ketua yang belum mengisi tetap tampil 1 baris kosong.
+     */
+    public function detailPtKelurahan(string $idDesa, string $kodept, ?string $bulan): Collection
+    {
+        $ketua = $this->penempatanKetua($kodept, $idDesa);
+        if ($ketua->isEmpty()) {
+            return collect();
+        }
+
+        $email = $ketua->pluck('email')->unique()->values();
+        $capaian = CapaianKegiatan::whereIn('email', $email)
+            ->when($bulan && $bulan !== self::SEMUA_BULAN, fn ($q) => $q->whereBetween('bulan', [$bulan.'-01', Carbon::createFromFormat('Y-m-d', $bulan.'-01')->endOfMonth()->toDateString()]))
+            ->orderByDesc('bulan')->orderByDesc('created_at')
+            ->get();
+        $phone = DB::table('mahasiswa')->whereIn('email', $email)->whereNotNull('phone')->pluck('phone', 'email');
+
+        return $this->detailPublik((object) [
+            'capaian' => $capaian,
+            'ketua_email' => $ketua->unique('email')->mapWithKeys(fn ($r) => [$r->email => $r->nama_ketua ?: '-']),
+        ], $phone);
+    }
+
+    // Jumlah DPL per "kodept|location_program"
+    private function dplPerLokasi(Collection $kodept): Collection
+    {
+        return $kodept->isEmpty() ? collect() : DB::table('dpl')->whereIn('kodept', $kodept)
+            ->groupBy('kodept', 'location_program')
+            ->selectRaw('kodept, location_program, COUNT(*) as jumlah')
+            ->get()->keyBy(fn ($r) => $r->kodept.'|'.$r->location_program);
+    }
+
+    // DPL PT = jumlah DPL PT tsb di lokasi program yang dipakai di kelurahan (lokasi unik)
+    private static function jumlahDpl(Collection $dpl, string $kodept, Collection $lokasi): int
+    {
+        return $lokasi->unique()->sum(fn ($l) => (int) ($dpl[$kodept.'|'.$l]->jumlah ?? 0));
+    }
+
     // Daftar lokasi/kecamatan/kelurahan/PT dari data pendataan (semua bulan); tanpa email pengisi
     private function penempatanData(?string $kodept): Collection
     {
@@ -536,10 +692,7 @@ class PenguranganSampahService
             ->groupBy('m.kodept')
             ->selectRaw('m.kodept, COUNT(*) as jumlah')
             ->pluck('jumlah', 'kodept');
-        $dpl = DB::table('dpl')->whereIn('kodept', $kodept)
-            ->groupBy('kodept', 'location_program')
-            ->selectRaw('kodept, location_program, COUNT(*) as jumlah')
-            ->get()->keyBy(fn ($r) => $r->kodept.'|'.$r->location_program);
+        $dpl = $this->dplPerLokasi($kodept);
         // Urut bulan terbaru
         $capaian = $ketua->isEmpty() ? collect() : CapaianKegiatan::whereIn('email', $ketua->pluck('email'))
             ->orderByDesc('bulan')->orderByDesc('created_at')
@@ -554,8 +707,7 @@ class PenguranganSampahService
                 'nama_pt' => $namaPt[$kode] ?? $kode,
                 'lokasi' => $first->desa.', '.$first->kecamatan,
                 'jumlah_mahasiswa' => (int) ($mahasiswa[$kode] ?? 0),
-                'jumlah_dpl' => $pt->where('kodept', $kode)->pluck('location_program')->concat($rows->pluck('location_program'))->unique()
-                    ->sum(fn ($lokasi) => (int) ($dpl[$kode.'|'.$lokasi]->jumlah ?? 0)),
+                'jumlah_dpl' => self::jumlahDpl($dpl, $kode, $pt->where('kodept', $kode)->pluck('location_program')->concat($rows->pluck('location_program'))),
                 'jumlah_ketua' => $rows->count(),
                 'nama_ketua' => $rows->map(fn ($r) => $r->nama_ketua ?: $r->email)->implode(', ') ?: '-',
                 // Distinct per email (akses ketua = terdaftar di pj_desa); nama kosong → '-'

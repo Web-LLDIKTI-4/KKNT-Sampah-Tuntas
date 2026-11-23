@@ -12,9 +12,11 @@ use App\Models\PelaksanaanKkn;
 use App\Models\Pjdesa;
 use App\Models\Satuanpendidikan;
 use App\Services\DataPesertaSummary;
+use App\Services\LandingStatusList;
 use App\Services\SebaranPtSummary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class LandingStatusListTest extends TestCase
@@ -247,6 +249,33 @@ class LandingStatusListTest extends TestCase
             ->assertJsonPath('meta.from', 31)->assertJsonPath('meta.to', 31);
     }
 
+    public function test_per_page_zero_returns_all_rows_in_one_page(): void
+    {
+        $this->seedStatusData();
+        Mahasiswa::factory()->count(27)->create(['kodept' => $this->ptA->npsn, 'location_program' => LokasiProgram::first()->id]);
+
+        $this->list(['jenis' => 'lokasi', 'status' => 'belum', 'per_page' => 0])->assertOk()
+            ->assertJsonPath('meta', ['page' => 1, 'per_page' => 31, 'total' => 31, 'last_page' => 1, 'from' => 1, 'to' => 31, 'sort' => null, 'dir' => 'asc'])
+            ->assertJsonCount(31, 'data');
+    }
+
+    public function test_per_page_zero_is_capped_at_max_all(): void
+    {
+        $this->seedStatusData();
+        $lokasi = LokasiProgram::first()->id;
+        Mahasiswa::factory()->count(LandingStatusList::MAX_ALL)->make(['kodept' => $this->ptA->npsn, 'location_program' => $lokasi])
+            ->chunk(200)->each(fn ($rows) => Mahasiswa::insert($rows->map(fn ($m) => ['id_mahasiswa' => (string) Str::uuid()] + $m->getAttributes())->all()));
+        $total = LandingStatusList::MAX_ALL + 4;
+
+        $this->list(['jenis' => 'lokasi', 'status' => 'belum', 'per_page' => 0])->assertOk()
+            ->assertJsonPath('meta.per_page', LandingStatusList::MAX_ALL)
+            ->assertJsonPath('meta.total', $total)
+            ->assertJsonPath('meta.last_page', 2)
+            ->assertJsonCount(LandingStatusList::MAX_ALL, 'data');
+        $this->list(['jenis' => 'lokasi', 'status' => 'belum', 'per_page' => 0, 'page' => 2])->assertOk()
+            ->assertJsonCount(4, 'data');
+    }
+
     public function test_page_beyond_last_page_is_clamped_to_last_page(): void
     {
         $this->seedStatusData();
@@ -386,6 +415,7 @@ class LandingStatusListTest extends TestCase
             [['jenis' => 'lokasi'], 'status'],
             [['jenis' => 'lokasi', 'status' => 'semua'], 'status'],
             [['jenis' => 'lokasi', 'status' => 'sudah', 'per_page' => 100], 'per_page'],
+            [['jenis' => 'lokasi', 'status' => 'sudah', 'per_page' => -1], 'per_page'],
             [['jenis' => 'lokasi', 'status' => 'sudah', 'per_page' => 'abc'], 'per_page'],
             [['jenis' => 'lokasi', 'status' => 'sudah', 'q' => str_repeat('a', 51)], 'q'],
             [['jenis' => 'lokasi', 'status' => 'sudah', 'q' => ['x']], 'q'],

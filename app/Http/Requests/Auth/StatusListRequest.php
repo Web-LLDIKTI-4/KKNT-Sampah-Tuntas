@@ -20,7 +20,8 @@ class StatusListRequest extends FormRequest
             'status' => ['required', 'in:sudah,belum'],
             'q' => ['nullable', 'string', 'min:2', 'max:50'],
             'page' => ['nullable', 'integer', 'min:1', 'max:100000'],
-            'per_page' => ['nullable', 'integer', 'in:10,25'],
+            // 0 = semua (dibatasi LandingStatusList::MAX_ALL)
+            'per_page' => ['nullable', 'integer', 'in:0,10,25'],
             'sort' => ['nullable', 'string', Rule::in(LandingStatusList::SORT_FIELDS[is_string($this->input('jenis')) ? $this->input('jenis') : ''] ?? [])],
             'dir' => ['nullable', 'in:asc,desc'],
         ];

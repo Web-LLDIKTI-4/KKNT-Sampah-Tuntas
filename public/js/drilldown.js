@@ -8,18 +8,27 @@
  * - Publik: select[name=klaster], [data-drill-reset], [data-png-download] (html-to-image lazy) — aktif hanya bila elemen ada
  * Tabel dengan filter (mis. resources/views/rekapsampah/_tabel.blade.php):
  * - Host  : <div data-filter-host="url">; select di form[data-filter] memuat ulang host
+ * - Cari  : input[type=search] di form[data-filter] memuat ulang host otomatis (debounce), fokus tetap di input
+ * - Link  : <a href> di dalam [data-filter-links] (sort, pagination) dimuat ulang di host
  * - Klaster: [data-klaster="hijau|kuning|merah"] memilih klaster di select name="klaster"
  */
 (function ($) {
     'use strict';
 
+    var CARI_DELAY = 400;
+
+    // Request sebelumnya di host yang sama dibatalkan agar respons lama tidak menimpa yang baru
     function muat($host, url, params) {
+        batal($host);
         $host.css('opacity', 0.5);
-        $.get(url, params || {})
+        var req = $.get(url, params || {})
             .done(function (html) {
                 $host.html(html);
             })
             .fail(function (xhr) {
+                if (xhr.statusText === 'abort') {
+                    return;
+                }
                 var pesan = xhr.status === 429 ? 'Terlalu banyak permintaan, coba lagi nanti.' : 'Gagal memuat laporan.';
                 if (window.toastr) {
                     toastr.error(pesan);
@@ -28,6 +37,16 @@
             .always(function () {
                 $host.css('opacity', 1);
             });
+        $host.data('req', req);
+
+        return req;
+    }
+
+    function batal($host) {
+        var req = $host.data('req');
+        if (req) {
+            req.abort();
+        }
     }
 
     function muatDari(el, ubah) {
@@ -127,6 +146,31 @@
         var $select = $(this).closest('[data-filter-host]').find('form[data-filter] select[name="klaster"]');
         var kode = String($(this).data('klaster'));
         $select.val($select.val() === kode ? '' : kode).trigger('change');
+    });
+
+    $(document).on('input', '[data-filter-host] form[data-filter] input[type="search"]', function () {
+        var $host = $(this).closest('[data-filter-host]');
+        var $form = $(this).closest('form');
+        var nama = this.name;
+        // Mengetik lagi membatalkan request yang sedang jalan agar ketikan tidak tertimpa isi lama
+        clearTimeout($host.data('cariTimer'));
+        batal($host);
+        $host.data('cariTimer', setTimeout(function () {
+            muat($host, $host.data('filter-host'), $form.serialize()).done(function () {
+                var input = $host.find('form[data-filter] input[name="' + nama + '"]').get(0);
+                if (input) {
+                    input.focus();
+                    input.setSelectionRange(input.value.length, input.value.length);
+                }
+            });
+        }, CARI_DELAY));
+    });
+
+    $(document).on('click', '[data-filter-host] [data-filter-links] a[href]', function (e) {
+        e.preventDefault();
+        var $host = $(this).closest('[data-filter-host]');
+        clearTimeout($host.data('cariTimer'));
+        muat($host, this.href);
     });
 
     $(document).on('submit', '[data-filter-host] form[data-filter]', function (e) {
