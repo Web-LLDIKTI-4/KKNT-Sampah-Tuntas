@@ -92,6 +92,8 @@ class CapaianKpiKelurahanTest extends TestCase
         $this->assertSame(['Kota Alfa', 'Kec Alfa'], [$satu->kab_kota, $satu->kecamatan]);
         $this->assertEquals(10.0, $satu->baseline);
         $this->assertEquals(100.0, $satu->persen_ketaatan);
+        // Fixture hanya residu -> terkelola 0 kg
+        $this->assertEquals(0.0, $satu->persen_pengelolaan);
         $this->assertEquals(25.0, $satu->persen);
         $this->assertSame('hijau', $satu->klaster);
 
@@ -99,6 +101,8 @@ class CapaianKpiKelurahanTest extends TestCase
         [$ptHijau, $ptKosong] = $satu->pt->all();
         $this->assertSame([1, 2, 25.0, 'hijau'], [$ptHijau->jumlah_mahasiswa, $ptHijau->jumlah_dpl, (float) $ptHijau->persen, $ptHijau->klaster]);
         $this->assertSame([1, 0, null, null], [$ptKosong->jumlah_mahasiswa, $ptKosong->jumlah_dpl, $ptKosong->persen, $ptKosong->klaster]);
+        $this->assertEquals([100.0, 0.0], [$ptHijau->persen_ketaatan, $ptHijau->persen_pengelolaan]);
+        $this->assertSame([null, null], [$ptKosong->persen_ketaatan, $ptKosong->persen_pengelolaan]);
 
         $dua = $data['kelurahan']->last();
         $this->assertEquals(15.0, $dua->persen);
@@ -113,6 +117,7 @@ class CapaianKpiKelurahanTest extends TestCase
             $this->get(route('capaian-kpi'))
                 ->assertOk()
                 // Bertingkat Kab/Kota → Kecamatan (A–Z) → Kelurahan → PTS berlabel a, b
+                ->assertSeeInOrder(['No', 'Wilayah / PTS', 'Ketaatan Pemilahan (%)', 'Pengelolaan Sampah (%)', 'Penurunan Timbulan Sampah (%)', 'Baseline', 'Mahasiswa', 'DPL'])
                 ->assertSeeInOrder(['Kabupaten Beta', 'Kec Beta', 'Desa Dua', 'a. Univ Kuning', 'Kota Alfa', 'Kec Alfa', 'Desa Satu', 'a. Univ Hijau', 'b. Univ Tanpa Data'])
                 ->assertSee('Capaian KPI Kelurahan/Desa');
         }

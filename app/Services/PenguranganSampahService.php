@@ -550,6 +550,8 @@ class PenguranganSampahService
                     'nama_pt' => $namaPt[$kode] ?? $kode,
                     'jumlah_mahasiswa' => (int) ($mahasiswa[$kunci]->jumlah ?? 0),
                     'jumlah_dpl' => self::jumlahDpl($dpl, $kode, $data->where('kodept', $kode)->pluck('location_program')->concat($ketua->where('kodept', $kode)->pluck('location_program'))),
+                    'persen_ketaatan' => $persenPt[$kunci]->persen_ketaatan ?? null,
+                    'persen_pengelolaan' => $persenPt[$kunci]->persen_pengelolaan ?? null,
                     'persen' => $persenPtDesa,
                     'klaster' => PenguranganSampah::klaster($persenPtDesa),
                 ];
@@ -563,6 +565,7 @@ class PenguranganSampahService
                 'baseline' => $r->baseline !== null ? (float) $r->baseline : null,
                 'satuan_baseline' => $r->satuan_baseline ?? '%',
                 'persen_ketaatan' => $persenDesa[$r->id_desa]->persen_ketaatan ?? null,
+                'persen_pengelolaan' => $persenDesa[$r->id_desa]->persen_pengelolaan ?? null,
                 'persen' => $persen,
                 'klaster' => PenguranganSampah::klaster($persen),
                 'pt' => $this->sortByCapaian($pt, 'nama_pt'),

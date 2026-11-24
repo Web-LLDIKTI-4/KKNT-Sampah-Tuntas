@@ -47,7 +47,7 @@
 </form>
 
 <div class="table-responsive">
-    {{-- Bertingkat: Kab/Kota → Kecamatan → Kelurahan (bernomor) → PTS (a, b, …) --}}
+    {{-- Bertingkat: Kab/Kota → Kecamatan → Kelurahan (bernomor) → PTS (a, b, …); semua nama rata kiri --}}
     <table class="table table-bordered table-sm align-middle mb-0">
         <thead data-filter-links>
             <tr>
@@ -55,11 +55,12 @@
                 <th class="text-center" {{ $ariaSort('desa') }}>
                     <a href="{{ $sortUrl('desa') }}" class="table-sort text-reset text-nowrap" title="Urutkan kelurahan/desa di tiap kecamatan">Wilayah / PTS<i class="{{ $sortIcon('desa') }}" aria-hidden="true"></i></a>
                 </th>
-                <th class="text-center">Baseline</th>
                 <th class="text-center">Ketaatan Pemilahan (%)</th>
+                <th class="text-center">Pengelolaan Sampah (%)</th>
+                <th class="text-center">Penurunan Timbulan Sampah (%)</th>
+                <th class="text-center">Baseline</th>
                 <th class="text-center">Mahasiswa</th>
                 <th class="text-center">DPL</th>
-                <th class="text-center">Penurunan Timbulan Sampah (%)</th>
                 <th class="text-center" {{ $ariaSort('klaster') }}>
                     <a href="{{ $sortUrl('klaster') }}" class="table-sort text-reset text-nowrap" title="Urutkan klaster di tiap kecamatan">Klaster<i class="{{ $sortIcon('klaster') }}" aria-hidden="true"></i></a>
                 </th>
@@ -70,33 +71,35 @@
             @php $no = $kelurahan->firstItem(); @endphp
             @forelse ($kelurahan->getCollection()->groupBy(fn ($r) => $r->kab_kota ?? '') as $kabKota => $perKab)
                 <tr class="table-warning">
-                    <td colspan="9" class="fw-bold">{{ $kabKota ?: 'Kabupaten/Kota belum diatur' }}</td>
+                    <td colspan="10" class="fw-bold">{{ $kabKota ?: 'Kabupaten/Kota belum diatur' }}</td>
                 </tr>
                 @foreach ($perKab->groupBy(fn ($r) => $r->kecamatan ?? '') as $kecamatan => $perKec)
                     <tr>
-                        <td colspan="9" class="ps-3 fw-semibold"><span class="text-muted fw-normal">Kecamatan</span> {{ $kecamatan ?: '-' }}</td>
+                        <td colspan="10" class="fw-semibold"><span class="text-muted fw-normal">Kecamatan</span> {{ $kecamatan ?: '-' }}</td>
                     </tr>
                     @foreach ($perKec as $kel)
                         <tr class="table-light">
                             <td class="text-center fw-medium">{{ $no++ }}</td>
-                            <td class="ps-4 fw-medium">{{ $kel->desa }}</td>
-                            <td class="text-center text-nowrap">{{ PenguranganSampah::formatBaseline($kel->baseline, $kel->satuan_baseline) }}</td>
+                            <td class="fw-medium">{{ $kel->desa }}</td>
                             <td class="text-center">{{ $persen($kel->persen_ketaatan) }}</td>
-                            <td></td>
-                            <td></td>
+                            <td class="text-center">{{ $persen($kel->persen_pengelolaan) }}</td>
                             <td class="text-center">{{ $persen($kel->persen) }}</td>
+                            <td class="text-center text-nowrap">{{ PenguranganSampah::formatBaseline($kel->baseline, $kel->satuan_baseline) }}</td>
+                            <td></td>
+                            <td></td>
                             <td class="text-center">@if ($k = $klasterOf($kel->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                             <td></td>
                         </tr>
                         @forelse ($kel->pt as $pt)
                             <tr>
                                 <td></td>
-                                <td class="ps-5">{{ $huruf($loop->index) }}. {{ $pt->nama_pt }}</td>
-                                <td></td>
+                                <td>{{ $huruf($loop->index) }}. {{ $pt->nama_pt }}</td>
+                                <td class="text-center">{{ $persen($pt->persen_ketaatan) }}</td>
+                                <td class="text-center">{{ $persen($pt->persen_pengelolaan) }}</td>
+                                <td class="text-center">{{ $persen($pt->persen) }}</td>
                                 <td></td>
                                 <td class="text-center">{{ PenguranganSampah::formatAngka($pt->jumlah_mahasiswa) }}</td>
                                 <td class="text-center">{{ PenguranganSampah::formatAngka($pt->jumlah_dpl) }}</td>
-                                <td class="text-center">{{ $persen($pt->persen) }}</td>
                                 <td class="text-center">@if ($k = $klasterOf($pt->klaster))<span class="badge {{ $k['badge'] }}">{{ $k['label'] }}</span>@else - @endif</td>
                                 <td class="text-center">
                                     <x-button.icon action="view" :modal="route('capaian-kpi.detail', ['desa' => $kel->id_desa, 'kodept' => $pt->kodept, 'bulan' => $bulan])"
@@ -106,14 +109,14 @@
                         @empty
                             <tr>
                                 <td></td>
-                                <td colspan="8" class="ps-5 text-muted small">Belum ada perguruan tinggi yang ditempatkan</td>
+                                <td colspan="9" class="text-muted small">Belum ada perguruan tinggi yang ditempatkan</td>
                             </tr>
                         @endforelse
                     @endforeach
                 @endforeach
             @empty
                 <tr>
-                    <td colspan="9" class="text-center text-muted">
+                    <td colspan="10" class="text-center text-muted">
                         {{ $params['q'] ? 'Tidak ada kelurahan/desa yang cocok dengan pencarian' : 'Belum ada kelurahan/desa dengan data pendataan sampah' }}
                     </td>
                 </tr>

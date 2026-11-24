@@ -68,7 +68,7 @@ class CapaianKpiController extends Controller
     {
         $bulan = $request->validated('bulan');
         $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0');
-        $data = Cache::remember('capaiankpi.v2.'.$versi.'.'.($bulan ?? 'terakhir'), now()->addMinutes(10), fn () => $sampah->capaianKpiKelurahan($bulan));
+        $data = Cache::remember('capaiankpi.v3.'.$versi.'.'.($bulan ?? 'terakhir'), now()->addMinutes(10), fn () => $sampah->capaianKpiKelurahan($bulan));
 
         $params = [
             'q' => $request->validated('q'),
