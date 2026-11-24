@@ -574,8 +574,8 @@ class PenguranganSampahService
 
     /**
      * Cari (kab/kota, kecamatan, kelurahan, nama PT; kelurahan tampil utuh) lalu urutkan hasil capaianKpiKelurahan().
-     * Sort: nama (kab_kota|kecamatan|desa) atau klaster (Hijau → Merah, tie persen lalu nama); kosong selalu di akhir.
-     * Tanpa sort: urutan bawaan (persen tertinggi dulu).
+     * Urutan selalu bertingkat Kab/Kota → Kecamatan (A–Z, kosong di akhir) agar tabel bisa dikelompokkan;
+     * di dalam kecamatan: sort desa (nama) / klaster (Hijau → Merah, tie persen lalu nama), atau bawaan (persen tertinggi dulu).
      */
     public function saringKpiKelurahan(Collection $kelurahan, ?string $cari, ?string $sort, string $dir = 'asc'): Collection
     {
@@ -584,27 +584,29 @@ class PenguranganSampahService
                 collect([$r->kab_kota, $r->kecamatan, $r->desa])->concat($r->pt->pluck('nama_pt'))->implode("\n"), $cari, true
             ));
         }
-        if (! $sort) {
-            return $kelurahan->values();
-        }
 
         $arah = $dir === 'desc' ? -1 : 1;
         $peringkat = array_flip(array_keys(PenguranganSampah::KLASTER));
-        $nilai = $sort === 'klaster'
-            ? fn ($r) => $peringkat[$r->klaster] ?? null
-            : fn ($r) => ($r->{$sort} ?? '') === '' ? null : $r->{$sort};
-
-        return $kelurahan->sort(function ($a, $b) use ($sort, $arah, $nilai) {
-            [$x, $y] = [$nilai($a), $nilai($b)];
+        // Kosong selalu di akhir, apa pun arahnya
+        $banding = function ($x, $y, int $arah = 1) {
             if (($x === null) !== ($y === null)) {
                 return $x === null ? 1 : -1;
             }
-            $banding = $sort === 'klaster' ? $x <=> $y : strnatcasecmp((string) $x, (string) $y);
 
-            return $arah * $banding
-                ?: ($sort === 'klaster' ? $b->persen <=> $a->persen : 0)
-                ?: strnatcasecmp((string) $a->desa, (string) $b->desa);
-        })->values();
+            return $arah * (is_int($x) ? $x <=> $y : strnatcasecmp((string) $x, (string) $y));
+        };
+        $nama = fn ($v) => ($v ?? '') === '' ? null : $v;
+
+        // sort() stabil: tanpa sort, urutan bawaan dipertahankan di dalam kecamatan
+        return $kelurahan->sort(fn ($a, $b) => $banding($nama($a->kab_kota), $nama($b->kab_kota))
+            ?: $banding($nama($a->kecamatan), $nama($b->kecamatan))
+            ?: match ($sort) {
+                'desa' => $banding($nama($a->desa), $nama($b->desa), $arah),
+                'klaster' => $banding($peringkat[$a->klaster] ?? null, $peringkat[$b->klaster] ?? null, $arah)
+                    ?: $b->persen <=> $a->persen
+                    ?: strnatcasecmp((string) $a->desa, (string) $b->desa),
+                default => 0,
+            })->values();
     }
 
     /**

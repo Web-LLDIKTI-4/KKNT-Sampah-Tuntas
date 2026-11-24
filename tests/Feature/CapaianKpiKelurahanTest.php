@@ -112,7 +112,8 @@ class CapaianKpiKelurahanTest extends TestCase
             $this->loginAs($role);
             $this->get(route('capaian-kpi'))
                 ->assertOk()
-                ->assertSeeInOrder(['Desa Satu', 'Univ Hijau', 'Univ Tanpa Data', 'Desa Dua', 'Univ Kuning'])
+                // Bertingkat Kab/Kota → Kecamatan (A–Z) → Kelurahan → PTS berlabel a, b
+                ->assertSeeInOrder(['Kabupaten Beta', 'Kec Beta', 'Desa Dua', 'a. Univ Kuning', 'Kota Alfa', 'Kec Alfa', 'Desa Satu', 'a. Univ Hijau', 'b. Univ Tanpa Data'])
                 ->assertSee('Capaian KPI Kelurahan/Desa');
         }
     }
@@ -136,15 +137,33 @@ class CapaianKpiKelurahanTest extends TestCase
         $this->assertSame('hijau', $dua->klaster);
     }
 
-    public function test_sort_by_name_and_klaster_applies_server_side(): void
+    public function test_kab_kota_and_kecamatan_order_takes_precedence_over_sort(): void
     {
-        $this->assertSame(['Desa Satu', 'Desa Dua'], $this->urutanDesa([]));
-        $this->assertSame(['Desa Dua', 'Desa Satu'], $this->urutanDesa(['sort' => 'kab_kota']));
-        $this->assertSame(['Desa Satu', 'Desa Dua'], $this->urutanDesa(['sort' => 'kab_kota', 'dir' => 'desc']));
-        $this->assertSame(['Desa Dua', 'Desa Satu'], $this->urutanDesa(['sort' => 'desa']));
-        $this->assertSame(['Desa Satu', 'Desa Dua'], $this->urutanDesa(['sort' => 'kecamatan']));
-        $this->assertSame(['Desa Satu', 'Desa Dua'], $this->urutanDesa(['sort' => 'klaster']));
+        $this->assertSame(['Desa Dua', 'Desa Satu'], $this->urutanDesa([]));
+        $this->assertSame(['Desa Dua', 'Desa Satu'], $this->urutanDesa(['sort' => 'desa', 'dir' => 'desc']));
         $this->assertSame(['Desa Dua', 'Desa Satu'], $this->urutanDesa(['sort' => 'klaster', 'dir' => 'desc']));
+    }
+
+    public function test_sort_applies_within_kecamatan_with_empty_values_last(): void
+    {
+        $kel = fn ($kab, $kec, $desa, $klaster, $persen = null) => (object) ['kab_kota' => $kab, 'kecamatan' => $kec, 'desa' => $desa, 'klaster' => $klaster, 'persen' => $persen, 'pt' => collect()];
+        // Urutan bawaan (persen tertinggi dulu) dari capaianKpiKelurahan()
+        $data = collect([
+            $kel('Kota B', 'Kec 1', 'Desa Z', 'hijau', 30),
+            $kel(null, null, 'Desa Tanpa Kota', 'hijau', 28),
+            $kel('Kota A', 'Kec 2', 'Desa D', 'kuning', 15),
+            $kel('Kota A', 'Kec 1', 'Desa B', 'kuning', 12),
+            $kel('Kota A', 'Kec 1', 'Desa A', 'merah', 5),
+            $kel('Kota A', 'Kec 1', 'Desa C', null),
+        ]);
+        $urutan = fn (?string $sort, string $dir = 'asc') => app(PenguranganSampahService::class)
+            ->saringKpiKelurahan($data, null, $sort, $dir)->pluck('desa')->all();
+
+        $this->assertSame(['Desa B', 'Desa A', 'Desa C', 'Desa D', 'Desa Z', 'Desa Tanpa Kota'], $urutan(null));
+        $this->assertSame(['Desa A', 'Desa B', 'Desa C', 'Desa D', 'Desa Z', 'Desa Tanpa Kota'], $urutan('desa'));
+        $this->assertSame(['Desa C', 'Desa B', 'Desa A', 'Desa D', 'Desa Z', 'Desa Tanpa Kota'], $urutan('desa', 'desc'));
+        $this->assertSame(['Desa B', 'Desa A', 'Desa C', 'Desa D', 'Desa Z', 'Desa Tanpa Kota'], $urutan('klaster'));
+        $this->assertSame(['Desa A', 'Desa B', 'Desa C', 'Desa D', 'Desa Z', 'Desa Tanpa Kota'], $urutan('klaster', 'desc'));
     }
 
     public function test_search_matches_wilayah_and_pt_name_keeping_whole_kelurahan(): void
@@ -242,6 +261,7 @@ class CapaianKpiKelurahanTest extends TestCase
         $this->loginAs('admin');
         $this->get(route('capaian-kpi', ['bulan' => '2026-13']))->assertSessionHasErrors('bulan');
         $this->get(route('capaian-kpi', ['sort' => 'email']))->assertSessionHasErrors('sort');
+        $this->get(route('capaian-kpi', ['sort' => 'kab_kota']))->assertSessionHasErrors('sort');
         $this->get(route('capaian-kpi', ['dir' => 'up']))->assertSessionHasErrors('dir');
         $this->get(route('capaian-kpi', ['q' => str_repeat('a', 101)]))->assertSessionHasErrors('q');
     }

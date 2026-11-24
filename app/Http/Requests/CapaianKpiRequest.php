@@ -8,8 +8,8 @@ use Illuminate\Validation\Rule;
 
 class CapaianKpiRequest extends FormRequest
 {
-    // Kolom sort => label (header tabel & info export)
-    public const SORT = ['kab_kota' => 'Kabupaten/Kota', 'kecamatan' => 'Kecamatan', 'desa' => 'Kelurahan/Desa', 'klaster' => 'Klaster'];
+    // Kolom sort => label (header tabel & info export); berlaku di dalam kecamatan, Kab/Kota & Kecamatan selalu A–Z
+    public const SORT = ['desa' => 'Kelurahan/Desa', 'klaster' => 'Klaster'];
 
     // Akses dijaga middleware role di route
     public function authorize(): bool
