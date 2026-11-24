@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Requests\CapaianKpiRequest;
 use App\Models\CapaianKegiatan;
 use App\Models\Desa;
 use App\Models\Dpl;
@@ -169,6 +170,42 @@ class CapaianKpiKelurahanTest extends TestCase
         $this->assertSame(['Desa C', 'Desa B', 'Desa A', 'Desa D', 'Desa Z', 'Desa Tanpa Kota'], $urutan('desa', 'desc'));
         $this->assertSame(['Desa B', 'Desa A', 'Desa C', 'Desa D', 'Desa Z', 'Desa Tanpa Kota'], $urutan('klaster'));
         $this->assertSame(['Desa A', 'Desa B', 'Desa C', 'Desa D', 'Desa Z', 'Desa Tanpa Kota'], $urutan('klaster', 'desc'));
+    }
+
+    public function test_numeric_sort_orders_kelurahan_and_pts_with_empty_last(): void
+    {
+        $pt = fn ($nama, $ketaatan, $mhs) => (object) ['nama_pt' => $nama, 'persen_ketaatan' => $ketaatan, 'jumlah_mahasiswa' => $mhs, 'klaster' => null, 'persen' => null];
+        $kel = fn ($desa, $ketaatan, $baseline, array $pts) => (object) [
+            'kab_kota' => 'Kota A', 'kecamatan' => 'Kec 1', 'desa' => $desa, 'persen_ketaatan' => $ketaatan,
+            'baseline' => $baseline, 'klaster' => null, 'persen' => null, 'pt' => collect($pts),
+        ];
+        $data = collect([
+            $kel('Desa A', 50.0, null, [$pt('PT X', 20.0, 1), $pt('PT Y', null, 5), $pt('PT Z', 90.0, 3)]),
+            $kel('Desa B', null, 10.0, [$pt('PT W', 70.0, 2)]),
+            $kel('Desa C', 80.0, 5.0, []),
+        ]);
+        $sorted = fn (string $sort, string $dir = 'asc') => app(PenguranganSampahService::class)->saringKpiKelurahan($data, null, $sort, $dir);
+
+        $this->assertSame(['Desa A', 'Desa C', 'Desa B'], $sorted('ketaatan')->pluck('desa')->all());
+        $this->assertSame(['Desa C', 'Desa A', 'Desa B'], $sorted('ketaatan', 'desc')->pluck('desa')->all());
+        $this->assertSame(['PT Z', 'PT X', 'PT Y'], $sorted('ketaatan', 'desc')->firstWhere('desa', 'Desa A')->pt->pluck('nama_pt')->all());
+        $this->assertSame(['Desa C', 'Desa B', 'Desa A'], $sorted('baseline')->pluck('desa')->all());
+        // Mahasiswa kelurahan = jumlah PTS: A 9, B 2, C 0
+        $this->assertSame(['Desa A', 'Desa B', 'Desa C'], $sorted('mahasiswa', 'desc')->pluck('desa')->all());
+        $this->assertSame(['PT X', 'PT Z', 'PT Y'], $sorted('mahasiswa')->firstWhere('desa', 'Desa A')->pt->pluck('nama_pt')->all());
+        // Data sumber (bisa dari cache) tidak ikut berubah
+        $this->assertSame(['PT X', 'PT Y', 'PT Z'], $data->first()->pt->pluck('nama_pt')->all());
+    }
+
+    public function test_every_data_column_header_is_sortable(): void
+    {
+        $this->loginAs('admin');
+        $res = $this->get(route('capaian-kpi', ['sort' => 'penurunan', 'dir' => 'desc']))->assertOk()
+            ->assertSee('aria-sort=descending', false);
+        // Kolom aktif (desc) dibalik ke asc, kolom lain mulai asc
+        foreach (array_keys(CapaianKpiRequest::SORT) as $kolom) {
+            $res->assertSee(e(route('capaian-kpi', ['bulan' => $this->bulan, 'sort' => $kolom, 'dir' => 'asc'])), false);
+        }
     }
 
     public function test_search_matches_wilayah_and_pt_name_keeping_whole_kelurahan(): void

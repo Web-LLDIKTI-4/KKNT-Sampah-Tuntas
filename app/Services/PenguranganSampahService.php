@@ -578,7 +578,9 @@ class PenguranganSampahService
     /**
      * Cari (kab/kota, kecamatan, kelurahan, nama PT; kelurahan tampil utuh) lalu urutkan hasil capaianKpiKelurahan().
      * Urutan selalu bertingkat Kab/Kota → Kecamatan (A–Z, kosong di akhir) agar tabel bisa dikelompokkan;
-     * di dalam kecamatan: sort desa (nama) / klaster (Hijau → Merah, tie persen lalu nama), atau bawaan (persen tertinggi dulu).
+     * sort berlaku untuk kelurahan di dalam kecamatan dan PTS di dalam kelurahan (kosong selalu di akhir, tie nama).
+     * Mahasiswa/DPL kelurahan = jumlah PTS-nya; baseline hanya kelurahan; klaster Hijau → Merah (tie persen tertinggi).
+     * Tanpa sort: urutan bawaan (persen tertinggi dulu).
      */
     public function saringKpiKelurahan(Collection $kelurahan, ?string $cari, ?string $sort, string $dir = 'asc'): Collection
     {
@@ -589,27 +591,51 @@ class PenguranganSampahService
         }
 
         $arah = $dir === 'desc' ? -1 : 1;
-        $peringkat = array_flip(array_keys(PenguranganSampah::KLASTER));
-        // Kosong selalu di akhir, apa pun arahnya
+        // Kosong selalu di akhir, apa pun arahnya; teks dibanding natural tanpa huruf besar/kecil
         $banding = function ($x, $y, int $arah = 1) {
             if (($x === null) !== ($y === null)) {
                 return $x === null ? 1 : -1;
             }
 
-            return $arah * (is_int($x) ? $x <=> $y : strnatcasecmp((string) $x, (string) $y));
+            return $arah * (is_string($x) ? strnatcasecmp($x, (string) $y) : $x <=> $y);
         };
         $nama = fn ($v) => ($v ?? '') === '' ? null : $v;
+        $angka = fn ($v) => $v === null ? null : (float) $v;
+        $peringkat = array_flip(array_keys(PenguranganSampah::KLASTER));
+
+        // [nilai kelurahan, nilai PTS (null = PTS tidak diurutkan)]
+        [$nilaiKel, $nilaiPt] = match ($sort) {
+            'desa' => [fn ($r) => $nama($r->desa), fn ($pt) => $nama($pt->nama_pt)],
+            'klaster' => [fn ($r) => $peringkat[$r->klaster] ?? null, fn ($pt) => $peringkat[$pt->klaster] ?? null],
+            'ketaatan' => [fn ($r) => $angka($r->persen_ketaatan), fn ($pt) => $angka($pt->persen_ketaatan)],
+            'pengelolaan' => [fn ($r) => $angka($r->persen_pengelolaan), fn ($pt) => $angka($pt->persen_pengelolaan)],
+            'penurunan' => [fn ($r) => $angka($r->persen), fn ($pt) => $angka($pt->persen)],
+            'baseline' => [fn ($r) => $angka($r->baseline), null],
+            'mahasiswa' => [fn ($r) => (int) $r->pt->sum('jumlah_mahasiswa'), fn ($pt) => (int) $pt->jumlah_mahasiswa],
+            'dpl' => [fn ($r) => (int) $r->pt->sum('jumlah_dpl'), fn ($pt) => (int) $pt->jumlah_dpl],
+            default => [null, null],
+        };
+        // Klaster sama: persen tertinggi dulu, lalu nama
+        $tie = fn ($a, $b, string $kolomNama) => ($sort === 'klaster' ? $b->persen <=> $a->persen : 0)
+            ?: strnatcasecmp((string) $a->{$kolomNama}, (string) $b->{$kolomNama});
 
         // sort() stabil: tanpa sort, urutan bawaan dipertahankan di dalam kecamatan
-        return $kelurahan->sort(fn ($a, $b) => $banding($nama($a->kab_kota), $nama($b->kab_kota))
+        $kelurahan = $kelurahan->sort(fn ($a, $b) => $banding($nama($a->kab_kota), $nama($b->kab_kota))
             ?: $banding($nama($a->kecamatan), $nama($b->kecamatan))
-            ?: match ($sort) {
-                'desa' => $banding($nama($a->desa), $nama($b->desa), $arah),
-                'klaster' => $banding($peringkat[$a->klaster] ?? null, $peringkat[$b->klaster] ?? null, $arah)
-                    ?: $b->persen <=> $a->persen
-                    ?: strnatcasecmp((string) $a->desa, (string) $b->desa),
-                default => 0,
-            })->values();
+            ?: ($nilaiKel ? $banding($nilaiKel($a), $nilaiKel($b), $arah) ?: $tie($a, $b, 'desa') : 0)
+        )->values();
+
+        if (! $nilaiPt) {
+            return $kelurahan;
+        }
+
+        // Clone: objek kelurahan bisa berasal dari cache yang dipakai ulang
+        return $kelurahan->map(function ($r) use ($banding, $nilaiPt, $arah, $tie) {
+            $r = clone $r;
+            $r->pt = $r->pt->sort(fn ($a, $b) => $banding($nilaiPt($a), $nilaiPt($b), $arah) ?: $tie($a, $b, 'nama_pt'))->values();
+
+            return $r;
+        });
     }
 
     /**

@@ -1,5 +1,6 @@
 {{-- Filter, tabel & pagination Capaian KPI; dimuat ulang lewat public/js/drilldown.js (data-filter-host) --}}
 @php
+    use App\Http\Requests\CapaianKpiRequest;
     use App\Models\PenguranganSampah;
     use App\Services\PenguranganSampahService;
     use Illuminate\Support\Carbon;
@@ -52,18 +53,11 @@
         <thead data-filter-links>
             <tr>
                 <th class="text-center" width="1">No</th>
-                <th class="text-center" {{ $ariaSort('desa') }}>
-                    <a href="{{ $sortUrl('desa') }}" class="table-sort text-reset text-nowrap" title="Urutkan kelurahan/desa di tiap kecamatan">Wilayah / PTS<i class="{{ $sortIcon('desa') }}" aria-hidden="true"></i></a>
-                </th>
-                <th class="text-center">Ketaatan Pemilahan (%)</th>
-                <th class="text-center">Pengelolaan Sampah (%)</th>
-                <th class="text-center">Penurunan Timbulan Sampah (%)</th>
-                <th class="text-center">Baseline</th>
-                <th class="text-center">Mahasiswa</th>
-                <th class="text-center">DPL</th>
-                <th class="text-center" {{ $ariaSort('klaster') }}>
-                    <a href="{{ $sortUrl('klaster') }}" class="table-sort text-reset text-nowrap" title="Urutkan klaster di tiap kecamatan">Klaster<i class="{{ $sortIcon('klaster') }}" aria-hidden="true"></i></a>
-                </th>
+                @foreach (CapaianKpiRequest::SORT as $kolom => $label)
+                    <th class="text-center" {{ $ariaSort($kolom) }}>
+                        <a href="{{ $sortUrl($kolom) }}" class="table-sort text-reset" title="Urutkan {{ $label }} di tiap kecamatan & kelurahan">{{ $label }}<i class="{{ $sortIcon($kolom) }}" aria-hidden="true"></i></a>
+                    </th>
+                @endforeach
                 <th class="text-center" width="1">Aksi</th>
             </tr>
         </thead>
