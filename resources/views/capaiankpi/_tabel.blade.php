@@ -7,7 +7,11 @@
     $persen = fn ($v) => PenguranganSampah::formatPersen($v === null ? null : (float) $v);
     $klasterOf = fn ($k) => PenguranganSampah::KLASTER[$k] ?? null;
     $semua = PenguranganSampahService::SEMUA_BULAN;
-    $filterAktif = array_filter(['bulan' => $bulan, 'q' => $params['q'], 'sort' => $params['sort'], 'dir' => $params['sort'] ? $params['dir'] : null]);
+    // per_page 0 (semua) tetap dibawa; default tidak perlu ditulis di URL
+    $filterAktif = array_filter([
+        'bulan' => $bulan, 'q' => $params['q'], 'sort' => $params['sort'], 'dir' => $params['sort'] ? $params['dir'] : null,
+        'per_page' => $params['per_page'] === CapaianKpiRequest::PER_PAGE_DEFAULT ? null : $params['per_page'],
+    ], fn ($v) => $v !== null && $v !== '');
     // Klik kolom baru = asc, kolom sama = toggle; sort di server agar berlaku untuk semua halaman
     $sortUrl = fn ($kolom) => route('capaian-kpi', array_merge($filterAktif, [
         'sort' => $kolom,
@@ -30,14 +34,21 @@
         <input type="hidden" name="sort" value="{{ $params['sort'] }}">
         <input type="hidden" name="dir" value="{{ $params['dir'] }}">
     @endif
-    {{-- Kiri: filter bulan + export di bawahnya; kanan: cari --}}
-    <div class="col-md-4 col-lg-3 d-flex flex-column gap-2">
-        <select name="bulan" class="form-select form-select-sm" aria-label="Bulan">
-            <option value="{{ $semua }}" @selected($bulan === $semua)>Semua Bulan</option>
-            @foreach ($bulanList as $item)
-                <option value="{{ $item }}" @selected($bulan === $item)>{{ Carbon::parse($item.'-01')->translatedFormat('F Y') }}</option>
-            @endforeach
-        </select>
+    {{-- Kiri: filter bulan + jumlah baris, export di bawahnya; kanan: cari --}}
+    <div class="col-md-5 col-lg-4 d-flex flex-column gap-2">
+        <div class="d-flex gap-2">
+            <select name="per_page" class="form-select form-select-sm w-auto" aria-label="Jumlah data per halaman" title="Jumlah data per halaman">
+                @foreach (CapaianKpiRequest::PER_PAGE as $opsi)
+                    <option value="{{ $opsi }}" @selected($params['per_page'] === $opsi)>{{ $opsi ?: 'Semua' }}</option>
+                @endforeach
+            </select>
+            <select name="bulan" class="form-select form-select-sm" aria-label="Bulan">
+                <option value="{{ $semua }}" @selected($bulan === $semua)>Semua Bulan</option>
+                @foreach ($bulanList as $item)
+                    <option value="{{ $item }}" @selected($bulan === $item)>{{ Carbon::parse($item.'-01')->translatedFormat('F Y') }}</option>
+                @endforeach
+            </select>
+        </div>
         <a href="{{ route('capaian-kpi.export', $filterAktif) }}"
            class="btn btn-sm btn-success btn-filter align-self-start" title="Export sesuai filter & pencarian"><i class="ri-file-excel-2-line" aria-hidden="true"></i> Export</a>
     </div>

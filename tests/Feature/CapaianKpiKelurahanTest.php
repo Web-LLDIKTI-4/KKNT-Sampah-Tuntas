@@ -292,6 +292,32 @@ class CapaianKpiKelurahanTest extends TestCase
         $this->get(route('capaian-kpi'))->assertViewIs('capaiankpi.index')->assertSee('data-filter-host', false);
     }
 
+    public function test_per_page_select_limits_rows_and_zero_shows_all(): void
+    {
+        $kelurahan = collect(range(1, 30))->map(fn ($i) => (object) [
+            'id_desa' => (string) $i, 'kab_kota' => 'Kota', 'kecamatan' => 'Kec', 'desa' => sprintf('Desa %02d', $i),
+            'baseline' => null, 'satuan_baseline' => '%', 'persen_ketaatan' => null, 'persen_pengelolaan' => null,
+            'persen' => null, 'klaster' => null, 'pt' => collect(),
+        ]);
+        $this->partialMock(PenguranganSampahService::class, fn ($m) => $m->shouldReceive('capaianKpiKelurahan')
+            ->andReturnUsing(fn ($bulan) => ['bulan' => $bulan ?? $this->bulan, 'bulanList' => collect([$this->bulan]), 'kelurahan' => $kelurahan]));
+        $this->loginAs('admin');
+        $rows = fn (array $query) => $this->get(route('capaian-kpi', $query))->assertOk()->viewData('kelurahan');
+
+        // Default 25, pilihan lain sesuai select
+        $this->assertSame([25, true], [$rows([])->count(), $rows([])->hasPages()]);
+        $this->assertSame(10, $rows(['per_page' => 10])->count());
+
+        // 0 = semua dalam satu halaman, page dari URL lama diabaikan; sort tetap membawa per_page
+        $semua = $rows(['bulan' => PenguranganSampahService::SEMUA_BULAN, 'per_page' => 0, 'page' => 2]);
+        $this->assertSame([30, false], [$semua->count(), $semua->hasPages()]);
+        $this->get(route('capaian-kpi', ['per_page' => 0]))
+            ->assertSee('<option value="0" selected>Semua</option>', false)
+            ->assertSee(e(route('capaian-kpi', ['bulan' => $this->bulan, 'per_page' => 0, 'sort' => 'desa', 'dir' => 'asc'])), false);
+
+        $this->get(route('capaian-kpi', ['per_page' => 7]))->assertSessionHasErrors('per_page');
+    }
+
     public function test_export_is_forbidden_for_pt(): void
     {
         $this->loginAs('pt');

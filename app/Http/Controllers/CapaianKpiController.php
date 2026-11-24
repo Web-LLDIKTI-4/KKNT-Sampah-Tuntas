@@ -13,16 +13,19 @@ use Illuminate\Support\Facades\Cache;
 
 class CapaianKpiController extends Controller
 {
-    private const PER_PAGE = 25;
-
     public function index(CapaianKpiRequest $request, PenguranganSampahService $sampah)
     {
         $data = $this->data($request, $sampah);
-        $page = LengthAwarePaginator::resolveCurrentPage();
+        $total = $data['kelurahan']->count();
+        $pilihan = (int) ($request->validated('per_page') ?? CapaianKpiRequest::PER_PAGE_DEFAULT);
+        // 0 = semua kelurahan dalam satu halaman
+        $perPage = $pilihan ?: max($total, 1);
+        $page = $pilihan ? LengthAwarePaginator::resolveCurrentPage() : 1;
+        $data['params']['per_page'] = $pilihan;
         $data['kelurahan'] = new LengthAwarePaginator(
-            $data['kelurahan']->forPage($page, self::PER_PAGE)->values(),
-            $data['kelurahan']->count(),
-            self::PER_PAGE,
+            $data['kelurahan']->forPage($page, $perPage)->values(),
+            $total,
+            $perPage,
             $page,
             ['path' => $request->url(), 'query' => $request->query()],
         );
