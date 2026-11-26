@@ -7,6 +7,9 @@
     $panduanList ??= collect();
     $faqList ??= collect();
     $fmt = fn ($v) => number_format((int) $v, 0, ',', '.');
+    $statusPelaksanaanLabels = \App\Models\PelaksanaanKkn::STATUS_LABELS;
+    $statusPelaksanaanRank = array_flip(array_keys($statusPelaksanaanLabels));
+    $statusPelaksanaanClass = ['belum' => 'bg-label-danger', 'berjalan' => 'bg-label-success', 'akan_berakhir' => 'bg-label-orange', 'berakhir' => 'bg-label-secondary'];
     $stats = [
         ['value' => $jumlahMahasiswa ?? 0, 'label' => 'Mahasiswa', 'icon' => 'ri-group-line'],
         ['value' => $jumlahDpl ?? 0, 'label' => 'DPL', 'icon' => 'ri-user-star-line'],
@@ -286,7 +289,7 @@
                                     <thead>
                                         <tr>
                                             <th scope="col" class="text-center">No</th>
-                                            @foreach (['kodept' => 'Kode PT', 'nama' => 'Nama PTS', 'mahasiswa' => 'Mahasiswa', 'dpl' => 'DPL', 'pic' => 'PIC PTS', 'ketua' => 'Ketua Kelompok'] as $sortKey => $sortLabel)
+                                            @foreach (['kodept' => 'Kode PT', 'nama' => 'Nama PTS', 'mahasiswa' => 'Mahasiswa', 'dpl' => 'DPL', 'pic' => 'PIC PTS', 'ketua' => 'Ketua Kelompok', 'status' => 'Status Pelaksanaan KKN'] as $sortKey => $sortLabel)
                                                 <th scope="col" class="text-center"><x-button.sort :type="in_array($sortKey, ['kodept', 'nama']) ? 'text' : 'num'">{{ $sortLabel }}</x-button.sort></th>
                                             @endforeach
                                         </tr>
@@ -306,6 +309,9 @@
                                                         @endif
                                                     </td>
                                                 @endforeach
+                                                <td class="text-center" data-sort-value="{{ $statusPelaksanaanRank[$peserta->status_pelaksanaan] }}">
+                                                    <span class="badge {{ $statusPelaksanaanClass[$peserta->status_pelaksanaan] }}">{{ $statusPelaksanaanLabels[$peserta->status_pelaksanaan] }}</span>
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -316,6 +322,7 @@
                                             <th class="text-center">{{ $fmt($dataPesertaList->sum('jumlah_dpl')) }}</th>
                                             <th class="text-center">{{ $fmt($dataPesertaList->sum('jumlah_pic')) }}</th>
                                             <th class="text-center">{{ $fmt($dataPesertaList->sum('jumlah_ketua_kelompok')) }}</th>
+                                            <th></th>
                                         </tr>
                                     </tfoot>
                                 </table>

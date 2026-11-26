@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\PelaksanaanKkn;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +43,9 @@ class DataPesertaSummary
 
         $kodept = $this->kodeptBase()->pluck('kodept');
         $namaPt = DB::table('ref_satuanpendidikan')->whereIn('npsn', $kodept)->pluck('nm_lemb', 'npsn');
+        // Status bergantung tanggal hari ini: jangan cache hasil all() lintas hari
+        $selesaiPerPt = DB::table('pelaksanaan_kkn')->whereIn('kodept', $kodept)->pluck('tanggal_selesai', 'kodept');
+        $hariIni = today();
 
         return $kodept->map(fn ($kode) => (object) [
             'kodept' => (string) $kode,
@@ -50,6 +54,7 @@ class DataPesertaSummary
             'jumlah_dpl' => (int) ($jumlahDplPerPt[$kode] ?? 0),
             'jumlah_pic' => (int) ($jumlahPicPerPt[$kode] ?? 0),
             'jumlah_ketua_kelompok' => (int) ($jumlahKetuaPerPt[$kode] ?? 0),
+            'status_pelaksanaan' => PelaksanaanKkn::statusPelaksanaan($selesaiPerPt[$kode] ?? null, $hariIni),
         ])->sortBy('nama_pt', SORT_NATURAL | SORT_FLAG_CASE)->values();
     }
 

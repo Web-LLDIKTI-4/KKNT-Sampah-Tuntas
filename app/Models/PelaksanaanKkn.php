@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +31,33 @@ class PelaksanaanKkn extends Model
         'tanggal_mulai' => 'date',
         'tanggal_selesai' => 'date',
     ];
+
+    // Status pelaksanaan (urutan = nilai sort di tabel landing)
+    public const STATUS_LABELS = [
+        'belum' => 'Belum Diisi',
+        'berjalan' => 'Sedang Berjalan',
+        'akan_berakhir' => 'Akan Berakhir',
+        'berakhir' => 'Berakhir',
+    ];
+
+    public const AKAN_BERAKHIR_HARI = 7;
+
+    // Status dari tanggal selesai (null = PT belum mengisi), relatif ke $hariIni
+    public static function statusPelaksanaan(CarbonInterface|string|null $tanggalSelesai, CarbonInterface $hariIni): string
+    {
+        if (blank($tanggalSelesai)) {
+            return 'belum';
+        }
+
+        $selesai = Carbon::parse($tanggalSelesai)->startOfDay();
+        $hariIni = $hariIni->copy()->startOfDay();
+
+        return match (true) {
+            $hariIni->gt($selesai) => 'berakhir',
+            $hariIni->gte($selesai->copy()->subDays(self::AKAN_BERAKHIR_HARI)) => 'akan_berakhir',
+            default => 'berjalan',
+        };
+    }
 
     // Durasi inklusif: 1-3 Jan = 3 hari
     protected function durasiHari(): Attribute

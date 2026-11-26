@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Models\PelaksanaanKkn;
 use App\Support\XlsxStreamer;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -22,6 +23,7 @@ class DataPesertaExport
             XlsxStreamer::column('DPL', 'jumlah_dpl', 12),
             XlsxStreamer::column('PIC', 'jumlah_pic', 12),
             XlsxStreamer::column('Ketua Kelompok', 'jumlah_ketua_kelompok', 18),
+            XlsxStreamer::column('Status Pelaksanaan KKN', fn ($row) => PelaksanaanKkn::STATUS_LABELS[$row->status_pelaksanaan], 24),
         ]))
             ->total(array_combine(self::COUNTS, array_map(fn ($key) => (int) $this->rows->sum($key), self::COUNTS)))
             ->download($filename, $this->rows);

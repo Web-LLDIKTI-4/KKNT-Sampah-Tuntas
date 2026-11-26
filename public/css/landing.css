@@ -817,6 +817,12 @@ body.lp {
     border-radius: 2px;
 }
 
+/* Status Pelaksanaan KKN "Akan Berakhir": oranye (bg-label-warning tema berwarna kuning) */
+.bg-label-orange {
+    background-color: #ffe8d6 !important;
+    color: #c2410c !important;
+}
+
 .sebaran-table td:nth-child(4) {
     min-width: 10rem;
 }

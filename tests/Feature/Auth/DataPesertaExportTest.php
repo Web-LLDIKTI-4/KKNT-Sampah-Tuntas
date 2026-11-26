@@ -21,7 +21,7 @@ class DataPesertaExportTest extends TestCase
 
     private const FILENAME = '/filename="?data_peserta_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.xlsx"?/';
 
-    private const HEADER = ['No.', 'Kode PT', 'Nama PTS', 'Mahasiswa', 'DPL', 'PIC', 'Ketua Kelompok'];
+    private const HEADER = ['No.', 'Kode PT', 'Nama PTS', 'Mahasiswa', 'DPL', 'PIC', 'Ketua Kelompok', 'Status Pelaksanaan KKN'];
 
     private Satuanpendidikan $pt;
 
@@ -104,10 +104,12 @@ class DataPesertaExportTest extends TestCase
             for ($c = 3; $c <= 6; $c++) {
                 $this->assertSame((int) str_replace('.', '', $cells[$c]), (int) $data[$i][$c], "col {$c} row {$i}");
             }
+            $this->assertSame($cells[7], (string) $data[$i][7], 'Status row '.$i);
         }
 
         $byKode = collect($data)->keyBy(fn ($row) => (string) $row[1]);
-        $this->assertSame([2 + 1, 2, 1, 1], array_map('intval', array_slice($byKode[$this->pt->npsn], 3)));
+        $this->assertSame([2 + 1, 2, 1, 1], array_map('intval', array_slice($byKode[$this->pt->npsn], 3, 4)));
+        $this->assertSame('Belum Diisi', (string) $byKode[$this->pt->npsn][7]);
     }
 
     public function test_leading_zero_kodept_kept_as_text(): void

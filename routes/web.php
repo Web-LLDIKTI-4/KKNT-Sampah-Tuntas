@@ -587,6 +587,11 @@ Route::middleware(['auth', 'role:mahasiswa', 'user.guard'])->group(function () {
     Route::get('pendataanpemilahan/export', [PendataanPemilahanSampahController::class, 'export'])->middleware('throttle:3,1')->name('pendataanpemilahan.export');
 });
 
+// Export semua pendataan sampah penduduk; scope data per role di PendataanPemilahanLengkapExport
+Route::middleware(['auth', 'role:dpl,pt', 'user.guard'])->group(function () {
+    Route::get('pendataanpemilahan/export-semua', [PendataanPemilahanSampahController::class, 'exportSemua'])->middleware('throttle:3,1')->name('pendataanpemilahan.export.semua');
+});
+
 // Export log harian lengkap; scope data per role di LogHarianLengkapExport
 Route::middleware(['auth', 'role:admin,kepala,pemda,pt,dpl,mahasiswa', 'user.guard'])->group(function () {
     Route::get('logharian/export', LogharianExportController::class)->middleware('throttle:3,1')->name('logharian.export');

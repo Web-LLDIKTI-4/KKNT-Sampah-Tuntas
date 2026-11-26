@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PendataanPemilahanLengkapExport;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\PemilahanExportRequest;
 use App\Http\Requests\Mahasiswa\PendataanPemilahanSampahRequest;
@@ -124,6 +125,15 @@ class PendataanPemilahanSampahController extends StudentLogReportController
 
         // Resolved after the access check so unauthorized emails stay 404 (signature must match the base)
         return $this->download($email, app(PemilahanExportRequest::class)->validated('bulan'));
+    }
+
+    // Semua mahasiswa dalam cakupan DPL/PT; scope di export, bukan dari input
+    public function exportSemua(PemilahanExportRequest $request): StreamedResponse
+    {
+        $bulan = $request->validated('bulan');
+
+        return (new PendataanPemilahanLengkapExport($request->user(), $bulan))
+            ->download('pendataan_pemilahan_semua_'.($bulan ?? 'semua').'_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 
     // Same query as the detail table (student's own list uses the same rows), optional month filter

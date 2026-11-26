@@ -16,7 +16,7 @@ class DataPesertaSortTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const SORT_KEYS = ['kodept', 'nama', 'mahasiswa', 'dpl', 'pic', 'ketua'];
+    private const SORT_KEYS = ['kodept', 'nama', 'mahasiswa', 'dpl', 'pic', 'ketua', 'status'];
 
     private Satuanpendidikan $pt;
 
@@ -67,15 +67,15 @@ class DataPesertaSortTest extends TestCase
         return $rows;
     }
 
-    public function test_header_has_six_sort_buttons_with_type(): void
+    public function test_header_has_seven_sort_buttons_with_type(): void
     {
         $xpath = $this->pesertaTable();
         $ths = $xpath->query('//table[tbody[@id="pesertaTbody"]]/thead/tr/th');
 
-        $this->assertSame(7, $ths->length);
+        $this->assertSame(8, $ths->length);
         $this->assertSame(0, $xpath->query('.//button', $ths->item(0))->length, 'Kolom No tidak boleh sortable');
 
-        $expected = [1 => 'text', 2 => 'text', 3 => 'num', 4 => 'num', 5 => 'num', 6 => 'num'];
+        $expected = [1 => 'text', 2 => 'text', 3 => 'num', 4 => 'num', 5 => 'num', 6 => 'num', 7 => 'num'];
         foreach ($expected as $i => $type) {
             $buttons = $xpath->query('./button[contains(@class,"table-sort")]', $ths->item($i));
             $this->assertSame(1, $buttons->length, "th #{$i} harus punya satu tombol sort");
@@ -83,7 +83,7 @@ class DataPesertaSortTest extends TestCase
             $this->assertSame($type, $buttons->item(0)->getAttribute('data-sort-type'));
         }
 
-        $this->assertSame(6, $xpath->query('//table[tbody[@id="pesertaTbody"]]//button[contains(@class,"table-sort")]')->length);
+        $this->assertSame(7, $xpath->query('//table[tbody[@id="pesertaTbody"]]//button[contains(@class,"table-sort")]')->length);
     }
 
     public function test_header_text_is_unchanged(): void
@@ -93,7 +93,7 @@ class DataPesertaSortTest extends TestCase
             iterator_to_array($this->pesertaTable()->query('//table[tbody[@id="pesertaTbody"]]/thead/tr/th'))
         );
 
-        $this->assertSame(['No', 'Kode PT', 'Nama PTS', 'Mahasiswa', 'DPL', 'PIC PTS', 'Ketua Kelompok'], $headers);
+        $this->assertSame(['No', 'Kode PT', 'Nama PTS', 'Mahasiswa', 'DPL', 'PIC PTS', 'Ketua Kelompok', 'Status Pelaksanaan KKN'], $headers);
     }
 
     public function test_each_row_has_sort_attributes_matching_peserta_data(): void
@@ -104,15 +104,15 @@ class DataPesertaSortTest extends TestCase
 
         $this->assertEqualsCanonicalizing([$pt, $other, 'XK01'], array_keys($rows));
         $this->assertSame(
-            ['kodept' => $pt, 'nama' => 'Universitas "Alfa" & <Co>', 'mahasiswa' => '3', 'dpl' => '2', 'pic' => '1', 'ketua' => '1'],
+            ['kodept' => $pt, 'nama' => 'Universitas "Alfa" & <Co>', 'mahasiswa' => '3', 'dpl' => '2', 'pic' => '1', 'ketua' => '1', 'status' => '0'],
             $rows[$pt]
         );
         $this->assertSame(
-            ['kodept' => $other, 'nama' => 'Politeknik Beta', 'mahasiswa' => '0', 'dpl' => '1', 'pic' => '0', 'ketua' => '0'],
+            ['kodept' => $other, 'nama' => 'Politeknik Beta', 'mahasiswa' => '0', 'dpl' => '1', 'pic' => '0', 'ketua' => '0', 'status' => '0'],
             $rows[$other]
         );
         $this->assertSame(
-            ['kodept' => 'XK01', 'nama' => 'XK01', 'mahasiswa' => '1', 'dpl' => '0', 'pic' => '0', 'ketua' => '0'],
+            ['kodept' => 'XK01', 'nama' => 'XK01', 'mahasiswa' => '1', 'dpl' => '0', 'pic' => '0', 'ketua' => '0', 'status' => '0'],
             $rows['XK01']
         );
     }
@@ -120,7 +120,7 @@ class DataPesertaSortTest extends TestCase
     public function test_numeric_sort_attributes_are_plain_integers(): void
     {
         foreach ($this->sortAttrsByKode($this->pesertaTable()) as $kode => $attrs) {
-            foreach (['mahasiswa', 'dpl', 'pic', 'ketua'] as $key) {
+            foreach (['mahasiswa', 'dpl', 'pic', 'ketua', 'status'] as $key) {
                 $this->assertMatchesRegularExpression('/^\d+$/', $attrs[$key], "{$kode} data-sort-{$key} bukan integer");
             }
         }

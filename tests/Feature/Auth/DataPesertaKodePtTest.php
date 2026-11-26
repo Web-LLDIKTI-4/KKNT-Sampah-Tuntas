@@ -97,7 +97,7 @@ class DataPesertaKodePtTest extends TestCase
             $footerCount += (int) ($th->getAttribute('colspan') ?: 1);
         }
 
-        $this->assertSame(7, $headerCount);
+        $this->assertSame(8, $headerCount);
         $this->assertSame('3', $xpath->query($table.'/tfoot/tr/th')->item(0)->getAttribute('colspan'));
         $this->assertSame($headerCount, $footerCount);
         foreach ($this->rows($xpath) as $row) {
