@@ -180,13 +180,14 @@ class DataSampahTest extends TestCase
         $this->log($this->mahasiswaDi($desa, $lokB, $ptB->npsn), ['tanggal' => '2026-10-10', 'nama_kepala_keluarga' => 'Rahasia B', 'alamat_rumah' => 'Jl. Privat 2']);
 
         $check = function (string $label) use ($lokA, $lokB, $ptA): void {
-            // Parameter filter diabaikan; publik tidak terkunci ke PT user login
-            $res = $this->get(route('login.data-sampah', ['bulan' => '2026-10', 'kodept' => $ptA->npsn]))->assertOk()->assertViewIs('rekapsampah._data_sampah_publik');
+            // Default semua bulan; filter selain bulan diabaikan; publik tidak terkunci ke PT user login
+            $res = $this->get(route('login.data-sampah', ['kodept' => $ptA->npsn]))->assertOk()->assertViewIs('rekapsampah._data_sampah_publik');
             $this->assertEqualsCanonicalizing([$lokA->id, $lokB->id], $res->viewData('subtotal')->pluck('id')->all(), $label);
             // 1 baris per lokasi: A = 3 kg vs 0,5×4 jiwa → −50%; B = 3 kg vs 1×4 → 25%; total 6 vs 6 → 0%
             $res->assertSee(['Kewilayahan', 'Total Sampah Berdasarkan Jiwa (Kg)'])
                 ->assertSeeInOrder(['Kota Publik A', '3,00', '2,00', '-50,00%', 'Kota Publik B', '3,00', '4,00', '25,00%', 'Total', '6,00', '6,00', '0,00%'])
-                ->assertDontSee(['<form', '<select', 'data-klaster=', 'class="card'], false)
+                ->assertSee(['<option value="semua" selected>Semua Bulan</option>', '<option value="2026-10"', '<option value="2026-09"'], false)
+                ->assertDontSee(['name="kecamatan"', 'name="kodept"', 'name="klaster"', 'name="lokasi"', 'data-klaster=', 'class="card'], false)
                 ->assertDontSee(['Rahasia A', 'Rahasia B', 'Jl. Privat', 'Detail per Log Pendataan', 'rekapsampah/listdataserver', 'rekapsampah/export'], false);
         };
 
@@ -194,6 +195,15 @@ class DataSampahTest extends TestCase
         foreach (['pt' => ['email' => $ptA->npsn], 'pemda' => []] as $role => $attr) {
             $this->loginAs($role, $attr);
             $check($role);
+        }
+
+        // Filter bulan: hanya lokasi yang punya data di bulan itu
+        $res = $this->get(route('login.data-sampah', ['bulan' => '2026-10']))->assertOk();
+        $this->assertSame([$lokB->id], $res->viewData('subtotal')->pluck('id')->all());
+        $res->assertSee('<option value="2026-10" selected>', false);
+        // Bulan tanpa data / format asing ditolak (batasi kombinasi key cache)
+        foreach (['1999-01', "' OR 1=1 --", ['x']] as $invalid) {
+            $this->getJson(route('login.data-sampah', ['bulan' => $invalid]))->assertStatus(422)->assertJsonValidationErrors('bulan');
         }
     }
 

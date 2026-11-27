@@ -12,9 +12,11 @@ use App\Models\PenguranganSampah;
 use App\Models\Satuanpendidikan;
 use App\Services\PenguranganSampahService;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\Rule;
 use WeakMap;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -38,10 +40,18 @@ class RekapsampahController extends Controller
         return view($request->ajax() ? 'rekapsampah._tabel' : 'rekapsampah.index', $this->viewData($data, $request->user()->role === 'pt'));
     }
 
-    // Landing publik: total per lokasi program, akumulasi semua bulan, tanpa filter; tanpa data per rumah (nama KK/alamat)
-    public function publik(PenguranganSampahService $sampah)
+    // Landing publik: total per lokasi program, filter bulan saja (default semua bulan); tanpa data per rumah (nama KK/alamat)
+    public function publik(Request $request, PenguranganSampahService $sampah)
     {
-        return view('rekapsampah._data_sampah_publik', ['subtotal' => $this->data(['bulan' => 'semua'], $sampah, null, false)['subtotal']]);
+        // Hanya bulan yang ada datanya, agar kombinasi key cache terbatas
+        $bulanList = Cache::remember(PenguranganSampah::PUBLIC_BULAN_CACHE_KEY, now()->addMinutes(10), fn () => $sampah->bulanList()->all());
+        $bulan = $request->validate(['bulan' => ['nullable', 'string', Rule::in(['semua', ...$bulanList])]])['bulan'] ?? 'semua';
+
+        return view('rekapsampah._data_sampah_publik', [
+            'subtotal' => $this->data(['bulan' => $bulan], $sampah, null, false)['subtotal'],
+            'bulanList' => $bulanList,
+            'bulan' => $bulan,
+        ]);
     }
 
     private function viewData(array $data, bool $isPt): array

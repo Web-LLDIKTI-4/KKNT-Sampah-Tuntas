@@ -23,6 +23,18 @@
     ];
 @endphp
 
+<form data-filter class="d-flex justify-content-end mb-3">
+    <div class="ds-filter-bulan">
+        <label for="dsBulan" class="form-label small mb-1">Bulan</label>
+        <select name="bulan" id="dsBulan" class="form-select form-select-sm">
+            <option value="semua" @selected($bulan === 'semua')>Semua Bulan</option>
+            @foreach ($bulanList as $b)
+                <option value="{{ $b }}" @selected($bulan === $b)>{{ \Illuminate\Support\Carbon::parse($b.'-01')->translatedFormat('F Y') }}</option>
+            @endforeach
+        </select>
+    </div>
+</form>
+
 <div class="table-responsive ds-publik">
     <table class="table mb-0 align-middle text-center">
         <thead>
