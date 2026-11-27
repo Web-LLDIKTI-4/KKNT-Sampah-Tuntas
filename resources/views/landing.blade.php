@@ -22,6 +22,7 @@
         'beranda' => 'KKN Tematik Sampah Tuntas',
         'lokasi' => 'Lokasi Pelaksanaan KKN Tematik Sampah Tuntas',
         'capaian' => 'Capaian Pengurangan Timbulan Sampah',
+        'data-sampah' => 'Data Sampah',
         'peserta' => 'Perguruan Tinggi Peserta',
         'sebaran' => 'Sebaran Perguruan Tinggi pada Wilayah Pelaksanaan Program',
         'peta' => 'Jejak Aksi Mahasiswa di Setiap Wilayah',
@@ -240,8 +241,26 @@
             </div>
         </section>
 
+        {{-- DATA SAMPAH: agregat per klaster PT & lokasi program (dimuat lewat AJAX, tanpa detail per rumah) --}}
+        <section class="lp-section" id="data-sampah" tabindex="-1" aria-labelledby="dataSampahTitle">
+            <div class="container-xxl">
+                <div class="lp-head" data-reveal>
+                    <div>
+                        <p class="lp-kicker">REKAP PENDATAAN SAMPAH</p>
+                        <h2 class="lp-title" id="dataSampahTitle">{{ $navItems['data-sampah'] }}</h2>
+                        <p class="lp-lead">Subtotal pendataan sampah per lokasi program dan bulan; pilih bulan, kecamatan, lokasi program, perguruan tinggi, atau klaster.</p>
+                    </div>
+                </div>
+                <div class="card lp-card" data-reveal>
+                    <div class="card-body">
+                        <div data-filter-host="{{ route('login.data-sampah') }}" aria-live="polite"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         {{-- PARTISIPASI PERGURUAN TINGGI --}}
-        <section class="lp-section" id="peserta" tabindex="-1" aria-labelledby="pesertaTitle">
+        <section class="lp-section lp-section-alt" id="peserta" tabindex="-1" aria-labelledby="pesertaTitle">
             <div class="container-xxl">
                 <div class="lp-head" data-reveal>
                     <div>
@@ -343,7 +362,7 @@
         </section>
 
         {{-- SEBARAN PERGURUAN TINGGI: satu baris per pasangan PT-lokasi --}}
-        <section class="lp-section lp-section-alt" id="sebaran" tabindex="-1" aria-labelledby="sebaranTitle">
+        <section class="lp-section" id="sebaran" tabindex="-1" aria-labelledby="sebaranTitle">
             <div class="container-xxl">
                 <div class="lp-head" data-reveal>
                     <div>
@@ -435,7 +454,7 @@
         </section>
 
         {{-- PETA SEBARAN (Leaflet dimuat saat section terlihat) --}}
-        <section class="lp-section" id="peta" tabindex="-1" aria-labelledby="petaTitle">
+        <section class="lp-section lp-section-alt" id="peta" tabindex="-1" aria-labelledby="petaTitle">
             <div class="container-xxl">
                 <div class="lp-head" data-reveal>
                     <div>
@@ -519,7 +538,7 @@
         </section>
 
         {{-- DOKUMEN --}}
-        <section class="lp-section lp-section-alt" id="dokumen" tabindex="-1" aria-labelledby="dokumenTitle">
+        <section class="lp-section" id="dokumen" tabindex="-1" aria-labelledby="dokumenTitle">
             <span id="panduan" class="lp-anchor" aria-hidden="true"></span>
             <div class="container-xxl">
                 <div class="lp-head" data-reveal>
@@ -537,7 +556,7 @@
 
         {{-- FAQ --}}
         @if ($faqList->isNotEmpty())
-            <section class="lp-section" id="faq" tabindex="-1" aria-labelledby="faqTitle">
+            <section class="lp-section lp-section-alt" id="faq" tabindex="-1" aria-labelledby="faqTitle">
                 <div class="container-xxl">
                     <div class="faq-layout">
                         <div class="lp-head" data-reveal>

@@ -109,6 +109,7 @@ Route::middleware('guest')->group(function () {
 
 // Data publik landing: terbuka untuk tamu & user login
 Route::get('login/laporan', [LoginController::class, 'laporan'])->middleware('throttle:30,1')->name('login.laporan');
+Route::get('login/data-sampah', [RekapsampahController::class, 'publik'])->middleware('throttle:30,1')->name('login.data-sampah');
 Route::get('login/peta', [LoginController::class, 'peta'])->middleware('throttle:peta')->name('login.peta');
 Route::get('login/peta/filter', [LoginController::class, 'petaFilter'])->middleware('throttle:peta')->name('login.peta.filter');
 // Generate xlsx lebih berat: throttle lebih ketat

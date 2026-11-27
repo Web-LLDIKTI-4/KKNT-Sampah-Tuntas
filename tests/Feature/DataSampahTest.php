@@ -167,6 +167,41 @@ class DataSampahTest extends TestCase
         $this->get('rekapsampah/export')->assertRedirect(route('home'));
     }
 
+    public function test_data_sampah_publik_hanya_agregat_tanpa_pii_export_dan_scope_pt(): void
+    {
+        [$ptA, $ptB] = [Satuanpendidikan::factory()->create(), Satuanpendidikan::factory()->create()];
+        [$lokA, $lokB] = [LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Publik A']), LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Publik B'])];
+        $desa = Desa::factory()->create();
+        $this->log($this->mahasiswaDi($desa, $lokA, $ptA->npsn), ['nama_kepala_keluarga' => 'Rahasia A', 'alamat_rumah' => 'Jl. Privat 1']);
+        $this->log($this->mahasiswaDi($desa, $lokB, $ptB->npsn), ['nama_kepala_keluarga' => 'Rahasia B', 'alamat_rumah' => 'Jl. Privat 2']);
+
+        $check = function (string $label) use ($lokA, $lokB): void {
+            $res = $this->get(route('login.data-sampah', ['bulan' => 'semua']))->assertOk()->assertViewIs('rekapsampah._tabel');
+            // Publik tidak terkunci ke PT user login & tanpa kolom mingguan
+            $this->assertEqualsCanonicalizing([$lokA->id, $lokB->id], $res->viewData('subtotal')->pluck('id')->all(), $label);
+            $this->assertFalse($res->viewData('mingguan'), $label);
+            $res->assertSee(['Kota Publik A', 'Total Kota Publik B', 'Klaster'])
+                ->assertDontSee(['Rahasia A', 'Rahasia B', 'Jl. Privat', 'Detail per Log Pendataan', 'rekapsampah/listdataserver', 'rekapsampah/export'], false);
+        };
+
+        $check('guest');
+        foreach (['pt' => ['email' => $ptA->npsn], 'pemda' => []] as $role => $attr) {
+            $this->loginAs($role, $attr);
+            $check($role);
+        }
+
+        // Bulan di luar daftar bulan berdata ditolak (batasi kombinasi key cache)
+        $this->getJson(route('login.data-sampah', ['bulan' => '1999-01']))->assertStatus(422)->assertJsonValidationErrors('bulan');
+        $this->get(route('login.data-sampah', ['bulan' => self::BULAN]))->assertOk();
+    }
+
+    public function test_data_sampah_tampil_di_dashboard_home_dan_landing(): void
+    {
+        $this->get(route('landing'))->assertOk()->assertSee('data-filter-host="'.route('login.data-sampah').'"', false);
+        $this->loginAs('admin');
+        $this->get(route('home'))->assertOk()->assertSee('data-filter-host="'.route('rekapsampah').'"', false);
+    }
+
     public function test_filter_lokasi_dan_validasi_uuid(): void
     {
         [$lokA, $lokB] = [LokasiProgram::factory()->create(), LokasiProgram::factory()->create()];
