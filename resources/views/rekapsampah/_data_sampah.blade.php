@@ -77,8 +77,6 @@
     </table>
 </div>
 
-{{-- Detail per log memuat nama KK & alamat: tidak untuk landing publik --}}
-@unless ($publik ?? false)
 <h6 class="mb-2">Detail per Log Pendataan</h6>
 <div class="table-responsive">
     <x-datatable :id="$tableId" tableClass="table table-sm table-bordered align-middle js-data-sampah">
@@ -96,7 +94,6 @@
         </x-slot:thead>
     </x-datatable>
 </div>
-@endunless
 
 {{-- Keterangan rumus; huruf kolom ikut $kolom (PEMDA bergeser +2). Sumber: PenguranganSampahService barisLog/angkaSubtotal --}}
 @php($h = array_column($kolom, 'huruf', 'data'))
@@ -147,7 +144,6 @@
     </div>
 </details>
 
-@unless ($publik ?? false)
 <script type="text/javascript">
   $(function () {
     // Host dimuat ulang lewat drilldown.js: hancurkan instance lama yang tabelnya sudah lepas dari DOM
@@ -234,4 +230,3 @@
     $('#{{ $tableId }}').wrap('<div class="scroll-box scroll-box-lg"></div>');
   });
 </script>
-@endunless

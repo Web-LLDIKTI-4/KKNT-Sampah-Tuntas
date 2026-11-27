@@ -167,20 +167,26 @@ class DataSampahTest extends TestCase
         $this->get('rekapsampah/export')->assertRedirect(route('home'));
     }
 
-    public function test_data_sampah_publik_hanya_agregat_tanpa_pii_export_dan_scope_pt(): void
+    public function test_data_sampah_publik_total_per_lokasi_semua_bulan_tanpa_filter_dan_pii(): void
     {
         [$ptA, $ptB] = [Satuanpendidikan::factory()->create(), Satuanpendidikan::factory()->create()];
-        [$lokA, $lokB] = [LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Publik A']), LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Publik B'])];
+        [$lokA, $lokB] = [
+            LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Publik A', 'koefisien_timbulan_sampah' => 0.5]),
+            LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Publik B', 'koefisien_timbulan_sampah' => 1]),
+        ];
         $desa = Desa::factory()->create();
         $this->log($this->mahasiswaDi($desa, $lokA, $ptA->npsn), ['nama_kepala_keluarga' => 'Rahasia A', 'alamat_rumah' => 'Jl. Privat 1']);
-        $this->log($this->mahasiswaDi($desa, $lokB, $ptB->npsn), ['nama_kepala_keluarga' => 'Rahasia B', 'alamat_rumah' => 'Jl. Privat 2']);
+        // Beda bulan: landing selalu akumulasi semua bulan
+        $this->log($this->mahasiswaDi($desa, $lokB, $ptB->npsn), ['tanggal' => '2026-10-10', 'nama_kepala_keluarga' => 'Rahasia B', 'alamat_rumah' => 'Jl. Privat 2']);
 
-        $check = function (string $label) use ($lokA, $lokB): void {
-            $res = $this->get(route('login.data-sampah', ['bulan' => 'semua']))->assertOk()->assertViewIs('rekapsampah._tabel');
-            // Publik tidak terkunci ke PT user login & tanpa kolom mingguan
+        $check = function (string $label) use ($lokA, $lokB, $ptA): void {
+            // Parameter filter diabaikan; publik tidak terkunci ke PT user login
+            $res = $this->get(route('login.data-sampah', ['bulan' => '2026-10', 'kodept' => $ptA->npsn]))->assertOk()->assertViewIs('rekapsampah._data_sampah_publik');
             $this->assertEqualsCanonicalizing([$lokA->id, $lokB->id], $res->viewData('subtotal')->pluck('id')->all(), $label);
-            $this->assertFalse($res->viewData('mingguan'), $label);
-            $res->assertSee(['Kota Publik A', 'Total Kota Publik B', 'Klaster'])
+            // 1 baris per lokasi: A = 3 kg vs 0,5×4 jiwa → −50%; B = 3 kg vs 1×4 → 25%; total 6 vs 6 → 0%
+            $res->assertSee(['Kewilayahan', 'Total Sampah Berdasarkan Jiwa (Kg)'])
+                ->assertSeeInOrder(['Kota Publik A', '3,00', '2,00', '-50,00%', 'Kota Publik B', '3,00', '4,00', '25,00%', 'Total', '6,00', '6,00', '0,00%'])
+                ->assertDontSee(['<form', '<select', 'data-klaster=', 'class="card'], false)
                 ->assertDontSee(['Rahasia A', 'Rahasia B', 'Jl. Privat', 'Detail per Log Pendataan', 'rekapsampah/listdataserver', 'rekapsampah/export'], false);
         };
 
@@ -189,10 +195,6 @@ class DataSampahTest extends TestCase
             $this->loginAs($role, $attr);
             $check($role);
         }
-
-        // Bulan di luar daftar bulan berdata ditolak (batasi kombinasi key cache)
-        $this->getJson(route('login.data-sampah', ['bulan' => '1999-01']))->assertStatus(422)->assertJsonValidationErrors('bulan');
-        $this->get(route('login.data-sampah', ['bulan' => self::BULAN]))->assertOk();
     }
 
     public function test_data_sampah_tampil_di_dashboard_home_dan_landing(): void

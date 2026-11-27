@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Exports\DataSampahExport;
 use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
-use App\Http\Requests\Auth\DataSampahPublikRequest;
 use App\Http\Requests\RekapSampahRequest;
 use App\Models\Kecamatan;
 use App\Models\LokasiProgram;
@@ -33,17 +32,16 @@ class RekapsampahController extends Controller
 
     public function index(RekapSampahRequest $request, PenguranganSampahService $sampah)
     {
-        $user = $request->user();
-        $data = $this->data($request, $sampah, $user->role === 'pt' ? $user->email : null, $user->role === 'pemda');
+        $data = $this->dataUser($request, $sampah);
 
         // Filter di tabel memuat ulang bagian tabel saja
-        return view($request->ajax() ? 'rekapsampah._tabel' : 'rekapsampah.index', $this->viewData($data, $user->role === 'pt'));
+        return view($request->ajax() ? 'rekapsampah._tabel' : 'rekapsampah.index', $this->viewData($data, $request->user()->role === 'pt'));
     }
 
-    // Landing publik: hanya agregat (klaster PT & subtotal lokasi), tanpa detail per log (nama KK/alamat) & export
-    public function publik(DataSampahPublikRequest $request, PenguranganSampahService $sampah)
+    // Landing publik: total per lokasi program, akumulasi semua bulan, tanpa filter; tanpa data per rumah (nama KK/alamat)
+    public function publik(PenguranganSampahService $sampah)
     {
-        return view('rekapsampah._tabel', $this->viewData($this->data($request, $sampah, null, false), false) + ['publik' => true]);
+        return view('rekapsampah._data_sampah_publik', ['subtotal' => $this->data(['bulan' => 'semua'], $sampah, null, false)['subtotal']]);
     }
 
     private function viewData(array $data, bool $isPt): array
@@ -63,8 +61,7 @@ class RekapsampahController extends Controller
     {
         abort_unless($request->ajax(), 404);
         $this->sanitizeDataTablesInput();
-        $user = $request->user();
-        $filter = $this->data($request, $sampah, $user->role === 'pt' ? $user->email : null, $user->role === 'pemda')['filter'];
+        $filter = $this->dataUser($request, $sampah)['filter'];
         $keyword = trim((string) DataTables::getRequest()->keyword());
         $memo = new WeakMap;
         $hitung = fn (object $r) => $memo[$r] ??= PenguranganSampahService::barisLog($r, $r->koefisien === null ? null : (float) $r->koefisien);
@@ -102,8 +99,7 @@ class RekapsampahController extends Controller
     // Data Sampah detail per log + subtotal, mengikuti filter & klaster aktif (stream)
     public function export(RekapSampahRequest $request, PenguranganSampahService $sampah)
     {
-        $user = $request->user();
-        $data = $this->data($request, $sampah, $user->role === 'pt' ? $user->email : null, $user->role === 'pemda');
+        $data = $this->dataUser($request, $sampah);
         $filter = $data['filter'];
 
         return (new DataSampahExport($sampah, $filter, $data['mingguan'], $data['subtotal']))
@@ -115,21 +111,29 @@ class RekapsampahController extends Controller
             ->download('data_sampah_'.($filter['klaster'] ?? 'semua').'_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 
+    // Scope user login: PT dikunci ke PT-nya sendiri (filter kodept/klaster diabaikan), kolom Minggu hanya PEMDA
+    private function dataUser(RekapSampahRequest $request, PenguranganSampahService $sampah): array
+    {
+        $user = $request->user();
+        $isPt = $user->role === 'pt';
+        $input = $request->safe()->only($isPt ? ['bulan', 'kecamatan', 'lokasi'] : ['bulan', 'kecamatan', 'kodept', 'klaster', 'lokasi']);
+
+        return $this->data($input, $sampah, $isPt ? $user->email : null, $user->role === 'pemda');
+    }
+
     /**
      * Di-cache per filter + scope (PT hanya datanya sendiri); versi berganti saat data sampah berubah.
      *
      * @param  string|null  $ptScope  kodept bila user PT (dikunci ke PT-nya sendiri)
      * @param  bool  $mingguan  kolom & subtotal Minggu (hanya PEMDA)
      */
-    private function data(RekapSampahRequest $request, PenguranganSampahService $sampah, ?string $ptScope, bool $mingguan): array
+    private function data(array $input, PenguranganSampahService $sampah, ?string $ptScope, bool $mingguan): array
     {
-        $isPt = $ptScope !== null;
-        $input = $request->safe()->only($isPt ? ['bulan', 'kecamatan', 'lokasi'] : ['bulan', 'kecamatan', 'kodept', 'klaster', 'lokasi']);
-        $scope = $isPt ? 'pt:'.$ptScope : 'all';
+        $scope = $ptScope !== null ? 'pt:'.$ptScope : 'all';
         $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0');
 
-        return Cache::remember('rekapsampah.v4.'.$versi.'.'.md5($scope.'|'.(int) $mingguan.'|'.json_encode($input)), now()->addMinutes(10), function () use ($request, $sampah, $ptScope, $mingguan) {
-            [$filter, $klasterPt] = $this->filter($request, $sampah, $ptScope);
+        return Cache::remember('rekapsampah.v5.'.$versi.'.'.md5($scope.'|'.(int) $mingguan.'|'.json_encode($input)), now()->addMinutes(10), function () use ($input, $sampah, $ptScope, $mingguan) {
+            [$filter, $klasterPt] = $this->filter($input, $sampah, $ptScope);
 
             return [
                 'filter' => $filter,
@@ -144,14 +148,14 @@ class RekapsampahController extends Controller
     /**
      * @return array{0: array, 1: Collection} filter query & klaster tiap PT (kosong untuk role PT)
      */
-    private function filter(RekapSampahRequest $request, PenguranganSampahService $sampah, ?string $ptScope): array
+    private function filter(array $input, PenguranganSampahService $sampah, ?string $ptScope): array
     {
-        $kodept = $ptScope ?? $request->validated('kodept');
+        $kodept = $ptScope ?? ($input['kodept'] ?? null);
 
         // PT dikunci ke PT-nya sendiri; bulan default = bulan terakhir yang ada datanya, "semua" = tanpa filter bulan
-        $bulan = $request->validated('bulan');
+        $bulan = $input['bulan'] ?? null;
         $bulan = $bulan === 'semua' ? null : ($bulan ?: $sampah->bulanTerakhir($kodept));
-        $filter = ['bulan' => $bulan, 'id_kecamatan' => $request->validated('kecamatan'), 'kodept' => $kodept, 'lokasi' => $request->validated('lokasi')];
+        $filter = ['bulan' => $bulan, 'id_kecamatan' => $input['kecamatan'] ?? null, 'kodept' => $kodept, 'lokasi' => $input['lokasi'] ?? null];
 
         if ($ptScope !== null) {
             return [$filter + ['klaster' => null], collect()];
@@ -159,7 +163,7 @@ class RekapsampahController extends Controller
 
         // Klaster dihitung sebelum dipilih agar jumlah PT tiap klaster tetap tampil
         $klasterPt = $sampah->klasterPt($filter);
-        $filter['klaster'] = $request->validated('klaster');
+        $filter['klaster'] = $input['klaster'] ?? null;
         if ($filter['klaster']) {
             $filter['kodept_in'] = $klasterPt->where('klaster', $filter['klaster'])->keys()->all();
         }

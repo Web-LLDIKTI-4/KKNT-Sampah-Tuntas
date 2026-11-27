@@ -248,12 +248,40 @@
                     <div>
                         <p class="lp-kicker">REKAP PENDATAAN SAMPAH</p>
                         <h2 class="lp-title" id="dataSampahTitle">{{ $navItems['data-sampah'] }}</h2>
-                        <p class="lp-lead">Subtotal pendataan sampah per lokasi program dan bulan; pilih bulan, kecamatan, lokasi program, perguruan tinggi, atau klaster.</p>
+                        <p class="lp-lead">Rekap pendataan sampah rumah tangga per wilayah, akumulasi seluruh bulan pelaksanaan.</p>
                     </div>
                 </div>
-                <div class="card lp-card" data-reveal>
-                    <div class="card-body">
-                        <div data-filter-host="{{ route('login.data-sampah') }}" aria-live="polite"></div>
+                <div data-reveal>
+                    <div data-filter-host="{{ route('login.data-sampah') }}" aria-live="polite">
+                        {{-- Skeleton saat memuat; diganti isi tabel oleh drilldown.js --}}
+                        <div class="table-responsive ds-publik placeholder-glow" data-placeholder aria-busy="true">
+                            <span class="visually-hidden">Memuat data sampah…</span>
+                            <table class="table mb-0 align-middle text-center" aria-hidden="true">
+                                <thead>
+                                    <tr>
+                                        @for ($i = 0; $i < 9; $i++)
+                                            <th scope="col"><span class="placeholder col-8"></span><span class="placeholder col-10 mt-2"></span></th>
+                                        @endfor
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for ($r = 0; $r < 4; $r++)
+                                        <tr>
+                                            @for ($i = 0; $i < 9; $i++)
+                                                <td><span class="placeholder {{ $i === 0 ? 'col-10' : 'col-6' }}"></span></td>
+                                            @endfor
+                                        </tr>
+                                    @endfor
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        @for ($i = 0; $i < 9; $i++)
+                                            <td><span class="placeholder col-7"></span></td>
+                                        @endfor
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

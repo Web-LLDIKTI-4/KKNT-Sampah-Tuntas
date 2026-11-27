@@ -1847,3 +1847,80 @@ html.js-reveal [data-reveal].is-visible {
         animation: none;
     }
 }
+
+/* Data Sampah publik (rekapsampah/_data_sampah_publik): header/footer abu, sorotan kuning */
+.ds-publik {
+    --ds-grey: #eceef3;
+    --ds-grey-soft: #f7f8fa;
+    --ds-yellow-soft: #fdf5d3;
+    --ds-yellow: #f5d14a;
+    border-radius: 14px;
+    border: 1px solid var(--lp-line);
+}
+.ds-publik .table {
+    --bs-table-bg: transparent;
+    color: var(--lp-ink);
+    font-size: .875rem;
+}
+.ds-publik .table > :not(caption) > * > * {
+    box-shadow: none;
+    text-transform: none;
+    letter-spacing: normal;
+    border-color: var(--lp-line);
+}
+.ds-publik thead th,
+.ds-publik tfoot th,
+.ds-publik tfoot td {
+    background-color: var(--ds-grey) !important;
+    color: var(--lp-ink) !important;
+}
+.ds-publik thead th {
+    font-size: .75rem;
+    font-weight: 600;
+    line-height: 1.25;
+    vertical-align: middle;
+    min-width: 7.5rem;
+    padding: .75rem .5rem;
+}
+.ds-publik thead th i {
+    font-size: 1.6rem;
+    line-height: 1;
+    margin-bottom: .35rem;
+    color: var(--lp-muted);
+}
+.ds-publik thead th.ds-wilayah {
+    font-size: 1rem;
+    min-width: 13rem;
+}
+.ds-publik tbody tr:nth-child(even) > * {
+    background: var(--ds-grey-soft);
+}
+.ds-publik tbody td {
+    color: var(--lp-ink);
+}
+.ds-publik tbody th {
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--lp-ink);
+}
+.ds-publik tbody th i,
+.ds-publik tfoot th i {
+    color: var(--lp-muted);
+}
+.ds-publik tbody td.ds-terkelola {
+    background: var(--ds-yellow-soft) !important;
+    font-weight: 700;
+}
+.ds-publik tfoot > tr > * {
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding-top: .85rem;
+    padding-bottom: .85rem;
+}
+.ds-publik tfoot td.ds-sorot {
+    background-color: var(--ds-yellow) !important;
+}
+.ds-publik .placeholder {
+    min-height: .75rem;
+    border-radius: 4px;
+}

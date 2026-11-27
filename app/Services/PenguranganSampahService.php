@@ -276,6 +276,7 @@ class PenguranganSampahService
         $terkelola = round($organik + $anorganik, 2);
         $dihasilkan = round($terkelola + $residu, 2);
         $jiwa = (int) $rows->sum('jiwa');
+        $dihasilkanBerjiwa = round((float) $rows->sum('dihasilkan_berjiwa'), 2);
 
         return (object) [
             'jml_rumah' => $rumah,
@@ -288,7 +289,33 @@ class PenguranganSampahService
             'total_terkelola' => $terkelola,
             'total_dihasilkan' => $dihasilkan,
             'persen_pengelolaan' => PenguranganSampah::persen($terkelola, $dihasilkan),
-            'persen_penurunan_timbulan' => self::penurunanTimbulan((float) $rows->sum('dihasilkan_berjiwa'), (float) $koef * $jiwa),
+            'persen_penurunan_timbulan' => self::penurunanTimbulan($dihasilkanBerjiwa, (float) $koef * $jiwa),
+            // Potensi timbulan (koefisien × jiwa) & dihasilkan berjiwa: dasar total lintas lokasi (totalLokasi)
+            'timbulan' => $koef === null ? null : round($koef * $jiwa, 2),
+            'dihasilkan_berjiwa' => $dihasilkanBerjiwa,
+        ];
+    }
+
+    /**
+     * Total seluruh lokasi dari dataSampahSubtotal(): angka dijumlah, persen dihitung ulang.
+     * Penurunan = 1 − Σ dihasilkan berjiwa ÷ Σ (koefisien × jiwa) tiap lokasi (koefisien berbeda per lokasi).
+     */
+    public static function totalLokasi(Collection $subtotal): object
+    {
+        $t = $subtotal->pluck('total');
+        $sum = fn (string $key, int $desimal = 2) => round((float) $t->sum($key), $desimal);
+        $berKoef = $t->filter(fn ($r) => $r->timbulan !== null);
+        $timbulan = round((float) $berKoef->sum('timbulan'), 2);
+
+        return (object) [
+            'jml_rumah' => (int) $t->sum('jml_rumah'),
+            'jml_rumah_memilah' => (int) $t->sum('jml_rumah_memilah'),
+            'persen_ketaatan' => PenguranganSampah::persen($t->sum('jml_rumah_memilah'), $t->sum('jml_rumah')),
+            'total_terkelola' => $sum('total_terkelola'),
+            'total_dihasilkan' => $sum('total_dihasilkan'),
+            'persen_pengelolaan' => PenguranganSampah::persen($sum('total_terkelola'), $sum('total_dihasilkan')),
+            'timbulan' => $berKoef->isEmpty() ? null : $timbulan,
+            'persen_penurunan_timbulan' => self::penurunanTimbulan((float) $berKoef->sum('dihasilkan_berjiwa'), $timbulan),
         ];
     }
 

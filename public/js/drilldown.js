@@ -8,6 +8,7 @@
  * - Publik: select[name=klaster], [data-drill-reset], [data-png-download] (html-to-image lazy) — aktif hanya bila elemen ada
  * Tabel dengan filter (mis. resources/views/rekapsampah/_tabel.blade.php):
  * - Host  : <div data-filter-host="url">; select di form[data-filter] memuat ulang host
+ *           isi awal kosong atau hanya [data-placeholder] (skeleton) = dimuat saat halaman siap
  * - Cari  : input[type=search] di form[data-filter] memuat ulang host otomatis (debounce), fokus tetap di input
  * - Link  : <a href> di dalam [data-filter-links] (sort, pagination) dimuat ulang di host
  * - Klaster: [data-klaster="hijau|kuning|merah"] memilih klaster di select name="klaster"
@@ -180,7 +181,7 @@
     $(function () {
         $('[data-drilldown], [data-filter-host]').each(function () {
             var $host = $(this);
-            if ($.trim($host.html()) === '') {
+            if ($.trim($host.html()) === '' || $host.children('[data-placeholder]').length) {
                 muat($host, $host.data('drilldown') || $host.data('filter-host'));
             }
         });

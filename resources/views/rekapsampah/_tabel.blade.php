@@ -55,12 +55,10 @@
                 @endforeach
             </select>
         </div>
-        @unless ($publik ?? false)
         <div class="col-md-auto">
             <a href="{{ route('rekapsampah.export', array_filter(['bulan' => $pilihanBulan, 'kecamatan' => $filter['id_kecamatan'], 'kodept' => $filter['kodept'], 'klaster' => $filter['klaster'], 'lokasi' => $filter['lokasi'] ?? null])) }}"
                class="btn btn-sm btn-success btn-filter w-100" title="Export sesuai filter & klaster"><i class="ri-file-excel-2-line" aria-hidden="true"></i> Export</a>
         </div>
-        @endunless
     @endunless
 </form>
 
