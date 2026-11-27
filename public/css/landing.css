@@ -859,20 +859,20 @@ body.lp {
 
 #peta .select2-container--default .select2-selection--single,
 #peta .select2-container--default .select2-selection--single .select2-selection__arrow,
-#data-sampah .select2-container--default .select2-selection--single,
-#data-sampah .select2-container--default .select2-selection--single .select2-selection__arrow {
+#rekapitulasi-pendataan-sampah .select2-container--default .select2-selection--single,
+#rekapitulasi-pendataan-sampah .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: 2.125rem;
 }
 
 #peta .select2-container--default .select2-selection--single .select2-selection__rendered,
-#data-sampah .select2-container--default .select2-selection--single .select2-selection__rendered {
+#rekapitulasi-pendataan-sampah .select2-container--default .select2-selection--single .select2-selection__rendered {
     line-height: 2rem;
     font-size: 0.8125rem;
     padding-left: 0.75rem;
 }
 
 #peta .select2-results__option,
-#data-sampah .select2-results__option {
+#rekapitulasi-pendataan-sampah .select2-results__option {
     font-size: 0.8125rem;
 }
 

@@ -13,13 +13,14 @@
         ['ri-delete-bin-fill', 'Total Sampah Dihasilkan (Kg)'],
         ['ri-recycle-fill', 'Total Sampah Terkelola (Kg)'],
         ['ri-leaf-fill', 'Persentase Pengelolaan Sampah (%)'],
+        ['ri-group-fill', 'Total Jiwa (Orang)'],
         ['ri-delete-bin-2-fill', 'Total Sampah Berdasarkan Jiwa (Kg)'],
         ['ri-bar-chart-box-fill', 'Persentase Penurunan Timbulan Sampah'],
     ];
     $sel = fn ($r) => [
         $angka($r->jml_rumah), $angka($r->jml_rumah_memilah), $persen($r->persen_ketaatan),
         $berat($r->total_dihasilkan), $berat($r->total_terkelola), $persen($r->persen_pengelolaan),
-        $berat($r->timbulan), PenguranganSampah::formatPersen($r->persen_penurunan_timbulan),
+        $angka($r->jml_jiwa), $berat($r->timbulan), PenguranganSampah::formatPersen($r->persen_penurunan_timbulan),
     ];
 @endphp
 
@@ -52,7 +53,7 @@
                 <tr>
                     <th scope="row" class="text-start text-nowrap"><i class="ri-map-pin-2-fill" aria-hidden="true"></i> {{ $lokasi->nama }}</th>
                     @foreach ($sel($lokasi->total) as $i => $nilai)
-                        <td @class(['text-nowrap', 'ds-terkelola' => $i === 4, 'fw-bold' => $i === 7])>{{ $nilai }}</td>
+                        <td @class(['text-nowrap', 'ds-terkelola' => $i === 4, 'fw-bold' => $i === 8])>{{ $nilai }}</td>
                     @endforeach
                 </tr>
             @empty
@@ -64,7 +65,7 @@
                 <tr>
                     <th scope="row" class="text-start text-nowrap"><i class="ri-bar-chart-2-line" aria-hidden="true"></i> Total</th>
                     @foreach ($sel($total) as $i => $nilai)
-                        <td @class(['text-nowrap', 'ds-sorot' => in_array($i, [4, 7], true)])>{{ $nilai }}</td>
+                        <td @class(['text-nowrap', 'ds-sorot' => in_array($i, [4, 8], true)])>{{ $nilai }}</td>
                     @endforeach
                 </tr>
             </tfoot>

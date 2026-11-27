@@ -22,7 +22,7 @@
         'beranda' => 'KKN Tematik Sampah Tuntas',
         'lokasi' => 'Lokasi Pelaksanaan KKN Tematik Sampah Tuntas',
         'capaian' => 'Capaian Pengurangan Timbulan Sampah',
-        'data-sampah' => 'Data Sampah',
+        'rekapitulasi-pendataan-sampah' => 'Rekapitulasi Pendataan Sampah',
         'peserta' => 'Perguruan Tinggi Peserta',
         'sebaran' => 'Sebaran Perguruan Tinggi pada Wilayah Pelaksanaan Program',
         'peta' => 'Jejak Aksi Mahasiswa di Setiap Wilayah',
@@ -242,13 +242,13 @@
         </section>
 
         {{-- DATA SAMPAH: agregat per klaster PT & lokasi program (dimuat lewat AJAX, tanpa detail per rumah) --}}
-        <section class="lp-section" id="data-sampah" tabindex="-1" aria-labelledby="dataSampahTitle">
+        <section class="lp-section" id="rekapitulasi-pendataan-sampah" tabindex="-1" aria-labelledby="dataSampahTitle">
             <div class="container-xxl">
                 <div class="lp-head" data-reveal>
                     <div>
-                        <p class="lp-kicker">REKAP PENDATAAN SAMPAH</p>
-                        <h2 class="lp-title" id="dataSampahTitle">{{ $navItems['data-sampah'] }}</h2>
-                        <p class="lp-lead">Rekap pendataan sampah rumah tangga per wilayah; tampilkan akumulasi seluruh bulan atau pilih bulan tertentu.</p>
+                        <p class="lp-kicker">CAPAIAN PROGRAM PER KOTA/KABUPATEN</p>
+                        <h2 class="lp-title" id="dataSampahTitle">{{ $navItems['rekapitulasi-pendataan-sampah'] }}</h2>
+                        <p class="lp-lead">Rekap pendataan sampah rumah tangga per wilayah.</p>
                     </div>
                 </div>
                 <div data-reveal>
@@ -266,7 +266,7 @@
                                 <table class="table mb-0 align-middle text-center" aria-hidden="true">
                                     <thead>
                                         <tr>
-                                            @for ($i = 0; $i < 9; $i++)
+                                            @for ($i = 0; $i < 10; $i++)
                                                 <th scope="col"><span class="placeholder col-8"></span><span class="placeholder col-10 mt-2"></span></th>
                                             @endfor
                                         </tr>
@@ -274,7 +274,7 @@
                                     <tbody>
                                         @for ($r = 0; $r < 4; $r++)
                                             <tr>
-                                                @for ($i = 0; $i < 9; $i++)
+                                                @for ($i = 0; $i < 10; $i++)
                                                     <td><span class="placeholder {{ $i === 0 ? 'col-10' : 'col-6' }}"></span></td>
                                                 @endfor
                                             </tr>
@@ -282,7 +282,7 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            @for ($i = 0; $i < 9; $i++)
+                                            @for ($i = 0; $i < 10; $i++)
                                                 <td><span class="placeholder col-7"></span></td>
                                             @endfor
                                         </tr>

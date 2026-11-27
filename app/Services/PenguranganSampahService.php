@@ -314,6 +314,7 @@ class PenguranganSampahService
             'total_terkelola' => $sum('total_terkelola'),
             'total_dihasilkan' => $sum('total_dihasilkan'),
             'persen_pengelolaan' => PenguranganSampah::persen($sum('total_terkelola'), $sum('total_dihasilkan')),
+            'jml_jiwa' => (int) $t->sum('jml_jiwa'),
             'timbulan' => $berKoef->isEmpty() ? null : $timbulan,
             'persen_penurunan_timbulan' => self::penurunanTimbulan((float) $berKoef->sum('dihasilkan_berjiwa'), $timbulan),
         ];

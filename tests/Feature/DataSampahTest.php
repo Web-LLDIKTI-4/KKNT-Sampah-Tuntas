@@ -185,7 +185,8 @@ class DataSampahTest extends TestCase
             $this->assertEqualsCanonicalizing([$lokA->id, $lokB->id], $res->viewData('subtotal')->pluck('id')->all(), $label);
             // 1 baris per lokasi: A = 3 kg vs 0,5×4 jiwa → −50%; B = 3 kg vs 1×4 → 25%; total 6 vs 6 → 0%
             $res->assertSee(['Kewilayahan', 'Total Sampah Berdasarkan Jiwa (Kg)'])
-                ->assertSeeInOrder(['Kota Publik A', '3,00', '2,00', '-50,00%', 'Kota Publik B', '3,00', '4,00', '25,00%', 'Total', '6,00', '6,00', '0,00%'])
+                ->assertSeeInOrder(['Total Jiwa (Orang)', 'Total Sampah Berdasarkan Jiwa (Kg)'])
+                ->assertSeeInOrder(['Kota Publik A', '3,00', '<td class="text-nowrap">4</td>', '2,00', '-50,00%', 'Kota Publik B', '3,00', '<td class="text-nowrap">4</td>', '4,00', '25,00%', 'Total', '6,00', '<td class="text-nowrap">8</td>', '6,00', '0,00%'], false)
                 ->assertSee(['<option value="semua" selected>Semua Bulan</option>', '<option value="2026-10"', '<option value="2026-09"'], false)
                 ->assertDontSee(['name="kecamatan"', 'name="kodept"', 'name="klaster"', 'name="lokasi"', 'data-klaster=', 'class="card'], false)
                 ->assertDontSee(['Rahasia A', 'Rahasia B', 'Jl. Privat', 'Detail per Log Pendataan', 'rekapsampah/listdataserver', 'rekapsampah/export'], false);
