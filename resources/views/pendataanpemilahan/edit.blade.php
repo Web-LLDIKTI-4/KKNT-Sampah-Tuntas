@@ -2,6 +2,6 @@
     @csrf
     @method('PUT')
     <input type="hidden" name="id_pendataan" value="{{ $data->id_pendataan }}">
-    @include('pendataanpemilahan._fields', ['data' => $data])
+    @include('pendataanpemilahan._fields', ['data' => $data, 'minTanggal' => $minTanggal])
     <x-button.save formId="form-ubah-pendataan">Simpan</x-button.save>
 </form>

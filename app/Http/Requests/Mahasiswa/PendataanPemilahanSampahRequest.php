@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Mahasiswa;
 
 use App\Http\Requests\AjaxFormRequest;
+use App\Http\Requests\Pt\PelaksanaanKknRequest;
+use App\Models\User;
 use App\Services\LogHarianService;
 use Illuminate\Validation\Rule;
 
@@ -19,16 +21,22 @@ class PendataanPemilahanSampahRequest extends AjaxFormRequest
     {
         return [
             'id_pendataan' => [Rule::requiredIf($this->isUpdate()), 'nullable', 'uuid'],
-        ] + self::dataRules();
+        ] + self::dataRules(self::minTanggal($this->user()));
+    }
+
+    // Batas awal tanggal: mulai pelaksanaan KKN PT; fallback batas global agar tahun salah ketik (mis. 0026) tetap ditolak
+    public static function minTanggal(?User $user): string
+    {
+        return $user?->tanggalMulaiPelaksanaan()?->toDateString() ?? PelaksanaanKknRequest::MIN_TANGGAL;
     }
 
     // Rules data pendataan (tanpa id), dipakai ulang oleh LogHarianRequest
-    public static function dataRules(): array
+    public static function dataRules(string $minTanggal): array
     {
         $berat = ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:'.LogHarianService::MAX_BERAT_KG];
 
         return [
-            'tanggal' => ['required', 'date', 'before_or_equal:today'],
+            'tanggal' => ['required', 'date', 'after_or_equal:'.$minTanggal, 'before_or_equal:today'],
             'nama_kepala_keluarga' => ['required', 'string', 'max:150', 'not_regex:/^[=+\-@]/'],
             // max hanya guard batas kolom unsigned int
             'jumlah_anggota_keluarga' => ['required', 'integer', 'min:1', 'max:4294967295'],
@@ -61,6 +69,7 @@ class PendataanPemilahanSampahRequest extends AjaxFormRequest
             'rw.regex' => 'RW harus 3 digit angka, contoh 012.',
             'memilah.boolean' => 'Pilih Ya atau Tidak.',
             'tanggal.before_or_equal' => 'Tanggal tidak boleh melebihi hari ini.',
+            'tanggal.after_or_equal' => 'Tanggal tidak boleh sebelum mulai pelaksanaan KKN.',
         ];
     }
 }

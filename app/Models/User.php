@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 
 class User extends Authenticatable
 {
@@ -107,6 +108,14 @@ class User extends Authenticatable
         };
 
         return blank($kodept) ? null : (string) $kodept;
+    }
+
+    // Tanggal mulai pelaksanaan KKN milik PT user (null bila PT belum mengisi)
+    public function tanggalMulaiPelaksanaan(): ?Carbon
+    {
+        $kodept = $this->ptKodept();
+
+        return $kodept ? PelaksanaanKkn::where('kodept', $kodept)->first(['tanggal_mulai'])?->tanggal_mulai : null;
     }
 
     // Mahasiswa/DPL terkunci bila PT-nya belum mengisi pelaksanaan KKN

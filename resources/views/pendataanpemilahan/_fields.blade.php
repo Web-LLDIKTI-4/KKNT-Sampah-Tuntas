@@ -1,11 +1,12 @@
 @php
     $data ??= null;
+    $minTanggal ??= null;
     $nilai = fn (string $kolom) => $data ? $data->$kolom : '';
     $wajib = '<span class="text-danger">*</span>';
 @endphp
 @if($withTanggal ?? true)
 <div class="form-group form-floating form-floating-outline mb-6">
-    <input type="date" name="tanggal" class="form-control form-control-sm" required max="{{ date('Y-m-d') }}" value="{{ $nilai('tanggal') }}">
+    <input type="date" name="tanggal" class="form-control form-control-sm" required @if($minTanggal) min="{{ $minTanggal }}" @endif max="{{ date('Y-m-d') }}" value="{{ $nilai('tanggal') }}">
     <label>Tanggal {!! $wajib !!}</label>
     <span id="tanggal_error" class="text-danger"></span>
 </div>

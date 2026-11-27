@@ -12,13 +12,16 @@ class LogHarianRequest extends LogkegiatanRequest
 {
     public function rules(): array
     {
-        // Field di luar mode terpilih dibuang dari validated(); tanggal dipakai kedua mode
+        // Field di luar mode terpilih dibuang dari validated(); tanggal dipakai kedua mode,
+        // batas mulai pelaksanaan KKN hanya berlaku untuk pendataan
         $prefix = fn (string $mode) => fn (array $rules) => ['exclude_unless:mode,'.$mode, ...$rules];
-        $dataRules = PendataanPemilahanSampahRequest::dataRules();
+        $dataRules = PendataanPemilahanSampahRequest::dataRules(PendataanPemilahanSampahRequest::minTanggal($this->user()));
+        $logRules = parent::rules();
+        $tanggal = $this->input('mode') === 'pendataan' ? $dataRules['tanggal'] : $logRules['tanggal'];
 
-        return ['mode' => ['required', 'in:pendataan,kegiatan'], 'tanggal' => $dataRules['tanggal']]
+        return ['mode' => ['required', 'in:pendataan,kegiatan'], 'tanggal' => $tanggal]
             + array_map($prefix('pendataan'), Arr::except($dataRules, ['tanggal']))
-            + array_map($prefix('kegiatan'), Arr::except(parent::rules(), ['id_log', 'tanggal']));
+            + array_map($prefix('kegiatan'), Arr::except($logRules, ['id_log', 'tanggal']));
     }
 
     public function messages(): array

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\HandlesDataTablesOrder;
 use App\Http\Controllers\Concerns\RespondsWithJson;
 use App\Http\Requests\Mahasiswa\LogHarianRequest;
+use App\Http\Requests\Mahasiswa\PendataanPemilahanSampahRequest;
 use App\Http\Requests\Mahasiswa\LogkegiatanRequest;
 use App\Models\Kehadiran;
 use App\Models\KategoriKegiatan;
@@ -62,7 +63,10 @@ class LogkegiatanController extends Controller
 
     public function tambah()
     {
-        return view('logkegiatan.mahasiswa.tambah', ['kategoriKegiatan' => KategoriKegiatan::orderBy('nama_kategori')->get()]);
+        return view('logkegiatan.mahasiswa.tambah', [
+            'kategoriKegiatan' => KategoriKegiatan::orderBy('nama_kategori')->get(),
+            'minTanggalPendataan' => PendataanPemilahanSampahRequest::minTanggal(request()->user()),
+        ]);
     }
 
     public function insert(LogHarianRequest $request, LogHarianService $logHarian)

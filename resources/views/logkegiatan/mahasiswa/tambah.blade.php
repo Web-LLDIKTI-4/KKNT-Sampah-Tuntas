@@ -16,7 +16,7 @@
     </fieldset>
     {{-- Shared by both modes --}}
     <div id="tanggal-field" class="form-group form-floating form-floating-outline mb-6 d-none">
-        <input type="date" name="tanggal" class="form-control form-control-sm" required max="{{ date('Y-m-d') }}">
+        <input type="date" name="tanggal" class="form-control form-control-sm" required max="{{ date('Y-m-d') }}" data-min-pendataan="{{ $minTanggalPendataan }}">
         <label>Tanggal <span class="text-danger">*</span></label>
         <span id="tanggal_error" class="text-danger"></span>
     </div>
@@ -34,7 +34,13 @@
 <script>
     $('#form-tambah').on('change', 'input[name="mode"]', function () {
         var pendataan = this.value === 'pendataan';
-        $('#tanggal-field').removeClass('d-none');
+        var $tanggal = $('#tanggal-field').removeClass('d-none').find('input[name="tanggal"]');
+        // Pendataan hanya boleh sejak mulai pelaksanaan KKN PT
+        if (pendataan) {
+            $tanggal.attr('min', $tanggal.attr('data-min-pendataan'));
+        } else {
+            $tanggal.removeAttr('min');
+        }
         $('#pendataan-fields').toggleClass('d-none', !pendataan).prop('disabled', !pendataan);
         $('#log-kegiatan-fields').toggleClass('d-none', pendataan).prop('disabled', pendataan);
         $('#btnSubmit_form-tambah').prop('disabled', false);

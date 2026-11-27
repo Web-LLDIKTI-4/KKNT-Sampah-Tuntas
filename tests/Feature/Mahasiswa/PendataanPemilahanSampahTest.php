@@ -5,7 +5,9 @@ namespace Tests\Feature\Mahasiswa;
 use App\Models\Dplmentoring;
 use App\Models\Logkegiatan;
 use App\Models\Mahasiswa;
+use App\Models\PelaksanaanKkn;
 use App\Models\PendataanPemilahanSampah;
+use App\Models\Satuanpendidikan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -402,5 +404,56 @@ class PendataanPemilahanSampahTest extends TestCase
             ->assertJsonValidationErrors('rt', 'errors');
         $other = PendataanPemilahanSampah::factory()->create(['email' => 'lain@pps.test', 'tanggal' => today()->toDateString()]);
         $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $other->id_pendataan]))->assertNotFound();
+    }
+
+    private function loginMahasiswaWithPelaksanaan(int $mulaiHariLalu): \App\Models\User
+    {
+        $user = $this->loginAs('mahasiswa');
+        $pt = Satuanpendidikan::factory()->create();
+        $user->mahasiswa->update(['kodept' => $pt->npsn]);
+        PelaksanaanKkn::factory()->forPt($pt->npsn)->create([
+            'tanggal_mulai' => today()->subDays($mulaiHariLalu)->toDateString(),
+            'tanggal_selesai' => today()->addDays(30)->toDateString(),
+        ]);
+
+        return $user;
+    }
+
+    public function test_tanggal_must_be_between_pelaksanaan_start_and_today(): void
+    {
+        $user = $this->loginMahasiswaWithPelaksanaan(5);
+        $sebelumMulai = today()->subDays(6)->toDateString();
+
+        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan', 'tanggal' => $sebelumMulai]))
+            ->assertJsonValidationErrors(['tanggal' => 'Tanggal tidak boleh sebelum mulai pelaksanaan KKN.'], 'errors');
+        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan', 'tanggal' => today()->addDay()->toDateString()]))
+            ->assertJsonValidationErrors(['tanggal' => 'Tanggal tidak boleh melebihi hari ini.'], 'errors');
+        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan', 'tanggal' => today()->subDays(5)->toDateString()]))
+            ->assertJson(['success' => true]);
+
+        $data = PendataanPemilahanSampah::where('email', $user->email)->firstOrFail();
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $data->id_pendataan, 'tanggal' => $sebelumMulai]))
+            ->assertJsonValidationErrors('tanggal', 'errors');
+        $this->assertSame(today()->subDays(5)->toDateString(), substr((string) $data->fresh()->tanggal, 0, 10));
+
+        // Batas mulai pelaksanaan hanya untuk mode pendataan, bukan log kegiatan
+        $this->put('logkegiatan/insert', ['mode' => 'kegiatan', 'tanggal' => $sebelumMulai])
+            ->assertJsonMissingValidationErrors('tanggal', 'errors');
+
+        // Atribut min tampil di form tambah & edit
+        $min = 'min="'.today()->subDays(5)->toDateString().'"';
+        $this->get('logkegiatan/tambah')->assertOk()->assertSee('data-min-pendataan="'.today()->subDays(5)->toDateString().'"', false);
+        $this->get('pendataanpemilahan/edit/'.$data->id_pendataan)->assertOk()->assertSee($min, false);
+    }
+
+    public function test_typo_year_is_rejected_even_without_pelaksanaan(): void
+    {
+        $this->loginAs('mahasiswa');
+
+        foreach (['0026-01-15', '2019-12-31'] as $tanggal) {
+            $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan', 'tanggal' => $tanggal]))
+                ->assertJsonValidationErrors('tanggal', 'errors');
+        }
+        $this->assertSame(0, PendataanPemilahanSampah::count());
     }
 }

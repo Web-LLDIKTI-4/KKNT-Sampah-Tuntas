@@ -184,6 +184,7 @@ class PendataanPemilahanSampahController extends StudentLogReportController
     {
         return view('pendataanpemilahan.edit', [
             'data' => PendataanPemilahanSampah::ownedBy($request->user())->findOrFail($id_pendataan),
+            'minTanggal' => PendataanPemilahanSampahRequest::minTanggal($request->user()),
         ]);
     }
 
