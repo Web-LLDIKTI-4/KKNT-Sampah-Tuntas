@@ -472,7 +472,7 @@ class LandingPageTest extends TestCase
             ->assertViewHas('faqList', fn ($list) => $list->isEmpty())
             ->assertDontSee('id="faq"', false)
             ->assertDontSee('href="#faq"', false)
-            ->assertDontSee('Pertanyaan Umum');
+            ->assertDontSee('Pusat Informasi (FAQ)');
     }
 
     public function test_faq_section_and_nav_shown_as_collapsed_accordion_in_creation_order(): void
@@ -483,7 +483,7 @@ class LandingPageTest extends TestCase
         $response = $this->get('/')->assertOk()
             ->assertSee('href="#faq"', false)
             ->assertSee('id="faq"', false)
-            ->assertSee('Pertanyaan Umum')
+            ->assertSee('Pusat Informasi (FAQ)')
             ->assertSeeInOrder(['id="dokumen"', 'id="faq"', '<footer'], false)
             ->assertSeeInOrder(['Pertanyaan pertama?', 'Pertanyaan kedua?'])
             ->assertSee('<div class="faq-answer-text">Baris satu'."\n".'Baris dua</div>', false)

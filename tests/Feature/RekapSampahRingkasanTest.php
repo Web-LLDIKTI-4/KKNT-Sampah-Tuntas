@@ -29,7 +29,7 @@ class RekapSampahRingkasanTest extends TestCase
         $this->loginAs('admin');
         foreach ([[], ['X-Requested-With' => 'XMLHttpRequest']] as $headers) {
             $html = $this->get('rekapsampah?bulan=2026-09', $headers)->assertOk()
-                ->assertSee('Subtotal per Lokasi Program')
+                ->assertSee('<th>Uraian</th>', false)
                 ->assertSee('Detail per Log Pendataan')
                 ->getContent();
 

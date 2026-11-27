@@ -7,6 +7,7 @@ use App\Models\LokasiProgram;
 use App\Models\Mahasiswa;
 use App\Models\Mahasiswa_lokasi;
 use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,6 +29,16 @@ abstract class TestCase extends BaseTestCase
         foreach (self::FAKED_DISKS as $disk) {
             Storage::fake($disk);
         }
+    }
+
+    // authenticateSessions(): hash sandi user sebelumnya di session me-logout user baru; login asli selalu sesi baru
+    public function be(Authenticatable $user, $guard = null)
+    {
+        if ($this->app->bound('session')) {
+            $this->app['session']->forget('password_hash_'.($guard ?? config('auth.defaults.guard')));
+        }
+
+        return parent::be($user, $guard);
     }
 
     protected function loginAs(string $role, array $attributes = []): User

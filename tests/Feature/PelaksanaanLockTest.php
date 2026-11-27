@@ -151,7 +151,7 @@ class PelaksanaanLockTest extends TestCase
             ->assertOk()->assertJson(['success' => true]);
         $this->put('mhsprofile/setlokasi', ['id_desa' => $desa->id_desa, 'tahun' => date('Y')], self::AJAX)
             ->assertOk()->assertJson(['success' => true]);
-        $this->put('setting/update', ['plama' => 'password', 'pbaru' => 'Rahasia123', 'pbaruulangi' => 'Rahasia123'], self::AJAX)
+        $this->putJson('setting/update', ['plama' => 'password', 'pbaru' => 'Rahasia123', 'pbaruulangi' => 'Rahasia123'])
             ->assertOk()->assertJson(['success' => true]);
         $this->assertNotLocked($this->post('logout'));
         $this->assertGuest();
@@ -213,7 +213,7 @@ class PelaksanaanLockTest extends TestCase
         $this->get('profile/data')->assertOk();
         $this->put('profile/update', ['nama' => 'Dr. Budi', 'nidn' => '0412345678', 'prodi' => 'TI', 'phone' => '0812'], self::AJAX)
             ->assertOk()->assertJson(['success' => true]);
-        $this->put('setting/update', ['plama' => 'password', 'pbaru' => 'Rahasia123', 'pbaruulangi' => 'Rahasia123'], self::AJAX)
+        $this->putJson('setting/update', ['plama' => 'password', 'pbaru' => 'Rahasia123', 'pbaruulangi' => 'Rahasia123'])
             ->assertOk()->assertJson(['success' => true]);
         $this->assertSame('Dr. Budi', $user->fresh()->name);
     }

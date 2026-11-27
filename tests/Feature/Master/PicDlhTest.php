@@ -384,7 +384,7 @@ class PicDlhTest extends TestCase
         $lokasiB = LokasiProgram::factory()->create(['nama_lokasi' => 'Kota Uji <b>B</b>']);
 
         $this->get('picdlh/tambah')->assertOk()
-            ->assertSee('Lokasi Program / Kecamatan')
+            ->assertSee('<label for="location_program">Lokasi Program</label>', false)
             ->assertSee('name="location_program"', false)
             ->assertSee('value="'.$lokasiA->id.'"', false)
             ->assertSee('Kota Uji A')
@@ -394,7 +394,7 @@ class PicDlhTest extends TestCase
 
         $pic = $this->makePic(['location_program' => $lokasiB->id]);
         $this->get('picdlh/edit/'.$pic->id_pic_dlh)->assertOk()
-            ->assertSee('Lokasi Program / Kecamatan')
+            ->assertSee('<label for="location_program">Lokasi Program</label>', false)
             ->assertSee('value="'.$lokasiB->id.'" selected', false)
             ->assertDontSee('value="'.$lokasiA->id.'" selected', false);
 
