@@ -24,7 +24,12 @@
     ];
 @endphp
 
-<form data-filter class="d-flex justify-content-end mb-3">
+<form data-filter class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <p class="small text-muted mb-0">
+        <i class="ri-time-line" aria-hidden="true"></i>
+        Data ini diperbarui sejak
+        <time datetime="{{ $sekarang->toIso8601String() }}" data-clock data-clock-tz="{{ $sekarang->tzName }}" data-clock-label="{{ $sekarang->format('T') }}" aria-live="off">{{ $sekarang->translatedFormat('j F Y, H:i:s T') }}</time>
+    </p>
     <div class="ds-filter-bulan">
         <label for="dsBulan" class="form-label small mb-1">Bulan</label>
         <select name="bulan" id="dsBulan" class="form-select form-select-sm">

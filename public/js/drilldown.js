@@ -12,6 +12,7 @@
  * - Cari  : input[type=search] di form[data-filter] memuat ulang host otomatis (debounce), fokus tetap di input
  * - Link  : <a href> di dalam [data-filter-links] (sort, pagination) dimuat ulang di host
  * - Klaster: [data-klaster="hijau|kuning|merah"] memilih klaster di select name="klaster"
+ * - Event : host memicu 'host:loaded' setelah isinya diganti (dipakai public/js/live-count.js)
  */
 (function ($) {
     'use strict';
@@ -24,7 +25,7 @@
         $host.css('opacity', 0.5);
         var req = $.get(url, params || {})
             .done(function (html) {
-                $host.html(html);
+                $host.html(html).trigger('host:loaded');
             })
             .fail(function (xhr) {
                 if (xhr.statusText === 'abort') {

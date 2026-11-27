@@ -49,6 +49,8 @@ class RekapsampahController extends Controller
 
         return view('rekapsampah._data_sampah_publik', [
             'subtotal' => $this->data(['bulan' => $bulan], $sampah, null, false)['subtotal'],
+            // Titik awal jam berjalan di klien (zona waktu app); cache data berganti versi saat data berubah
+            'sekarang' => now(),
             'bulanList' => $bulanList,
             'bulan' => $bulan,
         ]);

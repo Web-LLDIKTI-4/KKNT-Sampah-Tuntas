@@ -252,11 +252,12 @@
                     </div>
                 </div>
                 <div data-reveal>
-                    <div data-filter-host="{{ route('login.data-sampah') }}" aria-live="polite">
+                    <div data-filter-host="{{ route('login.data-sampah') }}" data-live="30" aria-live="polite">
                         {{-- Skeleton saat memuat; diganti isi tabel oleh drilldown.js --}}
                         <div class="placeholder-glow" data-placeholder aria-busy="true">
                             <span class="visually-hidden">Memuat data sampah…</span>
-                            <div class="d-flex justify-content-end mb-3" aria-hidden="true">
+                            <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3" aria-hidden="true">
+                                <span class="placeholder ds-placeholder-diperbarui"></span>
                                 <div class="ds-filter-bulan">
                                     <span class="placeholder col-3 mb-2"></span>
                                     <span class="placeholder col-12 ds-placeholder-input"></span>
@@ -748,6 +749,7 @@
     <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
     <script src="{{ asset('js/search-select.js') }}?v={{ filemtime(public_path('js/search-select.js')) }}"></script>
     <script src="{{ asset('js/drilldown.js') }}?v={{ filemtime(public_path('js/drilldown.js')) }}"></script>
+    <script src="{{ asset('js/live-count.js') }}?v={{ filemtime(public_path('js/live-count.js')) }}"></script>
     <script src="{{ asset('js/table-sort.js') }}?v={{ filemtime(public_path('js/table-sort.js')) }}"></script>
     <script src="{{ asset('js/landing.js') }}?v={{ filemtime(public_path('js/landing.js')) }}"
         data-leaflet-src="{{ asset('assets/vendor/libs/leaflet/leaflet.js') }}" id="landingScript"></script>

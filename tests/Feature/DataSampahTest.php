@@ -11,6 +11,7 @@ use App\Models\PendataanPemilahanSampah;
 use App\Models\Satuanpendidikan;
 use App\Services\PenguranganSampahService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use Tests\Concerns\ReadsXlsx;
@@ -206,6 +207,25 @@ class DataSampahTest extends TestCase
         foreach (['1999-01', "' OR 1=1 --", ['x']] as $invalid) {
             $this->getJson(route('login.data-sampah', ['bulan' => $invalid]))->assertStatus(422)->assertJsonValidationErrors('bulan');
         }
+    }
+
+    public function test_data_sampah_publik_jam_berjalan_zona_app_dan_landing_live(): void
+    {
+        $this->log($this->mahasiswaDi(Desa::factory()->create(), LokasiProgram::factory()->create(), Satuanpendidikan::factory()->create()->npsn));
+        Carbon::setTestNow(Carbon::parse('2026-11-27 14:05:09', 'Asia/Jakarta'));
+
+        $this->get(route('login.data-sampah'))->assertOk()
+            ->assertSeeInOrder(['Data ini diperbarui sejak', '27 November 2026, 14:05:09 WIB', 'name="bulan"'])
+            ->assertSee('datetime="2026-11-27T14:05:09+07:00" data-clock data-clock-tz="Asia/Jakarta" data-clock-label="WIB" aria-live="off"', false);
+
+        // Titik awal jam = waktu request (data tetap dari cache versi terbaru)
+        Carbon::setTestNow(Carbon::parse('2026-11-27 14:09:30', 'Asia/Jakarta'));
+        $this->get(route('login.data-sampah'))->assertOk()->assertSee('27 November 2026, 14:09:30 WIB');
+        Carbon::setTestNow();
+
+        $this->get(route('landing'))->assertOk()
+            ->assertSee('data-filter-host="'.route('login.data-sampah').'" data-live="30"', false)
+            ->assertSee('js/live-count.js', false);
     }
 
     public function test_data_sampah_tampil_di_dashboard_home_dan_landing(): void
