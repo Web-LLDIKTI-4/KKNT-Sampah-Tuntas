@@ -1,7 +1,7 @@
 {{-- Tabel rekap format LLDIKTI (A–L); Bulan & Kecamatan di-merge per grup. Struktur data menunggu CONTRACT.md --}}
 @php
     $angka = fn ($v) => number_format((float) $v, 0, ',', '.');
-    $berat = fn ($v) => number_format((float) $v, 2, ',', '.');
+    $berat = fn ($v) => \App\Models\PenguranganSampah::formatBerat($v);
     $persen = fn ($v, $pembagi) => $pembagi > 0 ? number_format((float) $v, 2, ',', '.').'%' : '-';
 @endphp
 <div class="table-responsive scroll-box scroll-box-lg">

@@ -87,6 +87,25 @@ class PendataanPemilahanSampahTest extends TestCase
             ->assertJsonValidationErrors(['jumlah_anggota_keluarga' => 'Minimal 1 orang.'], 'errors');
     }
 
+    public function test_berat_accepts_up_to_three_decimals(): void
+    {
+        $user = $this->loginAs('mahasiswa');
+
+        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan', 'organik_kg' => '0.9255']))
+            ->assertJsonValidationErrors(['organik_kg' => 'Maksimal 3 angka di belakang koma.'], 'errors');
+
+        $this->put('logkegiatan/insert', $this->payload(['mode' => 'pendataan', 'organik_kg' => '0.925', 'anorganik_kg' => '1.5', 'residu_kg' => '0.001']))
+            ->assertJson(['success' => true]);
+        $data = PendataanPemilahanSampah::where('email', $user->email)->firstOrFail();
+        $this->assertSame([0.925, 1.5, 0.001], [$data->organik_kg, $data->anorganik_kg, $data->residu_kg]);
+
+        $this->put('pendataanpemilahan/update', $this->payload(['id_pendataan' => $data->id_pendataan, 'residu_kg' => '2.375']))
+            ->assertJson(['success' => true]);
+        $this->assertSame(2.375, $data->fresh()->residu_kg);
+
+        $this->get('pendataanpemilahan/edit/'.$data->id_pendataan)->assertOk()->assertSee('step="0.001"', false);
+    }
+
     public function test_migration_copies_existing_household_data_out_of_daily_logs(): void
     {
         $migration = require database_path('migrations/2026_10_07_000001_create_pendataan_pemilahan_sampah_table.php');

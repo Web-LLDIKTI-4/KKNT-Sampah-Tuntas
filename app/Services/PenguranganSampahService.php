@@ -24,6 +24,9 @@ class PenguranganSampahService
     // Nilai filter bulan untuk "Semua Bulan"
     public const SEMUA_BULAN = 'semua';
 
+    // Presisi berat sampah (kg), sama dengan skala kolom pendataan
+    private const DESIMAL_KG = 3;
+
     // Memo penempatanData() per kodept
     private array $penempatanData = [];
 
@@ -223,11 +226,11 @@ class PenguranganSampahService
     {
         $rumah = (int) $r->is_pertama;
         $memilah = (int) $r->is_memilah;
-        $organik = round((float) $r->organik_kg, 2);
-        $anorganik = round((float) $r->anorganik_kg, 2);
-        $residu = round((float) $r->residu_kg, 2);
-        $terkelola = round($organik + $anorganik, 2);
-        $dihasilkan = round($terkelola + $residu, 2);
+        $organik = round((float) $r->organik_kg, self::DESIMAL_KG);
+        $anorganik = round((float) $r->anorganik_kg, self::DESIMAL_KG);
+        $residu = round((float) $r->residu_kg, self::DESIMAL_KG);
+        $terkelola = round($organik + $anorganik, self::DESIMAL_KG);
+        $dihasilkan = round($terkelola + $residu, self::DESIMAL_KG);
         $jiwa = $r->jiwa === null ? null : (int) $r->jiwa;
 
         return [
@@ -270,11 +273,11 @@ class PenguranganSampahService
     {
         $rumah = (int) $rows->sum('jml_rumah');
         $memilah = (int) $rows->sum('jml_rumah_memilah');
-        $organik = round((float) $rows->sum('organik'), 2);
-        $anorganik = round((float) $rows->sum('anorganik'), 2);
-        $residu = round((float) $rows->sum('residu'), 2);
-        $terkelola = round($organik + $anorganik, 2);
-        $dihasilkan = round($terkelola + $residu, 2);
+        $organik = round((float) $rows->sum('organik'), self::DESIMAL_KG);
+        $anorganik = round((float) $rows->sum('anorganik'), self::DESIMAL_KG);
+        $residu = round((float) $rows->sum('residu'), self::DESIMAL_KG);
+        $terkelola = round($organik + $anorganik, self::DESIMAL_KG);
+        $dihasilkan = round($terkelola + $residu, self::DESIMAL_KG);
         $jiwa = (int) $rows->sum('jiwa');
         $dihasilkanBerjiwa = round((float) $rows->sum('dihasilkan_berjiwa'), 2);
 
@@ -882,11 +885,11 @@ class PenguranganSampahService
     {
         $row->jml_rumah = (int) $row->total_jml_rumah;
         $row->jml_rumah_memilah = (int) $row->total_jml_rumah_memilah;
-        $row->organik = round((float) $row->total_organik, 2);
-        $row->anorganik = round((float) $row->total_anorganik, 2);
-        $row->residu = round((float) $row->total_residu, 2);
-        $row->total_terkelola = round($row->organik + $row->anorganik, 2);
-        $row->total_dihasilkan = round($row->total_terkelola + $row->residu, 2);
+        $row->organik = round((float) $row->total_organik, self::DESIMAL_KG);
+        $row->anorganik = round((float) $row->total_anorganik, self::DESIMAL_KG);
+        $row->residu = round((float) $row->total_residu, self::DESIMAL_KG);
+        $row->total_terkelola = round($row->organik + $row->anorganik, self::DESIMAL_KG);
+        $row->total_dihasilkan = round($row->total_terkelola + $row->residu, self::DESIMAL_KG);
         $row->persen_ketaatan = PenguranganSampah::persen($row->jml_rumah_memilah, $row->jml_rumah);
         $row->persen_penurunan = PenguranganSampah::persen($row->total_terkelola, $row->total_dihasilkan);
         // Sama dengan persen_pengelolaan Data Sampah (barisLog/angkaSubtotal)

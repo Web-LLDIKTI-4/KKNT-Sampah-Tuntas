@@ -33,7 +33,7 @@ class PendataanPemilahanSampahRequest extends AjaxFormRequest
     // Rules data pendataan (tanpa id), dipakai ulang oleh LogHarianRequest
     public static function dataRules(string $minTanggal): array
     {
-        $berat = ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:'.LogHarianService::MAX_BERAT_KG];
+        $berat = ['required', 'numeric', 'decimal:0,3', 'min:0', 'max:'.LogHarianService::MAX_BERAT_KG];
 
         return [
             'tanggal' => ['required', 'date', 'after_or_equal:'.$minTanggal, 'before_or_equal:today'],
@@ -63,7 +63,7 @@ class PendataanPemilahanSampahRequest extends AjaxFormRequest
             '*.integer' => 'Nilai harus berupa bilangan bulat.',
             '*.min' => 'Nilai tidak boleh negatif.',
             '*.max' => 'Nilai melebihi batas maksimum.',
-            '*.decimal' => 'Maksimal 2 angka di belakang koma.',
+            '*.decimal' => 'Maksimal 3 angka di belakang koma.',
             '*.not_regex' => 'Teks tidak boleh diawali tanda = + - @.',
             'rt.regex' => 'RT harus 3 digit angka, contoh 001.',
             'rw.regex' => 'RW harus 3 digit angka, contoh 012.',
