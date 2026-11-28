@@ -3,7 +3,7 @@
     use App\Models\PenguranganSampah;
     use App\Services\PenguranganSampahService;
     $angka = fn ($v) => PenguranganSampah::formatAngka($v);
-    $berat = fn ($v) => PenguranganSampah::formatAngka($v, 2);
+    $berat = fn ($v) => PenguranganSampah::formatBerat($v);
     $persen = fn ($v) => PenguranganSampah::formatAngka($v, 2);
     $total = PenguranganSampahService::totalLokasi($subtotal);
     $kolom = [

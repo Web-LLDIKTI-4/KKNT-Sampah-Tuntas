@@ -279,7 +279,7 @@ class PenguranganSampahService
         $terkelola = round($organik + $anorganik, self::DESIMAL_KG);
         $dihasilkan = round($terkelola + $residu, self::DESIMAL_KG);
         $jiwa = (int) $rows->sum('jiwa');
-        $dihasilkanBerjiwa = round((float) $rows->sum('dihasilkan_berjiwa'), 2);
+        $dihasilkanBerjiwa = round((float) $rows->sum('dihasilkan_berjiwa'), self::DESIMAL_KG);
 
         return (object) [
             'jml_rumah' => $rumah,
@@ -306,7 +306,7 @@ class PenguranganSampahService
     public static function totalLokasi(Collection $subtotal): object
     {
         $t = $subtotal->pluck('total');
-        $sum = fn (string $key, int $desimal = 2) => round((float) $t->sum($key), $desimal);
+        $sum = fn (string $key) => round((float) $t->sum($key), self::DESIMAL_KG);
         $berKoef = $t->filter(fn ($r) => $r->timbulan !== null);
         $timbulan = round((float) $berKoef->sum('timbulan'), 2);
 

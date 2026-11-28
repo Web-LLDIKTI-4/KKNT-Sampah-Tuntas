@@ -215,7 +215,7 @@
             if (!versiBaru || versiBaru === $root.attr('data-versi') || sibuk($host)) {
                 return;
             }
-            $host.html(html);
+            $host.html(html).trigger('host:loaded');
         }));
     }
 
