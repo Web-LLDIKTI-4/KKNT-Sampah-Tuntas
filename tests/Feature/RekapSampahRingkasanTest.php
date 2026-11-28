@@ -42,6 +42,15 @@ class RekapSampahRingkasanTest extends TestCase
         }
     }
 
+    public function test_default_filter_bulan_semua_bulan(): void
+    {
+        $this->loginAs('admin');
+
+        $this->get('rekapsampah', ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()
+            ->assertSee('<option value="semua" selected>Semua Bulan</option>', false)
+            ->assertViewHas('filter', fn ($f) => $f['bulan'] === null);
+    }
+
     public function test_tamu_dan_role_lain_ditolak(): void
     {
         $this->get('rekapsampah')->assertRedirect(route('login'));

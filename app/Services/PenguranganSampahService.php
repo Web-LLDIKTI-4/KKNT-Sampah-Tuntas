@@ -340,20 +340,20 @@ class PenguranganSampahService
 
     /**
      * Laporan berjenjang: kecamatan per lokasi program -> kelurahan -> PT di kelurahan (basis data pendataan).
-     * Persentase = penurunan timbulan (1 - ΣN / Σ(koef × jiwa)) pada bulan terpilih (default bulan terakhir yang ada datanya).
+     * Persentase = penurunan timbulan (1 - ΣN / Σ(koef × jiwa)) pada bulan terpilih (default/kosong = semua bulan).
      * Filter: bulan, kodept (PT dikunci), id_kecamatan, id_desa.
      * $totalKeseluruhan: key `total` tidak difilter kecamatan (dipakai versi publik).
      */
     public function drilldown(array $filter, bool $totalKeseluruhan = false): array
     {
-        $filter['bulan'] = ($filter['bulan'] ?? null) ?: $this->bulanTerakhir($filter['kodept'] ?? null);
+        $filter['bulan'] = ($filter['bulan'] ?? null) ?: null;
         $filterSampah = ['bulan' => $filter['bulan'], 'kodept' => $filter['kodept'] ?? null];
         $idKecamatan = $filter['id_kecamatan'] ?? null;
         $idDesa = $filter['id_desa'] ?? null;
 
         $penempatan = $this->penempatanData($filter['kodept'] ?? null);
-        $persenKecamatan = $filter['bulan'] ? $this->totalPer('kecamatan', $filterSampah) : collect();
-        $persenDesa = $filter['bulan'] ? $this->totalPer('desa', $filterSampah) : collect();
+        $persenKecamatan = $this->totalPer('kecamatan', $filterSampah);
+        $persenDesa = $this->totalPer('desa', $filterSampah);
         $namaLokasi = DB::table('lokasi_program')->pluck('nama_lokasi', 'id');
 
         $kecamatan = $penempatan->groupBy('location_program')
@@ -410,8 +410,8 @@ class PenguranganSampahService
         $klaster = $filter['klaster'] ?? null;
         $cocok = fn ($k) => ! $klaster || $k === $klaster;
 
-        $persenLokasi = $bulan ? $this->totalPer('lokasi', ['bulan' => $bulan, 'kodept' => $kodept]) : collect();
-        $persenPt = $bulan && $data['params']['desa']
+        $persenLokasi = $this->totalPer('lokasi', ['bulan' => $bulan, 'kodept' => $kodept]);
+        $persenPt = $data['params']['desa']
             ? $this->totalPer('kodept', ['bulan' => $bulan, 'id_desa' => $data['params']['desa'], 'kodept' => $kodept])
             : collect();
 
@@ -434,8 +434,8 @@ class PenguranganSampahService
             ->filter(fn ($r) => $cocok($r->klaster))->values();
 
         $data['kelompok'] = $data['kelompok']->each(function ($r) use ($persenPt, $bulan) {
-            // Detail hanya capaian bulan terpilih; ketua tanpa isian tampil baris kosong (detailPublik)
-            $r->capaian = $r->capaian->filter(fn ($c) => $bulan && str_starts_with((string) $c->bulan, $bulan))->values();
+            // Detail hanya capaian bulan terpilih (semua bulan bila kosong); ketua tanpa isian tampil baris kosong (detailPublik)
+            $r->capaian = $r->capaian->filter(fn ($c) => ! $bulan || str_starts_with((string) $c->bulan, $bulan))->values();
             $r->persen_pt = $persenPt[$r->kodept]->persen_pengurangan ?? null;
             $r->klaster_pt = PenguranganSampah::klaster($r->persen_pt);
         })->filter(fn ($r) => $cocok($r->klaster_pt));
@@ -499,7 +499,7 @@ class PenguranganSampahService
         $data = $this->drilldownPublik(['bulan' => $filter['bulan'] ?? null, 'klaster' => $filter['klaster'] ?? null]);
         $bulan = $data['params']['bulan'];
         $klaster = $data['params']['klaster'];
-        $persenDesa = $bulan ? $this->totalPer('desa', ['bulan' => $bulan]) : collect();
+        $persenDesa = $this->totalPer('desa', ['bulan' => $bulan]);
 
         // Urutan sama dengan tabel kelurahan di layar (sortByCapaian); groupBy menjaga urutan dalam grup
         $kelurahan = $this->sortByCapaian($this->penempatanData(null)
@@ -532,25 +532,22 @@ class PenguranganSampahService
     }
 
     /**
-     * Capaian KPI per kelurahan pada bulan terpilih (default bulan terakhir berdata; 'semua' = semua bulan) + PT di tiap kelurahan.
+     * Capaian KPI per kelurahan pada bulan terpilih (default/kosong = 'semua' bulan) + PT di tiap kelurahan.
      * Daftar sama dengan drilldown(): kelurahan berdata; PT = PT berdata ∪ PT berketua di kelurahan itu.
      * Mahasiswa/DPL/persen semua kelurahan dihitung sekaligus (tanpa query per kelurahan).
      */
     public function capaianKpiKelurahan(?string $bulan): array
     {
-        $semua = $bulan === self::SEMUA_BULAN;
-        $bulan = $semua ? null : ($bulan ?: $this->bulanTerakhir());
-        $hasil = ['bulan' => $semua ? self::SEMUA_BULAN : $bulan, 'bulanList' => collect(), 'kelurahan' => collect()];
+        $bulan = $bulan === self::SEMUA_BULAN ? null : ($bulan ?: null);
+        $hasil = ['bulan' => $bulan ?? self::SEMUA_BULAN, 'bulanList' => collect(), 'kelurahan' => collect()];
         $penempatan = $this->penempatanData(null);
         $idDesa = $penempatan->pluck('id_desa')->unique()->values();
         if ($idDesa->isEmpty()) {
             return $hasil;
         }
 
-        // Tanpa bulan terpilih & bukan "semua" = belum ada data, persen kosong
-        $adaPersen = $semua || $bulan;
-        $persenDesa = $adaPersen ? $this->totalPer('desa', ['bulan' => $bulan]) : collect();
-        $persenPt = $adaPersen ? $this->totalPer('desa_pt', ['bulan' => $bulan]) : collect();
+        $persenDesa = $this->totalPer('desa', ['bulan' => $bulan]);
+        $persenPt = $this->totalPer('desa_pt', ['bulan' => $bulan]);
         $namaLokasi = DB::table('lokasi_program')->pluck('nama_lokasi', 'id');
         $dataPerDesa = $penempatan->whereNotNull('kodept')->groupBy('id_desa');
         $ketua = $this->penempatanKetua(null)->whereIn('id_desa', $idDesa->all());

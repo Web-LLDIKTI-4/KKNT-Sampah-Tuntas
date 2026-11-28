@@ -18,7 +18,7 @@ class PenguranganSampahDashboardController extends Controller
             return view('laporan._capaian_publik', $laporan);
         }
 
-        // Rekap LLDIKTI ikut bulan laporan (default bulan terakhir yang ada log)
+        // Rekap LLDIKTI ikut bulan laporan (default semua bulan)
         $filterRekap = ['bulan' => $laporan['params']['bulan'], 'kodept' => $filter['kodept']];
 
         return view('pengurangansampah.index', [

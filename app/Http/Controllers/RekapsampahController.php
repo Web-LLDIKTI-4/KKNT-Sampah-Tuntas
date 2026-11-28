@@ -144,7 +144,7 @@ class RekapsampahController extends Controller
         $scope = $ptScope !== null ? 'pt:'.$ptScope : 'all';
         $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0');
 
-        return Cache::remember('rekapsampah.v5.'.$versi.'.'.md5($scope.'|'.(int) $mingguan.'|'.json_encode($input)), now()->addMinutes(10), function () use ($input, $sampah, $ptScope, $mingguan) {
+        return Cache::remember('rekapsampah.v6.'.$versi.'.'.md5($scope.'|'.(int) $mingguan.'|'.json_encode($input)), now()->addMinutes(10), function () use ($input, $sampah, $ptScope, $mingguan) {
             [$filter, $klasterPt] = $this->filter($input, $sampah, $ptScope);
 
             return [
@@ -164,9 +164,9 @@ class RekapsampahController extends Controller
     {
         $kodept = $ptScope ?? ($input['kodept'] ?? null);
 
-        // PT dikunci ke PT-nya sendiri; bulan default = bulan terakhir yang ada datanya, "semua" = tanpa filter bulan
+        // PT dikunci ke PT-nya sendiri; bulan default/"semua" = tanpa filter bulan
         $bulan = $input['bulan'] ?? null;
-        $bulan = $bulan === 'semua' ? null : ($bulan ?: $sampah->bulanTerakhir($kodept));
+        $bulan = $bulan === PenguranganSampahService::SEMUA_BULAN ? null : ($bulan ?: null);
         $filter = ['bulan' => $bulan, 'id_kecamatan' => $input['kecamatan'] ?? null, 'kodept' => $kodept, 'lokasi' => $input['lokasi'] ?? null];
 
         if ($ptScope !== null) {

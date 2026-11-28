@@ -195,7 +195,7 @@ class CapaianPublikTest extends TestCase
     {
         $this->wilayahKolomKelurahan();
         $sampah = app(PenguranganSampahService::class);
-        $kel = $this->publik(['id_kecamatan' => $this->d['kecD']->id_kecamatan])['kelurahan']->keyBy('desa');
+        $kel = $this->publik(['bulan' => $this->bulan, 'id_kecamatan' => $this->d['kecD']->id_kecamatan])['kelurahan']->keyBy('desa');
 
         $this->assertEquals(66.67, $kel['Desa Taat']->persen_ketaatan);
         $this->assertEquals(28.57, $kel['Desa Taat']->persen_pengelolaan);
@@ -214,7 +214,7 @@ class CapaianPublikTest extends TestCase
             $this->assertEquals($ds->persen_penurunan_timbulan, $kel[$nama]->persen, $nama);
         }
         // Dashboard (drilldown) memakai angka yang sama
-        $dash = $sampah->drilldown(['bulan' => null, 'id_kecamatan' => $this->d['kecD']->id_kecamatan])['kelurahan']->keyBy('desa');
+        $dash = $sampah->drilldown(['bulan' => $this->bulan, 'id_kecamatan' => $this->d['kecD']->id_kecamatan])['kelurahan']->keyBy('desa');
         $this->assertEquals(66.67, $dash['Desa Taat']->persen_ketaatan);
         $this->assertEquals(28.57, $dash['Desa Taat']->persen_pengelolaan);
     }
@@ -222,7 +222,7 @@ class CapaianPublikTest extends TestCase
     public function test_kelurahan_table_renders_new_columns_on_landing_and_dashboard(): void
     {
         $this->wilayahKolomKelurahan();
-        $kel = $this->publik(['id_kecamatan' => $this->d['kecD']->id_kecamatan])['kelurahan']->keyBy('desa');
+        $kel = $this->publik(['bulan' => $this->bulan, 'id_kecamatan' => $this->d['kecD']->id_kecamatan])['kelurahan']->keyBy('desa');
         $fmt = fn ($p) => PenguranganSampah::formatPersen($p).'</td>';
         $header = ['Kelurahan/Desa<i class="ri-arrow-up-down-line"', 'Baseline</th>', '>Ketaatan Pemilahan (%)<i class="ri-arrow-up-down-line"',
             '>Pengelolaan Sampah (%)<i class="ri-arrow-up-down-line"', '>Penurunan Timbulan Sampah (%)<i class="ri-arrow-up-down-line"', 'Klaster<i class="ri-arrow-up-down-line"'];
@@ -238,9 +238,9 @@ class CapaianPublikTest extends TestCase
                 ->assertSeeInOrder($header, false)->assertSeeInOrder($baris, false)
                 ->assertDontSee('Pengurangan Sampah (%)</th>', false)->assertDontSee('>Persentase ', false)->assertDontSee('(G/D)', false)->assertDontSee('(M/N)', false)->assertDontSee('0,36*L', false);
         };
-        $cek($this->get('login/laporan?kecamatan='.$this->d['kecD']->id_kecamatan));
+        $cek($this->get('login/laporan?bulan='.$this->bulan.'&kecamatan='.$this->d['kecD']->id_kecamatan));
         $this->loginAs('admin');
-        $cek($this->get('dashboard-pengurangan-sampah?kecamatan='.$this->d['kecD']->id_kecamatan, ['X-Requested-With' => 'XMLHttpRequest']));
+        $cek($this->get('dashboard-pengurangan-sampah?bulan='.$this->bulan.'&kecamatan='.$this->d['kecD']->id_kecamatan, ['X-Requested-With' => 'XMLHttpRequest']));
 
         // Kosong: colspan ikut 7 kolom
         $this->get('dashboard-pengurangan-sampah?kecamatan='.$this->d['kecD']->id_kecamatan.'&klaster=merah', ['X-Requested-With' => 'XMLHttpRequest'])
@@ -334,7 +334,7 @@ class CapaianPublikTest extends TestCase
         $bulanLain = now()->format('Y-m');
         CapaianKegiatan::factory()->create(['email' => $this->d['ketua_hijau']->email, 'bulan' => $this->bulan.'-01', 'permasalahan' => 'Masalah Bulan Ini']);
         CapaianKegiatan::factory()->create(['email' => $this->d['ketua_hijau']->email, 'bulan' => $bulanLain.'-01', 'permasalahan' => 'Masalah Bulan Lain']);
-        $filter = ['id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $this->d['desaA']->id_desa];
+        $filter = ['bulan' => $this->bulan, 'id_kecamatan' => $this->d['kecA']->id_kecamatan, 'id_desa' => $this->d['desaA']->id_desa];
 
         $data = $this->publik($filter);
         $this->assertSame($this->bulan, $data['params']['bulan']);
@@ -343,8 +343,11 @@ class CapaianPublikTest extends TestCase
         // Ketua tanpa isian bulan tsb tetap tampil sebagai baris kosong
         $this->assertNull($kelompok['Univ Tanpa Data']->detail->first()->permasalahan);
 
-        $this->get('login/laporan?kecamatan='.$filter['id_kecamatan'].'&desa='.$filter['id_desa'])->assertOk()
+        $this->get('login/laporan?bulan='.$this->bulan.'&kecamatan='.$filter['id_kecamatan'].'&desa='.$filter['id_desa'])->assertOk()
             ->assertSee('Masalah Bulan Ini')->assertDontSee('Masalah Bulan Lain');
+        // Default semua bulan: capaian seluruh bulan tampil
+        $this->get('login/laporan?kecamatan='.$filter['id_kecamatan'].'&desa='.$filter['id_desa'])->assertOk()
+            ->assertSee('Masalah Bulan Ini')->assertSee('Masalah Bulan Lain');
     }
 
     public function test_drilldown_publik_with_kodept_only_contains_that_pt(): void
@@ -741,12 +744,17 @@ class CapaianPublikTest extends TestCase
         $desa = Desa::factory()->create(['id_kecamatan' => $this->d['kecB']->id_kecamatan, 'desa' => 'Desa Lalu']);
         $this->pengisi($this->d['pt_merah'], $this->d['lokasiB'], $desa, now()->subMonths(2)->format('Y-m'), 50);
 
-        $data = $this->publik(['id_kecamatan' => $this->d['kecB']->id_kecamatan]);
+        $data = $this->publik(['bulan' => $this->bulan, 'id_kecamatan' => $this->d['kecB']->id_kecamatan]);
         $this->assertSame($this->bulan, $data['params']['bulan']);
         $lalu = $data['kelurahan']->firstWhere('desa', 'Desa Lalu');
         $this->assertNotNull($lalu);
         $this->assertNull($lalu->persen);
         $this->assertNull($lalu->klaster);
+
+        // Default (tanpa bulan) = semua bulan: data bulan lain ikut dihitung
+        $semua = $this->publik(['id_kecamatan' => $this->d['kecB']->id_kecamatan]);
+        $this->assertNull($semua['params']['bulan']);
+        $this->assertNotNull($semua['kelurahan']->firstWhere('desa', 'Desa Lalu')->persen);
     }
 
     public function test_pengisi_without_location_program_grouped_as_tanpa_lokasi(): void
@@ -1084,7 +1092,7 @@ class CapaianPublikTest extends TestCase
     public function test_capaian_lokasi_and_kecamatan_default_order_by_persen_desc_null_last(): void
     {
         $this->wilayahUrutan();
-        $lokasi = $this->publik()['kecamatan'];
+        $lokasi = $this->publik(['bulan' => $this->bulan])['kecamatan'];
 
         $this->assertSame(['Lokasi Zeta', 'Kota Alfa', 'Kabupaten Beta'], $lokasi->pluck('nama_lokasi')->all());
         $this->assertEqualsWithDelta(36.67, $lokasi[0]->persen, 0.01);
@@ -1094,7 +1102,7 @@ class CapaianPublikTest extends TestCase
         $this->assertNull($zeta[2]->persen);
 
         // Urutan render sama (header grup lokasi = th, baris kecamatan = td[2])
-        $xpath = $this->xpathOf($this->get('login/laporan')->assertOk()->getContent());
+        $xpath = $this->xpathOf($this->get('login/laporan?bulan='.$this->bulan)->assertOk()->getContent());
         $tabel = $this->findTable($xpath, self::SORT_KECAMATAN);
         $render = array_map(fn ($tr) => $xpath->evaluate('normalize-space((./th[1]|./td[2])[1])', $tr), $this->bodyRows($xpath, $tabel));
         $this->assertSame(['Lokasi Zeta', 'Kec Zulu', 'Kec Able', 'Kec Aaa', 'Kota Alfa', 'Kec Alfa', 'Kabupaten Beta', 'Kec Beta'], $render);
@@ -1103,14 +1111,14 @@ class CapaianPublikTest extends TestCase
     public function test_capaian_kelurahan_default_order_tie_by_natural_case_insensitive_name_and_null_last(): void
     {
         $this->wilayahUrutan();
-        $kelurahan = $this->publik(['id_kecamatan' => $this->d['kecZulu']->id_kecamatan])['kelurahan'];
+        $kelurahan = $this->publik(['bulan' => $this->bulan, 'id_kecamatan' => $this->d['kecZulu']->id_kecamatan])['kelurahan'];
 
         // strcmp: Desa 2 < Desa Akhir < Desa Zenit < desa 10; strcasecmp: desa 10 < Desa 2
         $this->assertSame(['Desa Zenit', 'Desa 2', 'desa 10', 'Desa Akhir'], $kelurahan->pluck('desa')->all());
         $this->assertEquals([50.0, 30.0, 30.0], $kelurahan->take(3)->pluck('persen')->map(fn ($p) => round((float) $p, 2))->all());
         $this->assertNull($kelurahan[3]->persen);
 
-        $xpath = $this->xpathOf($this->get('login/laporan?kecamatan='.$this->d['kecZulu']->id_kecamatan)->assertOk()->getContent());
+        $xpath = $this->xpathOf($this->get('login/laporan?bulan='.$this->bulan.'&kecamatan='.$this->d['kecZulu']->id_kecamatan)->assertOk()->getContent());
         $tabel = $this->findTable($xpath, self::SORT_KELURAHAN);
         $render = array_map(fn ($tr) => $xpath->evaluate('normalize-space(./td[2])', $tr), $this->bodyRows($xpath, $tabel, '[td[1][@data-sort-no]]'));
         $this->assertSame(['Desa Zenit', 'Desa 2', 'desa 10', 'Desa Akhir'], $render);
