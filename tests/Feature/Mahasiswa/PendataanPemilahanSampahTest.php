@@ -103,7 +103,8 @@ class PendataanPemilahanSampahTest extends TestCase
             ->assertJson(['success' => true]);
         $this->assertSame(2.375, $data->fresh()->residu_kg);
 
-        $this->get('pendataanpemilahan/edit/'.$data->id_pendataan)->assertOk()->assertSee('step="0.001"', false);
+        $this->get('pendataanpemilahan/edit/'.$data->id_pendataan)->assertOk()->assertSee('step="0.001"', false)
+            ->assertSee('Jika dimasukkan gram, contoh 900 gram adalah 0.900 kg.');
     }
 
     public function test_migration_copies_existing_household_data_out_of_daily_logs(): void
