@@ -29,6 +29,10 @@
         <i class="ri-time-line" aria-hidden="true"></i>
         Data ini diperbarui sejak
         <time datetime="{{ $sekarang->toIso8601String() }}" data-clock data-clock-tz="{{ $sekarang->tzName }}" data-clock-label="{{ $sekarang->format('T') }}" aria-live="off">{{ $sekarang->translatedFormat('j F Y, H:i:s T') }}</time>
+        {{-- Ditampilkan sementara oleh live-count.js saat polling menemukan data baru --}}
+        <span class="badge rounded-pill bg-label-success ds-badge-baru ms-1" data-live-badge hidden>
+            <span class="ds-titik" aria-hidden="true"></span> Data baru masuk
+        </span>
     </p>
     <div class="ds-filter-bulan">
         <label for="dsBulan" class="form-label small mb-1">Bulan</label>

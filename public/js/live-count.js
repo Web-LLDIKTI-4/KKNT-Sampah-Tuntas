@@ -3,7 +3,9 @@
  * - Jam   : <time data-clock datetime="ISO" data-clock-tz="Asia/Jakarta" data-clock-label="WIB"> berdetak tiap detik
  *           dari waktu server (tidak bergantung jam perangkat), ditampilkan dalam zona waktu app
  * - Live  : host [data-filter-host][data-live="detik"] diperbarui diam-diam tiap N detik (hanya saat tab terlihat);
- *           angka sel tabel yang berubah dianimasikan dari nilai lama ke nilai baru
+ *           angka sel tabel yang berubah dianimasikan dari nilai lama ke nilai baru, sel & baris disorot
+ *           (panah naik/turun) dan [data-live-badge] muncul sementara. Bila tabel di luar layar, sorotan
+ *           ditunda sampai tabel di-scroll ke layar agar pembaruan tidak terlewat
  * - Muat  : setelah 'host:loaded' (muat awal / ganti filter, dari drilldown.js) angka dihitung naik dari 0
  */
 (function ($) {
@@ -84,6 +86,66 @@
         return $el.find('table th[scope="row"]').map(function () { return $.trim(this.textContent); }).get().join('|');
     }
 
+    var BADGE_MS = 10000;
+
+    // Restart animasi CSS walau kelas sudah terpasang dari pembaruan sebelumnya
+    function kedip(el, kelas) {
+        el.classList.remove(kelas);
+        void el.offsetWidth;
+        el.classList.add(kelas);
+    }
+
+    // Jalankan fn saat host masuk layar; tanpa IntersectionObserver langsung jalan
+    var pengamat = 'IntersectionObserver' in window ? new IntersectionObserver(function (entri) {
+        entri.forEach(function (e) {
+            var host = e.target;
+            host._liveTerlihat = e.isIntersecting;
+            if (e.isIntersecting && host._liveAntre) {
+                var antre = host._liveAntre;
+                host._liveAntre = null;
+                antre.forEach(function (fn) { fn(); });
+            }
+        });
+    }, { rootMargin: '-15% 0px' }) : null;
+
+    function saatTerlihat(host, fn) {
+        if (!pengamat || host._liveTerlihat) {
+            fn();
+            return;
+        }
+        (host._liveAntre = host._liveAntre || []).push(fn);
+    }
+
+    function tandaiBaru($host) {
+        var badge = $host.find('[data-live-badge]').get(0);
+        if (!badge) {
+            return;
+        }
+        badge.hidden = false;
+        kedip(badge, 'ds-badge-tampil');
+        clearTimeout(badge._liveTimer);
+        badge._liveTimer = setTimeout(function () { badge.hidden = true; }, BADGE_MS);
+    }
+
+    function sorot($host, daftar) {
+        sibuk($host);
+        daftar.forEach(function (u) {
+            animasi(u.td, u.dari, u.teks);
+            if (u.arah) {
+                u.td.setAttribute('data-arah', u.arah);
+            } else {
+                u.td.removeAttribute('data-arah');
+            }
+            kedip(u.td, 'ds-berubah');
+            // Tabel bisa ter-scroll horizontal: kepala baris ikut disorot agar baris yang berubah tetap terlihat
+            var kepala = u.td.parentNode.querySelector('th[scope="row"]');
+            if (kepala) {
+                kedip(kepala, 'ds-berubah');
+            }
+        });
+        tandaiBaru($host);
+    }
+
     function terapkan($host, html) {
         var $baru = $('<div>').append($.parseHTML(html));
         var lama = sel($host);
@@ -92,24 +154,30 @@
         // Struktur berubah (mis. lokasi baru): ganti seluruh isi
         if (lama.length !== baru.length || label($host) !== label($baru)) {
             $host.html(html).trigger('host:loaded');
+            saatTerlihat($host[0], function () { tandaiBaru($host); });
             return;
         }
 
-        var berubah = false;
+        var daftar = [];
         lama.forEach(function (td, i) {
             var teksBaru = $.trim(baru[i].textContent);
             if ((td._liveAkhir || $.trim(td.textContent)) === teksBaru) {
                 return;
             }
             var kini = baca(td.textContent);
-            animasi(td, kini ? kini.nilai : 0, teksBaru);
-            td.classList.remove('ds-berubah');
-            void td.offsetWidth; // restart animasi CSS
-            td.classList.add('ds-berubah');
-            berubah = true;
+            var ke = baca(teksBaru);
+            var dari = kini ? kini.nilai : 0;
+            // Ditandai sekarang agar polling berikutnya tidak mengantre perubahan yang sama
+            td._liveAkhir = teksBaru;
+            daftar.push({
+                td: td,
+                dari: dari,
+                teks: teksBaru,
+                arah: kini && ke && ke.nilai !== dari ? (ke.nilai > dari ? 'naik' : 'turun') : null
+            });
         });
-        if (berubah) {
-            sibuk($host);
+        if (daftar.length) {
+            saatTerlihat($host[0], function () { sorot($host, daftar); });
         }
 
         var jamBaru = $baru.find('[data-clock]').get(0);
@@ -151,6 +219,20 @@
             // Gagal (mis. 429) diabaikan diam-diam; dicoba lagi di jadwal berikutnya
             .always(function () { jadwal($host); });
     }
+
+    // Sorotan selesai: kelas dilepas agar panah (statis saat reduced-motion) tidak tertinggal
+    $(document).on('animationend', '.ds-berubah', function (e) {
+        var asli = e.originalEvent;
+        if (asli.animationName === 'ds-berubah' && !asli.pseudoElement) {
+            this.classList.remove('ds-berubah');
+        }
+    });
+
+    $(function () {
+        if (pengamat) {
+            $('[data-live]').each(function () { pengamat.observe(this); });
+        }
+    });
 
     $(document).on('host:loaded', '[data-live]', function () {
         var $host = $(this);
