@@ -84,7 +84,7 @@ class CapaianKpiKelurahanTest extends TestCase
 
     public function test_kelurahan_and_pt_rows_have_kpi_values_sorted_by_capaian(): void
     {
-        $data = app(PenguranganSampahService::class)->capaianKpiKelurahan(null);
+        $data = app(PenguranganSampahService::class)->capaianKpiKelurahan($this->bulan);
 
         $this->assertSame($this->bulan, $data['bulan']);
         $this->assertSame(['Desa Satu', 'Desa Dua'], $data['kelurahan']->pluck('desa')->all());
@@ -137,6 +137,8 @@ class CapaianKpiKelurahanTest extends TestCase
         $data = app(PenguranganSampahService::class)->capaianKpiKelurahan(PenguranganSampahService::SEMUA_BULAN);
 
         $this->assertSame(PenguranganSampahService::SEMUA_BULAN, $data['bulan']);
+        // Tanpa bulan = default semua bulan
+        $this->assertEquals($data, app(PenguranganSampahService::class)->capaianKpiKelurahan(null));
         $dua = $data['kelurahan']->firstWhere('desa', 'Desa Dua');
         $this->assertEquals(25.0, $dua->persen);
         $this->assertEquals(25.0, $dua->pt->first()->persen);
@@ -204,7 +206,7 @@ class CapaianKpiKelurahanTest extends TestCase
             ->assertSee('aria-sort=descending', false);
         // Kolom aktif (desc) dibalik ke asc, kolom lain mulai asc
         foreach (array_keys(CapaianKpiRequest::SORT) as $kolom) {
-            $res->assertSee(e(route('capaian-kpi', ['bulan' => $this->bulan, 'sort' => $kolom, 'dir' => 'asc'])), false);
+            $res->assertSee(e(route('capaian-kpi', ['bulan' => PenguranganSampahService::SEMUA_BULAN, 'sort' => $kolom, 'dir' => 'asc'])), false);
         }
     }
 
@@ -222,7 +224,7 @@ class CapaianKpiKelurahanTest extends TestCase
     {
         $this->loginAs('pemda');
         $ws = $this->xlsxFromResponse(
-            $this->get(route('capaian-kpi.export', ['q' => 'alfa', 'sort' => 'desa'])),
+            $this->get(route('capaian-kpi.export', ['bulan' => $this->bulan, 'q' => 'alfa', 'sort' => 'desa'])),
             '/capaian-kpi-kelurahan-'.$this->bulan.'_.*\\.xlsx/'
         );
 
@@ -274,7 +276,7 @@ class CapaianKpiKelurahanTest extends TestCase
         $this->loginAs('admin');
         $this->get(route('capaian-kpi'))->assertOk()
             ->assertSee('btn-action-view', false)
-            ->assertSee(e(route('capaian-kpi.detail', ['desa' => $this->d['desa_satu']->id_desa, 'kodept' => $this->d['pt_hijau']->npsn, 'bulan' => $this->bulan])), false);
+            ->assertSee(e(route('capaian-kpi.detail', ['desa' => $this->d['desa_satu']->id_desa, 'kodept' => $this->d['pt_hijau']->npsn, 'bulan' => PenguranganSampahService::SEMUA_BULAN])), false);
     }
 
     public function test_ajax_request_returns_table_partial_with_filter_links(): void
@@ -287,7 +289,7 @@ class CapaianKpiKelurahanTest extends TestCase
             ->assertSee('data-filter-links', false)
             ->assertSee('Desa Dua')
             ->assertDontSee('Desa Satu')
-            ->assertSee(e(route('capaian-kpi.export', ['bulan' => $this->bulan, 'q' => 'beta', 'sort' => 'desa', 'dir' => 'asc'])), false);
+            ->assertSee(e(route('capaian-kpi.export', ['bulan' => PenguranganSampahService::SEMUA_BULAN, 'q' => 'beta', 'sort' => 'desa', 'dir' => 'asc'])), false);
 
         $this->get(route('capaian-kpi'))->assertViewIs('capaiankpi.index')->assertSee('data-filter-host', false);
     }
@@ -313,7 +315,7 @@ class CapaianKpiKelurahanTest extends TestCase
         $this->assertSame([30, false], [$semua->count(), $semua->hasPages()]);
         $this->get(route('capaian-kpi', ['per_page' => 0]))
             ->assertSee('<option value="0" selected>Semua</option>', false)
-            ->assertSee(e(route('capaian-kpi', ['bulan' => $this->bulan, 'per_page' => 0, 'sort' => 'desa', 'dir' => 'asc'])), false);
+            ->assertSee(e(route('capaian-kpi', ['bulan' => PenguranganSampahService::SEMUA_BULAN, 'per_page' => 0, 'sort' => 'desa', 'dir' => 'asc'])), false);
 
         $this->get(route('capaian-kpi', ['per_page' => 7]))->assertSessionHasErrors('per_page');
     }

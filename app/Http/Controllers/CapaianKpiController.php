@@ -53,7 +53,7 @@ class CapaianKpiController extends Controller
 
         return view('capaiankpi._detail', [
             'detail' => $sampah->detailPtKelurahan($request->validated('desa'), $request->validated('kodept'), $bulan),
-            'semuaBulan' => $bulan === PenguranganSampahService::SEMUA_BULAN,
+            'semuaBulan' => ! $bulan || $bulan === PenguranganSampahService::SEMUA_BULAN,
         ]);
     }
 
@@ -71,7 +71,8 @@ class CapaianKpiController extends Controller
     {
         $bulan = $request->validated('bulan');
         $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0');
-        $data = Cache::remember('capaiankpi.v3.'.$versi.'.'.($bulan ?? 'terakhir'), now()->addMinutes(10), fn () => $sampah->capaianKpiKelurahan($bulan));
+        $bulan = $bulan ?: PenguranganSampahService::SEMUA_BULAN;
+        $data = Cache::remember('capaiankpi.v4.'.$versi.'.'.$bulan, now()->addMinutes(10), fn () => $sampah->capaianKpiKelurahan($bulan));
 
         $params = [
             'q' => $request->validated('q'),

@@ -112,7 +112,7 @@ class RekapsampahController extends Controller
         $mingguan = $user->role === 'pemda';
         $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0');
 
-        return Cache::remember('rekapsampah.v4.'.$versi.'.'.md5($scope.'|'.(int) $mingguan.'|'.json_encode($input)), now()->addMinutes(10), function () use ($request, $sampah, $isPt, $mingguan) {
+        return Cache::remember('rekapsampah.v5.'.$versi.'.'.md5($scope.'|'.(int) $mingguan.'|'.json_encode($input)), now()->addMinutes(10), function () use ($request, $sampah, $isPt, $mingguan) {
             [$filter, $klasterPt] = $this->filter($request, $sampah);
 
             return [
@@ -134,9 +134,9 @@ class RekapsampahController extends Controller
         $isPt = $user->role === 'pt';
         $kodept = $isPt ? $user->email : $request->validated('kodept');
 
-        // PT dikunci ke PT-nya sendiri; bulan default = bulan terakhir yang ada datanya, "semua" = tanpa filter bulan
+        // PT dikunci ke PT-nya sendiri; bulan default/"semua" = tanpa filter bulan
         $bulan = $request->validated('bulan');
-        $bulan = $bulan === 'semua' ? null : ($bulan ?: $sampah->bulanTerakhir($kodept));
+        $bulan = $bulan === PenguranganSampahService::SEMUA_BULAN ? null : ($bulan ?: null);
         $filter = ['bulan' => $bulan, 'id_kecamatan' => $request->validated('kecamatan'), 'kodept' => $kodept, 'lokasi' => $request->validated('lokasi')];
 
         if ($isPt) {
