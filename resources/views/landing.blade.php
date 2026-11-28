@@ -230,7 +230,7 @@
                 <div class="card lp-card" data-reveal>
                     <div class="card-body">
                         @isset($laporan)
-                            <div data-drilldown="{{ route('login.laporan') }}" aria-live="polite">
+                            <div data-drilldown="{{ route('login.laporan') }}" data-poll="30" aria-live="polite">
                                 @include('laporan._capaian_publik', $laporan)
                             </div>
                         @else

@@ -6,6 +6,7 @@
  * - Klik  : [data-drill='{"kecamatan": id}'] / [data-drill='{"desa": id}'] memuat ulang host
  * - Detail: [data-detail-toggle="id-baris"] buka/tutup baris detail
  * - Publik: select[name=klaster], [data-drill-reset], [data-png-download] (html-to-image lazy) — aktif hanya bila elemen ada
+ * - Poll  : [data-drilldown][data-poll="30"] cek ulang tiap N detik; root wajib punya data-versi (versi data server)
  * Tabel dengan filter (mis. resources/views/rekapsampah/_tabel.blade.php):
  * - Host  : <div data-filter-host="url">; select di form[data-filter] memuat ulang host
  *           isi awal kosong atau hanya [data-placeholder] (skeleton) = dimuat saat halaman siap
@@ -44,11 +45,14 @@
         return req;
     }
 
+    // Polling yang sedang jalan ikut dibatalkan agar tidak menimpa pilihan pengguna
     function batal($host) {
-        var req = $host.data('req');
-        if (req) {
-            req.abort();
-        }
+        $.each(['req', 'pollReq'], function (_, kunci) {
+            var req = $host.data(kunci);
+            if (req) {
+                req.abort();
+            }
+        });
     }
 
     function muatDari(el, ubah) {
@@ -102,7 +106,7 @@
         if (!node) {
             return;
         }
-        var bulan = ($root.data('params') || {}).bulan || new Date().toISOString().slice(0, 7);
+        var bulan = ($root.data('params') || {}).bulan || 'semua';
         $btn.prop('disabled', true);
 
         loadHtmlToImage($btn.data('png-lib'))
@@ -179,12 +183,65 @@
         e.preventDefault();
     });
 
+    // Pengguna sedang memakai laporan: request jalan, fokus di dalam host (select terbuka), atau baris detail terbuka
+    function sibuk($host) {
+        var req = $host.data('req');
+        if (req && req.state() === 'pending') {
+            return true;
+        }
+        if ($.contains($host[0], document.activeElement)) {
+            return true;
+        }
+        return $host.find('[data-detail-toggle]').toArray().some(function (el) {
+            var detail = document.getElementById($(el).data('detail-toggle'));
+            return detail && !detail.classList.contains('d-none');
+        });
+    }
+
+    // Muat ulang senyap dengan state terakhir; isi diganti hanya bila data-versi root berubah
+    function polling($host) {
+        var $root = $host.find('[data-drilldown-root]');
+        if (document.hidden || !$root.length || sibuk($host)) {
+            return;
+        }
+        var lama = $host.data('pollReq');
+        if (lama) {
+            lama.abort();
+        }
+        $host.data('pollReq', $.get($host.data('drilldown'), $root.data('params')).done(function (html) {
+            // DOMParser: inert, script & gambar respons tidak dijalankan/dimuat saat dicek
+            var rootBaru = new DOMParser().parseFromString(html, 'text/html').querySelector('[data-drilldown-root]');
+            var versiBaru = rootBaru && rootBaru.getAttribute('data-versi');
+            if (!versiBaru || versiBaru === $root.attr('data-versi') || sibuk($host)) {
+                return;
+            }
+            $host.html(html);
+        }));
+    }
+
+    // Host [data-drilldown][data-poll="detik"]; saat tab kembali aktif langsung dicek
+    function mulaiPolling($host) {
+        var detik = parseInt($host.data('poll'), 10);
+        if (!(detik > 0)) {
+            return;
+        }
+        setInterval(function () { polling($host); }, detik * 1000);
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) {
+                polling($host);
+            }
+        });
+    }
+
     $(function () {
         $('[data-drilldown], [data-filter-host]').each(function () {
             var $host = $(this);
             if ($.trim($host.html()) === '' || $host.children('[data-placeholder]').length) {
                 muat($host, $host.data('drilldown') || $host.data('filter-host'));
             }
+        });
+        $('[data-drilldown][data-poll]').each(function () {
+            mulaiPolling($(this));
         });
     });
 })(jQuery);

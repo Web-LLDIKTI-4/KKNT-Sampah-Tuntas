@@ -17,16 +17,15 @@
     };
     $exportCapaian = $exportRoute && Route::has($exportRoute);
 @endphp
-<div class="capaian-publik" data-drilldown-root data-params='@json($params)'>
+<div class="capaian-publik" data-drilldown-root data-params='@json($params)' data-versi="{{ $versi ?? '' }}">
     <div class="capaian-toolbar d-flex flex-wrap align-items-end justify-content-end gap-2 mb-3">
         <div class="capaian-field">
             <label class="form-label small mb-1" for="capaianBulan">Bulan</label>
             <select name="bulan" id="capaianBulan" class="form-select form-select-sm">
-                @forelse ($bulanList as $bulan)
+                <option value="" @selected(! $params['bulan'])>Semua Bulan</option>
+                @foreach ($bulanList as $bulan)
                     <option value="{{ $bulan }}" @selected($bulan === $params['bulan'])>{{ Carbon::parse($bulan.'-01')->translatedFormat('F Y') }}</option>
-                @empty
-                    <option value="">Belum ada data</option>
-                @endforelse
+                @endforeach
             </select>
         </div>
         <div class="capaian-field">

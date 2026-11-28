@@ -217,7 +217,9 @@ class LoginController extends Controller
         // Versi peta ikut: berubah saat master desa (mis. baseline) disimpan
         $versi = Cache::get(PenguranganSampah::PUBLIC_VERSION_CACHE_KEY, '0').'.'.Cache::get(PetaSebaranService::VERSION_CACHE_KEY, 1);
 
-        return Cache::remember('login.capaian.v9.'.$versi.'.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter));
+        // versi ikut ke view: dicek polling landing (public/js/drilldown.js) untuk tahu data berubah
+        return Cache::remember('login.capaian.v10.'.$versi.'.'.md5(json_encode($filter)), now()->addMinutes(10), fn () => $sampah->drilldownPublik($filter))
+            + ['versi' => $versi];
     }
 
     /**
