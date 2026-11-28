@@ -136,7 +136,7 @@ class CapaianKegiatanExportPeriodeTest extends TestCase
         $this->assertSame(16.0, (float) $ws->getColumnDimension('D')->getWidth());
         $this->assertSame('0.00%', $ws->getStyle('L3')->getNumberFormat()->getFormatCode());
         $this->assertSame('#,##0', $ws->getStyle('D3')->getNumberFormat()->getFormatCode());
-        $this->assertSame('#,##0.00', $ws->getStyle('G3')->getNumberFormat()->getFormatCode());
+        $this->assertSame('#,##0.00#', $ws->getStyle('G3')->getNumberFormat()->getFormatCode());
         $this->assertSame('thin', $ws->getStyle('L4')->getBorders()->getBottom()->getBorderStyle());
         $this->assertSame('Evaluasi Pendataan Sampah', $ws->getTitle());
     }

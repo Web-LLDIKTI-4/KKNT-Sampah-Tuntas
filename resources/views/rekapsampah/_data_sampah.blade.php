@@ -4,7 +4,7 @@
     $koefisien = fn ($v) => $v === null ? '-' : rtrim(rtrim(number_format((float) $v, 4, ',', '.'), '0'), ',');
     $formatNilai = [
         'angka' => fn ($v) => PenguranganSampah::formatAngka($v),
-        'berat' => fn ($v) => PenguranganSampah::formatAngka($v, 2),
+        'berat' => fn ($v) => PenguranganSampah::formatBerat($v),
         'persen' => fn ($v) => PenguranganSampah::formatPersen($v === null ? null : (float) $v),
     ];
 
@@ -159,15 +159,15 @@
     var filter = @json((object) $paramFilter);
     var escape = $.fn.dataTable.render.text().display;
     var kosong = function (d) { return d === null || d === undefined || d === ''; };
-    var angka = function (desimal, akhiran) {
+    var angka = function (desimal, akhiran, maksDesimal) {
         return function (d) {
-            return kosong(d) ? '-' : Number(d).toLocaleString('id-ID', {minimumFractionDigits: desimal, maximumFractionDigits: desimal}) + (akhiran || '');
+            return kosong(d) ? '-' : Number(d).toLocaleString('id-ID', {minimumFractionDigits: desimal, maximumFractionDigits: maksDesimal || desimal}) + (akhiran || '');
         };
     };
     var render = {
         text: function (d) { return kosong(d) ? '-' : escape(String(d)); },
         angka: angka(0),
-        berat: angka(2),
+        berat: angka(2, '', 3),
         persen: angka(2, '%')
     };
     var koefisien = function (d) {

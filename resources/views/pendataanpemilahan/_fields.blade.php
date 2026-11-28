@@ -54,7 +54,7 @@
 <h6 class="mb-4">Timbulan Sampah (kg)</h6>
 <div class="mb-6">
     <div class="form-group form-floating form-floating-outline">
-        <input type="number" name="organik_kg" id="sampah-organik" class="form-control form-control-sm" required min="0" max="{{ \App\Services\LogHarianService::MAX_BERAT_KG }}" step="0.01" value="{{ $nilai('organik_kg') }}">
+        <input type="number" name="organik_kg" id="sampah-organik" class="form-control form-control-sm" required min="0" max="{{ \App\Services\LogHarianService::MAX_BERAT_KG }}" step="0.001" inputmode="decimal" value="{{ $nilai('organik_kg') }}">
         <label for="sampah-organik">Organik Terkelola (kg) {!! $wajib !!}</label>
     </div>
     <span id="organik_kg_error" class="text-danger"></span>
@@ -62,7 +62,7 @@
 </div>
 <div class="mb-6">
     <div class="form-group form-floating form-floating-outline">
-        <input type="number" name="anorganik_kg" id="sampah-anorganik" class="form-control form-control-sm" required min="0" max="{{ \App\Services\LogHarianService::MAX_BERAT_KG }}" step="0.01" value="{{ $nilai('anorganik_kg') }}">
+        <input type="number" name="anorganik_kg" id="sampah-anorganik" class="form-control form-control-sm" required min="0" max="{{ \App\Services\LogHarianService::MAX_BERAT_KG }}" step="0.001" inputmode="decimal" value="{{ $nilai('anorganik_kg') }}">
         <label for="sampah-anorganik">Anorganik Terkelola (kg) {!! $wajib !!}</label>
     </div>
     <span id="anorganik_kg_error" class="text-danger"></span>
@@ -70,7 +70,7 @@
 </div>
 <div class="mb-6">
     <div class="form-group form-floating form-floating-outline">
-        <input type="number" name="residu_kg" id="sampah-residu" class="form-control form-control-sm" required min="0" max="{{ \App\Services\LogHarianService::MAX_BERAT_KG }}" step="0.01" value="{{ $nilai('residu_kg') }}">
+        <input type="number" name="residu_kg" id="sampah-residu" class="form-control form-control-sm" required min="0" max="{{ \App\Services\LogHarianService::MAX_BERAT_KG }}" step="0.001" inputmode="decimal" value="{{ $nilai('residu_kg') }}">
         <label for="sampah-residu">Residu (kg) {!! $wajib !!}</label>
     </div>
     <span id="residu_kg_error" class="text-danger"></span>

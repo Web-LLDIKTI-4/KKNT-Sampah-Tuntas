@@ -113,7 +113,7 @@ class RekapLldiktiSheet implements FromArray, WithTitle, WithEvents, WithStrictN
         if ($akhir >= $awal) {
             $sheet->getStyle("A$awal:B$akhir")->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
             $sheet->getStyle("D$awal:E$akhir")->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->getStyle("G$awal:K$akhir")->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle("G$awal:K$akhir")->getNumberFormat()->setFormatCode('#,##0.00#');
             foreach (['F', 'L'] as $kolom) {
                 $sheet->getStyle("$kolom$awal:$kolom$akhir")->getNumberFormat()->setFormatCode('0.00%');
             }

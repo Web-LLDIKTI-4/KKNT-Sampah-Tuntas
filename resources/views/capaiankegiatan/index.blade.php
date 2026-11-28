@@ -3,7 +3,7 @@
 @section('container')
 @php
     use App\Models\PenguranganSampah;
-    $berat = fn ($v) => PenguranganSampah::formatAngka($v, 2);
+    $berat = fn ($v) => PenguranganSampah::formatBerat($v);
 @endphp
 
 <x-page-header

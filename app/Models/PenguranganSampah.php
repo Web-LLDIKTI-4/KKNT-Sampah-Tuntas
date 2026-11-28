@@ -100,6 +100,17 @@ class PenguranganSampah extends Model
         return $value === null ? '-' : number_format((float) $value, $desimal, ',', '.');
     }
 
+    // Berat kg: 2–3 desimal, mis. "0,925" / "1,50"
+    public static function formatBerat($value): string
+    {
+        if ($value === null) {
+            return '-';
+        }
+        $teks = number_format((float) $value, 3, ',', '.');
+
+        return str_ends_with($teks, '0') ? substr($teks, 0, -1) : $teks;
+    }
+
     public static function formatPersen(?float $value): string
     {
         return $value === null ? '-' : number_format($value, 2, ',', '.').'%';
