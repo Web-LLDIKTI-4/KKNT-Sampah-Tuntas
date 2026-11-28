@@ -85,7 +85,11 @@ class LandingPageTest extends TestCase
             ->assertSeeInOrder(['id="lpOffcanvas"', 'href="'.route('login').'"', 'Masuk'], false)
             ->assertSee('class="btn btn-primary lp-cta d-none d-sm-inline-flex"', false)
             ->assertSee('<a href="#lokasi" class="btn btn-lg lp-btn-ghost">Pilih Lokasi &amp; Masuk', false)
-            ->assertSee('data-drilldown="'.route('login.laporan').'"', false)
+            ->assertSee('data-drilldown="'.route('login.laporan').'" data-poll="30"', false)
+            // Default filter bulan = semua bulan; data-versi dipakai polling untuk mendeteksi perubahan data
+            ->assertSee('<option value="" selected>Semua Bulan</option>', false)
+            ->assertSee('data-versi="', false)
+            ->assertViewHas('laporan', fn ($l) => $l['params']['bulan'] === null && ($l['versi'] ?? '') !== '')
             ->assertSee('id="peserta"', false)
             ->assertSee('data-url="'.route('login.peta').'"', false)
             ->assertSee('id="dokumen"', false)

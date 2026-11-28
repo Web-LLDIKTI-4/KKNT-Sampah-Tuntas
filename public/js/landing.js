@@ -1096,7 +1096,8 @@
         });
     }
 
-    function petaRender(res) {
+    // keepView: render ulang dari polling, zoom/posisi peta pengguna tidak di-reset
+    function petaRender(res, keepView) {
       var rows = res.desa;
       var order = [];
 
@@ -1162,7 +1163,7 @@
         return;
       }
       petaStatus("", false);
-      petaFit();
+      if (!keepView || !petaFitted) petaFit();
     }
 
     function petaFit() {
@@ -1327,6 +1328,43 @@
       petaFetch();
     }
 
+    // Polling: data filter aktif dicek ulang berkala, dirender ulang hanya bila berubah.
+    // Dilewati saat tab tersembunyi, request lain berjalan, atau pengguna sedang memakai peta (popup/dropdown/daftar terbuka)
+    var PETA_POLL_MS = 30000;
+    var petaPollXhr = null;
+
+    function petaSibuk() {
+      return document.hidden || petaBooting || !petaMap ||
+        $("#petaMapWrap").attr("aria-busy") === "true" ||
+        document.getElementById("petaUnmapped").open ||
+        $("#peta .select2-container--open").length > 0 ||
+        petaMarkers.some(function (m) { return m && m.isPopupOpen(); });
+    }
+
+    function petaPoll() {
+      if (petaSibuk()) return;
+      var params = petaParams();
+      var key = $.param(params);
+      var seq = petaSeq;
+      if (petaPollXhr) petaPollXhr.abort();
+      petaPollXhr = $.getJSON($("#petaSebaran").data("url"), params).done(function (res) {
+        // Filter diganti saat polling berjalan (petaSeq naik) = respons dibuang
+        if (seq !== petaSeq || key !== $.param(petaParams()) || !res || !Array.isArray(res.desa) || petaSibuk()) return;
+        if (JSON.stringify(res) === JSON.stringify(petaCache[key])) return;
+        // Data berubah: cache kombinasi filter lain ikut basi
+        petaCache = {};
+        petaCache[key] = res;
+        petaRender(res, true);
+      });
+    }
+
+    function petaStartPolling() {
+      setInterval(petaPoll, PETA_POLL_MS);
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) petaPoll();
+      });
+    }
+
     function petaBootFail() {
       petaBooting = false;
       petaStatus("Peta gagal dimuat. Silakan coba lagi.", true);
@@ -1344,6 +1382,7 @@
             petaInitMap();
             petaBuildFilters();
             petaReset();
+            petaStartPolling();
           })
           .fail(petaBootFail);
       }, petaBootFail);
